@@ -1,7 +1,7 @@
 ﻿
 using System.Text.Json.Serialization;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 /// <summary>
 /// The Unit type (product of zero types). It has only one instance.

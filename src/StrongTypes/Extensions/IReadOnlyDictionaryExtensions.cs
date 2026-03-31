@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static class IReadOnlyDictionaryExtensions
 {

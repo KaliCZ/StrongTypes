@@ -1,5 +1,5 @@
 ﻿using System;
-namespace FuncSharp;
+namespace StrongTypes;
 
 public class ComparableTotalOrder<A> : TotalOrder<A>
     where A : IComparable<A>

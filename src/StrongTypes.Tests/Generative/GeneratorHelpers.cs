@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FsCheck;
 
-namespace FuncSharp.Tests.Generative;
+namespace StrongTypes.Tests.Generative;
 
 internal static class GeneratorExtensions
 {

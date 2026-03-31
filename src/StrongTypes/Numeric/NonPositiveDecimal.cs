@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public struct NonPositiveDecimal : IEquatable<NonPositiveDecimal>
 {

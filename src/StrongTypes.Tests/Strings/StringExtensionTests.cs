@@ -2,7 +2,7 @@
 using System.Globalization;
 using Xunit;
 
-namespace FuncSharp.Tests.Strings;
+namespace StrongTypes.Tests.Strings;
 
 public class StringExtensionTests
 {

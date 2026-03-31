@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 /// <summary>
 /// A total order relation for the specified type.

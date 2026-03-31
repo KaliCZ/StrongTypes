@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using FsCheck;
 
-namespace FuncSharp.Tests.Generative;
+namespace StrongTypes.Tests.Generative;
 
 public class OptionGenerators
 {
@@ -26,7 +26,7 @@ public class OptionGenerators
         Doubles = Arb.From(DefaultOptionListGenerator<double>(), Shrinkers.Options.DoubleList);
         NullableDouble = Arb.From(DefaultOptionGenerator<double?>(), Shrinkers.Options.NullableDouble);
 
-        Unit = Arb.From(Gen.Constant(FuncSharp.Unit.Value).SometimesEmpty()); // No shrinker needed for Unit
+        Unit = Arb.From(Gen.Constant(StrongTypes.Unit.Value).SometimesEmpty()); // No shrinker needed for Unit
 
         var referenceTypeGenerator = Arb.From<int>().Generator.Select(i => new ReferenceType(i));
         ReferenceType = Arb.From(referenceTypeGenerator.SometimesEmpty(), Shrinkers.Options.ReferenceType);

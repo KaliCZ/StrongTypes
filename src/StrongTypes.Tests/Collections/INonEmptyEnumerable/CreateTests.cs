@@ -2,7 +2,7 @@
 using System.Linq;
 using Xunit;
 
-namespace FuncSharp.Tests.Collections.INonEmptyEnumerable;
+namespace StrongTypes.Tests.Collections.INonEmptyEnumerable;
 
 public class CreateTests
 {

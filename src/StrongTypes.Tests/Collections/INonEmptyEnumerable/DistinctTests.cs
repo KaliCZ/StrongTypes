@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Xunit;
 
-namespace FuncSharp.Tests.Collections.INonEmptyEnumerable;
+namespace StrongTypes.Tests.Collections.INonEmptyEnumerable;
 
 public class DistinctTests
 {

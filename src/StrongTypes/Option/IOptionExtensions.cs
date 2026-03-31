@@ -2,7 +2,7 @@
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static partial class OptionExtensions
 {

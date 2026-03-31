@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 /// <summary>
 /// A finite morphism from values of type <typeparamref name="A"/> to values of type <typeparamref name="B"/>.

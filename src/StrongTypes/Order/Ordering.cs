@@ -1,4 +1,4 @@
-﻿namespace FuncSharp;
+﻿namespace StrongTypes;
 
 public enum Ordering
 {

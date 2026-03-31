@@ -2,7 +2,7 @@
 using System.Diagnostics.Contracts;
 using System.Globalization;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static class NonEmptyStringExtensions
 {

@@ -1,7 +1,7 @@
 ﻿
 using System;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 /// <summary>
 /// A 0-dimensional relation.

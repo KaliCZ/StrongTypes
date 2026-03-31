@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Xunit;
 
-namespace FuncSharp.Tests;
+namespace StrongTypes.Tests;
 
 public class TryConverterTests
 {

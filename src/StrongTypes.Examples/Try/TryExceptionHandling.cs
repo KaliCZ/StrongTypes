@@ -3,7 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace FuncSharp.Examples;
+namespace StrongTypes.Examples;
 
 public enum NetworkOperationError
 {

@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static class ReadOnlyList
 {

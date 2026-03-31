@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public interface INonEmptyEnumerable<out T> : IReadOnlyList<T>
 {

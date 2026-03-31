@@ -2,7 +2,7 @@
 using System.Linq;
 using Xunit;
 
-namespace FuncSharp.Tests.Collections;
+namespace StrongTypes.Tests.Collections;
 
 public class SingleOptionTests
 {

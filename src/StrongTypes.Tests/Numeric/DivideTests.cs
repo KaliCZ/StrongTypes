@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace FuncSharp.Tests.Numeric;
+namespace StrongTypes.Tests.Numeric;
 
 public class DivideTests
 {

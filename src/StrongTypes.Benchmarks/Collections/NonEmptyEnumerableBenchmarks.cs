@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using Enumerable = System.Linq.Enumerable;
 
-namespace FuncSharp.Benchmarks;
+namespace StrongTypes.Benchmarks;
 
 [MemoryDiagnoser]
 public class NonEmptyEnumerableBenchmarks

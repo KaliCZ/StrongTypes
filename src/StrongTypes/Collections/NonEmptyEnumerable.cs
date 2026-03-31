@@ -6,7 +6,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static class NonEmptyEnumerable
 {

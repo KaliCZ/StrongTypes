@@ -7,7 +7,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 /// <summary>
 /// A type that represents a disjunction of types, choice from multiple different types e.g. T1 or T2 or T3.

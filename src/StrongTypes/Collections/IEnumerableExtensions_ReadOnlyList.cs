@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.Contracts;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static partial class IEnumerableExtensions
 {

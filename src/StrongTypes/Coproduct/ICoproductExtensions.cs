@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static class ICoproductExtensions
 {

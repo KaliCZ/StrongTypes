@@ -4,7 +4,7 @@
 <#@ import namespace="System.Linq" #>
 <#@ output extension=".cs" #>
 <#@ include file="../Helpers.ttinclude" #>
-namespace FuncSharp;
+namespace StrongTypes;
 
 <#  for (var i = 0; i <= MaxProductArity(); i++) { #>
 <#      if (i > 0) { #>

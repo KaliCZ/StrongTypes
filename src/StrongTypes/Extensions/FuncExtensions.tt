@@ -6,7 +6,7 @@
 <#@ include file="../Helpers.ttinclude" #>
 using System;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static class FuncExtensions
 {

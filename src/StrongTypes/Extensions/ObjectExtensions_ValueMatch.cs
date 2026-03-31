@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static partial class ObjectExtensions
 {

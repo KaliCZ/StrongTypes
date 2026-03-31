@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.Contracts;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 /// <summary>
 /// This interface serves for generic functionality such as comparing objects, sorting etc. However it bypasses the whole point of an Option - map and Match functions for accessing value.

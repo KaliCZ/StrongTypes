@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public sealed class NonEmptyString : IEquatable<string>, IEquatable<NonEmptyString>
 {

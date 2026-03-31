@@ -2,7 +2,7 @@
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static partial class IEnumerableExtensions
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static class BooleanExtensions
 {

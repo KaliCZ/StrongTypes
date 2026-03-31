@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FuncSharp.Examples;
+namespace StrongTypes.Examples;
 
 public static class TryBasics
 {

@@ -1,4 +1,4 @@
-﻿namespace FuncSharp.Examples;
+﻿namespace StrongTypes.Examples;
 
 public class Tree<A> : Coproduct2<Node<A>, Leaf>
 {

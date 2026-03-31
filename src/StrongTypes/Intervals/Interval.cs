@@ -1,4 +1,4 @@
-﻿namespace FuncSharp;
+﻿namespace StrongTypes;
 
 public class Interval<A> : Product2<Option<IntervalBound<A>>, Option<IntervalBound<A>>>
 {

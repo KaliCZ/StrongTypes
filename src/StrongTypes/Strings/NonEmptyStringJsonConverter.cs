@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public class NonEmptyStringJsonConverter : JsonConverter<NonEmptyString>
 {

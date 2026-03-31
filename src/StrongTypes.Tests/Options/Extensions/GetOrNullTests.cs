@@ -1,9 +1,9 @@
 ﻿using FsCheck;
 using FsCheck.Xunit;
-using FuncSharp.Tests.Generative;
+using StrongTypes.Tests.Generative;
 using Xunit;
 
-namespace FuncSharp.Tests.Options;
+namespace StrongTypes.Tests.Options;
 
 public class GetOrNullTests
 {

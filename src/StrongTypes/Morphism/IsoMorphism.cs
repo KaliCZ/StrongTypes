@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 internal class IsoMorphism<A, B> : Morphism<A, B>, IIsoMorphism<A, B>
 {

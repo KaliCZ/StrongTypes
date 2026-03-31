@@ -5,7 +5,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static class Try
 {

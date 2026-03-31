@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using FuncSharp.Tests.Generative;
+using StrongTypes.Tests.Generative;
 using Xunit;
 
-namespace FuncSharp.Tests.Collections.INonEmptyEnumerable;
+namespace StrongTypes.Tests.Collections.INonEmptyEnumerable;
 
 /// <summary>
 /// NonEmptyEnumerable is working with Spans for performance optimizations. However it can cause a `ArrayTypeMismatchException` when the array is of a different type than expected (due to inheritance of the type inside.)

@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace FuncSharp.Tests.Objects;
+namespace StrongTypes.Tests.Objects;
 
 public class ObjectExtensionsTests
 {

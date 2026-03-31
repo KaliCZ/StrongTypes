@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static class Option
 {
@@ -22,7 +22,7 @@ public static class Option
     /// Unit value as an option.
     /// </summary>
     [Pure]
-    public static Option<Unit> Unit { get; } = FuncSharp.Unit.Value.ToOption();
+    public static Option<Unit> Unit { get; } = StrongTypes.Unit.Value.ToOption();
 
     /// <summary>
     /// Creates a new option based on the specified value. Returns option with the value if is is non-null, empty otherwise.

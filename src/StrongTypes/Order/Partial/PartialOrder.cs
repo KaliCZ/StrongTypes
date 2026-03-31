@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 /// <summary>
 /// A partial order for the specified type.

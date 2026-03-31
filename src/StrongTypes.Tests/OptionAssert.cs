@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace FuncSharp.Tests;
+namespace StrongTypes.Tests;
 
 /// <summary>
 /// A class with methods for asserting expected states of Option

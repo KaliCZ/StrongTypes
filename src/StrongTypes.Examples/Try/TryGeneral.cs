@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FuncSharp.Examples;
+namespace StrongTypes.Examples;
 
 public class TryGeneral
 {

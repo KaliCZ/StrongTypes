@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 
-namespace FuncSharp.Benchmarks;
+namespace StrongTypes.Benchmarks;
 
 [MemoryDiagnoser]
 public class IEnumerableExtensionsBenchmarks

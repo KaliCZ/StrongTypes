@@ -1,4 +1,4 @@
-﻿namespace FuncSharp;
+﻿namespace StrongTypes;
 
 /// <summary>
 /// A finite isomorphism between values of type <typeparamref name="A"/> and values of type <typeparamref name="B"/>.

@@ -1,6 +1,6 @@
 using System;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public readonly struct Digit : IEquatable<Digit>
 {

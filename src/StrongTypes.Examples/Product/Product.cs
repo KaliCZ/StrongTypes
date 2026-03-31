@@ -1,4 +1,4 @@
-﻿namespace FuncSharp.Examples;
+﻿namespace StrongTypes.Examples;
 
 public class Point2D : Product2<float, float>
 {

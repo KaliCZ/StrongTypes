@@ -1,7 +1,7 @@
 ﻿using System;
 using Xunit;
 
-namespace FuncSharp.Tests;
+namespace StrongTypes.Tests;
 
 public class TotalOrderTests
 {

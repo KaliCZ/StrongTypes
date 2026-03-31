@@ -1,4 +1,4 @@
-﻿namespace FuncSharp;
+﻿namespace StrongTypes;
 
 /// <summary>
 /// The bottom uninhabited type. That is the type without any instances. Can be e.g. used to denote return type of 

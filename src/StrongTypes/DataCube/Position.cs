@@ -1,5 +1,5 @@
 ﻿
-namespace FuncSharp;
+namespace StrongTypes;
 
 /// <summary>
 /// A 0-dimensional data cube position.

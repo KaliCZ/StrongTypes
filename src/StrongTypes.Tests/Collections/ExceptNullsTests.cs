@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace FuncSharp.Tests.Collections;
+namespace StrongTypes.Tests.Collections;
 
 public class ExceptNullsTests
 {

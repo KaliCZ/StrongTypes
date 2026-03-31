@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public struct NonNegativeInt : IEquatable<NonNegativeInt>
 {

@@ -1,7 +1,7 @@
 ﻿
 using System;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static class ActionExtensions
 {

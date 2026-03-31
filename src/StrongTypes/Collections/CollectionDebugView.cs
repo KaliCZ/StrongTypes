@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 /// <summary>
 /// Copied from http://www.codeproject.com/Articles/28405/Make-the-debugger-show-the-contents-of-your-custom

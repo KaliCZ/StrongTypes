@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 /// <summary>
 /// A 0-dimensional data cube.

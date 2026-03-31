@@ -1,7 +1,7 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace FuncSharp.Benchmarks;
+namespace StrongTypes.Benchmarks;
 
 [MemoryDiagnoser]
 public class ObjectExtensionsBenchmarks

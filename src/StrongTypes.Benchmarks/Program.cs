@@ -1,6 +1,6 @@
 using BenchmarkDotNet.Running;
 
-namespace FuncSharp.Benchmarks;
+namespace StrongTypes.Benchmarks;
 
 public class Program
 {

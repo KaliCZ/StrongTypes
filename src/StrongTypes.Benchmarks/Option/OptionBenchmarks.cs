@@ -1,6 +1,6 @@
 using BenchmarkDotNet.Attributes;
 
-namespace FuncSharp.Benchmarks;
+namespace StrongTypes.Benchmarks;
 
 public class ReferenceType
 {

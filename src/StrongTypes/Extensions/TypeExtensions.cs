@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace FuncSharp;
+namespace StrongTypes;
 
 public static class TypeExtensions
 {

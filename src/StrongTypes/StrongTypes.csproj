@@ -13,7 +13,7 @@
     <PackageProjectUrl>https://github.com/KaliCZ/StrongTypes</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>Initial StrongTypes release, forked from FuncSharp. Targeting .NET 10.</PackageReleaseNotes>
+    <PackageReleaseNotes>Initial StrongTypes release, forked from FuncSharp.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/KaliCZ/StrongTypes</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

@@ -1,4 +1,4 @@
-namespace FuncSharp.Benchmarks;
+namespace StrongTypes.Benchmarks;
 
 public enum BenchmarkEnum
 {

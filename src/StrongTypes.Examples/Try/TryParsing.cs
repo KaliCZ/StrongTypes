@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FuncSharp.Examples;
+namespace StrongTypes.Examples;
 
 public enum PersonParsingError
 {
