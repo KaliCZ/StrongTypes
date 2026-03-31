@@ -1,0 +1,22 @@
+﻿using FsCheck;
+using StrongTypes.Tests.Generative;
+using Xunit;
+
+namespace StrongTypes.Tests.Options;
+
+public class OptionEmptyTests
+{
+    public OptionEmptyTests()
+    {
+        Arb.Register<OptionGenerators>();
+    }
+
+    [Fact]
+    public void Empty()
+    {
+        OptionAssert.IsEmpty(Option.Empty<int>());
+        OptionAssert.IsEmpty(Option.Empty<int?>());
+        OptionAssert.IsEmpty(Option.Empty<ReferenceType>());
+        OptionAssert.IsEmpty(Option.Empty<Unit>());
+    }
+}

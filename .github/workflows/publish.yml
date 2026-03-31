@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: [build-and-test]
     branches:
-      - master
+      - main
     types:
       - completed
 
@@ -20,7 +20,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: src/FuncSharp
+        working-directory: src/StrongTypes
 
     steps:
     - name: Checkout
