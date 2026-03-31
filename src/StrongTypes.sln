@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FuncSharp", "FuncSharp\FuncSharp.csproj", "{15BF2557-15C2-49D5-AAD2-359D10E647B8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrongTypes", "StrongTypes\StrongTypes.csproj", "{15BF2557-15C2-49D5-AAD2-359D10E647B8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FuncSharp.Tests", "FuncSharp.Tests\FuncSharp.Tests.csproj", "{AF10BBEC-20C9-474E-864A-4597B6C9278A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrongTypes.Tests", "StrongTypes.Tests\StrongTypes.Tests.csproj", "{AF10BBEC-20C9-474E-864A-4597B6C9278A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FuncSharp.Examples", "FuncSharp.Examples\FuncSharp.Examples.csproj", "{0D515251-0E05-4F53-BB3E-3809AD1EB189}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrongTypes.Examples", "StrongTypes.Examples\StrongTypes.Examples.csproj", "{0D515251-0E05-4F53-BB3E-3809AD1EB189}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FuncSharp.Benchmarks", "FuncSharp.Benchmarks\FuncSharp.Benchmarks.csproj", "{5F3E2D07-7A4B-43C4-965F-68319D6388E4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrongTypes.Benchmarks", "StrongTypes.Benchmarks\StrongTypes.Benchmarks.csproj", "{5F3E2D07-7A4B-43C4-965F-68319D6388E4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Other", "Other", "{82E5D417-88F4-4CA5-9CB5-E48CE32951E6}"
 	ProjectSection(SolutionItems) = preProject

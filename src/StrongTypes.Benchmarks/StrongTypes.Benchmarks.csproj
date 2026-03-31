@@ -8,7 +8,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FuncSharp\FuncSharp.csproj" />
+    <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
     <PackageReference Include="BenchmarkDotNet" Version="0.13.6" />
   </ItemGroup>
 </Project>

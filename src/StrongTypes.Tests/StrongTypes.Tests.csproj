@@ -12,6 +12,6 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FuncSharp\FuncSharp.csproj" />
+    <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
   </ItemGroup>
 </Project>
