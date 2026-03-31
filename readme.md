@@ -5,8 +5,8 @@
 [![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build-and-test.yml?branch=main&label=build%20and%20tests)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build-and-test.yml)
 [![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/publish.yml?branch=main&label=publish)](https://github.com/KaliCZ/StrongTypes/actions/workflows/publish.yml)
 [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
-[![NuGet Downloads](https://img.shields.io/nuget/dt/StrongTypes)](https://www.nuget.org/packages/StrongTypes/)
-[![NuGet Version](https://img.shields.io/nuget/v/StrongTypes)](https://www.nuget.org/packages/StrongTypes/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
+[![NuGet Version](https://img.shields.io/nuget/v/Kalicz.StrongTypes)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
 
 StrongTypes is a C# library whose main purpose is to reduce boilerplate code and avoid bugs thanks to stronger typing. It utilizes many concepts from functional programming languages that are also applicable in C#. Rather than introducing heavyweight abstractions, StrongTypes aims to complement the existing C# type system with a few well-chosen types that make everyday code safer and more expressive.
 
