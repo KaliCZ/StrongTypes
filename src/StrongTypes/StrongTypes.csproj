@@ -6,10 +6,10 @@
     <AssemblyVersion>0.1.0</AssemblyVersion>
     <FileVersion>0.1.0</FileVersion>
     <PackageId>StrongTypes</PackageId>
-    <Description>A C# library that reduces boilerplate and prevents bugs through stronger typing. Targets .NET 10 with nullable reference types. Based on FuncSharp by Honza Siroky.</Description>
-    <Authors>KaliCZ, Honza Siroky</Authors>
+    <Description>A C# library that reduces boilerplate and prevents bugs through stronger typing. Based on FuncSharp by Honza Siroky.</Description>
+    <Authors>KaliCZ</Authors>
     <PackageTags>StrongTypes, Functional C#, Product, Coproduct, ADT, Algebraic, Types, StrongTyping</PackageTags>
-    <Copyright>Copyright © 2024</Copyright>
+    <Copyright>Copyright © 2026 KaliCZ</Copyright>
     <PackageProjectUrl>https://github.com/KaliCZ/StrongTypes</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

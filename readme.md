@@ -1,6 +1,6 @@
 # StrongTypes - Stronger Typing for C#
 
-> **Work in Progress** - This repository is a fork of [FuncSharp](https://github.com/MewsSystems/FuncSharp), originally written by [Honza Siroky](https://github.com/siroky). The goal of StrongTypes is to target .NET 10 with nullable reference types enabled, leveraging modern C# language features while providing extra types that enable a better developer experience.
+> **Work in Progress** - This repository is based of [FuncSharp](https://github.com/MewsSystems/FuncSharp), originally written by [Honza Siroky](https://github.com/siroky). The goal of StrongTypes is to target .NET 10 with nullable reference types enabled, leveraging modern C# language features while providing extra types that enable a better developer experience.
 
 [![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build-and-test.yml?branch=main&label=build%20and%20tests)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build-and-test.yml)
 [![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/publish.yml?branch=main&label=publish)](https://github.com/KaliCZ/StrongTypes/actions/workflows/publish.yml)
@@ -85,4 +85,4 @@ Generic representation of an interval and interval set may seem simple on the fi
 
 ## Acknowledgments
 
-This library is based on [FuncSharp](https://github.com/MewsSystems/FuncSharp) by [Honza Siroky](https://github.com/siroky) and [Mews Systems](https://github.com/MewsSystems). Licensed under the [MIT License](license.txt).
+This library is based on [FuncSharp](https://github.com/MewsSystems/FuncSharp) by [Honza Siroky](https://github.com/siroky). Licensed under the [MIT License](license.txt).
