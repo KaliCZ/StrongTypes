@@ -69,14 +69,14 @@ public class TryTests
     [Fact]
     public void Aggregate()
     {
-        var r1 = Try.Aggregate(Success, Success, success: Product2.Create);
-        Assert.Equal(42, r1.Success.Get().ProductValue1);
-        Assert.Equal(42, r1.Success.Get().ProductValue2);
+        var r1 = Try.Aggregate(Success, Success, success: (a, b) => (a, b));
+        Assert.Equal(42, r1.Success.Get().a);
+        Assert.Equal(42, r1.Success.Get().b);
 
-        var r2 = Try.Aggregate(Success, Error, Product2.Create);
+        var r2 = Try.Aggregate(Success, Error, (int a, int b) => (a, b));
         Assert.Equal(Exception, r2.Error.Get().First());
 
-        var r3 = Try.Aggregate(Error, Error, Product2.Create);
+        var r3 = Try.Aggregate(Error, Error, (int a, int b) => (a, b));
         Assert.True(r3.Error.Get().SequenceEqual(new[] { Exception, Exception }));
 
         var r4 = Try.Aggregate(new[] { Success, Success, Success });
