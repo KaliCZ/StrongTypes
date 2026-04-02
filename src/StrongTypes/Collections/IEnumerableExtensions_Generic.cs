@@ -150,15 +150,6 @@ public static partial class IEnumerableExtensions
     }
 
     /// <summary>
-    /// Orders the values using the specified less function in the specified order.
-    /// </summary>
-    public static IEnumerable<T> Order<T>(this IEnumerable<T> values, Func<T, T, bool> less, Ordering ordering = Ordering.Ascending)
-    {
-        var comparer = new Comparer<T>(less, ordering);
-        return values.OrderBy(v => v, comparer);
-    }
-
-    /// <summary>
     /// Aggregates the exceptions into an AggregateException. If there is a single exception, returns it directly.
     /// </summary>
     public static Option<Exception> Aggregate(this IEnumerable<Exception> source)

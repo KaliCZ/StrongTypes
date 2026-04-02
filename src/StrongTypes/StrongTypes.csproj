@@ -2,18 +2,18 @@
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>CS1591</NoWarn>
-    <Version>0.1.0</Version>
-    <AssemblyVersion>0.1.0</AssemblyVersion>
-    <FileVersion>0.1.0</FileVersion>
+    <Version>0.2.0</Version>
+    <AssemblyVersion>0.2.0</AssemblyVersion>
+    <FileVersion>0.2.0</FileVersion>
     <PackageId>Kalicz.StrongTypes</PackageId>
     <Description>A C# library that reduces boilerplate and prevents bugs through stronger typing. Based on FuncSharp by Honza Siroky.</Description>
     <Authors>KaliCZ</Authors>
-    <PackageTags>StrongTypes, Functional C#, Product, Coproduct, ADT, Algebraic, Types, StrongTyping</PackageTags>
+    <PackageTags>StrongTypes, Functional C#, Parsing, Validations, Types, StrongTyping</PackageTags>
     <Copyright>Copyright © 2026 KaliCZ</Copyright>
     <PackageProjectUrl>https://github.com/KaliCZ/StrongTypes</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>Initial StrongTypes release, forked from FuncSharp.</PackageReleaseNotes>
+    <PackageReleaseNotes>Removed Intervals, DataCubes, Products, Morphism, Order, and Relations.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/KaliCZ/StrongTypes</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -33,10 +33,6 @@
     <None Update="Collections\IEnumerableExtensions_Coproducts.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>IEnumerableExtensions_Coproducts.cs</LastGenOutput>
-    </None>
-    <None Update="Collections\IEnumerableExtensions_DataCubes.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>IEnumerableExtensions_DataCubes.cs</LastGenOutput>
     </None>
     <None Update="Extensions\ObjectExtensions_ValueMatch.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -64,37 +60,9 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ICoproductExtensions.cs</LastGenOutput>
     </None>
-    <None Update="DataCube\DataCube.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>DataCube.cs</LastGenOutput>
-    </None>
-    <None Update="DataCube\DataCubes.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>DataCubes.cs</LastGenOutput>
-    </None>
-    <None Update="DataCube\Position.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Position.cs</LastGenOutput>
-    </None>
     <None Update="Extensions\ActionExtensions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ActionExtensions.cs</LastGenOutput>
-    </None>
-    <None Update="Extensions\FuncExtensions.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>FuncExtensions.cs</LastGenOutput>
-    </None>
-    <None Update="Product\IProduct.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>IProduct.cs</LastGenOutput>
-    </None>
-    <None Update="Product\Product.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Product.cs</LastGenOutput>
-    </None>
-    <None Update="Relation\Relations.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Relations.cs</LastGenOutput>
     </None>
     <None Update="Try\Try.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -117,45 +85,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>ICoproductExtensions.tt</DependentUpon>
     </Compile>
-    <Compile Update="DataCube\DataCube.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DataCube.tt</DependentUpon>
-    </Compile>
-    <Compile Update="DataCube\DataCubes.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DataCubes.tt</DependentUpon>
-    </Compile>
-    <Compile Update="DataCube\Position.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Position.tt</DependentUpon>
-    </Compile>
     <Compile Update="Extensions\ActionExtensions.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>ActionExtensions.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Extensions\FuncExtensions.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>FuncExtensions.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Product\IProduct.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>IProduct.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Product\Product.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Product.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Relation\Relations.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Relations.tt</DependentUpon>
     </Compile>
     <Compile Update="Try\Try.cs">
       <DesignTime>True</DesignTime>
@@ -166,11 +99,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>IEnumerableExtensions_Coproducts.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Collections\IEnumerableExtensions_DataCubes.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>IEnumerableExtensions_DataCubes.tt</DependentUpon>
     </Compile>
     <Compile Update="Extensions\ObjectExtensions_ValueMatch.cs">
       <DesignTime>True</DesignTime>

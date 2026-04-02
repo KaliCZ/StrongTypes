@@ -41,9 +41,9 @@ public static class ICoproductExtensions
     /// <summary>
     /// Canonical representation of the coproduct.
     /// </summary>
-    public static IProduct3<int, int, object> CoproductRepresentation(this ICoproduct c)
+    public static (int Arity, int Discriminator, object Value) CoproductRepresentation(this ICoproduct c)
     {
-        return Product3.Create(c.CoproductArity, c.CoproductDiscriminator, c.CoproductValue);
+        return (c.CoproductArity, c.CoproductDiscriminator, c.CoproductValue);
     }
 
     /// <summary>
