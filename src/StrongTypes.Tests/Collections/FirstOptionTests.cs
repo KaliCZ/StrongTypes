@@ -4,6 +4,7 @@ using Xunit;
 
 namespace StrongTypes.Tests.Collections;
 
+// ReSharper disable PossibleMultipleEnumeration
 public class FirstOptionTests
 {
     [Fact]

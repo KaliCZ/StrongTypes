@@ -46,6 +46,7 @@ public class ExceptionsAggregateTests
         CustomException[] array = Enumerable.Range(0, 10).Select(i => new CustomException($"{i} potatoes")).ToArray();
         INonEmptyEnumerable<Exception> nonEmpty = array.AsNonEmpty().Get();
 
+        // ReSharper disable PossibleMultipleEnumeration
         OptionAssert.NonEmpty(enumerable.Aggregate());
         Assert.Equal(array, ((AggregateException)enumerable.Aggregate().Get()).InnerExceptions);
 
