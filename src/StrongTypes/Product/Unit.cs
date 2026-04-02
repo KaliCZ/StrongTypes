@@ -1,13 +1,12 @@
-﻿
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace StrongTypes;
 
 /// <summary>
-/// The Unit type (product of zero types). It has only one instance.
+/// The Unit type. It has only one instance.
 /// </summary>
 [JsonConverter(typeof(UnitJsonConverter))]
-public sealed class Unit : Product0
+public sealed class Unit
 {
     private Unit()
     {
