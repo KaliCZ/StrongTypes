@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # GitHub Actions — SHA-pinned third-party actions get auto-bumped here
+  # so we keep supply-chain protection without manual upkeep.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # NuGet packages across all csproj files in the solution.
+  - package-ecosystem: nuget
+    directory: /src
+    schedule:
+      interval: weekly
+    groups:
+      nuget:
+        patterns:
+          - "*"
