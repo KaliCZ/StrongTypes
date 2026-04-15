@@ -1,9 +1,13 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+#nullable enable
+
+using System;
 using System.Globalization;
 
 namespace StrongTypes;
 
+/// <summary>
+/// A string guaranteed to be non-null, non-empty, and not consisting solely of whitespace.
+/// </summary>
 public sealed class NonEmptyString : IEquatable<string>, IEquatable<NonEmptyString>
 {
     private NonEmptyString(string value)
@@ -15,46 +19,44 @@ public sealed class NonEmptyString : IEquatable<string>, IEquatable<NonEmptyStri
 
     public int Length => Value.Length;
 
-    public static implicit operator string(NonEmptyString s)
-    {
-        return s.MapRef(v => v.Value);
-    }
+    public static implicit operator string?(NonEmptyString? s) => s?.Value;
 
-    public static explicit operator NonEmptyString(string s)
-    {
-        return CreateUnsafe(s);
-    }
+    public static explicit operator NonEmptyString(string s) => Create(s);
 
-    [return: NotNull]
-    public static NonEmptyString CreateUnsafe(string value)
+    /// <summary>
+    /// Returns a <see cref="NonEmptyString"/> wrapping <paramref name="value"/>, or
+    /// <c>null</c> if <paramref name="value"/> is null, empty, or whitespace.
+    /// </summary>
+    public static NonEmptyString? TryCreate(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            throw new ArgumentException("You cannot create NonEmptyString from whitespace, empty string or null.");
+            return null;
         }
 
         return new NonEmptyString(value);
     }
 
-    public static Option<NonEmptyString> Create(string value)
+    /// <summary>
+    /// Returns a <see cref="NonEmptyString"/> wrapping <paramref name="value"/>.
+    /// Throws <see cref="ArgumentException"/> if <paramref name="value"/> is null,
+    /// empty, or whitespace.
+    /// </summary>
+    public static NonEmptyString Create(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return Option.Empty<NonEmptyString>();
-        }
-
-        return Option.Valued(new NonEmptyString(value));
+        return TryCreate(value)
+            ?? throw new ArgumentException("You cannot create NonEmptyString from whitespace, empty string or null.", nameof(value));
     }
 
     #region Proxy methods to string
 
-    public NonEmptyString ToLower() => CreateUnsafe(Value.ToLower());
-    public NonEmptyString ToLower(CultureInfo culture) => CreateUnsafe(Value.ToLower(culture));
-    public NonEmptyString ToLowerInvariant() => CreateUnsafe(Value.ToLowerInvariant());
+    public NonEmptyString ToLower() => Create(Value.ToLower());
+    public NonEmptyString ToLower(CultureInfo culture) => Create(Value.ToLower(culture));
+    public NonEmptyString ToLowerInvariant() => Create(Value.ToLowerInvariant());
 
-    public NonEmptyString ToUpper() => CreateUnsafe(Value.ToUpper());
-    public NonEmptyString ToUpper(CultureInfo culture) => CreateUnsafe(Value.ToUpper(culture));
-    public NonEmptyString ToUpperInvariant() => CreateUnsafe(Value.ToUpperInvariant());
+    public NonEmptyString ToUpper() => Create(Value.ToUpper());
+    public NonEmptyString ToUpper(CultureInfo culture) => Create(Value.ToUpper(culture));
+    public NonEmptyString ToUpperInvariant() => Create(Value.ToUpperInvariant());
 
     public bool Contains(string s) => Value.Contains(s);
     public bool Contains(string s, StringComparison comparisonType) => Value.Contains(s, comparisonType);
@@ -97,12 +99,9 @@ public sealed class NonEmptyString : IEquatable<string>, IEquatable<NonEmptyStri
 
     #endregion Proxy methods to string
 
-    public override int GetHashCode()
-    {
-        return (Value != null ? Value.GetHashCode() : 0);
-    }
+    public override int GetHashCode() => Value.GetHashCode();
 
-    public static bool operator ==(NonEmptyString left, NonEmptyString right)
+    public static bool operator ==(NonEmptyString? left, NonEmptyString? right)
     {
         if (left is null)
             return right is null;
@@ -110,35 +109,23 @@ public sealed class NonEmptyString : IEquatable<string>, IEquatable<NonEmptyStri
         return left.Equals(right);
     }
 
-    public static bool operator !=(NonEmptyString left, NonEmptyString right)
-    {
-        if (left is null)
-            return right is not null;
+    public static bool operator !=(NonEmptyString? left, NonEmptyString? right) => !(left == right);
 
-        return !left.Equals(right);
+    public override bool Equals(object? obj)
+    {
+        return obj is NonEmptyString otherNonEmpty && Equals(otherNonEmpty)
+            || obj is string otherString && Equals(otherString);
     }
 
-    public override bool Equals(object obj)
+    public bool Equals(string? other)
     {
-        return obj is NonEmptyString otherNonEmpty && Equals(otherNonEmpty) ||
-               obj is string otherString && Equals(otherString);
-    }
-
-    public bool Equals(string other)
-    {
-        if (ReferenceEquals(null, other))
+        if (other is null)
             return false;
+
         return ReferenceEquals(Value, other) || Value == other;
     }
 
-    public bool Equals(NonEmptyString other)
-    {
-        return Equals(other?.Value);
+    public bool Equals(NonEmptyString? other) => Equals(other?.Value);
 
-    }
-
-    public override string ToString()
-    {
-        return Value;
-    }
+    public override string ToString() => Value;
 }

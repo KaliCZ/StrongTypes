@@ -7,7 +7,7 @@ public class NonEmptyStringTests
     [Fact]
     public void OptionEqualityTest()
     {
-        Option<NonEmptyString> valued1 = Option.Valued(NonEmptyString.CreateUnsafe("ASDF123"));
+        Option<NonEmptyString> valued1 = Option.Valued(NonEmptyString.Create("ASDF123"));
         Option<string> valued2 = Option.Valued("ASDF123");
         Assert.True(valued1.Equals(valued2));
         Assert.True(valued2.Equals(valued1));
@@ -15,7 +15,7 @@ public class NonEmptyStringTests
         Assert.True(object.Equals(valued2, valued1));
 
         var differentStringOption = Option.Valued("Text14");
-        var differentNonEmptyStringOption = Option.Valued(NonEmptyString.CreateUnsafe("Totally different text here."));
+        var differentNonEmptyStringOption = Option.Valued(NonEmptyString.Create("Totally different text here."));
         Assert.False(differentNonEmptyStringOption.Equals(differentStringOption));
         Assert.False(differentStringOption.Equals(differentNonEmptyStringOption));
         Assert.False(object.Equals(differentNonEmptyStringOption, differentStringOption));
@@ -42,8 +42,8 @@ public class NonEmptyStringTests
 #pragma warning disable xUnit2010
 
         string text = "ASDF123";
-        NonEmptyString nonEmptyString = NonEmptyString.CreateUnsafe("ASDF123");
-        NonEmptyString nonEmptyStringWithSameValue = NonEmptyString.CreateUnsafe("ASDF123");
+        NonEmptyString nonEmptyString = NonEmptyString.Create("ASDF123");
+        NonEmptyString nonEmptyStringWithSameValue = NonEmptyString.Create("ASDF123");
         Assert.True(text == nonEmptyString);
         Assert.False(text != nonEmptyString);
         Assert.True(nonEmptyString == text);
@@ -60,8 +60,8 @@ public class NonEmptyStringTests
         Assert.True(object.Equals(nonEmptyString, nonEmptyStringWithSameValue));
 
         string differentString = "Text14";
-        NonEmptyString differentNonEmptyString = NonEmptyString.CreateUnsafe("Totally different text here.");
-        NonEmptyString differentNonEmptyString2 = NonEmptyString.CreateUnsafe("And completely different again.");
+        NonEmptyString differentNonEmptyString = NonEmptyString.Create("Totally different text here.");
+        NonEmptyString differentNonEmptyString2 = NonEmptyString.Create("And completely different again.");
 
         Assert.False(differentString == differentNonEmptyString);
         Assert.True(differentString != differentNonEmptyString);

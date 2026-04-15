@@ -12,7 +12,8 @@ public static class StringExtensions
     [Pure]
     public static Option<NonEmptyString> AsNonEmpty(this string s)
     {
-        return NonEmptyString.Create(s);
+        var created = NonEmptyString.TryCreate(s);
+        return created is null ? Option.Empty<NonEmptyString>() : Option.Valued(created);
     }
 
     [Obsolete("This is already a nonempty string", error: true)]
