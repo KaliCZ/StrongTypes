@@ -8,7 +8,16 @@ namespace StrongTypes;
 /// <summary>
 /// A string guaranteed to be non-null, non-empty, and not consisting solely of whitespace.
 /// </summary>
-public sealed class NonEmptyString : IEquatable<string>, IEquatable<NonEmptyString>
+/// <remarks>
+/// Comparison is delegated to <see cref="string.CompareTo(string?)"/> and therefore
+/// uses the current culture, matching the behavior of comparing two plain strings.
+/// </remarks>
+public sealed class NonEmptyString :
+    IEquatable<NonEmptyString>,
+    IEquatable<string>,
+    IComparable<NonEmptyString>,
+    IComparable<string>,
+    IComparable
 {
     private NonEmptyString(string value)
     {
@@ -99,33 +108,54 @@ public sealed class NonEmptyString : IEquatable<string>, IEquatable<NonEmptyStri
 
     #endregion Proxy methods to string
 
+    #region Equality
+
     public override int GetHashCode() => Value.GetHashCode();
 
-    public static bool operator ==(NonEmptyString? left, NonEmptyString? right)
-    {
-        if (left is null)
-            return right is null;
+    public override bool Equals(object? obj) =>
+        obj is NonEmptyString otherNonEmpty ? Equals(otherNonEmpty)
+        : obj is string otherString && Equals(otherString);
 
-        return left.Equals(right);
-    }
+    public bool Equals(NonEmptyString? other) => other is not null && Value == other.Value;
+
+    public bool Equals(string? other) => other is not null && Value == other;
+
+    public static bool operator ==(NonEmptyString? left, NonEmptyString? right) =>
+        left is null ? right is null : left.Equals(right);
 
     public static bool operator !=(NonEmptyString? left, NonEmptyString? right) => !(left == right);
 
-    public override bool Equals(object? obj)
-    {
-        return obj is NonEmptyString otherNonEmpty && Equals(otherNonEmpty)
-            || obj is string otherString && Equals(otherString);
-    }
+    #endregion Equality
 
-    public bool Equals(string? other)
-    {
-        if (other is null)
-            return false;
+    #region Comparison
 
-        return ReferenceEquals(Value, other) || Value == other;
-    }
+    public int CompareTo(NonEmptyString? other) =>
+        other is null ? 1 : Value.CompareTo(other.Value);
 
-    public bool Equals(NonEmptyString? other) => Equals(other?.Value);
+    public int CompareTo(string? other) => Value.CompareTo(other);
+
+    int IComparable.CompareTo(object? obj) =>
+        obj switch
+        {
+            null => 1,
+            NonEmptyString other => CompareTo(other),
+            string other => CompareTo(other),
+            _ => throw new ArgumentException($"Object must be of type {nameof(NonEmptyString)} or {nameof(String)}.", nameof(obj))
+        };
+
+    public static bool operator <(NonEmptyString? left, NonEmptyString? right) =>
+        left is null ? right is not null : left.CompareTo(right) < 0;
+
+    public static bool operator <=(NonEmptyString? left, NonEmptyString? right) =>
+        left is null || left.CompareTo(right) <= 0;
+
+    public static bool operator >(NonEmptyString? left, NonEmptyString? right) =>
+        left is not null && left.CompareTo(right) > 0;
+
+    public static bool operator >=(NonEmptyString? left, NonEmptyString? right) =>
+        left is null ? right is null : left.CompareTo(right) >= 0;
+
+    #endregion Comparison
 
     public override string ToString() => Value;
 }

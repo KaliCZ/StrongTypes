@@ -4,24 +4,8 @@ using System.Globalization;
 
 namespace StrongTypes;
 
-public static class StringExtensions
+public static class StringExtensions_Old
 {
-    /// <summary>
-    /// Returns a type-safe option of NonEmptyString in case the string is not empty nor whitespace.
-    /// </summary>
-    [Pure]
-    public static Option<NonEmptyString> AsNonEmpty(this string s)
-    {
-        var created = NonEmptyString.TryCreate(s);
-        return created is null ? Option.Empty<NonEmptyString>() : Option.Valued(created);
-    }
-
-    [Obsolete("This is already a nonempty string", error: true)]
-    public static Option<NonEmptyString> AsNonEmpty(this NonEmptyString s)
-    {
-        return Option.Valued(s);
-    }
-
     [Pure]
     public static Option<byte> ToByte(this string s, IFormatProvider format = null, NumberStyles style = NumberStyles.Integer)
     {
