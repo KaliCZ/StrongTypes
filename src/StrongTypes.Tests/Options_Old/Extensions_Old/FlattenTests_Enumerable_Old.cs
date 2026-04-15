@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using FsCheck;
 using FsCheck.Xunit;
 using StrongTypes.Tests.Generative;
@@ -6,13 +6,9 @@ using Xunit;
 
 namespace StrongTypes.Tests.Options;
 
+[Properties(Arbitrary = new[] { typeof(OptionGenerators) })]
 public class FlattenTests_Enumerable
 {
-    public FlattenTests_Enumerable()
-    {
-        Arb.Register<OptionGenerators>();
-    }
-
     [Fact]
     public void Flatten()
     {
