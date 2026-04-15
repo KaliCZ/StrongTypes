@@ -36,6 +36,29 @@ outdated, not just what the task names. Do not port code verbatim.
 - Do not delete _Old files unless explicitly asked or unless the rule above
   applies.
 
+## Folder layout — feature slices
+
+Organize code by feature, not by technical role. An extension, a JSON
+converter, and the main type for the same feature live together in the
+feature's folder:
+
+- `src/StrongTypes/Strings/NonEmptyString.cs`
+- `src/StrongTypes/Strings/NonEmptyStringExtensions.cs`
+- `src/StrongTypes/Strings/NonEmptyStringJsonConverter.cs`
+- `src/StrongTypes/Try/TryExtensions.cs`
+
+Extensions that *produce* a feature type go into that feature's folder
+even when the input type is from somewhere else (e.g. `ToTry` on `T?`
+lives under `Try/`, because the result — not the receiver — is what
+defines the slice).
+
+Namespaces stay flat at `StrongTypes` regardless of folder nesting. Folder
+structure is for humans; the namespace is one flat shelf. The same applies
+to the test project — keep tests in `namespace StrongTypes.Tests` even
+when they live in subfolders, to avoid shadowing type names (e.g., a
+nested `StrongTypes.Tests.Try` namespace would hide the `StrongTypes.Try`
+class from sibling files).
+
 ## Validated value types — the TryCreate / Create pattern
 
 For value types that enforce a validation rule (e.g., `NonEmptyString`,
