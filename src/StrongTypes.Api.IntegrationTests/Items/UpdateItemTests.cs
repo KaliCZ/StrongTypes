@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using StrongTypes.Api.Data;
-using StrongTypes.Api.Endpoints;
+using StrongTypes.Api.Models;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
