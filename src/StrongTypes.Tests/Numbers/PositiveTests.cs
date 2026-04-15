@@ -1,0 +1,135 @@
+#nullable enable
+
+using System;
+using FsCheck.Xunit;
+using Xunit;
+
+namespace StrongTypes.Tests;
+
+public class PositiveTests
+{
+    [Property]
+    public void TryCreate_IntReturnsNonNullIffPositive(int value)
+    {
+        var result = Positive<int>.TryCreate(value);
+        Assert.Equal(value > 0, result is not null);
+        if (result is { } positive)
+        {
+            Assert.Equal(value, positive.Value);
+        }
+    }
+
+    [Property]
+    public void TryCreate_LongReturnsNonNullIffPositive(long value)
+    {
+        var result = Positive<long>.TryCreate(value);
+        Assert.Equal(value > 0L, result is not null);
+        if (result is { } positive)
+        {
+            Assert.Equal(value, positive.Value);
+        }
+    }
+
+    [Property]
+    public void TryCreate_DecimalReturnsNonNullIffPositive(decimal value)
+    {
+        var result = Positive<decimal>.TryCreate(value);
+        Assert.Equal(value > 0m, result is not null);
+        if (result is { } positive)
+        {
+            Assert.Equal(value, positive.Value);
+        }
+    }
+
+    [Property]
+    public void Create_ThrowsIffNonPositive(int value)
+    {
+        if (value > 0)
+        {
+            Assert.Equal(value, Positive<int>.Create(value).Value);
+        }
+        else
+        {
+            Assert.Throws<ArgumentException>(() => Positive<int>.Create(value));
+        }
+    }
+
+    [Property]
+    public void ImplicitConversion_RecoversUnderlyingValue(int value)
+    {
+        if (Positive<int>.TryCreate(value) is not { } positive)
+        {
+            return;
+        }
+
+        int recovered = positive;
+        Assert.Equal(value, recovered);
+    }
+
+    [Property]
+    public void Equality_MatchesUnderlyingValue(int a, int b)
+    {
+        var pa = Positive<int>.TryCreate(a);
+        var pb = Positive<int>.TryCreate(b);
+        if (pa is null || pb is null)
+        {
+            return;
+        }
+
+        Assert.Equal(a == b, pa.Value == pb.Value);
+        Assert.Equal(a == b, pa.Value.Equals(pb.Value));
+    }
+
+    [Property]
+    public void Comparison_MatchesUnderlyingValue(int a, int b)
+    {
+        var pa = Positive<int>.TryCreate(a);
+        var pb = Positive<int>.TryCreate(b);
+        if (pa is null || pb is null)
+        {
+            return;
+        }
+
+        Assert.Equal(Math.Sign(a.CompareTo(b)), Math.Sign(pa.Value.CompareTo(pb.Value)));
+        Assert.Equal(a < b, pa.Value < pb.Value);
+        Assert.Equal(a <= b, pa.Value <= pb.Value);
+        Assert.Equal(a > b, pa.Value > pb.Value);
+        Assert.Equal(a >= b, pa.Value >= pb.Value);
+    }
+
+    [Fact]
+    public void Create_ZeroThrows()
+    {
+        Assert.Throws<ArgumentException>(() => Positive<int>.Create(0));
+    }
+
+    [Fact]
+    public void TryCreate_ZeroReturnsNull()
+    {
+        Assert.Null(Positive<int>.TryCreate(0));
+    }
+
+    [Fact]
+    public void Default_RepresentsOne()
+    {
+        Assert.Equal(1, default(Positive<int>).Value);
+        Assert.Equal(1L, default(Positive<long>).Value);
+        Assert.Equal(1m, default(Positive<decimal>).Value);
+        Assert.Equal((short)1, default(Positive<short>).Value);
+    }
+
+    [Fact]
+    public void Default_EqualsCreateOne()
+    {
+        Assert.Equal(Positive<int>.Create(1), default(Positive<int>));
+        Assert.True(default(Positive<int>) == Positive<int>.Create(1));
+        Assert.Equal(Positive<int>.Create(1).GetHashCode(), default(Positive<int>).GetHashCode());
+    }
+
+    [Fact]
+    public void RoundTrips_AtMaxValue()
+    {
+        Assert.Equal(int.MaxValue, Positive<int>.Create(int.MaxValue).Value);
+        Assert.Equal(long.MaxValue, Positive<long>.Create(long.MaxValue).Value);
+    }
+}
