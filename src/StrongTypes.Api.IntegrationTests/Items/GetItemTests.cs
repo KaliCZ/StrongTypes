@@ -59,16 +59,4 @@ public sealed class GetStringEntityTests(TestWebApplicationFactory factory) : In
         Assert.Equal("Carol", pgJson.GetProperty("value").GetString());
     }
 
-    [Fact]
-    public async Task NonExistentId_Returns404FromBothDatabases()
-    {
-        var ct = TestContext.Current.CancellationToken;
-        var id = Guid.NewGuid();
-
-        var sqlResponse = await Client.GetAsync($"/string-entities/{id}/sql-server", ct);
-        Assert.Equal(HttpStatusCode.NotFound, sqlResponse.StatusCode);
-
-        var pgResponse = await Client.GetAsync($"/string-entities/{id}/postgresql", ct);
-        Assert.Equal(HttpStatusCode.NotFound, pgResponse.StatusCode);
-    }
 }

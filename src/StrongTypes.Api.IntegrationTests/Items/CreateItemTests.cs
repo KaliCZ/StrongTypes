@@ -23,16 +23,8 @@ public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) :
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
         var id = json.GetProperty("id").GetGuid();
 
-        var sqlEntity = await SqlDb.StringEntities.FindAsync([id], ct);
-        var pgEntity = await PgDb.StringEntities.FindAsync([id], ct);
-
-        Assert.NotNull(sqlEntity);
-        Assert.Equal("Alice", sqlEntity!.Value);
-        Assert.Equal("Alice's nullable value", sqlEntity.NullableValue);
-
-        Assert.NotNull(pgEntity);
-        Assert.Equal("Alice", pgEntity!.Value);
-        Assert.Equal("Alice's nullable value", pgEntity.NullableValue);
+        await AssertStringEntity(SqlDb, id, "Alice", "Alice's nullable value");
+        await AssertStringEntity(PgDb, id, "Alice", "Alice's nullable value");
     }
 
     [Fact]
@@ -49,16 +41,8 @@ public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) :
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
         var id = json.GetProperty("id").GetGuid();
 
-        var sqlEntity = await SqlDb.StringEntities.FindAsync([id], ct);
-        var pgEntity = await PgDb.StringEntities.FindAsync([id], ct);
-
-        Assert.NotNull(sqlEntity);
-        Assert.Equal("Bob", sqlEntity!.Value);
-        Assert.Equal("Bob's nullable value", sqlEntity.NullableValue);
-
-        Assert.NotNull(pgEntity);
-        Assert.Equal("Bob", pgEntity!.Value);
-        Assert.Equal("Bob's nullable value", pgEntity.NullableValue);
+        await AssertStringEntity(SqlDb, id, "Bob", "Bob's nullable value");
+        await AssertStringEntity(PgDb, id, "Bob", "Bob's nullable value");
     }
 
     [Fact]
@@ -75,16 +59,8 @@ public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) :
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
         var id = json.GetProperty("id").GetGuid();
 
-        var sqlEntity = await SqlDb.StringEntities.FindAsync([id], ct);
-        var pgEntity = await PgDb.StringEntities.FindAsync([id], ct);
-
-        Assert.NotNull(sqlEntity);
-        Assert.Equal("Carol", sqlEntity!.Value);
-        Assert.Null(sqlEntity.NullableValue);
-
-        Assert.NotNull(pgEntity);
-        Assert.Equal("Carol", pgEntity!.Value);
-        Assert.Null(pgEntity.NullableValue);
+        await AssertStringEntity(SqlDb, id, "Carol", null);
+        await AssertStringEntity(PgDb, id, "Carol", null);
     }
 
     [Fact]
