@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <LangVersion>14.0</LangVersion>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>CS1591</NoWarn>
     <IsPackable>false</IsPackable>
