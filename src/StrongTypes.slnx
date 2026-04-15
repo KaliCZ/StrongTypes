@@ -7,6 +7,8 @@
   <Project Path="StrongTypes.Examples/StrongTypes.Examples.csproj" />
   <Project Path="StrongTypes.Tests/StrongTypes.Tests.csproj" />
   <Project Path="StrongTypes/StrongTypes.csproj" />
+  <Project Path="StrongTypes.Api/StrongTypes.Api.csproj" />
+  <Project Path="StrongTypes.Api.IntegrationTests/StrongTypes.Api.IntegrationTests.csproj" />
   <Properties Name="Performance">
     <Property Name="HasPerformanceSessions" Value="true" />
   </Properties>
