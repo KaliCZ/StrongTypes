@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,17 +41,32 @@ public abstract class IntegrationTestBase(TestWebApplicationFactory factory) : I
     protected static object Body<T>(T value, T nullableValue) =>
         new { Value = value, NullableValue = nullableValue };
 
-    protected Task<StringEntityResponse> Post(string url, object body) =>
-        Client.PostJsonAsync<StringEntityResponse>(url, body, Ct);
+    protected async Task<StringEntityResponse> Post(string url, object body)
+    {
+        var response = await Client.PostAsJsonAsync(url, body, Ct);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        return (await response.Content.ReadFromJsonAsync<StringEntityResponse>(Ct))!;
+    }
 
-    protected Task<JsonElement> PostExpecting(string url, object body, HttpStatusCode expectedStatus) =>
-        Client.PostJsonAsync<JsonElement>(url, body, Ct, expectedStatus);
+    protected async Task<JsonElement> PostExpecting(string url, object body, HttpStatusCode expectedStatus)
+    {
+        var response = await Client.PostAsJsonAsync(url, body, Ct);
+        Assert.Equal(expectedStatus, response.StatusCode);
+        return await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+    }
 
-    protected Task Put(string url, object body) =>
-        Client.PutJsonAsync(url, body, Ct);
+    protected async Task Put(string url, object body)
+    {
+        var response = await Client.PutAsJsonAsync(url, body, Ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
 
-    protected Task<T> Get<T>(string url) =>
-        Client.GetJsonAsync<T>(url, Ct);
+    protected async Task<T> Get<T>(string url)
+    {
+        var response = await Client.GetAsync(url, Ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return (await response.Content.ReadFromJsonAsync<T>(Ct))!;
+    }
 
     /// <summary>
     /// Fetches the entity with the given id from the supplied DbContext and asserts
