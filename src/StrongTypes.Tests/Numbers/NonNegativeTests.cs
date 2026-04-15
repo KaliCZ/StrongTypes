@@ -42,6 +42,17 @@ public class NonNegativeTests
     }
 
     [Property]
+    public void TryCreate_ShortReturnsNonNullIffNonNegative(short value)
+    {
+        var result = NonNegative<short>.TryCreate(value);
+        Assert.Equal(value >= 0, result is not null);
+        if (result is { } nonNegative)
+        {
+            Assert.Equal(value, nonNegative.Value);
+        }
+    }
+
+    [Property]
     public void Create_ThrowsIffNegative(int value)
     {
         if (value >= 0)

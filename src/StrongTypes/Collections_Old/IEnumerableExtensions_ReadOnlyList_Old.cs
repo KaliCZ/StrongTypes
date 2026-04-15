@@ -101,14 +101,6 @@ public static partial class IEnumerableExtensions
     }
 
     [Pure]
-    public static Option<T> ElementAtOption<T>(this IReadOnlyList<T> list, NonNegativeInt index)
-    {
-        return list.Count > index.Value
-            ? Option.Valued(list[index.Value])
-            : Option.Empty<T>();
-    }
-
-    [Pure]
     public static int IndexOf<T>(this IReadOnlyList<T> list, T item)
     {
         for (var i = 0; i < list.Count; i++)

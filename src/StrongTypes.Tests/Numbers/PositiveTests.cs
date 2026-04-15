@@ -42,6 +42,17 @@ public class PositiveTests
     }
 
     [Property]
+    public void TryCreate_ShortReturnsNonNullIffPositive(short value)
+    {
+        var result = Positive<short>.TryCreate(value);
+        Assert.Equal(value > 0, result is not null);
+        if (result is { } positive)
+        {
+            Assert.Equal(value, positive.Value);
+        }
+    }
+
+    [Property]
     public void Create_ThrowsIffNonPositive(int value)
     {
         if (value > 0)
