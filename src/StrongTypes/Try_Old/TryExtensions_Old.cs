@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace StrongTypes;
 
-public static class TryExtensions
+public static class TryExtensions_Old
 {
     public static Try<T, E> Flatten<T, E>(this Try<Try<T, E>, E> value)
     {
