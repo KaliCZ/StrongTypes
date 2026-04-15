@@ -13,11 +13,28 @@ The codebase is mid-migration. Anything under a folder or filename suffixed with
 `_Old` is legacy and should not be modified or extended. New code goes in
 non-suffixed folders (e.g., new string types go in `src/StrongTypes/Strings/`).
 
-When reimplementing an _Old type:
-- Read the _Old version for API surface and test coverage expectations.
+When you rework an _Old type, treat the rewrite as a real review — drop the
+`_Old` suffix, read the entire file, and improve anything that is wrong or
+outdated, not just what the task names. Do not port code verbatim.
+
+**Dealing with the _Old file being replaced:**
+
+- If the old file is *entirely* about the type being reworked (e.g.,
+  `NonEmptyString_Old.cs`), delete it. The new file is the replacement.
+- If the old file mixes multiple concerns (e.g., `StringExtensions_Old.cs`
+  contains extensions for both `string` and `NonEmptyString`), leave the
+  `_Old` file in place and create a new non-suffixed file containing *only*
+  the reworked pieces. The remaining legacy surface stays where it was until
+  its own migration pass.
+- In either case, minimally patch remaining `_Old` call sites only as much as
+  is needed to keep the build green.
+
+**Other rules:**
+
 - Do **not** take a dependency on other _Old types (e.g., `Option<T>`). Prefer
   modern BCL primitives (nullable reference types, `Result`-shaped APIs, etc.).
-- Do not delete _Old files unless explicitly asked.
+- Do not delete _Old files unless explicitly asked or unless the rule above
+  applies.
 
 ## Validated value types — the TryCreate / Create pattern
 
