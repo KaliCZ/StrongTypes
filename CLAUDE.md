@@ -86,15 +86,23 @@ Rules:
   when rows get complex) over duplicated `[Fact]` methods whose bodies differ
   only in input or expected value. One parameterized method with several
   data rows reads better and keeps assertion shape consistent across cases.
-- For code whose behavior partitions on input shape (null vs non-null, empty
-  vs non-empty, etc.), reach for an FsCheck property test — `[Property]` from
-  `FsCheck.Xunit` — and let the generator cover the space. Register custom
-  arbitraries via a nested `Generators` class and the class-level
-  `[Properties(Arbitrary = new[] { typeof(...Generators) })]` attribute.
-  When a custom generator is non-trivial, pair it with a one-off `[Fact]`
-  that samples it a few hundred times and asserts both branches of the
-  partition appear, so a regression in the generator can't silently mask
-  missing coverage.
+- For code whose behavior partitions on input shape (null vs non-null,
+  empty vs non-empty, etc.), reach for an FsCheck property test —
+  `[Property]` from `FsCheck.Xunit` — and let the generator cover the
+  space. Register arbitraries on a test class via
+  `[Properties(Arbitrary = new[] { typeof(StringGenerators) })]`.
+- Shared arbitraries live in feature-sliced `*Generators` classes
+  alongside the tests for the same feature — e.g.
+  `src/StrongTypes.Tests/Strings/StringGenerators.cs` holds all string-
+  shaped arbitraries so they can be reused across test classes. Prefer
+  extending a shared generator class over defining a one-off nested
+  generator. Weight branches with `Gen.Frequency` when one branch is the
+  common case and the other needs only occasional coverage (e.g. 90%
+  populated, 10% null).
+- When a custom generator is non-trivial, pair it with a one-off `[Fact]`
+  that samples it a few hundred times and asserts every partition branch
+  appears, so a regression in the generator can't silently mask missing
+  coverage.
 - Use separate `[Fact]` methods when the test body genuinely differs — e.g.
   asserting a side effect like "the factory was invoked exactly once".
 

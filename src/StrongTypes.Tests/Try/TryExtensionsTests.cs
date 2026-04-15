@@ -1,13 +1,12 @@
 #nullable enable
 
-using FsCheck;
 using FsCheck.Fluent;
 using FsCheck.Xunit;
 using Xunit;
 
 namespace StrongTypes.Tests;
 
-[Properties(Arbitrary = new[] { typeof(TryExtensionsTests.Generators) })]
+[Properties(Arbitrary = new[] { typeof(StringGenerators) })]
 public class TryExtensionsTests
 {
     // Two-value enum where Missing is deliberately non-default so we can
@@ -64,24 +63,15 @@ public class TryExtensionsTests
     }
 
     [Fact]
-    public void Generator_ProducesBothNullAndNonNull()
+    public void NullableNonEmptyString_GeneratorProducesBothBranches()
     {
         // Sanity check that the property tests above are actually hitting
         // both branches of the ToTry logic, not e.g. always exercising the
         // null path because the non-null generator silently fails.
-        var samples = Generators.NullableNonEmptyString.Generator.Sample(100);
+        // 200 samples at 10% null rate: P(zero nulls) ≈ 0.9^200 ≈ 7e-10.
+        var samples = StringGenerators.NullableNonEmptyString.Generator.Sample(200);
 
         Assert.Contains(samples, s => s is null);
         Assert.Contains(samples, s => s is not null);
-    }
-
-    public static class Generators
-    {
-        public static Arbitrary<NonEmptyString?> NullableNonEmptyString { get; } =
-            Arb.From(Gen.OneOf(
-                Gen.Constant<NonEmptyString?>(null),
-                ArbMap.Default.ArbFor<string>().Generator
-                    .Where(s => !string.IsNullOrWhiteSpace(s))
-                    .Select(s => (NonEmptyString?)NonEmptyString.Create(s))));
     }
 }
