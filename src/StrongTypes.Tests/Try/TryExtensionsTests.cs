@@ -6,7 +6,7 @@ using Xunit;
 
 namespace StrongTypes.Tests;
 
-[Properties(Arbitrary = new[] { typeof(StringGenerators) })]
+[Properties(Arbitrary = new[] { typeof(Generators) })]
 public class TryExtensionsTests
 {
     // Two-value enum where Missing is deliberately non-default so we can
@@ -69,7 +69,7 @@ public class TryExtensionsTests
         // both branches of the ToTry logic, not e.g. always exercising the
         // null path because the non-null generator silently fails.
         // 200 samples at 10% null rate: P(zero nulls) ≈ 0.9^200 ≈ 7e-10.
-        var samples = StringGenerators.NullableNonEmptyString.Generator.Sample(200);
+        var samples = Generators.NullableNonEmptyString.Generator.Sample(200);
 
         Assert.Contains(samples, s => s is null);
         Assert.Contains(samples, s => s is not null);

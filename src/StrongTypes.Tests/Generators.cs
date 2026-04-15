@@ -6,11 +6,12 @@ using FsCheck.Fluent;
 namespace StrongTypes.Tests;
 
 /// <summary>
-/// Shared FsCheck arbitraries for string-shaped values. Reference via
-/// <c>[Properties(Arbitrary = new[] { typeof(StringGenerators) })]</c>
-/// on a test class.
+/// Shared FsCheck arbitraries for the test project. Reference via
+/// <c>[Properties(Arbitrary = new[] { typeof(Generators) })]</c>
+/// on a test class. Add new arbitraries here rather than creating
+/// per-feature generator classes.
 /// </summary>
-public static class StringGenerators
+public static class Generators
 {
     /// <summary>
     /// <see cref="NonEmptyString"/> with ~10% chance of <c>null</c>. Tuned
