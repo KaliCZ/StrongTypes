@@ -13,14 +13,14 @@ public class StringEntityController(SqlServerDbContext sqlCtx, PostgreSqlDbConte
     public async Task<IActionResult> GetFromSqlServer(Guid id)
     {
         var entity = await sqlCtx.StringEntities.FindAsync(id);
-        return entity is null ? NotFound() : Ok(new StringEntityDto(entity.Id, entity.Value, entity.NullableValue));
+        return entity is null ? NotFound() : Ok(new StringEntityDto(entity));
     }
 
     [HttpGet("{id:guid}/postgresql")]
     public async Task<IActionResult> GetFromPostgreSql(Guid id)
     {
         var entity = await pgCtx.StringEntities.FindAsync(id);
-        return entity is null ? NotFound() : Ok(new StringEntityDto(entity.Id, entity.Value, entity.NullableValue));
+        return entity is null ? NotFound() : Ok(new StringEntityDto(entity));
     }
 
     [HttpPost("non-nullable")]
@@ -52,10 +52,8 @@ public class StringEntityController(SqlServerDbContext sqlCtx, PostgreSqlDbConte
         var pgEntity = await pgCtx.StringEntities.FindAsync(id);
         if (sqlEntity is null || pgEntity is null)
             return NotFound();
-        sqlEntity.Value = request.Value;
-        sqlEntity.NullableValue = request.NullableValue;
-        pgEntity.Value = request.Value;
-        pgEntity.NullableValue = request.NullableValue;
+        sqlEntity.Update(request.Value, request.NullableValue);
+        pgEntity.Update(request.Value, request.NullableValue);
         await sqlCtx.SaveChangesAsync();
         await pgCtx.SaveChangesAsync();
         return Ok(new StringEntityResponse(id));
@@ -68,10 +66,8 @@ public class StringEntityController(SqlServerDbContext sqlCtx, PostgreSqlDbConte
         var pgEntity = await pgCtx.StringEntities.FindAsync(id);
         if (sqlEntity is null || pgEntity is null)
             return NotFound();
-        sqlEntity.Value = request.Value;
-        sqlEntity.NullableValue = request.NullableValue;
-        pgEntity.Value = request.Value;
-        pgEntity.NullableValue = request.NullableValue;
+        sqlEntity.Update(request.Value, request.NullableValue);
+        pgEntity.Update(request.Value, request.NullableValue);
         await sqlCtx.SaveChangesAsync();
         await pgCtx.SaveChangesAsync();
         return Ok(new StringEntityResponse(id));

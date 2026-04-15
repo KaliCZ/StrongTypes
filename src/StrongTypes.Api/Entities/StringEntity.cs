@@ -15,4 +15,10 @@ public class StringEntity
     public Guid Id { get; set; }
     public string Value { get; set; } = null!;
     public string? NullableValue { get; set; }
+
+    public void Update(string value, string? nullableValue)
+    {
+        Value = value;
+        NullableValue = nullableValue;
+    }
 }
