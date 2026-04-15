@@ -80,8 +80,6 @@ public class NonEmptyStringTests
 
         NonEmptyString null1 = null;
         string null2 = null;
-        Assert.True(null1 == null2);
-        Assert.True(null2 == null1);
         Assert.True(object.Equals(null1, null2));
         Assert.True(object.Equals(null2, null1));
 

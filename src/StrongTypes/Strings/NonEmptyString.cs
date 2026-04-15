@@ -28,7 +28,7 @@ public sealed class NonEmptyString :
 
     public int Length => Value.Length;
 
-    public static implicit operator string?(NonEmptyString? s) => s?.Value;
+    public static implicit operator string(NonEmptyString s) => s.Value;
 
     public static explicit operator NonEmptyString(string s) => Create(s);
 
