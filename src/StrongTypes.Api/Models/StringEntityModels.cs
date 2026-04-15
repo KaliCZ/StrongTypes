@@ -5,3 +5,4 @@ public record CreateNullableRequest(string Value, string? NullableValue);
 public record UpdateNonNullableRequest(string Value, string NullableValue);
 public record UpdateNullableRequest(string Value, string? NullableValue);
 public record StringEntityResponse(Guid Id);
+public record StringEntityDto(Guid Id, string Value, string? NullableValue);

@@ -13,14 +13,14 @@ public class StringEntityController(SqlServerDbContext sqlCtx, PostgreSqlDbConte
     public async Task<IActionResult> GetFromSqlServer(Guid id)
     {
         var entity = await sqlCtx.StringEntities.FindAsync(id);
-        return entity is null ? NotFound() : Ok(entity);
+        return entity is null ? NotFound() : Ok(new StringEntityDto(entity.Id, entity.Value, entity.NullableValue));
     }
 
     [HttpGet("{id:guid}/postgresql")]
     public async Task<IActionResult> GetFromPostgreSql(Guid id)
     {
         var entity = await pgCtx.StringEntities.FindAsync(id);
-        return entity is null ? NotFound() : Ok(entity);
+        return entity is null ? NotFound() : Ok(new StringEntityDto(entity.Id, entity.Value, entity.NullableValue));
     }
 
     [HttpPost("non-nullable")]
