@@ -29,16 +29,16 @@ Added 2026-04-15. Purpose: verify that strong types serialize correctly through 
 
 ### Entity
 
-`Item` — `Guid Id`, `string Name`, `string? Description`
+`StringEntity` — `Guid Id`, `string Value`, `string? NullableValue`
 
 ### Endpoints
 
 | Method | Route | Notes |
 |---|---|---|
-| POST | `/items/non-nullable` | `Name` + `Description` both required |
-| POST | `/items/nullable` | `Name` required, `Description?` optional |
-| PUT | `/items/{id}/non-nullable` | `Name` + `Description` both required |
-| PUT | `/items/{id}/nullable` | `Name` required, `Description?` optional |
+| POST | `/string-entities/non-nullable` | `Value` + `NullableValue` both required |
+| POST | `/string-entities/nullable` | `Value` required, `NullableValue?` optional |
+| PUT | `/string-entities/{id}/non-nullable` | `Value` + `NullableValue` both required |
+| PUT | `/string-entities/{id}/nullable` | `Value` required, `NullableValue?` optional |
 
 Each endpoint writes to **both** DbContexts before returning.
 

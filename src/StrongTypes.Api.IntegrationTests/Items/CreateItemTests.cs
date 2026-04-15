@@ -9,93 +9,93 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Items;
 
 [Collection(IntegrationTestCollection.Name)]
-public sealed class CreateItemTests
+public sealed class CreateStringEntityTests
 {
     private readonly TestWebApplicationFactory _factory;
 
-    public CreateItemTests(TestWebApplicationFactory factory)
+    public CreateStringEntityTests(TestWebApplicationFactory factory)
     {
         _factory = factory;
     }
 
     [Fact]
-    public async Task NonNullable_PersistsNameAndDescriptionInBothDatabases()
+    public async Task NonNullable_PersistsValueAndNullableValueInBothDatabases()
     {
         var client = _factory.CreateClient();
 
         var response = await client.PostAsJsonAsync(
-            "/items/non-nullable",
-            new CreateNonNullableRequest("Alice", "Alice's description"));
+            "/string-entities/non-nullable",
+            new CreateNonNullableRequest("Alice", "Alice's nullable value"));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<ItemResponse>();
+        var result = await response.Content.ReadFromJsonAsync<StringEntityResponse>();
         Assert.NotNull(result);
 
         using var scope = _factory.Services.CreateScope();
         var sp = scope.ServiceProvider;
-        var sqlItem = await sp.GetRequiredService<SqlServerDbContext>().Items.FindAsync(result!.Id);
-        var pgItem = await sp.GetRequiredService<PostgreSqlDbContext>().Items.FindAsync(result.Id);
+        var sqlEntity = await sp.GetRequiredService<SqlServerDbContext>().StringEntities.FindAsync(result!.Id);
+        var pgEntity = await sp.GetRequiredService<PostgreSqlDbContext>().StringEntities.FindAsync(result.Id);
 
-        Assert.NotNull(sqlItem);
-        Assert.Equal("Alice", sqlItem!.Name);
-        Assert.Equal("Alice's description", sqlItem.Description);
+        Assert.NotNull(sqlEntity);
+        Assert.Equal("Alice", sqlEntity!.Value);
+        Assert.Equal("Alice's nullable value", sqlEntity.NullableValue);
 
-        Assert.NotNull(pgItem);
-        Assert.Equal("Alice", pgItem!.Name);
-        Assert.Equal("Alice's description", pgItem.Description);
+        Assert.NotNull(pgEntity);
+        Assert.Equal("Alice", pgEntity!.Value);
+        Assert.Equal("Alice's nullable value", pgEntity.NullableValue);
     }
 
     [Fact]
-    public async Task Nullable_WithDescription_PersistsNameAndDescriptionInBothDatabases()
+    public async Task Nullable_WithNullableValue_PersistsBothValuesInBothDatabases()
     {
         var client = _factory.CreateClient();
 
         var response = await client.PostAsJsonAsync(
-            "/items/nullable",
-            new CreateNullableRequest("Bob", "Bob's description"));
+            "/string-entities/nullable",
+            new CreateNullableRequest("Bob", "Bob's nullable value"));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<ItemResponse>();
+        var result = await response.Content.ReadFromJsonAsync<StringEntityResponse>();
         Assert.NotNull(result);
 
         using var scope = _factory.Services.CreateScope();
         var sp = scope.ServiceProvider;
-        var sqlItem = await sp.GetRequiredService<SqlServerDbContext>().Items.FindAsync(result!.Id);
-        var pgItem = await sp.GetRequiredService<PostgreSqlDbContext>().Items.FindAsync(result.Id);
+        var sqlEntity = await sp.GetRequiredService<SqlServerDbContext>().StringEntities.FindAsync(result!.Id);
+        var pgEntity = await sp.GetRequiredService<PostgreSqlDbContext>().StringEntities.FindAsync(result.Id);
 
-        Assert.NotNull(sqlItem);
-        Assert.Equal("Bob", sqlItem!.Name);
-        Assert.Equal("Bob's description", sqlItem.Description);
+        Assert.NotNull(sqlEntity);
+        Assert.Equal("Bob", sqlEntity!.Value);
+        Assert.Equal("Bob's nullable value", sqlEntity.NullableValue);
 
-        Assert.NotNull(pgItem);
-        Assert.Equal("Bob", pgItem!.Name);
-        Assert.Equal("Bob's description", pgItem.Description);
+        Assert.NotNull(pgEntity);
+        Assert.Equal("Bob", pgEntity!.Value);
+        Assert.Equal("Bob's nullable value", pgEntity.NullableValue);
     }
 
     [Fact]
-    public async Task Nullable_WithNullDescription_PersistsNullDescriptionInBothDatabases()
+    public async Task Nullable_WithNullNullableValue_PersistsNullInBothDatabases()
     {
         var client = _factory.CreateClient();
 
         var response = await client.PostAsJsonAsync(
-            "/items/nullable",
+            "/string-entities/nullable",
             new CreateNullableRequest("Carol", null));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<ItemResponse>();
+        var result = await response.Content.ReadFromJsonAsync<StringEntityResponse>();
         Assert.NotNull(result);
 
         using var scope = _factory.Services.CreateScope();
         var sp = scope.ServiceProvider;
-        var sqlItem = await sp.GetRequiredService<SqlServerDbContext>().Items.FindAsync(result!.Id);
-        var pgItem = await sp.GetRequiredService<PostgreSqlDbContext>().Items.FindAsync(result.Id);
+        var sqlEntity = await sp.GetRequiredService<SqlServerDbContext>().StringEntities.FindAsync(result!.Id);
+        var pgEntity = await sp.GetRequiredService<PostgreSqlDbContext>().StringEntities.FindAsync(result.Id);
 
-        Assert.NotNull(sqlItem);
-        Assert.Equal("Carol", sqlItem!.Name);
-        Assert.Null(sqlItem.Description);
+        Assert.NotNull(sqlEntity);
+        Assert.Equal("Carol", sqlEntity!.Value);
+        Assert.Null(sqlEntity.NullableValue);
 
-        Assert.NotNull(pgItem);
-        Assert.Equal("Carol", pgItem!.Name);
-        Assert.Null(pgItem.Description);
+        Assert.NotNull(pgEntity);
+        Assert.Equal("Carol", pgEntity!.Value);
+        Assert.Null(pgEntity.NullableValue);
     }
 }

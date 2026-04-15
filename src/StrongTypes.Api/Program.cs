@@ -12,7 +12,7 @@ builder.Services.AddDbContext<PostgreSqlDbContext>(options =>
 
 var app = builder.Build();
 
-app.MapItemEndpoints();
+app.MapStringEntityEndpoints();
 
 app.Run();
 

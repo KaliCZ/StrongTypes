@@ -7,5 +7,5 @@ public class PostgreSqlDbContext : DbContext
 {
     public PostgreSqlDbContext(DbContextOptions<PostgreSqlDbContext> options) : base(options) { }
 
-    public DbSet<Item> Items { get; set; }
+    public DbSet<StringEntity> StringEntities { get; set; }
 }
