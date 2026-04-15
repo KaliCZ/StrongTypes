@@ -26,23 +26,23 @@ public class StringEntityController(SqlServerDbContext sqlCtx, PostgreSqlDbConte
     [HttpPost("non-nullable")]
     public async Task<IActionResult> CreateNonNullable(CreateNonNullableRequest request)
     {
-        var id = Guid.NewGuid();
-        sqlCtx.StringEntities.Add(new StringEntity { Id = id, Value = request.Value, NullableValue = request.NullableValue });
-        pgCtx.StringEntities.Add(new StringEntity { Id = id, Value = request.Value, NullableValue = request.NullableValue });
+        var entity = new StringEntity(request.Value, request.NullableValue);
+        sqlCtx.StringEntities.Add(entity);
+        pgCtx.StringEntities.Add(entity);
         await sqlCtx.SaveChangesAsync();
         await pgCtx.SaveChangesAsync();
-        return Created($"/string-entities/{id}", new StringEntityResponse(id));
+        return Created($"/string-entities/{entity.Id}", new StringEntityResponse(entity.Id));
     }
 
     [HttpPost("nullable")]
     public async Task<IActionResult> CreateNullable(CreateNullableRequest request)
     {
-        var id = Guid.NewGuid();
-        sqlCtx.StringEntities.Add(new StringEntity { Id = id, Value = request.Value, NullableValue = request.NullableValue });
-        pgCtx.StringEntities.Add(new StringEntity { Id = id, Value = request.Value, NullableValue = request.NullableValue });
+        var entity = new StringEntity(request.Value, request.NullableValue);
+        sqlCtx.StringEntities.Add(entity);
+        pgCtx.StringEntities.Add(entity);
         await sqlCtx.SaveChangesAsync();
         await pgCtx.SaveChangesAsync();
-        return Created($"/string-entities/{id}", new StringEntityResponse(id));
+        return Created($"/string-entities/{entity.Id}", new StringEntityResponse(entity.Id));
     }
 
     [HttpPut("{id:guid}/non-nullable")]
