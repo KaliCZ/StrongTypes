@@ -12,7 +12,7 @@ public sealed class GetNonEmptyStringEntityTests(TestWebApplicationFactory facto
     [Fact]
     public async Task ReturnsEntityWithCamelCaseJsonFromBothDatabases()
     {
-        var entity = new NonEmptyStringEntity(N("Alice"), N("Alice's nullable value"));
+        var entity = new NonEmptyStringEntity(NonEmptyString.Create("Alice"), NonEmptyString.Create("Alice's nullable value"));
         SqlDb.NonEmptyStringEntities.Add(entity);
         PgDb.NonEmptyStringEntities.Add(entity);
         await SqlDb.SaveChangesAsync(Ct);
@@ -32,7 +32,7 @@ public sealed class GetNonEmptyStringEntityTests(TestWebApplicationFactory facto
     [Fact]
     public async Task SerializesNullNullableValueAsJsonNullFromBothDatabases()
     {
-        var entity = new NonEmptyStringEntity(N("Carol"), null);
+        var entity = new NonEmptyStringEntity(NonEmptyString.Create("Carol"), null);
         SqlDb.NonEmptyStringEntities.Add(entity);
         PgDb.NonEmptyStringEntities.Add(entity);
         await SqlDb.SaveChangesAsync(Ct);

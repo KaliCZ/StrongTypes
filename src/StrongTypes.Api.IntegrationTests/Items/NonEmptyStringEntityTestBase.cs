@@ -7,6 +7,4 @@ public abstract class NonEmptyStringEntityTestBase(TestWebApplicationFactory fac
     : IntegrationTestBase<NonEmptyStringEntity, NonEmptyString>(factory)
 {
     protected override string RoutePrefix => "non-empty-string-entities";
-
-    protected static NonEmptyString N(string value) => NonEmptyString.Create(value);
 }

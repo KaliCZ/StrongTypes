@@ -14,24 +14,24 @@ public sealed class CreateNonEmptyStringEntityTests(TestWebApplicationFactory fa
     public async Task NonNullable_PersistsValueAndNullableValueInBothDatabases()
     {
         var created = await Post(NonNullable, Body("Alice", "Alice's nullable value"));
-        await AssertEntity(SqlSet, created.Id, N("Alice"), N("Alice's nullable value"));
-        await AssertEntity(PgSet, created.Id, N("Alice"), N("Alice's nullable value"));
+        await AssertEntity(SqlSet, created.Id, NonEmptyString.Create("Alice"), NonEmptyString.Create("Alice's nullable value"));
+        await AssertEntity(PgSet, created.Id, NonEmptyString.Create("Alice"), NonEmptyString.Create("Alice's nullable value"));
     }
 
     [Fact]
     public async Task Nullable_WithNullableValue_PersistsBothValuesInBothDatabases()
     {
         var created = await Post(Nullable, Body("Bob", "Bob's nullable value"));
-        await AssertEntity(SqlSet, created.Id, N("Bob"), N("Bob's nullable value"));
-        await AssertEntity(PgSet, created.Id, N("Bob"), N("Bob's nullable value"));
+        await AssertEntity(SqlSet, created.Id, NonEmptyString.Create("Bob"), NonEmptyString.Create("Bob's nullable value"));
+        await AssertEntity(PgSet, created.Id, NonEmptyString.Create("Bob"), NonEmptyString.Create("Bob's nullable value"));
     }
 
     [Fact]
     public async Task Nullable_WithNullNullableValue_PersistsNullInBothDatabases()
     {
         var created = await Post(Nullable, Body("Carol", null));
-        await AssertEntity(SqlSet, created.Id, N("Carol"), null);
-        await AssertEntity(PgSet, created.Id, N("Carol"), null);
+        await AssertEntity(SqlSet, created.Id, NonEmptyString.Create("Carol"), null);
+        await AssertEntity(PgSet, created.Id, NonEmptyString.Create("Carol"), null);
     }
 
     [Fact]
