@@ -10,6 +10,8 @@
 - **Requests** — always use anonymous objects (`new { Value = "x", NullableValue = (string?)null }`), never the typed request records from the API project.
 - **Responses** — parse with `ReadFromJsonAsync<JsonElement>()` and pull fields by name (e.g. `json.GetProperty("id").GetGuid()`), never deserialize into a typed response record.
 - **Rationale** — keeps tests decoupled from the API's model types; the test verifies the HTTP contract (field names, status codes) and the DB state, not the C# type system.
+- **Test base class** — inherit from `IntegrationTestBase(factory)` to get `Client`, `SqlDb`, and `PgDb` properties; don't create scopes or resolve DbContexts manually in individual tests.
+- **CancellationTokens** — xunit.v3's `xUnit1051` analyzer requires `TestContext.Current.CancellationToken` be threaded into every async call that accepts one (`PostAsJsonAsync`, `PutAsJsonAsync`, `ReadFromJsonAsync`, `FindAsync([id], ct)`, `GetAsync`, …). Grab it at the top: `var ct = TestContext.Current.CancellationToken;`.
 
 ## Documentation and memory policy
 
@@ -50,6 +52,8 @@ Added 2026-04-15. Purpose: verify that strong types serialize correctly through 
 | POST | `/string-entities/nullable` | `Value` required, `NullableValue?` optional |
 | PUT | `/string-entities/{id}/non-nullable` | `Value` + `NullableValue` both required |
 | PUT | `/string-entities/{id}/nullable` | `Value` required, `NullableValue?` optional |
+| GET | `/string-entities/{id}/sql-server` | Reads from SqlServerDbContext |
+| GET | `/string-entities/{id}/postgresql` | Reads from PostgreSqlDbContext |
 
 Each endpoint writes to **both** DbContexts before returning.
 

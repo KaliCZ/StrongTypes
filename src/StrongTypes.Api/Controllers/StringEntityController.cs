@@ -9,6 +9,20 @@ namespace StrongTypes.Api.Controllers;
 [Route("string-entities")]
 public class StringEntityController(SqlServerDbContext sqlCtx, PostgreSqlDbContext pgCtx) : ControllerBase
 {
+    [HttpGet("{id:guid}/sql-server")]
+    public async Task<IActionResult> GetFromSqlServer(Guid id)
+    {
+        var entity = await sqlCtx.StringEntities.FindAsync(id);
+        return entity is null ? NotFound() : Ok(entity);
+    }
+
+    [HttpGet("{id:guid}/postgresql")]
+    public async Task<IActionResult> GetFromPostgreSql(Guid id)
+    {
+        var entity = await pgCtx.StringEntities.FindAsync(id);
+        return entity is null ? NotFound() : Ok(entity);
+    }
+
     [HttpPost("non-nullable")]
     public async Task<IActionResult> CreateNonNullable(CreateNonNullableRequest request)
     {
