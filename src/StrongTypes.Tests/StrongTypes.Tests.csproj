@@ -7,6 +7,7 @@
     <NoWarn>CS1591</NoWarn>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FsCheck.Xunit.v3" Version="3.3.2" />
