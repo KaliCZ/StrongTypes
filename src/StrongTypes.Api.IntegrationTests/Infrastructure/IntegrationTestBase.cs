@@ -48,13 +48,6 @@ public abstract class IntegrationTestBase(TestWebApplicationFactory factory) : I
         return (await response.Content.ReadFromJsonAsync<StringEntityResponse>(Ct))!;
     }
 
-    protected async Task<JsonElement> PostExpecting(string url, object body, HttpStatusCode expectedStatus)
-    {
-        var response = await Client.PostAsJsonAsync(url, body, Ct);
-        Assert.Equal(expectedStatus, response.StatusCode);
-        return await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-    }
-
     protected async Task Put(string url, object body)
     {
         var response = await Client.PutAsJsonAsync(url, body, Ct);

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
@@ -37,8 +38,10 @@ public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) :
     {
         // [ApiController] + non-nullable reference type properties = implicit [Required]
         // → ASP.NET Core returns 400 with a ValidationProblemDetails body.
-        var json = await PostExpecting(NonNullable, Body<string?>(null, null), HttpStatusCode.BadRequest);
+        var response = await Client.PostAsJsonAsync(NonNullable, Body<string?>(null, null), Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
         Assert.True(json.TryGetProperty("errors", out var errors));
         Assert.Equal(JsonValueKind.Object, errors.ValueKind);
         Assert.True(errors.EnumerateObject().Any(), "Expected at least one validation error");
