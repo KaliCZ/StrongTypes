@@ -1,14 +1,13 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using StrongTypes.Api.Data;
-using StrongTypes.Api.Entities;
 using Xunit;
 
 namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 
 /// <summary>
-/// Base class for integration tests. Provides an HttpClient and both DbContexts
-/// via a per-test scope so individual tests don't have to create scopes manually.
+/// Generic infrastructure for every integration test: scoped DbContexts,
+/// an HttpClient, and the current test's CancellationToken.
+/// Entity-specific helpers live on derived bases (e.g. StringEntityTestsBase).
 /// </summary>
 public abstract class IntegrationTestBase(TestWebApplicationFactory factory) : IDisposable
 {
@@ -19,22 +18,14 @@ public abstract class IntegrationTestBase(TestWebApplicationFactory factory) : I
     protected SqlServerDbContext SqlDb => _scope.ServiceProvider.GetRequiredService<SqlServerDbContext>();
     protected PostgreSqlDbContext PgDb => _scope.ServiceProvider.GetRequiredService<PostgreSqlDbContext>();
 
+    protected static CancellationToken Ct => TestContext.Current.CancellationToken;
+
     /// <summary>
-    /// Fetches the entity with the given id from the supplied DbContext and asserts
-    /// that its Value and NullableValue match the expected values.
+    /// Builds the { Value, NullableValue } request body used by every write endpoint.
+    /// Generic so future entities with other scalar types reuse the same shape.
     /// </summary>
-    protected static async Task AssertStringEntity(
-        DbContext db,
-        Guid id,
-        string expectedValue,
-        string? expectedNullableValue)
-    {
-        var ct = TestContext.Current.CancellationToken;
-        var entity = await db.Set<StringEntity>().FindAsync([id], ct);
-        Assert.NotNull(entity);
-        Assert.Equal(expectedValue, entity!.Value);
-        Assert.Equal(expectedNullableValue, entity.NullableValue);
-    }
+    protected static object Body<T>(T value, T nullableValue) =>
+        new { Value = value, NullableValue = nullableValue };
 
     public void Dispose()
     {
