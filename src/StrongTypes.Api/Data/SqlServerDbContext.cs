@@ -6,11 +6,11 @@ namespace StrongTypes.Api.Data;
 
 public class SqlServerDbContext(DbContextOptions<SqlServerDbContext> options) : DbContext(options)
 {
-    public DbSet<StringEntity> StringEntities { get; set; }
+    public DbSet<NonEmptyStringEntity> NonEmptyStringEntities { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        var entity = modelBuilder.Entity<StringEntity>();
+        var entity = modelBuilder.Entity<NonEmptyStringEntity>();
         entity.Property(e => e.Value).HasConversion<NonEmptyStringValueConverter>();
         entity.Property(e => e.NullableValue).HasConversion<NonEmptyStringValueConverter>();
     }

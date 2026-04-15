@@ -7,30 +7,31 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Items;
 
 [Collection(IntegrationTestCollection.Name)]
-public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) : IntegrationTestBase(factory)
+public sealed class CreateNonEmptyStringEntityTests(TestWebApplicationFactory factory)
+    : NonEmptyStringEntityTestBase(factory)
 {
     [Fact]
     public async Task NonNullable_PersistsValueAndNullableValueInBothDatabases()
     {
         var created = await Post(NonNullable, Body("Alice", "Alice's nullable value"));
-        await AssertStringEntity(SqlDb, created.Id, "Alice", "Alice's nullable value");
-        await AssertStringEntity(PgDb, created.Id, "Alice", "Alice's nullable value");
+        await AssertEntity(SqlSet, created.Id, N("Alice"), N("Alice's nullable value"));
+        await AssertEntity(PgSet, created.Id, N("Alice"), N("Alice's nullable value"));
     }
 
     [Fact]
     public async Task Nullable_WithNullableValue_PersistsBothValuesInBothDatabases()
     {
         var created = await Post(Nullable, Body("Bob", "Bob's nullable value"));
-        await AssertStringEntity(SqlDb, created.Id, "Bob", "Bob's nullable value");
-        await AssertStringEntity(PgDb, created.Id, "Bob", "Bob's nullable value");
+        await AssertEntity(SqlSet, created.Id, N("Bob"), N("Bob's nullable value"));
+        await AssertEntity(PgSet, created.Id, N("Bob"), N("Bob's nullable value"));
     }
 
     [Fact]
     public async Task Nullable_WithNullNullableValue_PersistsNullInBothDatabases()
     {
         var created = await Post(Nullable, Body("Carol", null));
-        await AssertStringEntity(SqlDb, created.Id, "Carol", null);
-        await AssertStringEntity(PgDb, created.Id, "Carol", null);
+        await AssertEntity(SqlSet, created.Id, N("Carol"), null);
+        await AssertEntity(PgSet, created.Id, N("Carol"), null);
     }
 
     [Fact]

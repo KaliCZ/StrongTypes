@@ -1,11 +1,11 @@
 namespace StrongTypes.Api.Entities;
 
-public class StringEntity
+public sealed class NonEmptyStringEntity : IValuedEntity<NonEmptyString>
 {
     // Required by EF Core for materialization from query results.
-    private StringEntity() { }
+    private NonEmptyStringEntity() { }
 
-    public StringEntity(NonEmptyString value, NonEmptyString? nullableValue)
+    public NonEmptyStringEntity(NonEmptyString value, NonEmptyString? nullableValue)
     {
         Id = Guid.NewGuid();
         Value = value;

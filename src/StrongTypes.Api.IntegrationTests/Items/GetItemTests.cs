@@ -1,5 +1,4 @@
 using System.Text.Json;
-using StrongTypes;
 using StrongTypes.Api.Entities;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
@@ -7,14 +6,15 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Items;
 
 [Collection(IntegrationTestCollection.Name)]
-public sealed class GetStringEntityTests(TestWebApplicationFactory factory) : IntegrationTestBase(factory)
+public sealed class GetNonEmptyStringEntityTests(TestWebApplicationFactory factory)
+    : NonEmptyStringEntityTestBase(factory)
 {
     [Fact]
     public async Task ReturnsEntityWithCamelCaseJsonFromBothDatabases()
     {
-        var entity = new StringEntity(NonEmptyString.Create("Alice"), NonEmptyString.Create("Alice's nullable value"));
-        SqlDb.StringEntities.Add(entity);
-        PgDb.StringEntities.Add(entity);
+        var entity = new NonEmptyStringEntity(N("Alice"), N("Alice's nullable value"));
+        SqlDb.NonEmptyStringEntities.Add(entity);
+        PgDb.NonEmptyStringEntities.Add(entity);
         await SqlDb.SaveChangesAsync(Ct);
         await PgDb.SaveChangesAsync(Ct);
 
@@ -32,9 +32,9 @@ public sealed class GetStringEntityTests(TestWebApplicationFactory factory) : In
     [Fact]
     public async Task SerializesNullNullableValueAsJsonNullFromBothDatabases()
     {
-        var entity = new StringEntity(NonEmptyString.Create("Carol"), null);
-        SqlDb.StringEntities.Add(entity);
-        PgDb.StringEntities.Add(entity);
+        var entity = new NonEmptyStringEntity(N("Carol"), null);
+        SqlDb.NonEmptyStringEntities.Add(entity);
+        PgDb.NonEmptyStringEntities.Add(entity);
         await SqlDb.SaveChangesAsync(Ct);
         await PgDb.SaveChangesAsync(Ct);
 

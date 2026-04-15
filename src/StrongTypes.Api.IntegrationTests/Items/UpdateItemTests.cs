@@ -4,7 +4,8 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Items;
 
 [Collection(IntegrationTestCollection.Name)]
-public sealed class UpdateStringEntityTests(TestWebApplicationFactory factory) : IntegrationTestBase(factory)
+public sealed class UpdateNonEmptyStringEntityTests(TestWebApplicationFactory factory)
+    : NonEmptyStringEntityTestBase(factory)
 {
     [Fact]
     public async Task NonNullable_UpdatesValueAndNullableValueInBothDatabases()
@@ -12,8 +13,8 @@ public sealed class UpdateStringEntityTests(TestWebApplicationFactory factory) :
         var created = await Post(NonNullable, Body("Original", "Original nullable value"));
         await Put(UpdateNonNullable(created.Id), Body("Updated", "Updated nullable value"));
 
-        await AssertStringEntity(SqlDb, created.Id, "Updated", "Updated nullable value");
-        await AssertStringEntity(PgDb, created.Id, "Updated", "Updated nullable value");
+        await AssertEntity(SqlSet, created.Id, N("Updated"), N("Updated nullable value"));
+        await AssertEntity(PgSet, created.Id, N("Updated"), N("Updated nullable value"));
     }
 
     [Fact]
@@ -22,8 +23,8 @@ public sealed class UpdateStringEntityTests(TestWebApplicationFactory factory) :
         var created = await Post(Nullable, Body("Dave", null));
         await Put(UpdateNullable(created.Id), Body("Dave", "Now has a nullable value"));
 
-        await AssertStringEntity(SqlDb, created.Id, "Dave", "Now has a nullable value");
-        await AssertStringEntity(PgDb, created.Id, "Dave", "Now has a nullable value");
+        await AssertEntity(SqlSet, created.Id, N("Dave"), N("Now has a nullable value"));
+        await AssertEntity(PgSet, created.Id, N("Dave"), N("Now has a nullable value"));
     }
 
     [Fact]
@@ -32,7 +33,7 @@ public sealed class UpdateStringEntityTests(TestWebApplicationFactory factory) :
         var created = await Post(NonNullable, Body("Eve", "Eve's nullable value"));
         await Put(UpdateNullable(created.Id), Body("Eve", null));
 
-        await AssertStringEntity(SqlDb, created.Id, "Eve", null);
-        await AssertStringEntity(PgDb, created.Id, "Eve", null);
+        await AssertEntity(SqlSet, created.Id, N("Eve"), null);
+        await AssertEntity(PgSet, created.Id, N("Eve"), null);
     }
 }
