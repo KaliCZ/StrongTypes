@@ -41,28 +41,6 @@ public static class NonEmptyStringExtensions
     public static TimeSpan? ToTimeSpan(this NonEmptyString s, IFormatProvider? format = null) =>
         TimeSpan.TryParse(s.Value, format, out var value) ? value : null;
 
-    /// <summary>
-    /// Parses <paramref name="s"/> as a value of the enum <typeparamref name="TEnum"/>.
-    /// Returns <c>null</c> if the value is a comma-separated list (flags), does not
-    /// match an enum name, or does not match the casing required when
-    /// <paramref name="ignoreCase"/> is <c>false</c>.
-    /// </summary>
-    public static TEnum? ToEnum<TEnum>(this NonEmptyString s, bool ignoreCase = false)
-        where TEnum : struct, Enum
-    {
-        if (s.Contains(",") || !Enum.TryParse<TEnum>(s.Value, ignoreCase, out var value))
-        {
-            return null;
-        }
-
-        if (!Enum.IsDefined(typeof(TEnum), value) || !value.ToString().Equals(s.Value, StringComparison.InvariantCultureIgnoreCase))
-        {
-            return null;
-        }
-
-        return value;
-    }
-
     public static Guid? ToGuid(this NonEmptyString s) =>
         Guid.TryParse(s.Value, out var value) ? value : null;
 
