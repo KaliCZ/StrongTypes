@@ -1,17 +1,13 @@
-﻿using FsCheck;
+using FsCheck;
 using FsCheck.Xunit;
 using StrongTypes.Tests.Generative;
 using Xunit;
 
 namespace StrongTypes.Tests.Options;
 
+[Properties(Arbitrary = new[] { typeof(OptionGenerators) })]
 public class ToNullableTests
 {
-    public ToNullableTests()
-    {
-        Arb.Register<OptionGenerators>();
-    }
-
     [Fact]
     public void ToNullable()
     {
