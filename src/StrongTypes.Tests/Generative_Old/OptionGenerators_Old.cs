@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using FsCheck;
+using FsCheck.Fluent;
 
 namespace StrongTypes.Tests.Generative;
 
@@ -28,10 +29,10 @@ public class OptionGenerators
 
         Unit = Arb.From(Gen.Constant(StrongTypes.Unit.Value).SometimesEmpty()); // No shrinker needed for Unit
 
-        var referenceTypeGenerator = Arb.From<int>().Generator.Select(i => new ReferenceType(i));
+        var referenceTypeGenerator = ArbMap.Default.ArbFor<int>().Generator.Select(i => new ReferenceType(i));
         ReferenceType = Arb.From(referenceTypeGenerator.SometimesEmpty(), Shrinkers.Options.ReferenceType);
         ReferenceTypes = Arb.From(referenceTypeGenerator.ToList().SometimesEmpty(), Shrinkers.Options.ReferenceTypeList);
-        var referenceTypeBaseGenerator = Arb.From<int>().Generator.Select(i => new ReferenceTypeBase(i));
+        var referenceTypeBaseGenerator = ArbMap.Default.ArbFor<int>().Generator.Select(i => new ReferenceTypeBase(i));
         ReferenceTypeBase = Arb.From(referenceTypeBaseGenerator.SometimesEmpty(), Shrinkers.Options.ReferenceTypeBase);
         ReferenceTypeBases = Arb.From(referenceTypeBaseGenerator.ToList().SometimesEmpty(), Shrinkers.Options.ReferenceTypeBaseList);
     }
@@ -86,11 +87,11 @@ public class OptionGenerators
 
     private static Gen<Option<T>> DefaultOptionGenerator<T>()
     {
-        return Arb.From<T>().Generator.SometimesEmpty();
+        return ArbMap.Default.ArbFor<T>().Generator.SometimesEmpty();
     }
 
     private static Gen<Option<List<T>>> DefaultOptionListGenerator<T>()
     {
-        return Arb.From<T>().Generator.ToList().SometimesEmpty();
+        return ArbMap.Default.ArbFor<T>().Generator.ToList().SometimesEmpty();
     }
 }

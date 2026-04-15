@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrongTypes.Api.Data;
 using Testcontainers.MsSql;
 using Testcontainers.PostgreSql;
+using Xunit;
 
 namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 
@@ -19,8 +20,8 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
     private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder().Build();
     private readonly PostgreSqlContainer _pgContainer = new PostgreSqlBuilder().Build();
 
-    // IAsyncLifetime — called by xUnit before any test in the collection runs
-    async Task IAsyncLifetime.InitializeAsync()
+    // xUnit v3 IAsyncLifetime uses ValueTask
+    async ValueTask IAsyncLifetime.InitializeAsync()
     {
         // Start both containers in parallel; containers must be up before the
         // host is built so that ConfigureWebHost can read their connection strings.
@@ -51,8 +52,9 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
         });
     }
 
-    // IAsyncLifetime — called by xUnit after all tests in the collection finish
-    async Task IAsyncLifetime.DisposeAsync()
+    // Overrides WebApplicationFactory.DisposeAsync (ValueTask), which also satisfies
+    // xUnit v3 IAsyncLifetime.DisposeAsync (same signature).
+    public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
         await _sqlContainer.DisposeAsync();
