@@ -54,11 +54,11 @@ public abstract class IntegrationTestBase(TestWebApplicationFactory factory) : I
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    protected async Task<T> Get<T>(string url)
+    protected async Task<JsonElement> Get(string url)
     {
         var response = await Client.GetAsync(url, Ct);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        return (await response.Content.ReadFromJsonAsync<T>(Ct))!;
+        return await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
     }
 
     /// <summary>
