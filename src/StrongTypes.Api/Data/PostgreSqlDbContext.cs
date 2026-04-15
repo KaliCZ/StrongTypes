@@ -8,8 +8,6 @@ public class PostgreSqlDbContext(DbContextOptions<PostgreSqlDbContext> options) 
 {
     public DbSet<NonEmptyStringEntity> NonEmptyStringEntities { get; set; }
 
-    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
-    {
-        configurationBuilder.Properties<NonEmptyString>().HaveConversion<NonEmptyStringValueConverter>();
-    }
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) =>
+        configurationBuilder.UseStrongTypes();
 }
