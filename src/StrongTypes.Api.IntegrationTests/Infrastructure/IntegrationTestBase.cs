@@ -38,8 +38,7 @@ public abstract class IntegrationTestBase(TestWebApplicationFactory factory) : I
     /// Builds the { Value, NullableValue } request body used by every write endpoint.
     /// Generic so future entities with other scalar types reuse the same shape.
     /// </summary>
-    protected static object Body<T>(T value, T nullableValue) =>
-        new { Value = value, NullableValue = nullableValue };
+    protected static object Body<T>(T value, T? nullableValue) => new { Value = value, NullableValue = nullableValue };
 
     protected async Task<StringEntityResponse> Post(string url, object body)
     {

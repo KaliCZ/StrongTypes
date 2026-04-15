@@ -19,7 +19,7 @@ public sealed class UpdateStringEntityTests(TestWebApplicationFactory factory) :
     [Fact]
     public async Task Nullable_SetsNullableValueFromNullToValueInBothDatabases()
     {
-        var created = await Post(Nullable, Body("Dave", (string?)null));
+        var created = await Post(Nullable, Body("Dave", null));
         await Put(UpdateNullable(created.Id), Body("Dave", "Now has a nullable value"));
 
         await AssertStringEntity(SqlDb, created.Id, "Dave", "Now has a nullable value");
@@ -30,7 +30,7 @@ public sealed class UpdateStringEntityTests(TestWebApplicationFactory factory) :
     public async Task Nullable_ClearsNullableValueToNullInBothDatabases()
     {
         var created = await Post(NonNullable, Body("Eve", "Eve's nullable value"));
-        await Put(UpdateNullable(created.Id), Body("Eve", (string?)null));
+        await Put(UpdateNullable(created.Id), Body("Eve", null));
 
         await AssertStringEntity(SqlDb, created.Id, "Eve", null);
         await AssertStringEntity(PgDb, created.Id, "Eve", null);

@@ -28,7 +28,7 @@ public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) :
     [Fact]
     public async Task Nullable_WithNullNullableValue_PersistsNullInBothDatabases()
     {
-        var created = await Post(Nullable, Body("Carol", (string?)null));
+        var created = await Post(Nullable, Body("Carol", null));
         await AssertStringEntity(SqlDb, created.Id, "Carol", null);
         await AssertStringEntity(PgDb, created.Id, "Carol", null);
     }
