@@ -9,7 +9,6 @@ on:
       - main
 
 permissions:
-  checks: write
   contents: read
 
 jobs:
@@ -21,51 +20,35 @@ jobs:
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: true
       
-    defaults:
-      run:
-        working-directory: src
-        
     steps:
     - name: Checkout
       uses: actions/checkout@v6
-    
+
     - name: Setup .NET 10
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 10.0.x
 
-    - name: Clean
-      run: dotnet clean ./StrongTypes.slnx --configuration $config && dotnet nuget locals all --clear
-
-    - name: Install dependencies
+    - name: Restore
       run: dotnet restore
-    
+
     - name: Build
       run: dotnet build --configuration $config --no-restore
-    
+
     - name: Test
-      run: dotnet test --no-restore --no-build --configuration $config --logger "trx;LogFileName=test-results.trx" || true
+      run: dotnet test --no-restore --no-build --configuration $config
 
     - name: Pack
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: dotnet pack ./StrongTypes/StrongTypes.csproj -c $config --no-build -o out
+      run: dotnet pack ./src/StrongTypes/StrongTypes.csproj -c $config --no-build -o out
 
     - name: Upload NuGet package
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       uses: actions/upload-artifact@v7
       with:
         name: nuget-package
-        path: src/out/*.nupkg
+        path: out/*.nupkg
         retention-days: 1
-
-    - name: Test Report
-      uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2  # v3.0.0
-      if: success() || failure()
-      with:
-        name: StrongTypes Tests report
-        path: "**/test-results.trx"
-        reporter: dotnet-trx
-        fail-on-error: true
 
   publish:
     needs: build-and-test

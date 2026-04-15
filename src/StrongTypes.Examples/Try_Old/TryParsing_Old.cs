@@ -41,7 +41,7 @@ public class Person
 
     private static Try<NonEmptyString, PersonParsingError> ParseName(string name)
     {
-        return name.AsNonEmpty().ToTry(_ => PersonParsingError.NameNotProvided);
+        return name.AsNonEmpty().ToTry(() => PersonParsingError.NameNotProvided);
     }
 
     private static Try<int, PersonParsingError> ParseAge(string age)

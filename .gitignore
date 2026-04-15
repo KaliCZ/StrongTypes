@@ -8,3 +8,4 @@
 *.ncb
 src/packages
 src/.idea
+.idea/
