@@ -10,11 +10,8 @@
 - **Requests** — always use anonymous objects (`new { Value = "x", NullableValue = (string?)null }`), never the typed request records from the API project.
 - **Responses** — for simple ID-only responses, deserializing into the typed response record (e.g. `StringEntityResponse`) is fine and cuts a line of boilerplate. For richer payloads (full entity bodies, `ValidationProblemDetails`, etc.) parse as `JsonElement` and pull fields by name — that verifies the on-the-wire HTTP contract directly.
 - **Rationale** — tests should verify what the client actually sees (JSON shape, status codes) and the DB state, not the C# type graph.
-- **Base class layering**
-  - `IntegrationTestBase` — generic infrastructure: `Client`, `SqlDb`, `PgDb`, `Ct` (current test's CancellationToken), and `Body<T>(value, nullableValue)`.
-  - `StringEntityTestsBase` (extends `IntegrationTestBase`) — StringEntity-specific helpers: route constants (`NonNullable`, `Nullable`, `UpdateNonNullable(id)`, …), HTTP wrappers (`Post`/`Put`/`Get<T>`/`PostExpecting`) that capture `Client` and `Ct` implicitly and bake in `StringEntityResponse` on the success path, plus `AssertStringEntity`.
-  - New entity types get their own `XxxTestsBase` so the common infrastructure stays entity-agnostic.
-- **HTTP helpers (low level)** — `Client.PostJsonAsync<T>`, `PutJsonAsync`, `GetJsonAsync<T>` extensions (in `HttpClientTestExtensions`) are what the entity base classes wrap. Use them directly only when a test needs a return type or status code the wrapped helpers don't cover.
+- **Test base class** — inherit from `IntegrationTestBase(factory)` to get everything: `Client`, `SqlDb`, `PgDb`, `Ct` (current test's CancellationToken), route constants/builders, HTTP wrappers (`Post`/`Put`/`Get<T>`/`PostExpecting`) that capture `Client` and `Ct` implicitly and bake in `StringEntityResponse` on the success path, `Body<T>(value, nullableValue)`, and `AssertStringEntity`. A follow-up PR will make this base generic over the entity type.
+- **HTTP helpers (low level)** — `Client.PostJsonAsync<T>`, `PutJsonAsync`, `GetJsonAsync<T>` extensions (in `HttpClientTestExtensions`) are what the base wraps. Use them directly only when a test needs a return type or status code the wrapped helpers don't cover.
 - **CancellationTokens** — xunit.v3's `xUnit1051` analyzer requires `TestContext.Current.CancellationToken` be threaded into every async call that accepts one (`PostAsJsonAsync`, `PutAsJsonAsync`, `ReadFromJsonAsync`, `FindAsync([id], ct)`, `GetAsync`, …). Grab it at the top: `var ct = TestContext.Current.CancellationToken;`.
 
 ## Documentation and memory policy

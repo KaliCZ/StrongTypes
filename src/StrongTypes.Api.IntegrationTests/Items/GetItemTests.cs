@@ -6,7 +6,7 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Items;
 
 [Collection(IntegrationTestCollection.Name)]
-public sealed class GetStringEntityTests(TestWebApplicationFactory factory) : StringEntityTestsBase(factory)
+public sealed class GetStringEntityTests(TestWebApplicationFactory factory) : IntegrationTestBase(factory)
 {
     [Fact]
     public async Task ReturnsEntityWithCamelCaseJsonFromBothDatabases()

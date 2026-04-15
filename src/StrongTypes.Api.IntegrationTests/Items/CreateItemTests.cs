@@ -6,7 +6,7 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Items;
 
 [Collection(IntegrationTestCollection.Name)]
-public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) : StringEntityTestsBase(factory)
+public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) : IntegrationTestBase(factory)
 {
     [Fact]
     public async Task NonNullable_PersistsValueAndNullableValueInBothDatabases()
