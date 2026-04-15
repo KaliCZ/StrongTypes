@@ -1,17 +1,13 @@
-﻿using FsCheck;
+using FsCheck;
 using FsCheck.Xunit;
 using StrongTypes.Tests.Generative;
 using Xunit;
 
 namespace StrongTypes.Tests.Options;
 
+[Properties(Arbitrary = new[] { typeof(OptionGenerators) })]
 public class ToEnumerableTests
 {
-    public ToEnumerableTests()
-    {
-        Arb.Register<OptionGenerators>();
-    }
-
     [Fact]
     public void ToEnumerable()
     {

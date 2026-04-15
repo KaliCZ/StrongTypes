@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using FsCheck;
+using FsCheck.Fluent;
 
 namespace StrongTypes.Tests.Generative;
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using FsCheck;
 using FsCheck.Xunit;
 using StrongTypes.Tests.Generative;
@@ -6,13 +6,9 @@ using Xunit;
 
 namespace StrongTypes.Tests.Options;
 
+[Properties(Arbitrary = new[] { typeof(OptionGenerators) })]
 public class MatchTests_Func
 {
-    public MatchTests_Func()
-    {
-        Arb.Register<OptionGenerators>();
-    }
-
     [Fact]
     internal void Match()
     {
