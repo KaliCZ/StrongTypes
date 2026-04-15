@@ -8,8 +8,8 @@
 ## Integration test conventions
 
 - **Requests** — always use anonymous objects (`new { Value = "x", NullableValue = (string?)null }`), never the typed request records from the API project.
-- **Responses** — parse with `ReadFromJsonAsync<JsonElement>()` and pull fields by name (e.g. `json.GetProperty("id").GetGuid()`), never deserialize into a typed response record.
-- **Rationale** — keeps tests decoupled from the API's model types; the test verifies the HTTP contract (field names, status codes) and the DB state, not the C# type system.
+- **Responses** — for simple ID-only responses, deserializing into the typed response record (e.g. `StringEntityResponse`) is fine and cuts a line of boilerplate. For richer payloads (full entity bodies, `ValidationProblemDetails`, etc.) parse as `JsonElement` and pull fields by name — that verifies the on-the-wire HTTP contract directly.
+- **Rationale** — tests should verify what the client actually sees (JSON shape, status codes) and the DB state, not the C# type graph.
 - **Test base class** — inherit from `IntegrationTestBase(factory)` to get `Client`, `SqlDb`, and `PgDb` properties; don't create scopes or resolve DbContexts manually in individual tests.
 - **CancellationTokens** — xunit.v3's `xUnit1051` analyzer requires `TestContext.Current.CancellationToken` be threaded into every async call that accepts one (`PostAsJsonAsync`, `PutAsJsonAsync`, `ReadFromJsonAsync`, `FindAsync([id], ct)`, `GetAsync`, …). Grab it at the top: `var ct = TestContext.Current.CancellationToken;`.
 

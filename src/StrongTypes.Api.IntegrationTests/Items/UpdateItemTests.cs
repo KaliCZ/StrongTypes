@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using StrongTypes.Api.Models;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
@@ -18,8 +19,8 @@ public sealed class UpdateStringEntityTests(TestWebApplicationFactory factory) :
             "/string-entities/non-nullable",
             new { Value = "Original", NullableValue = "Original nullable value" },
             ct);
-        var createJson = await createResponse.Content.ReadFromJsonAsync<JsonElement>(ct);
-        var id = createJson.GetProperty("id").GetGuid();
+        var created = await createResponse.Content.ReadFromJsonAsync<StringEntityResponse>(ct);
+        var id = created!.Id;
 
         var updateResponse = await Client.PutAsJsonAsync(
             $"/string-entities/{id}/non-nullable",
@@ -41,8 +42,8 @@ public sealed class UpdateStringEntityTests(TestWebApplicationFactory factory) :
             "/string-entities/nullable",
             new { Value = "Dave", NullableValue = (string?)null },
             ct);
-        var createJson = await createResponse.Content.ReadFromJsonAsync<JsonElement>(ct);
-        var id = createJson.GetProperty("id").GetGuid();
+        var created = await createResponse.Content.ReadFromJsonAsync<StringEntityResponse>(ct);
+        var id = created!.Id;
 
         var updateResponse = await Client.PutAsJsonAsync(
             $"/string-entities/{id}/nullable",
@@ -64,8 +65,8 @@ public sealed class UpdateStringEntityTests(TestWebApplicationFactory factory) :
             "/string-entities/non-nullable",
             new { Value = "Eve", NullableValue = "Eve's nullable value" },
             ct);
-        var createJson = await createResponse.Content.ReadFromJsonAsync<JsonElement>(ct);
-        var id = createJson.GetProperty("id").GetGuid();
+        var created = await createResponse.Content.ReadFromJsonAsync<StringEntityResponse>(ct);
+        var id = created!.Id;
 
         var updateResponse = await Client.PutAsJsonAsync(
             $"/string-entities/{id}/nullable",

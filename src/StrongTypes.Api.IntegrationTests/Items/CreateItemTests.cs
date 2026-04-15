@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using StrongTypes.Api.Models;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
@@ -20,8 +21,8 @@ public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) :
             ct);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
-        var id = json.GetProperty("id").GetGuid();
+        var result = await response.Content.ReadFromJsonAsync<StringEntityResponse>(ct);
+        var id = result!.Id;
 
         await AssertStringEntity(SqlDb, id, "Alice", "Alice's nullable value");
         await AssertStringEntity(PgDb, id, "Alice", "Alice's nullable value");
@@ -38,8 +39,8 @@ public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) :
             ct);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
-        var id = json.GetProperty("id").GetGuid();
+        var result = await response.Content.ReadFromJsonAsync<StringEntityResponse>(ct);
+        var id = result!.Id;
 
         await AssertStringEntity(SqlDb, id, "Bob", "Bob's nullable value");
         await AssertStringEntity(PgDb, id, "Bob", "Bob's nullable value");
@@ -56,8 +57,8 @@ public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) :
             ct);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
-        var id = json.GetProperty("id").GetGuid();
+        var result = await response.Content.ReadFromJsonAsync<StringEntityResponse>(ct);
+        var id = result!.Id;
 
         await AssertStringEntity(SqlDb, id, "Carol", null);
         await AssertStringEntity(PgDb, id, "Carol", null);
