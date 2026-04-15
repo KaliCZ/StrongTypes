@@ -57,6 +57,15 @@ Rules:
   globally yet, so add `#nullable enable` at the top of each new file.
 - Do **not** return `Option<T>` from new code.
 
+## Tests
+
+- Prefer data-driven tests with `[Theory]` + `[InlineData]` (or `[MemberData]`
+  when rows get complex) over duplicated `[Fact]` methods whose bodies differ
+  only in input or expected value. One parameterized method with several
+  data rows reads better and keeps assertion shape consistent across cases.
+- Use separate `[Fact]` methods when the test body genuinely differs — e.g.
+  asserting a side effect like "the factory was invoked exactly once".
+
 ## Style
 
 - Prefer `Edit` over rewriting whole files.

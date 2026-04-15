@@ -11,21 +11,23 @@ public class NullableExtensionsTests
         Missing
     }
 
-    [Fact]
-    public void ToTry_ReferenceType_NonNull_IsSuccess()
+    [Theory]
+    [InlineData("abc")]
+    [InlineData("hello world")]
+    public void ToTry_ReferenceType_NonNull_IsSuccess(string input)
     {
-        NonEmptyString? value = NonEmptyString.TryCreate("abc");
+        NonEmptyString? value = NonEmptyString.TryCreate(input);
 
         Try<NonEmptyString, ParseError> result = value.ToTry(() => ParseError.Missing);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("abc", result.Success.Get()!.Value);
+        Assert.Equal(input, result.Success.Get()!.Value);
     }
 
     [Fact]
     public void ToTry_ReferenceType_Null_IsErrorWithProducedValue()
     {
-        NonEmptyString? value = NonEmptyString.TryCreate("");
+        NonEmptyString? value = null;
 
         Try<NonEmptyString, ParseError> result = value.ToTry(() => ParseError.Missing);
 
@@ -33,29 +35,18 @@ public class NullableExtensionsTests
         Assert.Equal(ParseError.Missing, result.Error.Get());
     }
 
-    [Fact]
-    public void ToTry_ReferenceType_Null_InvokesErrorFactoryOnlyOnNull()
+    [Theory]
+    [InlineData(42)]
+    [InlineData(0)]        // default(int) — dispatch must go on HasValue, not value equality with default
+    [InlineData(-7)]
+    public void ToTry_ValueType_HasValue_IsSuccess(int input)
     {
-        var calls = 0;
-        NonEmptyString? populated = NonEmptyString.TryCreate("abc");
-        NonEmptyString? empty = NonEmptyString.TryCreate("");
-
-        _ = populated.ToTry(() => { calls++; return ParseError.Missing; });
-        Assert.Equal(0, calls);
-
-        _ = empty.ToTry(() => { calls++; return ParseError.Missing; });
-        Assert.Equal(1, calls);
-    }
-
-    [Fact]
-    public void ToTry_ValueType_HasValue_IsSuccess()
-    {
-        int? value = 42;
+        int? value = input;
 
         Try<int, ParseError> result = value.ToTry(() => ParseError.Missing);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(42, result.Success.Get());
+        Assert.Equal(input, result.Success.Get());
     }
 
     [Fact]
@@ -70,14 +61,30 @@ public class NullableExtensionsTests
     }
 
     [Fact]
-    public void ToTry_ValueType_HasValue_ZeroIsSuccess()
+    public void ToTry_ReferenceType_ErrorFactory_InvokedOnlyOnNull()
     {
-        // Ensures we dispatch on HasValue, not on the underlying value being "default".
-        int? value = 0;
+        var calls = 0;
+        NonEmptyString? populated = NonEmptyString.TryCreate("abc");
+        NonEmptyString? empty = null;
 
-        Try<int, ParseError> result = value.ToTry(() => ParseError.Missing);
+        _ = populated.ToTry(() => { calls++; return ParseError.Missing; });
+        Assert.Equal(0, calls);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(0, result.Success.Get());
+        _ = empty.ToTry(() => { calls++; return ParseError.Missing; });
+        Assert.Equal(1, calls);
+    }
+
+    [Fact]
+    public void ToTry_ValueType_ErrorFactory_InvokedOnlyOnNull()
+    {
+        var calls = 0;
+        int? populated = 42;
+        int? empty = null;
+
+        _ = populated.ToTry(() => { calls++; return ParseError.Missing; });
+        Assert.Equal(0, calls);
+
+        _ = empty.ToTry(() => { calls++; return ParseError.Missing; });
+        Assert.Equal(1, calls);
     }
 }
