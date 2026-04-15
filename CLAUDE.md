@@ -93,14 +93,13 @@ Rules:
 
 ## Tests
 
-- Prefer data-driven tests with `[Theory]` + `[InlineData]` (or `[MemberData]`
-  when rows get complex) over duplicated `[Fact]` methods whose bodies differ
-  only in input or expected value. One parameterized method with several
-  data rows reads better and keeps assertion shape consistent across cases.
-- For code whose behavior partitions on input shape (null vs non-null,
-  empty vs non-empty, etc.), reach for an FsCheck property test —
-  `[Property]` from `FsCheck.Xunit` — and let the generator cover the
-  space. Register arbitraries on a test class via
+**Default to FsCheck property tests.** Generative coverage is the first
+thing to reach for — it surfaces edge cases a handful of hand-picked rows
+will miss, and it keeps test bodies focused on a single invariant across
+the whole input space.
+
+- Write `[Property]` tests from `FsCheck.Xunit` and let an `Arbitrary<T>`
+  cover the input space. Register arbitraries on a test class via
   `[Properties(Arbitrary = new[] { typeof(Generators) })]`.
 - All shared arbitraries live in a single `Generators` class at
   `src/StrongTypes.Tests/Generators.cs`. Add new arbitraries there rather
@@ -113,8 +112,17 @@ Rules:
   that samples it a few hundred times and asserts every partition branch
   appears, so a regression in the generator can't silently mask missing
   coverage.
-- Use separate `[Fact]` methods when the test body genuinely differs — e.g.
-  asserting a side effect like "the factory was invoked exactly once".
+
+**Fall back to `[Theory]` + `[InlineData]` (or `[MemberData]`) only when
+property tests don't fit** — e.g. the input space doesn't generate cleanly,
+the invariant you want to express is really a small fixed set of worked
+examples, or the generator/shrinker would be more work than the test is
+worth. When you do use `[Theory]`, still prefer one parameterized method
+with several data rows over duplicated `[Fact]` methods whose bodies
+differ only in input or expected value.
+
+Use separate `[Fact]` methods when the test body genuinely differs — e.g.
+asserting a side effect like "the factory was invoked exactly once".
 
 ## Integration tests (StrongTypes.Api)
 
