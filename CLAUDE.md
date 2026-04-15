@@ -86,6 +86,15 @@ Rules:
   when rows get complex) over duplicated `[Fact]` methods whose bodies differ
   only in input or expected value. One parameterized method with several
   data rows reads better and keeps assertion shape consistent across cases.
+- For code whose behavior partitions on input shape (null vs non-null, empty
+  vs non-empty, etc.), reach for an FsCheck property test — `[Property]` from
+  `FsCheck.Xunit` — and let the generator cover the space. Register custom
+  arbitraries via a nested `Generators` class and the class-level
+  `[Properties(Arbitrary = new[] { typeof(...Generators) })]` attribute.
+  When a custom generator is non-trivial, pair it with a one-off `[Fact]`
+  that samples it a few hundred times and asserts both branches of the
+  partition appear, so a regression in the generator can't silently mask
+  missing coverage.
 - Use separate `[Fact]` methods when the test body genuinely differs — e.g.
   asserting a side effect like "the factory was invoked exactly once".
 

@@ -63,6 +63,18 @@ public class TryExtensionsTests
         }
     }
 
+    [Fact]
+    public void Generator_ProducesBothNullAndNonNull()
+    {
+        // Sanity check that the property tests above are actually hitting
+        // both branches of the ToTry logic, not e.g. always exercising the
+        // null path because the non-null generator silently fails.
+        var samples = Generators.NullableNonEmptyString.Generator.Sample(100);
+
+        Assert.Contains(samples, s => s is null);
+        Assert.Contains(samples, s => s is not null);
+    }
+
     public static class Generators
     {
         public static Arbitrary<NonEmptyString?> NullableNonEmptyString { get; } =
