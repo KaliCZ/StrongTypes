@@ -1,6 +1,3 @@
-using System.Net;
-using System.Net.Http.Json;
-using System.Text.Json;
 using StrongTypes.Api.Models;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
@@ -15,22 +12,18 @@ public sealed class UpdateStringEntityTests(TestWebApplicationFactory factory) :
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var createResponse = await Client.PostAsJsonAsync(
+        var created = await Client.PostJsonAsync<StringEntityResponse>(
             "/string-entities/non-nullable",
             new { Value = "Original", NullableValue = "Original nullable value" },
             ct);
-        var created = await createResponse.Content.ReadFromJsonAsync<StringEntityResponse>(ct);
-        var id = created!.Id;
 
-        var updateResponse = await Client.PutAsJsonAsync(
-            $"/string-entities/{id}/non-nullable",
+        await Client.PutJsonAsync(
+            $"/string-entities/{created.Id}/non-nullable",
             new { Value = "Updated", NullableValue = "Updated nullable value" },
             ct);
 
-        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
-
-        await AssertStringEntity(SqlDb, id, "Updated", "Updated nullable value");
-        await AssertStringEntity(PgDb, id, "Updated", "Updated nullable value");
+        await AssertStringEntity(SqlDb, created.Id, "Updated", "Updated nullable value");
+        await AssertStringEntity(PgDb, created.Id, "Updated", "Updated nullable value");
     }
 
     [Fact]
@@ -38,22 +31,18 @@ public sealed class UpdateStringEntityTests(TestWebApplicationFactory factory) :
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var createResponse = await Client.PostAsJsonAsync(
+        var created = await Client.PostJsonAsync<StringEntityResponse>(
             "/string-entities/nullable",
             new { Value = "Dave", NullableValue = (string?)null },
             ct);
-        var created = await createResponse.Content.ReadFromJsonAsync<StringEntityResponse>(ct);
-        var id = created!.Id;
 
-        var updateResponse = await Client.PutAsJsonAsync(
-            $"/string-entities/{id}/nullable",
+        await Client.PutJsonAsync(
+            $"/string-entities/{created.Id}/nullable",
             new { Value = "Dave", NullableValue = "Now has a nullable value" },
             ct);
 
-        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
-
-        await AssertStringEntity(SqlDb, id, "Dave", "Now has a nullable value");
-        await AssertStringEntity(PgDb, id, "Dave", "Now has a nullable value");
+        await AssertStringEntity(SqlDb, created.Id, "Dave", "Now has a nullable value");
+        await AssertStringEntity(PgDb, created.Id, "Dave", "Now has a nullable value");
     }
 
     [Fact]
@@ -61,21 +50,17 @@ public sealed class UpdateStringEntityTests(TestWebApplicationFactory factory) :
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var createResponse = await Client.PostAsJsonAsync(
+        var created = await Client.PostJsonAsync<StringEntityResponse>(
             "/string-entities/non-nullable",
             new { Value = "Eve", NullableValue = "Eve's nullable value" },
             ct);
-        var created = await createResponse.Content.ReadFromJsonAsync<StringEntityResponse>(ct);
-        var id = created!.Id;
 
-        var updateResponse = await Client.PutAsJsonAsync(
-            $"/string-entities/{id}/nullable",
+        await Client.PutJsonAsync(
+            $"/string-entities/{created.Id}/nullable",
             new { Value = "Eve", NullableValue = (string?)null },
             ct);
 
-        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
-
-        await AssertStringEntity(SqlDb, id, "Eve", null);
-        await AssertStringEntity(PgDb, id, "Eve", null);
+        await AssertStringEntity(SqlDb, created.Id, "Eve", null);
+        await AssertStringEntity(PgDb, created.Id, "Eve", null);
     }
 }

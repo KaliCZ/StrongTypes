@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using System.Text.Json;
 using StrongTypes.Api.Models;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
@@ -15,17 +14,13 @@ public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) :
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var response = await Client.PostAsJsonAsync(
+        var created = await Client.PostJsonAsync<StringEntityResponse>(
             "/string-entities/non-nullable",
             new { Value = "Alice", NullableValue = "Alice's nullable value" },
             ct);
 
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<StringEntityResponse>(ct);
-        var id = result!.Id;
-
-        await AssertStringEntity(SqlDb, id, "Alice", "Alice's nullable value");
-        await AssertStringEntity(PgDb, id, "Alice", "Alice's nullable value");
+        await AssertStringEntity(SqlDb, created.Id, "Alice", "Alice's nullable value");
+        await AssertStringEntity(PgDb, created.Id, "Alice", "Alice's nullable value");
     }
 
     [Fact]
@@ -33,17 +28,13 @@ public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) :
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var response = await Client.PostAsJsonAsync(
+        var created = await Client.PostJsonAsync<StringEntityResponse>(
             "/string-entities/nullable",
             new { Value = "Bob", NullableValue = "Bob's nullable value" },
             ct);
 
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<StringEntityResponse>(ct);
-        var id = result!.Id;
-
-        await AssertStringEntity(SqlDb, id, "Bob", "Bob's nullable value");
-        await AssertStringEntity(PgDb, id, "Bob", "Bob's nullable value");
+        await AssertStringEntity(SqlDb, created.Id, "Bob", "Bob's nullable value");
+        await AssertStringEntity(PgDb, created.Id, "Bob", "Bob's nullable value");
     }
 
     [Fact]
@@ -51,17 +42,13 @@ public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) :
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var response = await Client.PostAsJsonAsync(
+        var created = await Client.PostJsonAsync<StringEntityResponse>(
             "/string-entities/nullable",
             new { Value = "Carol", NullableValue = (string?)null },
             ct);
 
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<StringEntityResponse>(ct);
-        var id = result!.Id;
-
-        await AssertStringEntity(SqlDb, id, "Carol", null);
-        await AssertStringEntity(PgDb, id, "Carol", null);
+        await AssertStringEntity(SqlDb, created.Id, "Carol", null);
+        await AssertStringEntity(PgDb, created.Id, "Carol", null);
     }
 
     [Fact]
@@ -69,16 +56,14 @@ public sealed class CreateStringEntityTests(TestWebApplicationFactory factory) :
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var response = await Client.PostAsJsonAsync(
-            "/string-entities/non-nullable",
-            new { Value = (string?)null, NullableValue = (string?)null },
-            ct);
-
         // [ApiController] + non-nullable reference type properties = implicit [Required]
         // → ASP.NET Core returns 400 with a ValidationProblemDetails body.
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var json = await Client.PostJsonAsync<JsonElement>(
+            "/string-entities/non-nullable",
+            new { Value = (string?)null, NullableValue = (string?)null },
+            ct,
+            HttpStatusCode.BadRequest);
 
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
         Assert.True(json.TryGetProperty("errors", out var errors));
         Assert.Equal(JsonValueKind.Object, errors.ValueKind);
         Assert.True(errors.EnumerateObject().Any(), "Expected at least one validation error");

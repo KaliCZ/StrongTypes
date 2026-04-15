@@ -11,6 +11,7 @@
 - **Responses** — for simple ID-only responses, deserializing into the typed response record (e.g. `StringEntityResponse`) is fine and cuts a line of boilerplate. For richer payloads (full entity bodies, `ValidationProblemDetails`, etc.) parse as `JsonElement` and pull fields by name — that verifies the on-the-wire HTTP contract directly.
 - **Rationale** — tests should verify what the client actually sees (JSON shape, status codes) and the DB state, not the C# type graph.
 - **Test base class** — inherit from `IntegrationTestBase(factory)` to get `Client`, `SqlDb`, and `PgDb` properties; don't create scopes or resolve DbContexts manually in individual tests.
+- **HTTP helpers** — use `Client.PostJsonAsync<T>(url, body, ct)`, `Client.PutJsonAsync(url, body, ct)`, and `Client.GetJsonAsync<T>(url, ct)` (from `HttpClientTestExtensions`). They assert the status code and return the deserialized body in a single call. Override the expected status via the last argument for negative tests (e.g. `HttpStatusCode.BadRequest`).
 - **CancellationTokens** — xunit.v3's `xUnit1051` analyzer requires `TestContext.Current.CancellationToken` be threaded into every async call that accepts one (`PostAsJsonAsync`, `PutAsJsonAsync`, `ReadFromJsonAsync`, `FindAsync([id], ct)`, `GetAsync`, …). Grab it at the top: `var ct = TestContext.Current.CancellationToken;`.
 
 ## Documentation and memory policy
