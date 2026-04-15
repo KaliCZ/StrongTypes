@@ -1,5 +1,12 @@
 # StrongTypes — Coding Conventions
 
+## Audience
+
+This repository has multiple contributors. Do not rely on per-user memory,
+personal preferences, or prior-session context when working here. Every
+convention that matters belongs in this file (or in the code itself) so that
+every collaborator — human or AI — sees the same rules.
+
 ## Migration from _Old
 
 The codebase is mid-migration. Anything under a folder or filename suffixed with
