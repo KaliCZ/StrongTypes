@@ -7,7 +7,7 @@ namespace StrongTypes.Api.Controllers;
 [ApiController]
 [Route("non-empty-string-entities")]
 public sealed class NonEmptyStringEntityController(SqlServerDbContext sqlCtx, PostgreSqlDbContext pgCtx)
-    : ValuedEntityControllerBase<NonEmptyStringEntity, NonEmptyString>(sqlCtx, pgCtx)
+    : EntityControllerBase<NonEmptyStringEntity, NonEmptyString>(sqlCtx, pgCtx)
 {
     protected override NonEmptyStringEntity CreateEntity(NonEmptyString value, NonEmptyString? nullableValue)
         => new(value, nullableValue);

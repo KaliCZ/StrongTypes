@@ -1,6 +1,6 @@
 namespace StrongTypes.Api.Entities;
 
-public sealed class NonEmptyStringEntity : IValuedEntity<NonEmptyString>
+public sealed class NonEmptyStringEntity : IEntity<NonEmptyString>
 {
     // Required by EF Core for materialization from query results.
     private NonEmptyStringEntity() { }

@@ -7,15 +7,15 @@ using StrongTypes.Api.Models;
 namespace StrongTypes.Api.Controllers;
 
 /// <summary>
-/// Shared controller logic for any <see cref="IValuedEntity{T}"/>: writes to
+/// Shared controller logic for any <see cref="IEntity{T}"/>: writes to
 /// both SQL Server and PostgreSQL, reads from whichever the route specifies.
 /// Concrete controllers supply the entity factory and a class-level
 /// <c>[Route]</c> + <c>[ApiController]</c>.
 /// </summary>
-public abstract class ValuedEntityControllerBase<TEntity, T>(
+public abstract class EntityControllerBase<TEntity, T>(
     SqlServerDbContext sqlCtx,
     PostgreSqlDbContext pgCtx) : ControllerBase
-    where TEntity : class, IValuedEntity<T>
+    where TEntity : class, IEntity<T>
     where T : class
 {
     protected abstract TEntity CreateEntity(T value, T? nullableValue);
@@ -30,25 +30,25 @@ public abstract class ValuedEntityControllerBase<TEntity, T>(
     public Task<IActionResult> GetFromPostgreSql(Guid id) => GetAsync(PgSet, id);
 
     [HttpPost("non-nullable")]
-    public Task<IActionResult> CreateNonNullable(NonNullableValuedRequest<T> request) =>
+    public Task<IActionResult> CreateNonNullable(NonNullableRequest<T> request) =>
         CreateAsync(request.Value, request.NullableValue);
 
     [HttpPost("nullable")]
-    public Task<IActionResult> CreateNullable(NullableValuedRequest<T> request) =>
+    public Task<IActionResult> CreateNullable(NullableRequest<T> request) =>
         CreateAsync(request.Value, request.NullableValue);
 
     [HttpPut("{id:guid}/non-nullable")]
-    public Task<IActionResult> UpdateNonNullable(Guid id, NonNullableValuedRequest<T> request) =>
+    public Task<IActionResult> UpdateNonNullable(Guid id, NonNullableRequest<T> request) =>
         UpdateAsync(id, request.Value, request.NullableValue);
 
     [HttpPut("{id:guid}/nullable")]
-    public Task<IActionResult> UpdateNullable(Guid id, NullableValuedRequest<T> request) =>
+    public Task<IActionResult> UpdateNullable(Guid id, NullableRequest<T> request) =>
         UpdateAsync(id, request.Value, request.NullableValue);
 
     private async Task<IActionResult> GetAsync(DbSet<TEntity> set, Guid id)
     {
         var entity = await set.FindAsync(id);
-        return entity is null ? NotFound() : Ok(ValuedEntityDto<T>.From(entity));
+        return entity is null ? NotFound() : Ok(EntityDto<T>.From(entity));
     }
 
     private async Task<IActionResult> CreateAsync(T value, T? nullableValue)

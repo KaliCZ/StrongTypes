@@ -6,7 +6,7 @@ namespace StrongTypes.Api.Entities;
 /// Generic helpers on controllers and tests use this interface so a new strong
 /// type only needs a new concrete entity + controller, not new plumbing.
 /// </summary>
-public interface IValuedEntity<T> where T : class
+public interface IEntity<T> where T : class
 {
     Guid Id { get; }
     T Value { get; set; }
