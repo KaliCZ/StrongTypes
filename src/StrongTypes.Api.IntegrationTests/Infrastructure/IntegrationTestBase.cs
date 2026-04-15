@@ -72,8 +72,8 @@ public abstract class IntegrationTestBase(TestWebApplicationFactory factory) : I
     {
         var entity = await db.Set<StringEntity>().FindAsync([id], Ct);
         Assert.NotNull(entity);
-        Assert.Equal(expectedValue, entity!.Value);
-        Assert.Equal(expectedNullableValue, entity.NullableValue);
+        Assert.Equal(expectedValue, entity!.Value.Value);
+        Assert.Equal(expectedNullableValue, entity.NullableValue?.Value);
     }
 
     public void Dispose()

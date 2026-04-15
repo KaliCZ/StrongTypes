@@ -5,7 +5,7 @@ public class StringEntity
     // Required by EF Core for materialization from query results.
     private StringEntity() { }
 
-    public StringEntity(string value, string? nullableValue)
+    public StringEntity(NonEmptyString value, NonEmptyString? nullableValue)
     {
         Id = Guid.NewGuid();
         Value = value;
@@ -13,10 +13,10 @@ public class StringEntity
     }
 
     public Guid Id { get; set; }
-    public string Value { get; set; } = null!;
-    public string? NullableValue { get; set; }
+    public NonEmptyString Value { get; set; } = null!;
+    public NonEmptyString? NullableValue { get; set; }
 
-    public void Update(string value, string? nullableValue)
+    public void Update(NonEmptyString value, NonEmptyString? nullableValue)
     {
         Value = value;
         NullableValue = nullableValue;

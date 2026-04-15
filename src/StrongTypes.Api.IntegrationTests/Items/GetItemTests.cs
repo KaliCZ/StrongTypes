@@ -1,4 +1,5 @@
 using System.Text.Json;
+using StrongTypes;
 using StrongTypes.Api.Entities;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
@@ -11,7 +12,7 @@ public sealed class GetStringEntityTests(TestWebApplicationFactory factory) : In
     [Fact]
     public async Task ReturnsEntityWithCamelCaseJsonFromBothDatabases()
     {
-        var entity = new StringEntity("Alice", "Alice's nullable value");
+        var entity = new StringEntity(NonEmptyString.Create("Alice"), NonEmptyString.Create("Alice's nullable value"));
         SqlDb.StringEntities.Add(entity);
         PgDb.StringEntities.Add(entity);
         await SqlDb.SaveChangesAsync(Ct);
@@ -31,7 +32,7 @@ public sealed class GetStringEntityTests(TestWebApplicationFactory factory) : In
     [Fact]
     public async Task SerializesNullNullableValueAsJsonNullFromBothDatabases()
     {
-        var entity = new StringEntity("Carol", null);
+        var entity = new StringEntity(NonEmptyString.Create("Carol"), null);
         SqlDb.StringEntities.Add(entity);
         PgDb.StringEntities.Add(entity);
         await SqlDb.SaveChangesAsync(Ct);

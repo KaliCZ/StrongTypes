@@ -1,9 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using StrongTypes;
 using StrongTypes.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new NonEmptyStringJsonConverter());
+    });
 builder.Services.AddDbContext<SqlServerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer")));
 builder.Services.AddDbContext<PostgreSqlDbContext>(options =>
