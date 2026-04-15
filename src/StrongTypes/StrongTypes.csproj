@@ -21,7 +21,8 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
     <Product>StrongTypes</Product>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
   </PropertyGroup>

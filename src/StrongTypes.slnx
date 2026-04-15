@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/Other/">
+    <File Path="../license.txt" />
+    <File Path="../readme.md" />
+  </Folder>
+  <Project Path="StrongTypes.Benchmarks/StrongTypes.Benchmarks.csproj" />
+  <Project Path="StrongTypes.Examples/StrongTypes.Examples.csproj" />
+  <Project Path="StrongTypes.Tests/StrongTypes.Tests.csproj" />
+  <Project Path="StrongTypes/StrongTypes.csproj" />
+  <Properties Name="Performance">
+    <Property Name="HasPerformanceSessions" Value="true" />
+  </Properties>
+</Solution>

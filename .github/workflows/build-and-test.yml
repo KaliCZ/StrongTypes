@@ -35,7 +35,7 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Clean
-      run: dotnet clean ./StrongTypes.sln --configuration $config && dotnet nuget locals all --clear
+      run: dotnet clean ./StrongTypes.slnx --configuration $config && dotnet nuget locals all --clear
 
     - name: Install dependencies
       run: dotnet restore
