@@ -1,44 +1,37 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using StrongTypes.Api.Data;
-using StrongTypes.Api.Models;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
 namespace StrongTypes.Api.IntegrationTests.Items;
 
 [Collection(IntegrationTestCollection.Name)]
-public sealed class UpdateStringEntityTests
+public sealed class UpdateStringEntityTests(TestWebApplicationFactory factory)
 {
-    private readonly TestWebApplicationFactory _factory;
-
-    public UpdateStringEntityTests(TestWebApplicationFactory factory)
-    {
-        _factory = factory;
-    }
-
     [Fact]
     public async Task NonNullable_UpdatesValueAndNullableValueInBothDatabases()
     {
-        var client = _factory.CreateClient();
+        var client = factory.CreateClient();
 
         var createResponse = await client.PostAsJsonAsync(
             "/string-entities/non-nullable",
-            new CreateNonNullableRequest("Original", "Original nullable value"));
-        var created = await createResponse.Content.ReadFromJsonAsync<StringEntityResponse>();
-        Assert.NotNull(created);
+            new { Value = "Original", NullableValue = "Original nullable value" });
+        var createJson = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var id = createJson.GetProperty("id").GetGuid();
 
         var updateResponse = await client.PutAsJsonAsync(
-            $"/string-entities/{created!.Id}/non-nullable",
-            new UpdateNonNullableRequest("Updated", "Updated nullable value"));
+            $"/string-entities/{id}/non-nullable",
+            new { Value = "Updated", NullableValue = "Updated nullable value" });
 
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = factory.Services.CreateScope();
         var sp = scope.ServiceProvider;
-        var sqlEntity = await sp.GetRequiredService<SqlServerDbContext>().StringEntities.FindAsync(created.Id);
-        var pgEntity = await sp.GetRequiredService<PostgreSqlDbContext>().StringEntities.FindAsync(created.Id);
+        var sqlEntity = await sp.GetRequiredService<SqlServerDbContext>().StringEntities.FindAsync(id);
+        var pgEntity = await sp.GetRequiredService<PostgreSqlDbContext>().StringEntities.FindAsync(id);
 
         Assert.NotNull(sqlEntity);
         Assert.Equal("Updated", sqlEntity!.Value);
@@ -52,24 +45,24 @@ public sealed class UpdateStringEntityTests
     [Fact]
     public async Task Nullable_SetsNullableValueFromNullToValueInBothDatabases()
     {
-        var client = _factory.CreateClient();
+        var client = factory.CreateClient();
 
         var createResponse = await client.PostAsJsonAsync(
             "/string-entities/nullable",
-            new CreateNullableRequest("Dave", null));
-        var created = await createResponse.Content.ReadFromJsonAsync<StringEntityResponse>();
-        Assert.NotNull(created);
+            new { Value = "Dave", NullableValue = (string?)null });
+        var createJson = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var id = createJson.GetProperty("id").GetGuid();
 
         var updateResponse = await client.PutAsJsonAsync(
-            $"/string-entities/{created!.Id}/nullable",
-            new UpdateNullableRequest("Dave", "Now has a nullable value"));
+            $"/string-entities/{id}/nullable",
+            new { Value = "Dave", NullableValue = "Now has a nullable value" });
 
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = factory.Services.CreateScope();
         var sp = scope.ServiceProvider;
-        var sqlEntity = await sp.GetRequiredService<SqlServerDbContext>().StringEntities.FindAsync(created.Id);
-        var pgEntity = await sp.GetRequiredService<PostgreSqlDbContext>().StringEntities.FindAsync(created.Id);
+        var sqlEntity = await sp.GetRequiredService<SqlServerDbContext>().StringEntities.FindAsync(id);
+        var pgEntity = await sp.GetRequiredService<PostgreSqlDbContext>().StringEntities.FindAsync(id);
 
         Assert.NotNull(sqlEntity);
         Assert.Equal("Dave", sqlEntity!.Value);
@@ -83,24 +76,24 @@ public sealed class UpdateStringEntityTests
     [Fact]
     public async Task Nullable_ClearsNullableValueToNullInBothDatabases()
     {
-        var client = _factory.CreateClient();
+        var client = factory.CreateClient();
 
         var createResponse = await client.PostAsJsonAsync(
             "/string-entities/non-nullable",
-            new CreateNonNullableRequest("Eve", "Eve's nullable value"));
-        var created = await createResponse.Content.ReadFromJsonAsync<StringEntityResponse>();
-        Assert.NotNull(created);
+            new { Value = "Eve", NullableValue = "Eve's nullable value" });
+        var createJson = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var id = createJson.GetProperty("id").GetGuid();
 
         var updateResponse = await client.PutAsJsonAsync(
-            $"/string-entities/{created!.Id}/nullable",
-            new UpdateNullableRequest("Eve", null));
+            $"/string-entities/{id}/nullable",
+            new { Value = "Eve", NullableValue = (string?)null });
 
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = factory.Services.CreateScope();
         var sp = scope.ServiceProvider;
-        var sqlEntity = await sp.GetRequiredService<SqlServerDbContext>().StringEntities.FindAsync(created.Id);
-        var pgEntity = await sp.GetRequiredService<PostgreSqlDbContext>().StringEntities.FindAsync(created.Id);
+        var sqlEntity = await sp.GetRequiredService<SqlServerDbContext>().StringEntities.FindAsync(id);
+        var pgEntity = await sp.GetRequiredService<PostgreSqlDbContext>().StringEntities.FindAsync(id);
 
         Assert.NotNull(sqlEntity);
         Assert.Equal("Eve", sqlEntity!.Value);

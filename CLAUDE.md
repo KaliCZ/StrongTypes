@@ -1,5 +1,16 @@
 # StrongTypes — Claude instructions
 
+## C# conventions
+
+- **Primary constructors** — use them wherever possible (classes, DbContext subclasses, test fixtures, etc.)
+- All new code targets `net10.0` / C# 14
+
+## Integration test conventions
+
+- **Requests** — always use anonymous objects (`new { Value = "x", NullableValue = (string?)null }`), never the typed request records from the API project.
+- **Responses** — parse with `ReadFromJsonAsync<JsonElement>()` and pull fields by name (e.g. `json.GetProperty("id").GetGuid()`), never deserialize into a typed response record.
+- **Rationale** — keeps tests decoupled from the API's model types; the test verifies the HTTP contract (field names, status codes) and the DB state, not the C# type system.
+
 ## Documentation and memory policy
 
 All project context, decisions, and notes belong in this file. Do **not** save anything to the external memory system (`~/.claude/projects/…`) — no project memories, no feedback memories, nothing. If something is worth remembering about this repo, it goes here so it travels with the code.

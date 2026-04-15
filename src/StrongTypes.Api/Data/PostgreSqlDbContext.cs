@@ -3,9 +3,7 @@ using StrongTypes.Api.Entities;
 
 namespace StrongTypes.Api.Data;
 
-public class PostgreSqlDbContext : DbContext
+public class PostgreSqlDbContext(DbContextOptions<PostgreSqlDbContext> options) : DbContext(options)
 {
-    public PostgreSqlDbContext(DbContextOptions<PostgreSqlDbContext> options) : base(options) { }
-
     public DbSet<StringEntity> StringEntities { get; set; }
 }
