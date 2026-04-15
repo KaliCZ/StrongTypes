@@ -1,11 +1,11 @@
 namespace StrongTypes.Api.Entities;
 
-public sealed class NonEmptyStringEntity : IEntity<NonEmptyString>
+public sealed class NonEmptyStringEntity : IEntity<NonEmptyStringEntity, NonEmptyString>
 {
     // Required by EF Core for materialization from query results.
     private NonEmptyStringEntity() { }
 
-    public NonEmptyStringEntity(NonEmptyString value, NonEmptyString? nullableValue)
+    private NonEmptyStringEntity(NonEmptyString value, NonEmptyString? nullableValue)
     {
         Id = Guid.NewGuid();
         Value = value;
@@ -21,4 +21,7 @@ public sealed class NonEmptyStringEntity : IEntity<NonEmptyString>
         Value = value;
         NullableValue = nullableValue;
     }
+
+    public static NonEmptyStringEntity Create(NonEmptyString value, NonEmptyString? nullableValue) =>
+        new(value, nullableValue);
 }

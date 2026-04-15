@@ -7,19 +7,17 @@ using StrongTypes.Api.Models;
 namespace StrongTypes.Api.Controllers;
 
 /// <summary>
-/// Shared controller logic for any <see cref="IEntity{T}"/>: writes to
+/// Shared controller logic for any <see cref="IEntity{TSelf, T}"/>: writes to
 /// both SQL Server and PostgreSQL, reads from whichever the route specifies.
-/// Concrete controllers supply the entity factory and a class-level
-/// <c>[Route]</c> + <c>[ApiController]</c>.
+/// Concrete controllers just supply a class-level <c>[Route]</c> +
+/// <c>[ApiController]</c>; construction goes through <c>TEntity.Create</c>.
 /// </summary>
 public abstract class EntityControllerBase<TEntity, T>(
     SqlServerDbContext sqlCtx,
     PostgreSqlDbContext pgCtx) : ControllerBase
-    where TEntity : class, IEntity<T>
+    where TEntity : class, IEntity<TEntity, T>
     where T : class
 {
-    protected abstract TEntity CreateEntity(T value, T? nullableValue);
-
     private DbSet<TEntity> SqlSet => sqlCtx.Set<TEntity>();
     private DbSet<TEntity> PgSet => pgCtx.Set<TEntity>();
 
@@ -53,7 +51,7 @@ public abstract class EntityControllerBase<TEntity, T>(
 
     private async Task<IActionResult> CreateAsync(T value, T? nullableValue)
     {
-        var entity = CreateEntity(value, nullableValue);
+        var entity = TEntity.Create(value, nullableValue);
         SqlSet.Add(entity);
         PgSet.Add(entity);
         await sqlCtx.SaveChangesAsync();

@@ -11,7 +11,7 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 
 /// <summary>
-/// Generic base for any <see cref="IEntity{T}"/>. Supplies Client, both
+/// Generic base for any <see cref="IEntity{TSelf, T}"/>. Supplies Client, both
 /// DbContexts, the current CancellationToken, the standard write/read routes
 /// derived from <see cref="RoutePrefix"/>, HTTP wrappers that bake in the
 /// cancellation token and the <see cref="EntityResponse"/> shape, a
@@ -19,7 +19,7 @@ namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 /// <see cref="AssertEntity"/> helper that reads from a <see cref="DbSet{TEntity}"/>.
 /// </summary>
 public abstract class IntegrationTestBase<TEntity, T>(TestWebApplicationFactory factory) : IDisposable
-    where TEntity : class, IEntity<T>
+    where TEntity : class, IEntity<TEntity, T>
     where T : class
 {
     private readonly IServiceScope _scope = factory.Services.CreateScope();
