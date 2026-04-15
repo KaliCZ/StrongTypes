@@ -7,6 +7,40 @@ personal preferences, or prior-session context when working here. Every
 convention that matters belongs in this file (or in the code itself) so that
 every collaborator — human or AI — sees the same rules.
 
+**Do not write to the external memory system** (`~/.claude/projects/…` or
+any similar per-user scratch space). No project memories, no feedback
+memories, no references — nothing. If something is worth remembering
+about this repo, it goes in this file so it travels with the code and
+every contributor sees it.
+
+## C# conventions
+
+- **Primary constructors** — use them wherever possible (classes, `DbContext`
+  subclasses, test fixtures, etc.).
+
+## Folder layout — feature slices
+
+Organize code by feature, not by technical role. An extension, a JSON
+converter, and the main type for the same feature live together in the
+feature's folder:
+
+- `src/StrongTypes/Strings/NonEmptyString.cs`
+- `src/StrongTypes/Strings/NonEmptyStringExtensions.cs`
+- `src/StrongTypes/Strings/NonEmptyStringJsonConverter.cs`
+- `src/StrongTypes/Try/TryExtensions.cs`
+
+Extensions that *produce* a feature type go into that feature's folder
+even when the input type is from somewhere else (e.g. `ToTry` on `T?`
+lives under `Try/`, because the result — not the receiver — is what
+defines the slice).
+
+Namespaces stay flat at `StrongTypes` regardless of folder nesting. Folder
+structure is for humans; the namespace is one flat shelf. The same applies
+to the test project — keep tests in `namespace StrongTypes.Tests` even
+when they live in subfolders, to avoid shadowing type names (e.g., a
+nested `StrongTypes.Tests.Try` namespace would hide the `StrongTypes.Try`
+class from sibling files).
+
 ## Migration from _Old
 
 The codebase is mid-migration. Anything under a folder or filename suffixed with
@@ -35,29 +69,6 @@ outdated, not just what the task names. Do not port code verbatim.
   modern BCL primitives (nullable reference types, `Result`-shaped APIs, etc.).
 - Do not delete _Old files unless explicitly asked or unless the rule above
   applies.
-
-## Folder layout — feature slices
-
-Organize code by feature, not by technical role. An extension, a JSON
-converter, and the main type for the same feature live together in the
-feature's folder:
-
-- `src/StrongTypes/Strings/NonEmptyString.cs`
-- `src/StrongTypes/Strings/NonEmptyStringExtensions.cs`
-- `src/StrongTypes/Strings/NonEmptyStringJsonConverter.cs`
-- `src/StrongTypes/Try/TryExtensions.cs`
-
-Extensions that *produce* a feature type go into that feature's folder
-even when the input type is from somewhere else (e.g. `ToTry` on `T?`
-lives under `Try/`, because the result — not the receiver — is what
-defines the slice).
-
-Namespaces stay flat at `StrongTypes` regardless of folder nesting. Folder
-structure is for humans; the namespace is one flat shelf. The same applies
-to the test project — keep tests in `namespace StrongTypes.Tests` even
-when they live in subfolders, to avoid shadowing type names (e.g., a
-nested `StrongTypes.Tests.Try` namespace would hide the `StrongTypes.Try`
-class from sibling files).
 
 ## Validated value types — the TryCreate / Create pattern
 
@@ -90,7 +101,7 @@ Rules:
   empty vs non-empty, etc.), reach for an FsCheck property test —
   `[Property]` from `FsCheck.Xunit` — and let the generator cover the
   space. Register arbitraries on a test class via
-  `[Properties(Arbitrary = new[] { typeof(StringGenerators) })]`.
+  `[Properties(Arbitrary = new[] { typeof(Generators) })]`.
 - All shared arbitraries live in a single `Generators` class at
   `src/StrongTypes.Tests/Generators.cs`. Add new arbitraries there rather
   than creating per-feature generator classes — one shelf so tests can
@@ -104,6 +115,41 @@ Rules:
   coverage.
 - Use separate `[Fact]` methods when the test body genuinely differs — e.g.
   asserting a side effect like "the factory was invoked exactly once".
+
+## Integration tests (StrongTypes.Api)
+
+- **Requests** — always use anonymous objects (e.g. `new { Value = "x",
+  NullableValue = (string?)null }`), never the typed request records from
+  the API project. The tests should verify the on-the-wire JSON contract
+  the client actually sends, not the C# type graph.
+- **Responses** — for simple ID-only responses, deserializing into the
+  typed response record (e.g. `StringEntityResponse`) is fine. For richer
+  payloads (full entity bodies, `ValidationProblemDetails`, etc.) parse as
+  `JsonElement` and pull fields by name — that verifies the on-the-wire
+  HTTP contract directly.
+- **Test base class** — inherit from `IntegrationTestBase(factory)` to get
+  `Client`, `SqlDb`, `PgDb`, `Ct` (the current test's `CancellationToken`),
+  route constants/builders, HTTP wrappers (`Post`/`Put`/`Get`) that capture
+  `Client` and `Ct` implicitly and bake in `StringEntityResponse` on the
+  success path, `Body<T>(value, nullableValue)`, and `AssertStringEntity`.
+- **CancellationTokens** — xunit.v3's `xUnit1051` analyzer requires
+  `TestContext.Current.CancellationToken` be threaded into every async
+  call that accepts one (`PostAsJsonAsync`, `PutAsJsonAsync`,
+  `ReadFromJsonAsync`, `FindAsync([id], ct)`, `GetAsync`, …). Grab it at
+  the top of each test: `var ct = TestContext.Current.CancellationToken;`.
+
+## StrongTypes.Api — purpose
+
+An ASP.NET Core minimal API that exists purely as an integration-test
+harness: it verifies that strong types round-trip correctly through the
+ASP.NET Core request pipeline and EF Core against both SQL Server and
+PostgreSQL (via Testcontainers). Every write endpoint persists to both
+`DbContext`s and every read endpoint reads from one specific provider,
+so tests can assert the full wire-to-DB path on each.
+
+Current state: uses plain `string` / `string?`. Strong-type converters
+(EF Core value converters, JSON converters) will be wired in once the
+parallel work on those lands.
 
 ## Style
 
