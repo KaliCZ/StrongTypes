@@ -36,7 +36,15 @@ jobs:
       run: dotnet build --configuration $config --no-restore
 
     - name: Test
-      run: dotnet test --no-restore --no-build --configuration $config
+      run: dotnet test --no-restore --no-build --configuration $config --logger "trx;LogFileName=test-results.trx" --results-directory ./test-results
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-results
+        path: ./test-results/**/*.trx
+        retention-days: 5
 
     - name: Pack
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
