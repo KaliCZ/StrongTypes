@@ -4,7 +4,7 @@ namespace StrongTypes.Benchmarks;
 
 public class ReferenceType
 {
-    public string Text { get; set; } = null!;
+    public string Text { get; set; }
 }
 
 [MemoryDiagnoser]
