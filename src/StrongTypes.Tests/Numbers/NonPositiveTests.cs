@@ -88,6 +88,7 @@ public class NonPositiveTests
         }
 
         Assert.Equal(a == b, na.Value == nb.Value);
+        Assert.Equal(a == b, na.Value.Equals(nb.Value));
     }
 
     [Property]
@@ -101,6 +102,10 @@ public class NonPositiveTests
         }
 
         Assert.Equal(Math.Sign(a.CompareTo(b)), Math.Sign(na.Value.CompareTo(nb.Value)));
+        Assert.Equal(a < b, na.Value < nb.Value);
+        Assert.Equal(a <= b, na.Value <= nb.Value);
+        Assert.Equal(a > b, na.Value > nb.Value);
+        Assert.Equal(a >= b, na.Value >= nb.Value);
     }
 
     [Property]
