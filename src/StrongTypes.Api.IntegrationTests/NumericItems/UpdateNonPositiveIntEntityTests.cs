@@ -18,6 +18,16 @@ public sealed class UpdateNonPositiveIntEntityTests(TestWebApplicationFactory fa
     }
 
     [Fact]
+    public async Task Nullable_SetsNullableValueFromNullToValueInBothDatabases()
+    {
+        var created = await Post(Nullable, Body(-5, (int?)null));
+        await Put(UpdateNullable(created.Id), Body(-5, (int?)-42));
+
+        await AssertEntity(SqlSet, created.Id, NonPositive<int>.Create(-5), NonPositive<int>.Create(-42));
+        await AssertEntity(PgSet, created.Id, NonPositive<int>.Create(-5), NonPositive<int>.Create(-42));
+    }
+
+    [Fact]
     public async Task Nullable_ClearsNullableValueToNullInBothDatabases()
     {
         var created = await Post(NonNullable, Body(-5, -42));

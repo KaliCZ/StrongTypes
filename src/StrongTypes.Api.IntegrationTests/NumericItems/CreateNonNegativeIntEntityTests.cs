@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Http.Json;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
@@ -16,10 +18,25 @@ public sealed class CreateNonNegativeIntEntityTests(TestWebApplicationFactory fa
     }
 
     [Fact]
+    public async Task Nullable_WithNullableValue_PersistsBothValuesInBothDatabases()
+    {
+        var created = await Post(Nullable, Body(10, (int?)7));
+        await AssertEntity(SqlSet, created.Id, NonNegative<int>.Create(10), NonNegative<int>.Create(7));
+        await AssertEntity(PgSet, created.Id, NonNegative<int>.Create(10), NonNegative<int>.Create(7));
+    }
+
+    [Fact]
     public async Task Nullable_WithNullNullableValue_PersistsNullInBothDatabases()
     {
         var created = await Post(Nullable, Body(5, (int?)null));
         await AssertEntity(SqlSet, created.Id, NonNegative<int>.Create(5), null);
         await AssertEntity(PgSet, created.Id, NonNegative<int>.Create(5), null);
+    }
+
+    [Fact]
+    public async Task NonNullable_InvalidValue_ReturnsBadRequest()
+    {
+        var response = await Client.PostAsJsonAsync(NonNullable, Body(-1, -1), Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

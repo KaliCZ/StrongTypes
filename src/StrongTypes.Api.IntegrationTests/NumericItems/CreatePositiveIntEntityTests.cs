@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Http.Json;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
@@ -29,5 +31,12 @@ public sealed class CreatePositiveIntEntityTests(TestWebApplicationFactory facto
         var created = await Post(Nullable, Body(3, (int?)null));
         await AssertEntity(SqlSet, created.Id, Positive<int>.Create(3), null);
         await AssertEntity(PgSet, created.Id, Positive<int>.Create(3), null);
+    }
+
+    [Fact]
+    public async Task NonNullable_InvalidValue_ReturnsBadRequest()
+    {
+        var response = await Client.PostAsJsonAsync(NonNullable, Body(0, 0), Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }
