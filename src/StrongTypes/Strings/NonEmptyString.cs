@@ -2,6 +2,7 @@
 
 using System;
 using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace StrongTypes;
 
@@ -12,6 +13,7 @@ namespace StrongTypes;
 /// Comparison is delegated to <see cref="string.CompareTo(string?)"/> and therefore
 /// uses the current culture, matching the behavior of comparing two plain strings.
 /// </remarks>
+[JsonConverter(typeof(NonEmptyStringJsonConverter))]
 public sealed class NonEmptyString :
     IEquatable<NonEmptyString>,
     IEquatable<string>,

@@ -11,12 +11,16 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 
 /// <summary>
-/// Base class for integration tests. Provides Client, both DbContexts, the
-/// current CancellationToken, the StringEntity routes and HTTP wrappers, and
-/// the AssertStringEntity helper. Will be made generic over the entity type
-/// in a follow-up PR.
+/// Generic base for any <see cref="IEntity{TSelf, T}"/>. Supplies Client, both
+/// DbContexts, the current CancellationToken, the standard write/read routes
+/// derived from <see cref="RoutePrefix"/>, HTTP wrappers that bake in the
+/// cancellation token and the <see cref="EntityResponse"/> shape, a
+/// <see cref="Body{TValue}"/> helper for wire bodies, and the generic
+/// <see cref="AssertEntity"/> helper that reads from a <see cref="DbSet{TEntity}"/>.
 /// </summary>
-public abstract class IntegrationTestBase(TestWebApplicationFactory factory) : IDisposable
+public abstract class IntegrationTestBase<TEntity, T>(TestWebApplicationFactory factory) : IDisposable
+    where TEntity : class, IEntity<TEntity, T>
+    where T : class
 {
     private readonly IServiceScope _scope = factory.Services.CreateScope();
 
@@ -25,26 +29,34 @@ public abstract class IntegrationTestBase(TestWebApplicationFactory factory) : I
     protected SqlServerDbContext SqlDb => _scope.ServiceProvider.GetRequiredService<SqlServerDbContext>();
     protected PostgreSqlDbContext PgDb => _scope.ServiceProvider.GetRequiredService<PostgreSqlDbContext>();
 
+    protected DbSet<TEntity> SqlSet => SqlDb.Set<TEntity>();
+    protected DbSet<TEntity> PgSet => PgDb.Set<TEntity>();
+
     protected static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-    protected const string NonNullable = "/string-entities/non-nullable";
-    protected const string Nullable = "/string-entities/nullable";
-    protected static string UpdateNonNullable(Guid id) => $"/string-entities/{id}/non-nullable";
-    protected static string UpdateNullable(Guid id) => $"/string-entities/{id}/nullable";
-    protected static string SqlServerGet(Guid id) => $"/string-entities/{id}/sql-server";
-    protected static string PostgreSqlGet(Guid id) => $"/string-entities/{id}/postgresql";
+    /// <summary>Route segment this entity is exposed under, e.g. "non-empty-string-entities".</summary>
+    protected abstract string RoutePrefix { get; }
+
+    protected string NonNullable => $"/{RoutePrefix}/non-nullable";
+    protected string Nullable => $"/{RoutePrefix}/nullable";
+    protected string UpdateNonNullable(Guid id) => $"/{RoutePrefix}/{id}/non-nullable";
+    protected string UpdateNullable(Guid id) => $"/{RoutePrefix}/{id}/nullable";
+    protected string SqlServerGet(Guid id) => $"/{RoutePrefix}/{id}/sql-server";
+    protected string PostgreSqlGet(Guid id) => $"/{RoutePrefix}/{id}/postgresql";
 
     /// <summary>
     /// Builds the { Value, NullableValue } request body used by every write endpoint.
-    /// Generic so future entities with other scalar types reuse the same shape.
+    /// Generic over the wire type so tests can send plain strings (or any other scalar)
+    /// regardless of the strong type the server binds them into.
     /// </summary>
-    protected static object Body<T>(T value, T? nullableValue) => new { Value = value, NullableValue = nullableValue };
+    protected static object Body<TValue>(TValue value, TValue? nullableValue) =>
+        new { Value = value, NullableValue = nullableValue };
 
-    protected async Task<StringEntityResponse> Post(string url, object body)
+    protected async Task<EntityResponse> Post(string url, object body)
     {
         var response = await Client.PostAsJsonAsync(url, body, Ct);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        return (await response.Content.ReadFromJsonAsync<StringEntityResponse>(Ct))!;
+        return (await response.Content.ReadFromJsonAsync<EntityResponse>(Ct))!;
     }
 
     protected async Task Put(string url, object body)
@@ -61,16 +73,16 @@ public abstract class IntegrationTestBase(TestWebApplicationFactory factory) : I
     }
 
     /// <summary>
-    /// Fetches the entity with the given id from the supplied DbContext and asserts
+    /// Fetches the entity with the given id from the supplied DbSet and asserts
     /// that its Value and NullableValue match the expected values.
     /// </summary>
-    protected static async Task AssertStringEntity(
-        DbContext db,
+    protected static async Task AssertEntity(
+        DbSet<TEntity> set,
         Guid id,
-        string expectedValue,
-        string? expectedNullableValue)
+        T expectedValue,
+        T? expectedNullableValue)
     {
-        var entity = await db.Set<StringEntity>().FindAsync([id], Ct);
+        var entity = await set.FindAsync([id], Ct);
         Assert.NotNull(entity);
         Assert.Equal(expectedValue, entity!.Value);
         Assert.Equal(expectedNullableValue, entity.NullableValue);
