@@ -103,6 +103,39 @@ public class NonNegativeTests
         Assert.Equal(Math.Sign(a.CompareTo(b)), Math.Sign(na.Value.CompareTo(nb.Value)));
     }
 
+    [Property]
+    public void CrossTypeEquality_MatchesUnderlyingValue(int value)
+    {
+        if (NonNegative<int>.TryCreate(value) is not { } nonNegative)
+        {
+            return;
+        }
+
+        Assert.True(nonNegative.Equals(value));
+        Assert.True(nonNegative == value);
+        Assert.True(value == nonNegative);
+        Assert.False(nonNegative != value);
+    }
+
+    [Property]
+    public void CrossTypeComparison_MatchesUnderlyingValue(int a, int b)
+    {
+        if (NonNegative<int>.TryCreate(a) is not { } nonNegative)
+        {
+            return;
+        }
+
+        Assert.Equal(Math.Sign(a.CompareTo(b)), Math.Sign(nonNegative.CompareTo(b)));
+        Assert.Equal(a < b, nonNegative < b);
+        Assert.Equal(a <= b, nonNegative <= b);
+        Assert.Equal(a > b, nonNegative > b);
+        Assert.Equal(a >= b, nonNegative >= b);
+        Assert.Equal(b < a, b < nonNegative);
+        Assert.Equal(b <= a, b <= nonNegative);
+        Assert.Equal(b > a, b > nonNegative);
+        Assert.Equal(b >= a, b >= nonNegative);
+    }
+
     [Fact]
     public void TryCreate_ZeroSucceeds()
     {

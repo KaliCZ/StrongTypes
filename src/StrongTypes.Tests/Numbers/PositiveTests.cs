@@ -108,6 +108,39 @@ public class PositiveTests
         Assert.Equal(a >= b, pa.Value >= pb.Value);
     }
 
+    [Property]
+    public void CrossTypeEquality_MatchesUnderlyingValue(int value)
+    {
+        if (Positive<int>.TryCreate(value) is not { } positive)
+        {
+            return;
+        }
+
+        Assert.True(positive.Equals(value));
+        Assert.True(positive == value);
+        Assert.True(value == positive);
+        Assert.False(positive != value);
+    }
+
+    [Property]
+    public void CrossTypeComparison_MatchesUnderlyingValue(int a, int b)
+    {
+        if (Positive<int>.TryCreate(a) is not { } positive)
+        {
+            return;
+        }
+
+        Assert.Equal(Math.Sign(a.CompareTo(b)), Math.Sign(positive.CompareTo(b)));
+        Assert.Equal(a < b, positive < b);
+        Assert.Equal(a <= b, positive <= b);
+        Assert.Equal(a > b, positive > b);
+        Assert.Equal(a >= b, positive >= b);
+        Assert.Equal(b < a, b < positive);
+        Assert.Equal(b <= a, b <= positive);
+        Assert.Equal(b > a, b > positive);
+        Assert.Equal(b >= a, b >= positive);
+    }
+
     [Fact]
     public void Create_ZeroThrows()
     {

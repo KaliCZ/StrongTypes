@@ -13,6 +13,16 @@ public static class StrongTypesModelConfigurationExtensions
     public static ModelConfigurationBuilder UseStrongTypes(this ModelConfigurationBuilder configurationBuilder)
     {
         configurationBuilder.Properties<NonEmptyString>().HaveConversion<NonEmptyStringValueConverter>();
+
+        configurationBuilder.Properties<Positive<int>>()
+            .HaveConversion<NumericStrongTypeValueConverter<Positive<int>, int>>();
+        configurationBuilder.Properties<NonNegative<int>>()
+            .HaveConversion<NumericStrongTypeValueConverter<NonNegative<int>, int>>();
+        configurationBuilder.Properties<Negative<int>>()
+            .HaveConversion<NumericStrongTypeValueConverter<Negative<int>, int>>();
+        configurationBuilder.Properties<NonPositive<int>>()
+            .HaveConversion<NumericStrongTypeValueConverter<NonPositive<int>, int>>();
+
         return configurationBuilder;
     }
 }

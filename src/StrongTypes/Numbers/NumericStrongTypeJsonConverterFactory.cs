@@ -1,0 +1,72 @@
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace StrongTypes;
+
+/// <summary>
+/// <see cref="JsonConverterFactory"/> that handles all numeric strong-type wrappers
+/// (<see cref="Positive{T}"/>, <see cref="NonNegative{T}"/>, <see cref="Negative{T}"/>,
+/// <see cref="NonPositive{T}"/>). Serializes by writing the underlying <typeparamref name="T"/>
+/// value directly; deserializes by reading <typeparamref name="T"/> and passing it through
+/// <c>Create</c> so invalid values are rejected at the deserialization boundary.
+/// </summary>
+public sealed class NumericStrongTypeJsonConverterFactory : JsonConverterFactory
+{
+    private static readonly HashSet<Type> SupportedDefinitions =
+    [
+        typeof(Positive<>),
+        typeof(NonNegative<>),
+        typeof(Negative<>),
+        typeof(NonPositive<>)
+    ];
+
+    public override bool CanConvert(Type typeToConvert) =>
+        typeToConvert.IsGenericType
+        && SupportedDefinitions.Contains(typeToConvert.GetGenericTypeDefinition());
+
+    public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+    {
+        var innerType = typeToConvert.GetGenericArguments()[0];
+        var converterType = typeof(Inner<,>).MakeGenericType(typeToConvert, innerType);
+        return (JsonConverter)Activator.CreateInstance(converterType)!;
+    }
+
+    private sealed class Inner<TWrapper, T> : JsonConverter<TWrapper>
+        where TWrapper : struct
+    {
+        private static readonly Func<TWrapper, T> s_getValue = BuildGetValue();
+        private static readonly Func<T, TWrapper> s_create = BuildCreate();
+
+        private static Func<TWrapper, T> BuildGetValue()
+        {
+            var param = Expression.Parameter(typeof(TWrapper), "wrapper");
+            var valueAccess = Expression.Property(param, "Value");
+            return Expression.Lambda<Func<TWrapper, T>>(valueAccess, param).Compile();
+        }
+
+        private static Func<T, TWrapper> BuildCreate()
+        {
+            var param = Expression.Parameter(typeof(T), "value");
+            var method = typeof(TWrapper).GetMethod("Create", BindingFlags.Public | BindingFlags.Static, [typeof(T)])!;
+            var call = Expression.Call(method, param);
+            return Expression.Lambda<Func<T, TWrapper>>(call, param).Compile();
+        }
+
+        public override TWrapper Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var value = JsonSerializer.Deserialize<T>(ref reader, options)!;
+            return s_create(value);
+        }
+
+        public override void Write(Utf8JsonWriter writer, TWrapper value, JsonSerializerOptions options)
+        {
+            JsonSerializer.Serialize(writer, s_getValue(value), options);
+        }
+    }
+}
