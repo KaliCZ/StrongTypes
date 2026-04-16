@@ -1,9 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using StrongTypes.Api.Entities;
+using StrongTypes.Api.Infrastructure;
 
 namespace StrongTypes.Api.Data;
 
 public class PostgreSqlDbContext(DbContextOptions<PostgreSqlDbContext> options) : DbContext(options)
 {
-    public DbSet<StringEntity> StringEntities { get; set; }
+    public DbSet<NonEmptyStringEntity> NonEmptyStringEntities { get; set; }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) =>
+        configurationBuilder.UseStrongTypes();
 }
