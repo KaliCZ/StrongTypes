@@ -161,7 +161,8 @@ parallel work on those lands.
 
 ## Pull requests
 
-- **Always assign `KaliCZ`** when opening a PR.
+- **Always assign the person running the session** when opening a PR.
+  Use the GitHub `get_me` tool to discover the authenticated user.
 
 ## Style
 
