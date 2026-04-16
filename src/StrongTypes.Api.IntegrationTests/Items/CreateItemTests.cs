@@ -37,8 +37,6 @@ public sealed class CreateNonEmptyStringEntityTests(TestWebApplicationFactory fa
     [Fact]
     public async Task NonNullable_BothValuesNull_ReturnsValidationError()
     {
-        // [ApiController] + non-nullable reference type properties = implicit [Required]
-        // → ASP.NET Core returns 400 with a ValidationProblemDetails body.
         var response = await Client.PostAsJsonAsync(NonNullable, Body<string?>(null, null), Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
@@ -46,5 +44,26 @@ public sealed class CreateNonEmptyStringEntityTests(TestWebApplicationFactory fa
         Assert.True(json.TryGetProperty("errors", out var errors));
         Assert.Equal(JsonValueKind.Object, errors.ValueKind);
         Assert.True(errors.EnumerateObject().Any(), "Expected at least one validation error");
+    }
+
+    [Fact]
+    public async Task NonNullable_WhitespaceOnlyValue_ReturnsBadRequest()
+    {
+        var response = await Client.PostAsJsonAsync(NonNullable, Body("   ", "valid"), Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task NonNullable_EmptyStringValue_ReturnsBadRequest()
+    {
+        var response = await Client.PostAsJsonAsync(NonNullable, Body("", "valid"), Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Nullable_WhitespaceOnlyValue_ReturnsBadRequest()
+    {
+        var response = await Client.PostAsJsonAsync(Nullable, Body("   ", "valid"), Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

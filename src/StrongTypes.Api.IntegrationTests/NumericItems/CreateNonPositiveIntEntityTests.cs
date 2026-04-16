@@ -34,9 +34,9 @@ public sealed class CreateNonPositiveIntEntityTests(TestWebApplicationFactory fa
     }
 
     [Fact]
-    public async Task NonNullable_InvalidValue_ReturnsBadRequest()
+    public async Task NonNullable_PositiveValue_ReturnsBadRequest()
     {
-        var response = await Client.PostAsJsonAsync(NonNullable, Body(1, 1), Ct);
+        var response = await Client.PostAsJsonAsync(NonNullable, Body(1, 0), Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }
