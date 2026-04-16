@@ -10,7 +10,7 @@ public class ObjectExtensionsBenchmarks
     private static readonly BenchmarkEnum? NullableEnum_Value = BenchmarkEnum.Value3;
     private static readonly BenchmarkEnum? NullableEnum_Null = null;
     private static readonly String String_Value = "Some text.";
-    private static readonly String String_Null = null;
+    private static readonly String? String_Null = null;
 
     // Last Result - 26.8.2023 - 1.6 ns - 0 B
     [Benchmark]
