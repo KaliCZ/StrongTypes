@@ -12,8 +12,8 @@ namespace StrongTypes;
 /// <summary>
 /// <see cref="JsonConverterFactory"/> that handles all numeric strong-type wrappers
 /// (<see cref="Positive{T}"/>, <see cref="NonNegative{T}"/>, <see cref="Negative{T}"/>,
-/// <see cref="NonPositive{T}"/>). Serializes by writing the underlying <typeparamref name="T"/>
-/// value directly; deserializes by reading <typeparamref name="T"/> and passing it through
+/// <see cref="NonPositive{T}"/>). Serializes by writing the underlying numeric value
+/// directly; deserializes by reading the number and passing it through
 /// <c>Create</c> so invalid values are rejected at the deserialization boundary.
 /// </summary>
 public sealed class NumericStrongTypeJsonConverterFactory : JsonConverterFactory
