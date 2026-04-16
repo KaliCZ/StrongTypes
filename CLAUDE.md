@@ -159,6 +159,10 @@ Current state: uses plain `string` / `string?`. Strong-type converters
 (EF Core value converters, JSON converters) will be wired in once the
 parallel work on those lands.
 
+## Pull requests
+
+- **Always assign `KaliCZ`** when opening a PR.
+
 ## Style
 
 - Prefer `Edit` over rewriting whole files.
