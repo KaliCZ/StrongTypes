@@ -14,7 +14,7 @@ namespace StrongTypes;
 /// (<see cref="Positive{T}"/>, <see cref="NonNegative{T}"/>, <see cref="Negative{T}"/>,
 /// <see cref="NonPositive{T}"/>). Serializes by writing the underlying numeric value
 /// directly; deserializes by reading the number and passing it through
-/// <c>Create</c> so invalid values are rejected at the deserialization boundary.
+/// <c>TryCreate</c> so invalid values are rejected at the deserialization boundary.
 /// </summary>
 public sealed class NumericStrongTypeJsonConverterFactory : JsonConverterFactory
 {
@@ -41,7 +41,7 @@ public sealed class NumericStrongTypeJsonConverterFactory : JsonConverterFactory
         where TWrapper : struct
     {
         private static readonly Func<TWrapper, T> s_getValue = BuildGetValue();
-        private static readonly Func<T, TWrapper> s_create = BuildCreate();
+        private static readonly Func<T, TWrapper?> s_tryCreate = BuildTryCreate();
 
         private static Func<TWrapper, T> BuildGetValue()
         {
@@ -50,25 +50,19 @@ public sealed class NumericStrongTypeJsonConverterFactory : JsonConverterFactory
             return Expression.Lambda<Func<TWrapper, T>>(valueAccess, param).Compile();
         }
 
-        private static Func<T, TWrapper> BuildCreate()
+        private static Func<T, TWrapper?> BuildTryCreate()
         {
             var param = Expression.Parameter(typeof(T), "value");
-            var method = typeof(TWrapper).GetMethod("Create", BindingFlags.Public | BindingFlags.Static, [typeof(T)])!;
+            var method = typeof(TWrapper).GetMethod("TryCreate", BindingFlags.Public | BindingFlags.Static, [typeof(T)])!;
             var call = Expression.Call(method, param);
-            return Expression.Lambda<Func<T, TWrapper>>(call, param).Compile();
+            return Expression.Lambda<Func<T, TWrapper?>>(call, param).Compile();
         }
 
         public override TWrapper Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var value = JsonSerializer.Deserialize<T>(ref reader, options)!;
-            try
-            {
-                return s_create(value);
-            }
-            catch (ArgumentException ex)
-            {
-                throw new JsonException(ex.Message, ex);
-            }
+            return s_tryCreate(value)
+                ?? throw new JsonException($"The JSON value '{value}' cannot be converted to {typeof(TWrapper).Name}.");
         }
 
         public override void Write(Utf8JsonWriter writer, TWrapper value, JsonSerializerOptions options)
