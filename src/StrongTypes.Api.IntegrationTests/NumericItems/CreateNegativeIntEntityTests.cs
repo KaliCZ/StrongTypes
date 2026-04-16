@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
