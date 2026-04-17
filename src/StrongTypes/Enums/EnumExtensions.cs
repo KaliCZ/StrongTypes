@@ -117,37 +117,28 @@ internal static class EnumMeta<TEnum> where TEnum : struct, Enum
         typeof(TEnum).IsDefined(typeof(FlagsAttribute), inherit: false);
 
     // Per-property lazy caches so an enum that never asks for flag data
-    // never pays for a flag scan, and vice versa. Under contention multiple
-    // threads may compute, but the compute is deterministic — every producer
-    // stores identical bits — so redundant writes are benign.
+    // never pays for a flag scan, and vice versa.
+    //
+    // LazyInitializer.EnsureInitialized gives us double-checked locking:
+    // the fast path is a plain bool read + value read; on the slow path
+    // it Monitor.Enters the (lazily-allocated) lock object, re-checks the
+    // flag, runs the factory once, publishes the result, and releases.
+    // Gives us exactly-once compute without the size/atomicity concerns
+    // of a bare Nullable<TEnum> backing.
 
-    // Reference writes are atomic, so ??= on a nullable list field is safe.
-    private static IReadOnlyList<TEnum>? _flagValues;
-    public static IReadOnlyList<TEnum> FlagValues => _flagValues ??= ScanForFlagValues();
+    private static IReadOnlyList<TEnum> _flagValues = null!;
+    private static bool _flagValuesReady;
+    private static object? _flagValuesLock;
+    public static IReadOnlyList<TEnum> FlagValues =>
+        LazyInitializer.EnsureInitialized(
+            ref _flagValues, ref _flagValuesReady, ref _flagValuesLock, ScanForFlagValues);
 
-    // Nullable<TEnum> is an inline struct and tears on long-backed enums
-    // (16-byte write). Split the "is set" bit into its own bool and order
-    // it after the value write with a Volatile.Write release: a reader
-    // that sees _flagsCombinedReady=true is guaranteed to also see the
-    // prior write to _flagsCombined.
     private static TEnum _flagsCombined;
     private static bool _flagsCombinedReady;
-
-    public static TEnum FlagsCombined
-    {
-        get
-        {
-            if (Volatile.Read(ref _flagsCombinedReady))
-            {
-                return _flagsCombined;
-            }
-
-            var combined = OrAllFlagValues();
-            _flagsCombined = combined;
-            Volatile.Write(ref _flagsCombinedReady, true);
-            return combined;
-        }
-    }
+    private static object? _flagsCombinedLock;
+    public static TEnum FlagsCombined =>
+        LazyInitializer.EnsureInitialized(
+            ref _flagsCombined, ref _flagsCombinedReady, ref _flagsCombinedLock, OrAllFlagValues);
 
     public static void RequireFlagsAttribute()
     {
