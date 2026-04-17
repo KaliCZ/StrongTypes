@@ -2,17 +2,23 @@ namespace StrongTypes.Api.Entities;
 
 /// <summary>
 /// Shape every integration-test entity follows: an identifier plus a required
-/// value and an optional value of the same strong type <typeparamref name="T"/>.
-/// The <c>Create</c> static factory lets generic controllers construct concrete
-/// entities without each one having to override a factory method.
+/// <typeparamref name="T"/> value and an optional <typeparamref name="TNullable"/>
+/// value. A single interface covers both reference and value strong types by
+/// letting callers choose <typeparamref name="TNullable"/> (typically <c>T?</c>).
 /// </summary>
-public interface IEntity<TSelf, T>
-    where TSelf : IEntity<TSelf, T>
-    where T : class
+public interface IEntity<TSelf, T, TNullable>
+    where TSelf : IEntity<TSelf, T, TNullable>
+    where T : notnull
 {
     Guid Id { get; }
     T Value { get; set; }
-    T? NullableValue { get; set; }
-    void Update(T value, T? nullableValue);
-    static abstract TSelf Create(T value, T? nullableValue);
+    TNullable NullableValue { get; set; }
+
+    void Update(T value, TNullable nullableValue)
+    {
+        Value = value;
+        NullableValue = nullableValue;
+    }
+
+    static abstract TSelf Create(T value, TNullable nullableValue);
 }

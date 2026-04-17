@@ -2,6 +2,7 @@
 
 using System;
 using System.Numerics;
+using System.Text.Json.Serialization;
 
 namespace StrongTypes;
 
@@ -14,9 +15,12 @@ namespace StrongTypes;
 /// represents <c>T.One</c> — i.e. the zero-initialized struct still satisfies
 /// the positivity invariant.
 /// </remarks>
+[JsonConverter(typeof(NumericStrongTypeJsonConverterFactory))]
 public readonly struct Positive<T> :
     IEquatable<Positive<T>>,
+    IEquatable<T>,
     IComparable<Positive<T>>,
+    IComparable<T>,
     IComparable
     where T : INumber<T>
 {
@@ -56,28 +60,50 @@ public readonly struct Positive<T> :
 
     public override int GetHashCode() => Value.GetHashCode();
 
-    public override bool Equals(object? obj) => obj is Positive<T> other && Equals(other);
+    public override bool Equals(object? obj) =>
+        obj switch
+        {
+            Positive<T> other => Equals(other),
+            T other => Equals(other),
+            _ => false
+        };
 
     public bool Equals(Positive<T> other) => Value.Equals(other.Value);
 
-    public static bool operator ==(Positive<T> left, Positive<T> right) => left.Equals(right);
+    public bool Equals(T? other) => other is not null && Value.Equals(other);
 
+    public static bool operator ==(Positive<T> left, Positive<T> right) => left.Equals(right);
     public static bool operator !=(Positive<T> left, Positive<T> right) => !left.Equals(right);
+    public static bool operator ==(Positive<T> left, T right) => left.Value.Equals(right);
+    public static bool operator !=(Positive<T> left, T right) => !left.Value.Equals(right);
+    public static bool operator ==(T left, Positive<T> right) => right.Value.Equals(left);
+    public static bool operator !=(T left, Positive<T> right) => !right.Value.Equals(left);
 
     public int CompareTo(Positive<T> other) => Value.CompareTo(other.Value);
+
+    public int CompareTo(T? other) => other is null ? 1 : Value.CompareTo(other);
 
     int IComparable.CompareTo(object? obj) =>
         obj switch
         {
             null => 1,
             Positive<T> other => CompareTo(other),
-            _ => throw new ArgumentException($"Object must be of type {nameof(Positive<T>)}.", nameof(obj))
+            T other => CompareTo(other),
+            _ => throw new ArgumentException($"Object must be of type {nameof(Positive<T>)} or {typeof(T).Name}.", nameof(obj))
         };
 
     public static bool operator <(Positive<T> left, Positive<T> right) => left.CompareTo(right) < 0;
     public static bool operator <=(Positive<T> left, Positive<T> right) => left.CompareTo(right) <= 0;
     public static bool operator >(Positive<T> left, Positive<T> right) => left.CompareTo(right) > 0;
     public static bool operator >=(Positive<T> left, Positive<T> right) => left.CompareTo(right) >= 0;
+    public static bool operator <(Positive<T> left, T right) => left.Value.CompareTo(right) < 0;
+    public static bool operator <=(Positive<T> left, T right) => left.Value.CompareTo(right) <= 0;
+    public static bool operator >(Positive<T> left, T right) => left.Value.CompareTo(right) > 0;
+    public static bool operator >=(Positive<T> left, T right) => left.Value.CompareTo(right) >= 0;
+    public static bool operator <(T left, Positive<T> right) => left.CompareTo(right.Value) < 0;
+    public static bool operator <=(T left, Positive<T> right) => left.CompareTo(right.Value) <= 0;
+    public static bool operator >(T left, Positive<T> right) => left.CompareTo(right.Value) > 0;
+    public static bool operator >=(T left, Positive<T> right) => left.CompareTo(right.Value) >= 0;
 
     public override string ToString() => Value.ToString() ?? string.Empty;
 }

@@ -38,6 +38,16 @@ jobs:
     - name: Test
       run: dotnet test --no-restore --no-build --configuration $config
 
+    - name: Upload test logs
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-logs
+        path: |
+          **/TestResults/**/*.log
+          **/TestResults/**/*.trx
+        retention-days: 5
+
     - name: Pack
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: dotnet pack ./src/StrongTypes/StrongTypes.csproj -c $config --no-build -o out
