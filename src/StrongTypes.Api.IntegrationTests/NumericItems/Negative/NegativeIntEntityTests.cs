@@ -6,7 +6,7 @@ namespace StrongTypes.Api.IntegrationTests.NumericItems.Negative;
 
 [Collection(IntegrationTestCollection.Name)]
 public sealed class NegativeIntEntityTests(TestWebApplicationFactory factory)
-    : NumericEntityTests<NegativeIntEntity, Negative<int>>(factory)
+    : NumericEntityTests<NegativeIntEntityTests, NegativeIntEntity, Negative<int>>(factory), INumericTestData
 {
     protected override string RoutePrefix => "negative-int-entities";
     protected override Negative<int> Create(int raw) => Negative<int>.Create(raw);

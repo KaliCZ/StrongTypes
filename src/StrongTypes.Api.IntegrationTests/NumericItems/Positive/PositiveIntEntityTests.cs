@@ -6,7 +6,7 @@ namespace StrongTypes.Api.IntegrationTests.NumericItems.Positive;
 
 [Collection(IntegrationTestCollection.Name)]
 public sealed class PositiveIntEntityTests(TestWebApplicationFactory factory)
-    : NumericEntityTests<PositiveIntEntity, Positive<int>>(factory)
+    : NumericEntityTests<PositiveIntEntityTests, PositiveIntEntity, Positive<int>>(factory), INumericTestData
 {
     protected override string RoutePrefix => "positive-int-entities";
     protected override Positive<int> Create(int raw) => Positive<int>.Create(raw);

@@ -8,16 +8,28 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.NumericItems;
 
 /// <summary>
+/// Compile-time contract every numeric entity test class must satisfy. The
+/// <c>static abstract</c> members force each concrete subclass to supply the
+/// <see cref="TheoryData{T}"/> lists — a missing one is a build error, not a
+/// silently skipped test. xUnit resolves the actual members by reflection on
+/// the concrete type at discovery time.
+/// </summary>
+public interface INumericTestData
+{
+    static abstract TheoryData<int> ValidInputs { get; }
+    static abstract TheoryData<int> InvalidInputs { get; }
+}
+
+/// <summary>
 /// Shared Create/Get/Update suite for every <see cref="IEntity{TSelf, T, TNullable}"/>
 /// whose underlying value is an integer-backed strong type. Concrete subclasses
-/// plug in <see cref="RoutePrefix"/>, a <c>Create(int)</c> factory, two seed
-/// values (<see cref="FirstValid"/>, <see cref="UpdatedValid"/>), and two
-/// public static <see cref="Xunit.TheoryData{T}"/> members named
-/// <c>ValidInputs</c> and <c>InvalidInputs</c> that xUnit discovers by name
-/// on the concrete test class.
+/// plug in <c>RoutePrefix</c>, a <c>Create(int)</c> factory, two seed values
+/// (<see cref="FirstValid"/>, <see cref="UpdatedValid"/>), and the two
+/// <see cref="TheoryData{T}"/> lists required by <see cref="INumericTestData"/>.
 /// </summary>
-public abstract class NumericEntityTests<TEntity, T>(TestWebApplicationFactory factory)
+public abstract class NumericEntityTests<TSelf, TEntity, T>(TestWebApplicationFactory factory)
     : IntegrationTestBase<TEntity, T, T?>(factory)
+    where TSelf : NumericEntityTests<TSelf, TEntity, T>, INumericTestData
     where TEntity : class, IEntity<TEntity, T, T?>
     where T : struct
 {
@@ -34,9 +46,12 @@ public abstract class NumericEntityTests<TEntity, T>(TestWebApplicationFactory f
     /// <summary>Target value for the non-nullable update test; must differ from <see cref="FirstValid"/>.</summary>
     protected abstract int UpdatedValid { get; }
 
-    // The analyzer can't see ValidInputs/InvalidInputs because they live on
-    // the concrete subclass; xUnit's runtime discovery still resolves them
-    // off the concrete test class via reflection.
+    // The analyzer can't see ValidInputs/InvalidInputs because they're static
+    // abstract on INumericTestData and only materialize on the concrete
+    // subclass; xUnit's runtime discovery resolves them off the concrete
+    // test class via reflection.
+    protected const string ValidInputsMember = nameof(INumericTestData.ValidInputs);
+    protected const string InvalidInputsMember = nameof(INumericTestData.InvalidInputs);
 #pragma warning disable xUnit1015
 
     // ── Create: valid ────────────────────────────────────────────────────
@@ -208,7 +223,4 @@ public abstract class NumericEntityTests<TEntity, T>(TestWebApplicationFactory f
         await AssertEntity(SqlSet, created.Id, Create(FirstValid), null);
         await AssertEntity(PgSet, created.Id, Create(FirstValid), null);
     }
-
-    protected const string ValidInputsMember = "ValidInputs";
-    protected const string InvalidInputsMember = "InvalidInputs";
 }
