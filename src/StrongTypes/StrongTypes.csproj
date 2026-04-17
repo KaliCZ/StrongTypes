@@ -29,6 +29,23 @@
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
+  <!-- Pack the Roslyn analyzer DLL inside this NuGet package under the standard
+       analyzers/dotnet/cs/ folder so consumers get it automatically without
+       referencing a separate package. Build-dependency on the analyzer project
+       keeps the DLL output in sync without exposing its publicly-unused types. -->
+  <ItemGroup>
+    <ProjectReference Include="..\StrongTypes.Analyzers\StrongTypes.Analyzers.csproj"
+                      PrivateAssets="all"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <Target Name="IncludeAnalyzerInPackage" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <None Include="..\StrongTypes.Analyzers\bin\$(Configuration)\netstandard2.0\StrongTypes.Analyzers.dll"
+            Pack="true"
+            PackagePath="analyzers/dotnet/cs"
+            Visible="false" />
+    </ItemGroup>
+  </Target>
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes.SourceGenerators\StrongTypes.SourceGenerators.csproj"
                       OutputItemType="Analyzer"

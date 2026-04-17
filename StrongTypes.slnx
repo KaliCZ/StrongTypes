@@ -3,6 +3,7 @@
     <File Path="license.txt" />
     <File Path="readme.md" />
   </Folder>
+  <Project Path="src/StrongTypes.Analyzers/StrongTypes.Analyzers.csproj" />
   <Project Path="src/StrongTypes.Api.IntegrationTests/StrongTypes.Api.IntegrationTests.csproj" />
   <Project Path="src/StrongTypes.Api/StrongTypes.Api.csproj" />
   <Project Path="src/StrongTypes.Benchmarks/StrongTypes.Benchmarks.csproj" />
