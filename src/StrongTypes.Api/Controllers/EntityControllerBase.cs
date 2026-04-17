@@ -18,8 +18,8 @@ public abstract class EntityControllerBase<TEntity, T, TNullable>(
     where TEntity : class, IEntity<TEntity, T, TNullable>
     where T : notnull
 {
-    protected DbSet<TEntity> SqlSet => sqlCtx.Set<TEntity>();
-    protected DbSet<TEntity> PgSet => pgCtx.Set<TEntity>();
+    private DbSet<TEntity> SqlSet => sqlCtx.Set<TEntity>();
+    private DbSet<TEntity> PgSet => pgCtx.Set<TEntity>();
 
     [HttpGet("{id:guid}/sql-server")]
     public Task<IActionResult> GetFromSqlServer(Guid id) => GetAsync(SqlSet, id);
