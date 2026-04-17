@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Numerics;
+using System.Threading;
 
 namespace StrongTypes;
 
@@ -115,21 +117,37 @@ internal static class EnumMeta<TEnum> where TEnum : struct, Enum
         typeof(TEnum).IsDefined(typeof(FlagsAttribute), inherit: false);
 
     // Per-property lazy caches so an enum that never asks for flag data
-    // never pays for a flag scan, and vice versa. ??= is racey under
-    // contention but the compute is deterministic, so all producers store
-    // identical bits.
-    //
-    // FlagValues' backing is a reference, so the write is atomic. FlagsCombined
-    // uses Nullable<TEnum> which is an inline struct: for byte/short/int-backed
-    // enums it fits in 8 bytes and writes atomically on 64-bit runtimes; for
-    // long/ulong-backed enums the 16-byte layout could tear under
-    // first-access contention. Acceptable for the narrow edge case.
+    // never pays for a flag scan, and vice versa. Under contention multiple
+    // threads may compute, but the compute is deterministic — every producer
+    // stores identical bits — so redundant writes are benign.
 
+    // Reference writes are atomic, so ??= on a nullable list field is safe.
     private static IReadOnlyList<TEnum>? _flagValues;
     public static IReadOnlyList<TEnum> FlagValues => _flagValues ??= ScanForFlagValues();
 
-    private static TEnum? _flagsCombined;
-    public static TEnum FlagsCombined => _flagsCombined ??= OrAllFlagValues();
+    // Nullable<TEnum> is an inline struct and tears on long-backed enums
+    // (16-byte write). Split the "is set" bit into its own bool and order
+    // it after the value write with a Volatile.Write release: a reader
+    // that sees _flagsCombinedReady=true is guaranteed to also see the
+    // prior write to _flagsCombined.
+    private static TEnum _flagsCombined;
+    private static bool _flagsCombinedReady;
+
+    public static TEnum FlagsCombined
+    {
+        get
+        {
+            if (Volatile.Read(ref _flagsCombinedReady))
+            {
+                return _flagsCombined;
+            }
+
+            var combined = OrAllFlagValues();
+            _flagsCombined = combined;
+            Volatile.Write(ref _flagsCombinedReady, true);
+            return combined;
+        }
+    }
 
     public static void RequireFlagsAttribute()
     {
@@ -140,20 +158,11 @@ internal static class EnumMeta<TEnum> where TEnum : struct, Enum
         }
     }
 
-    private static IReadOnlyList<TEnum> ScanForFlagValues()
-    {
-        var flags = new List<TEnum>();
-        foreach (var v in Values)
-        {
-            // BitOperations.IsPow2 treats negatives as non-flags, which is
-            // what we want: a power of two is by definition positive.
-            if (BitOperations.IsPow2(ToLong(v)))
-            {
-                flags.Add(v);
-            }
-        }
-        return flags;
-    }
+    // BitOperations.IsPow2 treats negatives as non-flags, which is what we
+    // want: a power of two is by definition positive, so a sign-extended
+    // high bit on a signed underlying type is excluded.
+    private static IReadOnlyList<TEnum> ScanForFlagValues() =>
+        Values.Where(v => BitOperations.IsPow2(ToLong(v))).ToArray();
 
     private static TEnum OrAllFlagValues()
     {
