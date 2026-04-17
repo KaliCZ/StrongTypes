@@ -205,11 +205,8 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         await AssertEntity(PgSet, created.Id, Create(FirstValid), NullNullable);
     }
 
-    // For numeric TWire (int, long, …) and string TWire, GetRawText() of a
-    // JsonElement and JsonSerializer.Serialize(expected) both yield the same
-    // JSON literal, so string comparison is a universal check.
     private static void AssertJsonEquals(JsonElement element, TWire expected)
     {
-        Assert.Equal(JsonSerializer.Serialize(expected), element.GetRawText());
+        Assert.Equal(expected, element.Deserialize<TWire>());
     }
 }
