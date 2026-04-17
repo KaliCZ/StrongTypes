@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Numerics;
-using System.Threading;
 
 namespace StrongTypes;
 
@@ -18,17 +17,11 @@ public static class EnumExtensions
 {
     extension<TEnum>(TEnum) where TEnum : struct, Enum
     {
-        /// <summary>
-        /// Thin wrapper over <see cref="Enum.Parse{TEnum}(string)"/>. Throws
-        /// on failure (including <see cref="ArgumentNullException"/> for null).
-        /// </summary>
-        public static TEnum Parse(string? value) => Enum.Parse<TEnum>(value!);
+        /// <summary>Thin wrapper over <see cref="Enum.Parse{TEnum}(string)"/>. Throws on failure.</summary>
+        public static TEnum Parse(string value) => Enum.Parse<TEnum>(value);
 
-        /// <summary>
-        /// Thin wrapper over <see cref="Enum.Parse{TEnum}(string, bool)"/>.
-        /// Throws on failure (including <see cref="ArgumentNullException"/> for null).
-        /// </summary>
-        public static TEnum Parse(string? value, bool ignoreCase) => Enum.Parse<TEnum>(value!, ignoreCase);
+        /// <summary>Thin wrapper over <see cref="Enum.Parse{TEnum}(string, bool)"/>. Throws on failure.</summary>
+        public static TEnum Parse(string value, bool ignoreCase) => Enum.Parse<TEnum>(value, ignoreCase);
 
         /// <summary>Thin wrapper over <see cref="Enum.TryParse{TEnum}(string, out TEnum)"/>. Returns <c>null</c> on failure.</summary>
         public static TEnum? TryParse(string? value) =>
@@ -39,7 +32,7 @@ public static class EnumExtensions
             Enum.TryParse<TEnum>(value, ignoreCase, out var v) ? v : null;
 
         /// <summary>Alias for Parse, matching the repo's validated-type factory naming.</summary>
-        public static TEnum Create(string? value) => Enum.Parse<TEnum>(value!);
+        public static TEnum Create(string value) => Enum.Parse<TEnum>(value);
 
         /// <summary>Alias for TryParse, matching the repo's validated-type factory naming.</summary>
         public static TEnum? TryCreate(string? value) =>
@@ -81,7 +74,7 @@ public static class EnumExtensions
                 return Array.Empty<TEnum>();
             }
 
-            var flags = EnumCache<TEnum>.AllFlagValues;
+            var flags = EnumCache<TEnum>.AllFlagValuesUnchecked;
             var flagBits = EnumCache<TEnum>.AllFlagValueBits;
 
             var result = new List<TEnum>(flags.Count);
@@ -99,48 +92,47 @@ public static class EnumExtensions
 
 internal static class EnumCache<TEnum> where TEnum : struct, Enum
 {
-    // Each cache is independently lazy so that enums that never hit the
-    // flag-related APIs don't pay for a flag scan, and vice versa.
-    // PublicationOnly trades occasional duplicate work under contention
-    // for cheaper access and no lock allocation.
-    private static readonly Lazy<IReadOnlyList<TEnum>> _allValues =
-        new(static () => Enum.GetValues<TEnum>(), LazyThreadSafetyMode.PublicationOnly);
+    // Each cache is its own lazy field so enums that never touch flag APIs
+    // never pay for a flag scan, and vice versa. The ??= pattern is racey
+    // under contention — two threads may both run the compute — but every
+    // producer yields the same result and reference-sized writes are atomic,
+    // so any observer sees either null or a fully-constructed value.
+    //
+    // Tuples and TEnum need a reference-type holder (record class or boxed
+    // object) because Nullable<T> over a multi-word struct is not atomic.
 
-    private static readonly Lazy<Func<TEnum, long>> _toLong =
-        new(CreateToLong, LazyThreadSafetyMode.PublicationOnly);
+    private static IReadOnlyList<TEnum>? _allValues;
+    public static IReadOnlyList<TEnum> AllValues => _allValues ??= Enum.GetValues<TEnum>();
 
-    private static readonly Lazy<Func<long, TEnum>> _fromLong =
-        new(CreateFromLong, LazyThreadSafetyMode.PublicationOnly);
+    private static Func<TEnum, long>? _toLong;
+    public static long ToLong(TEnum value) => (_toLong ??= CreateToLong()).Invoke(value);
 
-    private static readonly Lazy<(IReadOnlyList<TEnum> Values, long[] Bits)> _flagData =
-        new(ComputeFlagData, LazyThreadSafetyMode.PublicationOnly);
+    private static Func<long, TEnum>? _fromLong;
+    private static TEnum FromLong(long bits) => (_fromLong ??= CreateFromLong()).Invoke(bits);
 
-    private static readonly Lazy<TEnum> _allFlagsCombined =
-        new(ComputeAllFlagsCombined, LazyThreadSafetyMode.PublicationOnly);
-
-    public static IReadOnlyList<TEnum> AllValues => _allValues.Value;
+    private sealed record FlagData(IReadOnlyList<TEnum> Values, long[] Bits);
+    private static FlagData? _flagData;
+    private static FlagData Flags => _flagData ??= ComputeFlagData();
 
     public static IReadOnlyList<TEnum> AllFlagValues
     {
-        get
-        {
-            EnsureFlagsEnum();
-            return _flagData.Value.Values;
-        }
+        get { EnsureFlagsEnum(); return Flags.Values; }
     }
 
-    public static long[] AllFlagValueBits => _flagData.Value.Bits;
+    public static IReadOnlyList<TEnum> AllFlagValuesUnchecked => Flags.Values;
+    public static long[] AllFlagValueBits => Flags.Bits;
 
+    // Boxed once; reference writes are atomic, so ??= is safe even if the
+    // underlying TEnum is multiple words.
+    private static object? _allFlagsCombinedBox;
     public static TEnum AllFlagsCombined
     {
         get
         {
             EnsureFlagsEnum();
-            return _allFlagsCombined.Value;
+            return (TEnum)(_allFlagsCombinedBox ??= ComputeAllFlagsCombined());
         }
     }
-
-    public static long ToLong(TEnum value) => _toLong.Value(value);
 
     public static void EnsureFlagsEnum()
     {
@@ -151,39 +143,38 @@ internal static class EnumCache<TEnum> where TEnum : struct, Enum
         }
     }
 
-    private static (IReadOnlyList<TEnum>, long[]) ComputeFlagData()
+    private static FlagData ComputeFlagData()
     {
         var values = AllValues;
-        var toLong = _toLong.Value;
         var flagValues = new List<TEnum>(values.Count);
         var flagBits = new List<long>(values.Count);
         foreach (var v in values)
         {
-            var bits = toLong(v);
-            // IsPow2 on a signed long treats negatives as non-flags, which is
-            // what we want: a power of two is by definition positive.
+            var bits = ToLong(v);
+            // A power of two must be positive. Negative values (including a
+            // sign-extended high bit on a signed underlying type) are excluded.
             if (bits > 0 && BitOperations.IsPow2(bits))
             {
                 flagValues.Add(v);
                 flagBits.Add(bits);
             }
         }
-        return (flagValues, flagBits.ToArray());
+        return new FlagData(flagValues, flagBits.ToArray());
     }
 
-    private static TEnum ComputeAllFlagsCombined()
+    private static object ComputeAllFlagsCombined()
     {
         long combined = 0;
-        foreach (var b in _flagData.Value.Bits)
+        foreach (var b in Flags.Bits)
         {
             combined |= b;
         }
-        return _fromLong.Value(combined);
+        return FromLong(combined);
     }
 
     private static Func<TEnum, long> CreateToLong()
     {
-        // Emit: (long)(TUnderlying)value  — unchecked widening via the
+        // Emit: (long)(TUnderlying)value — unchecked widening via the
         // underlying integral type, sign-extending for signed enums.
         var param = Expression.Parameter(typeof(TEnum), "v");
         var underlying = Enum.GetUnderlyingType(typeof(TEnum));
