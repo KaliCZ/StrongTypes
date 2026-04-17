@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Numerics;
-using System.Threading;
 
 namespace StrongTypes;
 
@@ -39,170 +38,147 @@ public static class EnumExtensions
         public static TEnum? TryCreate(string? value) =>
             Enum.TryParse<TEnum>(value, out var v) ? v : null;
 
-        /// <summary>All declared values of <typeparamref name="TEnum"/>, cached after the first access.</summary>
-        public static IReadOnlyList<TEnum> AllValues => EnumCache<TEnum>.AllValues;
+        /// <summary>All declared values of <typeparamref name="TEnum"/>, cached on first type use.</summary>
+        public static IReadOnlyList<TEnum> AllValues => EnumMeta<TEnum>.Values;
 
         /// <summary>
-        /// The subset of <c>AllValues</c> whose underlying integral
-        /// representation is a single bit (a power of two). Cached after the
-        /// first access. Throws if <typeparamref name="TEnum"/> is not a
-        /// <c>[Flags]</c> enum.
+        /// Members of <typeparamref name="TEnum"/> whose underlying bits form
+        /// a single power of two. Computed and cached the first time it's
+        /// read. Throws if <typeparamref name="TEnum"/> lacks <c>[Flags]</c>.
         /// </summary>
-        public static IReadOnlyList<TEnum> AllFlagValues => EnumCache<TEnum>.AllFlagValues;
+        public static IReadOnlyList<TEnum> AllFlagValues
+        {
+            get
+            {
+                EnumMeta<TEnum>.RequireFlagsAttribute();
+                return EnumMeta<TEnum>.FlagValues;
+            }
+        }
 
         /// <summary>
-        /// All single-bit flags of <typeparamref name="TEnum"/> combined into
-        /// a single value with bitwise OR — suitable for persisting the full
-        /// flag set as one integer. Cached after the first access. Throws if
-        /// <typeparamref name="TEnum"/> is not a <c>[Flags]</c> enum.
+        /// Every single-bit flag OR-ed into one value — suitable for
+        /// persisting the complete flag set as a single integer. Cached the
+        /// first time it's read. Throws if <typeparamref name="TEnum"/>
+        /// lacks <c>[Flags]</c>.
         /// </summary>
-        public static TEnum AllFlagsCombined => EnumCache<TEnum>.AllFlagsCombined;
+        public static TEnum AllFlagsCombined
+        {
+            get
+            {
+                EnumMeta<TEnum>.RequireFlagsAttribute();
+                return EnumMeta<TEnum>.FlagsCombined;
+            }
+        }
     }
 
     extension<TEnum>(TEnum value) where TEnum : struct, Enum
     {
         /// <summary>
-        /// Decomposes the receiver into the individual single-bit flags it
-        /// contains, in declaration order. A zero value yields an empty list.
-        /// Throws if <typeparamref name="TEnum"/> is not a <c>[Flags]</c> enum.
+        /// Splits the receiver into the individual single-bit flags it
+        /// contains, in declaration order. Returns an empty list for zero.
+        /// Throws if <typeparamref name="TEnum"/> lacks <c>[Flags]</c>.
         /// </summary>
         public IReadOnlyList<TEnum> GetFlags()
         {
-            EnumCache<TEnum>.EnsureFlagsEnum();
-            var bits = EnumCache<TEnum>.ToLong(value);
+            EnumMeta<TEnum>.RequireFlagsAttribute();
+
+            var bits = EnumMeta<TEnum>.ToLong(value);
             if (bits == 0)
             {
                 return Array.Empty<TEnum>();
             }
 
-            var flags = EnumCache<TEnum>.AllFlagValuesUnchecked;
-            var flagBits = EnumCache<TEnum>.AllFlagValueBits;
-
-            var result = new List<TEnum>(flags.Count);
-            for (var i = 0; i < flags.Count; i++)
+            var flags = EnumMeta<TEnum>.FlagValues;
+            var matched = new List<TEnum>(flags.Count);
+            foreach (var flag in flags)
             {
-                if ((bits & flagBits[i]) == flagBits[i])
+                var flagBits = EnumMeta<TEnum>.ToLong(flag);
+                if ((bits & flagBits) == flagBits)
                 {
-                    result.Add(flags[i]);
+                    matched.Add(flag);
                 }
             }
-            return result;
+            return matched;
         }
     }
 }
 
-internal static class EnumCache<TEnum> where TEnum : struct, Enum
+internal static class EnumMeta<TEnum> where TEnum : struct, Enum
 {
-    // Each cache is its own ??= field so enums that never touch flag APIs
-    // never pay for a flag scan, and vice versa. ??= is racey under
-    // contention — two threads may both run the compute — but every producer
-    // yields the same result and reference-sized writes are atomic, so any
-    // observer sees either null or a fully-constructed value.
-    //
-    // The combined Values/Bits/Combined data lives in a single FlagMeta
-    // record class (a reference) so that one atomic pointer write publishes
-    // every flag-related field at once. A bare Nullable<TEnum> backing
-    // wouldn't be safe here: Nullable<T> is an inline struct and for
-    // long-backed enums its 16-byte layout isn't written atomically, so a
-    // reader could see HasValue=true with a torn (default) Value.
+    // Eager one-shot fields: paid once on first touch of this closed generic,
+    // no null-check on subsequent reads.
+    public static readonly IReadOnlyList<TEnum> Values = Enum.GetValues<TEnum>();
+    public static readonly Func<TEnum, long> ToLong = CompileToLong();
+    public static readonly Func<long, TEnum> FromLong = CompileFromLong();
 
-    // FlagsAttribute lookup only runs once per closed generic type.
-    private static readonly bool IsFlagsEnum =
+    private static readonly bool HasFlagsAttribute =
         typeof(TEnum).IsDefined(typeof(FlagsAttribute), inherit: false);
 
-    private static IReadOnlyList<TEnum>? _allValues;
-    public static IReadOnlyList<TEnum> AllValues => _allValues ??= Enum.GetValues<TEnum>();
+    // Per-property lazy caches so an enum that never asks for flag data
+    // never pays for a flag scan, and vice versa. ??= is racey under
+    // contention but the compute is deterministic, so all producers store
+    // identical bits.
+    //
+    // FlagValues' backing is a reference, so the write is atomic. FlagsCombined
+    // uses Nullable<TEnum> which is an inline struct: for byte/short/int-backed
+    // enums it fits in 8 bytes and writes atomically on 64-bit runtimes; for
+    // long/ulong-backed enums the 16-byte layout could tear under
+    // first-access contention. Acceptable for the narrow edge case.
 
-    private static Func<TEnum, long>? _toLong;
-    public static long ToLong(TEnum value) => (_toLong ??= CreateToLong()).Invoke(value);
+    private static IReadOnlyList<TEnum>? _flagValues;
+    public static IReadOnlyList<TEnum> FlagValues => _flagValues ??= ScanForFlagValues();
 
-    private static Func<long, TEnum>? _fromLong;
-    private static TEnum FromLong(long bits) => (_fromLong ??= CreateFromLong()).Invoke(bits);
+    private static TEnum? _flagsCombined;
+    public static TEnum FlagsCombined => _flagsCombined ??= OrAllFlagValues();
 
-    // Published-flag pattern for the flag metadata: the writer fills in the
-    // three value fields and then Volatile.Writes _flagMetaReady=true. Readers
-    // Volatile.Read the flag first and only touch the fields if it's true,
-    // so they can never observe a half-initialized state. Under contention
-    // multiple threads may compute, but the compute is deterministic so
-    // identical bits land in each field regardless of ordering.
-    private static IReadOnlyList<TEnum> _flagValues = Array.Empty<TEnum>();
-    private static long[] _flagBits = Array.Empty<long>();
-    private static TEnum _flagsCombined;
-    private static bool _flagMetaReady;
-
-    private static void EnsureFlagMeta()
+    public static void RequireFlagsAttribute()
     {
-        if (Volatile.Read(ref _flagMetaReady))
-        {
-            return;
-        }
-
-        var values = AllValues;
-        var flagValues = new List<TEnum>(values.Count);
-        var flagBits = new List<long>(values.Count);
-        long combined = 0;
-        foreach (var v in values)
-        {
-            var bits = ToLong(v);
-            // A power of two must be positive. Negative values (including a
-            // sign-extended high bit on a signed underlying type) are excluded.
-            if (bits > 0 && BitOperations.IsPow2(bits))
-            {
-                flagValues.Add(v);
-                flagBits.Add(bits);
-                combined |= bits;
-            }
-        }
-
-        _flagValues = flagValues;
-        _flagBits = flagBits.ToArray();
-        _flagsCombined = FromLong(combined);
-        Volatile.Write(ref _flagMetaReady, true);
-    }
-
-    public static IReadOnlyList<TEnum> AllFlagValues
-    {
-        get { EnsureFlagsEnum(); EnsureFlagMeta(); return _flagValues; }
-    }
-
-    public static IReadOnlyList<TEnum> AllFlagValuesUnchecked
-    {
-        get { EnsureFlagMeta(); return _flagValues; }
-    }
-
-    public static long[] AllFlagValueBits
-    {
-        get { EnsureFlagMeta(); return _flagBits; }
-    }
-
-    public static TEnum AllFlagsCombined
-    {
-        get { EnsureFlagsEnum(); EnsureFlagMeta(); return _flagsCombined; }
-    }
-
-    public static void EnsureFlagsEnum()
-    {
-        if (!IsFlagsEnum)
+        if (!HasFlagsAttribute)
         {
             throw new InvalidOperationException(
                 $"{typeof(TEnum).FullName} is not a [Flags] enum; flag-related APIs are unavailable.");
         }
     }
 
-    private static Func<TEnum, long> CreateToLong()
+    private static IReadOnlyList<TEnum> ScanForFlagValues()
     {
-        // Emit: (long)(TUnderlying)value — unchecked widening via the
-        // underlying integral type, sign-extending for signed enums.
+        var flags = new List<TEnum>();
+        foreach (var v in Values)
+        {
+            // BitOperations.IsPow2 treats negatives as non-flags, which is
+            // what we want: a power of two is by definition positive.
+            if (BitOperations.IsPow2(ToLong(v)))
+            {
+                flags.Add(v);
+            }
+        }
+        return flags;
+    }
+
+    private static TEnum OrAllFlagValues()
+    {
+        long bits = 0;
+        foreach (var flag in FlagValues)
+        {
+            bits |= ToLong(flag);
+        }
+        return FromLong(bits);
+    }
+
+    private static Func<TEnum, long> CompileToLong()
+    {
+        // (long)(TUnderlying)value — unchecked widening, sign-extending
+        // through the underlying integral type.
         var param = Expression.Parameter(typeof(TEnum), "v");
         var underlying = Enum.GetUnderlyingType(typeof(TEnum));
         var body = Expression.Convert(Expression.Convert(param, underlying), typeof(long));
         return Expression.Lambda<Func<TEnum, long>>(body, param).Compile();
     }
 
-    private static Func<long, TEnum> CreateFromLong()
+    private static Func<long, TEnum> CompileFromLong()
     {
-        // Emit: (TEnum)(TUnderlying)bits — unchecked narrowing; truncates
-        // when the underlying type is smaller than long.
+        // (TEnum)(TUnderlying)bits — unchecked narrowing; truncates when
+        // the underlying type is smaller than long.
         var param = Expression.Parameter(typeof(long), "bits");
         var underlying = Enum.GetUnderlyingType(typeof(TEnum));
         var body = Expression.Convert(Expression.Convert(param, underlying), typeof(TEnum));
