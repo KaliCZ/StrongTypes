@@ -1,3 +1,4 @@
+using System.Numerics;
 using Microsoft.EntityFrameworkCore;
 
 namespace StrongTypes.Api.Infrastructure;
@@ -14,15 +15,30 @@ public static class StrongTypesModelConfigurationExtensions
     {
         configurationBuilder.Properties<NonEmptyString>().HaveConversion<NonEmptyStringValueConverter>();
 
-        configurationBuilder.Properties<Positive<int>>()
-            .HaveConversion<NumericStrongTypeValueConverter<Positive<int>, int>>();
-        configurationBuilder.Properties<NonNegative<int>>()
-            .HaveConversion<NumericStrongTypeValueConverter<NonNegative<int>, int>>();
-        configurationBuilder.Properties<Negative<int>>()
-            .HaveConversion<NumericStrongTypeValueConverter<Negative<int>, int>>();
-        configurationBuilder.Properties<NonPositive<int>>()
-            .HaveConversion<NumericStrongTypeValueConverter<NonPositive<int>, int>>();
+        RegisterNumeric<int>(configurationBuilder);
+        RegisterNumeric<long>(configurationBuilder);
+        RegisterNumeric<short>(configurationBuilder);
+        RegisterNumeric<decimal>(configurationBuilder);
+        RegisterNumeric<float>(configurationBuilder);
+        RegisterNumeric<double>(configurationBuilder);
 
         return configurationBuilder;
+    }
+
+    // One call per underlying numeric type registers all four wrapper shapes
+    // (Positive, NonNegative, Negative, NonPositive) against the generic
+    // NumericStrongTypeValueConverter<TWrapper, T>. Adding a new underlying
+    // type is a one-liner in UseStrongTypes above.
+    private static void RegisterNumeric<T>(ModelConfigurationBuilder configurationBuilder)
+        where T : struct, INumber<T>
+    {
+        configurationBuilder.Properties<Positive<T>>()
+            .HaveConversion<NumericStrongTypeValueConverter<Positive<T>, T>>();
+        configurationBuilder.Properties<NonNegative<T>>()
+            .HaveConversion<NumericStrongTypeValueConverter<NonNegative<T>, T>>();
+        configurationBuilder.Properties<Negative<T>>()
+            .HaveConversion<NumericStrongTypeValueConverter<Negative<T>, T>>();
+        configurationBuilder.Properties<NonPositive<T>>()
+            .HaveConversion<NumericStrongTypeValueConverter<NonPositive<T>, T>>();
     }
 }

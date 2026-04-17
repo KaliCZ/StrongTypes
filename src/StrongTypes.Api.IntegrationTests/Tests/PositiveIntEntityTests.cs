@@ -2,11 +2,12 @@ using StrongTypes.Api.Entities;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
-namespace StrongTypes.Api.IntegrationTests.NumericItems.Positive;
+namespace StrongTypes.Api.IntegrationTests.Tests;
 
 [Collection(IntegrationTestCollection.Name)]
 public sealed class PositiveIntEntityTests(TestWebApplicationFactory factory)
-    : NumericEntityTests<PositiveIntEntityTests, PositiveIntEntity, Positive<int>>(factory), INumericTestData
+    : EntityTests<PositiveIntEntityTests, PositiveIntEntity, Positive<int>, Positive<int>?, int>(factory),
+      IEntityTestData<int>
 {
     protected override string RoutePrefix => "positive-int-entities";
     protected override Positive<int> Create(int raw) => Positive<int>.Create(raw);

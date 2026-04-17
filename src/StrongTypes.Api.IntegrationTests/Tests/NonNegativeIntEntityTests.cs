@@ -2,11 +2,12 @@ using StrongTypes.Api.Entities;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
-namespace StrongTypes.Api.IntegrationTests.NumericItems.NonNegative;
+namespace StrongTypes.Api.IntegrationTests.Tests;
 
 [Collection(IntegrationTestCollection.Name)]
 public sealed class NonNegativeIntEntityTests(TestWebApplicationFactory factory)
-    : NumericEntityTests<NonNegativeIntEntityTests, NonNegativeIntEntity, NonNegative<int>>(factory), INumericTestData
+    : EntityTests<NonNegativeIntEntityTests, NonNegativeIntEntity, NonNegative<int>, NonNegative<int>?, int>(factory),
+      IEntityTestData<int>
 {
     protected override string RoutePrefix => "non-negative-int-entities";
     protected override NonNegative<int> Create(int raw) => NonNegative<int>.Create(raw);
