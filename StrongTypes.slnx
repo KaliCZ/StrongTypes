@@ -6,6 +6,7 @@
   <Project Path="src/StrongTypes.Api.IntegrationTests/StrongTypes.Api.IntegrationTests.csproj" />
   <Project Path="src/StrongTypes.Api/StrongTypes.Api.csproj" />
   <Project Path="src/StrongTypes.Benchmarks/StrongTypes.Benchmarks.csproj" />
+  <Project Path="src/StrongTypes.SourceGenerators/StrongTypes.SourceGenerators.csproj" />
   <Project Path="src/StrongTypes.Examples/StrongTypes.Examples.csproj" />
   <Project Path="src/StrongTypes.Tests/StrongTypes.Tests.csproj" />
   <Project Path="src/StrongTypes/StrongTypes.csproj" />
