@@ -11,8 +11,8 @@ namespace StrongTypes.Api.IntegrationTests.NumericItems;
 /// Shared Create/Get/Update suite for every <see cref="IEntity{TSelf, T, TNullable}"/>
 /// whose underlying value is an integer-backed strong type. Concrete subclasses
 /// plug in <see cref="RoutePrefix"/>, a <c>Create(int)</c> factory, two seed
-/// pairs (<see cref="SeedValid"/>, <see cref="SeedValidUpdate"/>), and two
-/// static <see cref="Xunit.TheoryData{T1, T2}"/> members named
+/// values (<see cref="FirstValid"/>, <see cref="UpdatedValid"/>), and two
+/// public static <see cref="Xunit.TheoryData{T}"/> members named
 /// <c>ValidInputs</c> and <c>InvalidInputs</c> that xUnit discovers by name
 /// on the concrete test class.
 /// </summary>
@@ -24,75 +24,116 @@ public abstract class NumericEntityTests<TEntity, T>(TestWebApplicationFactory f
     /// <summary>Wraps a raw wire-format <c>int</c> in the strong type.</summary>
     protected abstract T Create(int raw);
 
-    /// <summary>(value, nullableValue) pair used by [Fact] Get/Update tests.</summary>
-    protected abstract (int value, int nullableValue) SeedValid { get; }
+    /// <summary>
+    /// Seed valid value used as the "other" slot when testing one field in
+    /// isolation, and as the baseline for Get/Update tests. Should match the
+    /// first entry of <c>ValidInputs</c>.
+    /// </summary>
+    protected abstract int FirstValid { get; }
 
-    /// <summary>Target state for the non-nullable update test.</summary>
-    protected abstract (int value, int nullableValue) SeedValidUpdate { get; }
+    /// <summary>Target value for the non-nullable update test; must differ from <see cref="FirstValid"/>.</summary>
+    protected abstract int UpdatedValid { get; }
 
-    // ── Create ───────────────────────────────────────────────────────────
-
-    // The analyzer can't see the ValidInputs/InvalidInputs members because
-    // they're declared on the concrete subclass; xUnit's runtime discovery
-    // still resolves them off the concrete test class via reflection.
+    // The analyzer can't see ValidInputs/InvalidInputs because they live on
+    // the concrete subclass; xUnit's runtime discovery still resolves them
+    // off the concrete test class via reflection.
 #pragma warning disable xUnit1015
+
+    // ── Create: valid ────────────────────────────────────────────────────
+
     [Theory]
     [MemberData(ValidInputsMember)]
-    public async Task NonNullable_ValidInputs_PersistsInBothDatabases(int value, int nullableValue)
+    public async Task NonNullable_ValidInput_PersistsInBothDatabases(int value)
     {
-        var created = await Post(NonNullable, Body(value, nullableValue));
-        await AssertEntity(SqlSet, created.Id, Create(value), Create(nullableValue));
-        await AssertEntity(PgSet, created.Id, Create(value), Create(nullableValue));
+        var created = await Post(NonNullable, Body(value, value));
+        await AssertEntity(SqlSet, created.Id, Create(value), Create(value));
+        await AssertEntity(PgSet, created.Id, Create(value), Create(value));
     }
 
     [Theory]
     [MemberData(ValidInputsMember)]
-    public async Task Nullable_ValidInputsWithNonNullNullable_PersistsInBothDatabases(int value, int nullableValue)
+    public async Task Nullable_ValidInputWithNonNullNullable_PersistsInBothDatabases(int value)
     {
-        var created = await Post(Nullable, Body(value, (int?)nullableValue));
-        await AssertEntity(SqlSet, created.Id, Create(value), Create(nullableValue));
-        await AssertEntity(PgSet, created.Id, Create(value), Create(nullableValue));
+        var created = await Post(Nullable, Body(value, (int?)value));
+        await AssertEntity(SqlSet, created.Id, Create(value), Create(value));
+        await AssertEntity(PgSet, created.Id, Create(value), Create(value));
     }
 
     [Fact]
     public async Task Nullable_ValidValueWithNullNullable_PersistsInBothDatabases()
     {
-        var (val, _) = SeedValid;
-        var created = await Post(Nullable, Body(val, (int?)null));
-        await AssertEntity(SqlSet, created.Id, Create(val), null);
-        await AssertEntity(PgSet, created.Id, Create(val), null);
+        var created = await Post(Nullable, Body(FirstValid, (int?)null));
+        await AssertEntity(SqlSet, created.Id, Create(FirstValid), null);
+        await AssertEntity(PgSet, created.Id, Create(FirstValid), null);
     }
 
-    // InvalidInputs covers both endpoints: every pair is bad regardless of
-    // whether NullableValue is allowed to be null — i.e. the Value itself is
-    // invalid or null, or NullableValue is a non-null invalid number.
+    // ── Create: invalid number (non-null) ────────────────────────────────
+    // Each invalid number is tested in both slots independently; the other
+    // slot holds FirstValid so the test isolates the one field being checked.
+
     [Theory]
     [MemberData(InvalidInputsMember)]
-    public async Task NonNullable_InvalidInputs_ReturnsBadRequest(int? value, int? nullableValue)
+    public async Task NonNullable_InvalidValue_ReturnsBadRequest(int invalid)
     {
-        var response = await Client.PostAsJsonAsync(NonNullable, new { value, nullableValue }, Ct);
+        var response = await Client.PostAsJsonAsync(
+            NonNullable, new { value = invalid, nullableValue = FirstValid }, Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Theory]
     [MemberData(InvalidInputsMember)]
-    public async Task Nullable_InvalidInputs_ReturnsBadRequest(int? value, int? nullableValue)
+    public async Task NonNullable_InvalidNullableValue_ReturnsBadRequest(int invalid)
     {
-        var response = await Client.PostAsJsonAsync(Nullable, new { value, nullableValue }, Ct);
+        var response = await Client.PostAsJsonAsync(
+            NonNullable, new { value = FirstValid, nullableValue = invalid }, Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [MemberData(InvalidInputsMember)]
+    public async Task Nullable_InvalidValue_ReturnsBadRequest(int invalid)
+    {
+        var response = await Client.PostAsJsonAsync(
+            Nullable, new { value = invalid, nullableValue = (int?)FirstValid }, Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [MemberData(InvalidInputsMember)]
+    public async Task Nullable_InvalidNullableValue_ReturnsBadRequest(int invalid)
+    {
+        var response = await Client.PostAsJsonAsync(
+            Nullable, new { value = FirstValid, nullableValue = (int?)invalid }, Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 #pragma warning restore xUnit1015
 
-    // Endpoint-specific: null NullableValue with a valid Value is bad on the
-    // non-nullable endpoint but valid on the nullable endpoint (covered above).
+    // ── Create: null ─────────────────────────────────────────────────────
+    // Value is always non-nullable, so null Value is a 400 on either endpoint.
+    // NullableValue is non-nullable only on /non-nullable; on /nullable, null
+    // NullableValue is the legit case (covered by the valid-null test above).
+
     [Fact]
-    public async Task NonNullable_NullNullableValueWithValidValue_ReturnsBadRequest()
+    public async Task NonNullable_NullValue_ReturnsBadRequest()
     {
-        var (val, _) = SeedValid;
         var response = await Client.PostAsJsonAsync(
-            NonNullable,
-            new { value = (int?)val, nullableValue = (int?)null },
-            Ct);
+            NonNullable, new { value = (int?)null, nullableValue = (int?)FirstValid }, Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task NonNullable_NullNullableValue_ReturnsBadRequest()
+    {
+        var response = await Client.PostAsJsonAsync(
+            NonNullable, new { value = (int?)FirstValid, nullableValue = (int?)null }, Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Nullable_NullValue_ReturnsBadRequest()
+    {
+        var response = await Client.PostAsJsonAsync(
+            Nullable, new { value = (int?)null, nullableValue = (int?)FirstValid }, Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
@@ -101,8 +142,7 @@ public abstract class NumericEntityTests<TEntity, T>(TestWebApplicationFactory f
     [Fact]
     public async Task Get_ReturnsEntityWithCamelCaseJsonFromBothDatabases()
     {
-        var (val, nullable) = SeedValid;
-        var entity = TEntity.Create(Create(val), Create(nullable));
+        var entity = TEntity.Create(Create(FirstValid), Create(FirstValid));
         SqlSet.Add(entity);
         PgSet.Add(entity);
         await SqlDb.SaveChangesAsync(Ct);
@@ -110,20 +150,19 @@ public abstract class NumericEntityTests<TEntity, T>(TestWebApplicationFactory f
 
         var sqlJson = await Get(SqlServerGet(entity.Id));
         Assert.Equal(entity.Id, sqlJson.GetProperty("id").GetGuid());
-        Assert.Equal(val, sqlJson.GetProperty("value").GetInt32());
-        Assert.Equal(nullable, sqlJson.GetProperty("nullableValue").GetInt32());
+        Assert.Equal(FirstValid, sqlJson.GetProperty("value").GetInt32());
+        Assert.Equal(FirstValid, sqlJson.GetProperty("nullableValue").GetInt32());
 
         var pgJson = await Get(PostgreSqlGet(entity.Id));
         Assert.Equal(entity.Id, pgJson.GetProperty("id").GetGuid());
-        Assert.Equal(val, pgJson.GetProperty("value").GetInt32());
-        Assert.Equal(nullable, pgJson.GetProperty("nullableValue").GetInt32());
+        Assert.Equal(FirstValid, pgJson.GetProperty("value").GetInt32());
+        Assert.Equal(FirstValid, pgJson.GetProperty("nullableValue").GetInt32());
     }
 
     [Fact]
     public async Task Get_SerializesNullNullableValueAsJsonNullFromBothDatabases()
     {
-        var (val, _) = SeedValid;
-        var entity = TEntity.Create(Create(val), null);
+        var entity = TEntity.Create(Create(FirstValid), null);
         SqlSet.Add(entity);
         PgSet.Add(entity);
         await SqlDb.SaveChangesAsync(Ct);
@@ -131,11 +170,11 @@ public abstract class NumericEntityTests<TEntity, T>(TestWebApplicationFactory f
 
         var sqlJson = await Get(SqlServerGet(entity.Id));
         Assert.Equal(JsonValueKind.Null, sqlJson.GetProperty("nullableValue").ValueKind);
-        Assert.Equal(val, sqlJson.GetProperty("value").GetInt32());
+        Assert.Equal(FirstValid, sqlJson.GetProperty("value").GetInt32());
 
         var pgJson = await Get(PostgreSqlGet(entity.Id));
         Assert.Equal(JsonValueKind.Null, pgJson.GetProperty("nullableValue").ValueKind);
-        Assert.Equal(val, pgJson.GetProperty("value").GetInt32());
+        Assert.Equal(FirstValid, pgJson.GetProperty("value").GetInt32());
     }
 
     // ── Update ───────────────────────────────────────────────────────────
@@ -143,40 +182,33 @@ public abstract class NumericEntityTests<TEntity, T>(TestWebApplicationFactory f
     [Fact]
     public async Task NonNullable_Update_PersistsNewValueAndNullableValueInBothDatabases()
     {
-        var (val, nullable) = SeedValid;
-        var (newVal, newNullable) = SeedValidUpdate;
+        var created = await Post(NonNullable, Body(FirstValid, FirstValid));
+        await Put(UpdateNonNullable(created.Id), Body(UpdatedValid, UpdatedValid));
 
-        var created = await Post(NonNullable, Body(val, nullable));
-        await Put(UpdateNonNullable(created.Id), Body(newVal, newNullable));
-
-        await AssertEntity(SqlSet, created.Id, Create(newVal), Create(newNullable));
-        await AssertEntity(PgSet, created.Id, Create(newVal), Create(newNullable));
+        await AssertEntity(SqlSet, created.Id, Create(UpdatedValid), Create(UpdatedValid));
+        await AssertEntity(PgSet, created.Id, Create(UpdatedValid), Create(UpdatedValid));
     }
 
     [Fact]
     public async Task Nullable_SetsNullableValueFromNullToValueInBothDatabases()
     {
-        var (val, nullable) = SeedValid;
-        var created = await Post(Nullable, Body(val, (int?)null));
-        await Put(UpdateNullable(created.Id), Body(val, (int?)nullable));
+        var created = await Post(Nullable, Body(FirstValid, (int?)null));
+        await Put(UpdateNullable(created.Id), Body(FirstValid, (int?)UpdatedValid));
 
-        await AssertEntity(SqlSet, created.Id, Create(val), Create(nullable));
-        await AssertEntity(PgSet, created.Id, Create(val), Create(nullable));
+        await AssertEntity(SqlSet, created.Id, Create(FirstValid), Create(UpdatedValid));
+        await AssertEntity(PgSet, created.Id, Create(FirstValid), Create(UpdatedValid));
     }
 
     [Fact]
     public async Task Nullable_ClearsNullableValueToNullInBothDatabases()
     {
-        var (val, nullable) = SeedValid;
-        var created = await Post(NonNullable, Body(val, nullable));
-        await Put(UpdateNullable(created.Id), Body(val, (int?)null));
+        var created = await Post(NonNullable, Body(FirstValid, FirstValid));
+        await Put(UpdateNullable(created.Id), Body(FirstValid, (int?)null));
 
-        await AssertEntity(SqlSet, created.Id, Create(val), null);
-        await AssertEntity(PgSet, created.Id, Create(val), null);
+        await AssertEntity(SqlSet, created.Id, Create(FirstValid), null);
+        await AssertEntity(PgSet, created.Id, Create(FirstValid), null);
     }
 
-    // xUnit discovers MemberData via reflection on the concrete test class;
-    // these names must match public static TheoryData members on the subclass.
     protected const string ValidInputsMember = "ValidInputs";
     protected const string InvalidInputsMember = "InvalidInputs";
 }
