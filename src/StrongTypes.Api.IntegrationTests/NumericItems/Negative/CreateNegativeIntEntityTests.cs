@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
-namespace StrongTypes.Api.IntegrationTests.NumericItems;
+namespace StrongTypes.Api.IntegrationTests.NumericItems.Negative;
 
 [Collection(IntegrationTestCollection.Name)]
 public sealed class CreateNegativeIntEntityTests(TestWebApplicationFactory factory)
@@ -33,17 +33,25 @@ public sealed class CreateNegativeIntEntityTests(TestWebApplicationFactory facto
         await AssertEntity(PgSet, created.Id, Negative<int>.Create(-3), null);
     }
 
-    [Fact]
-    public async Task NonNullable_ZeroValue_ReturnsBadRequest()
+    [Theory]
+    [InlineData(0, -1)]
+    [InlineData(1, -1)]
+    [InlineData(-1, 0)]
+    [InlineData(-1, 1)]
+    public async Task NonNullable_InvalidValues_ReturnsBadRequest(int value, int nullableValue)
     {
-        var response = await Client.PostAsJsonAsync(NonNullable, Body(0, -1), Ct);
+        var response = await Client.PostAsJsonAsync(NonNullable, Body(value, nullableValue), Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
-    public async Task NonNullable_PositiveValue_ReturnsBadRequest()
+    [Theory]
+    [InlineData(0, -1)]
+    [InlineData(1, -1)]
+    [InlineData(-1, 0)]
+    [InlineData(-1, 1)]
+    public async Task Nullable_InvalidValues_ReturnsBadRequest(int value, int? nullableValue)
     {
-        var response = await Client.PostAsJsonAsync(NonNullable, Body(1, -1), Ct);
+        var response = await Client.PostAsJsonAsync(Nullable, Body(value, nullableValue), Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

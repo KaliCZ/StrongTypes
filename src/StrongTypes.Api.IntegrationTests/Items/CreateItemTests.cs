@@ -29,7 +29,7 @@ public sealed class CreateNonEmptyStringEntityTests(TestWebApplicationFactory fa
     [Fact]
     public async Task Nullable_WithNullNullableValue_PersistsNullInBothDatabases()
     {
-        var created = await Post(Nullable, Body("Carol", null));
+        var created = await Post(Nullable, Body("Carol", (string?)null));
         await AssertEntity(SqlSet, created.Id, NonEmptyString.Create("Carol"), null);
         await AssertEntity(PgSet, created.Id, NonEmptyString.Create("Carol"), null);
     }
@@ -37,7 +37,7 @@ public sealed class CreateNonEmptyStringEntityTests(TestWebApplicationFactory fa
     [Fact]
     public async Task NonNullable_BothValuesNull_ReturnsValidationError()
     {
-        var response = await Client.PostAsJsonAsync(NonNullable, Body<string?>(null, null), Ct);
+        var response = await Client.PostAsJsonAsync(NonNullable, Body<string?, string?>(null, null), Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);

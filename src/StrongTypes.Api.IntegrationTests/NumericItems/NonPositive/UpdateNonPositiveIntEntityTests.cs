@@ -1,7 +1,7 @@
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
-namespace StrongTypes.Api.IntegrationTests.NumericItems;
+namespace StrongTypes.Api.IntegrationTests.NumericItems.NonPositive;
 
 [Collection(IntegrationTestCollection.Name)]
 public sealed class UpdateNonPositiveIntEntityTests(TestWebApplicationFactory factory)

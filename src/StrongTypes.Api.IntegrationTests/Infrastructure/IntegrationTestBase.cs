@@ -11,16 +11,17 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 
 /// <summary>
-/// Generic base for any <see cref="IEntity{TSelf, T}"/>. Supplies Client, both
-/// DbContexts, the current CancellationToken, the standard write/read routes
-/// derived from <see cref="RoutePrefix"/>, HTTP wrappers that bake in the
-/// cancellation token and the <see cref="EntityResponse"/> shape, a
-/// <see cref="Body{TValue}"/> helper for wire bodies, and the generic
-/// <see cref="AssertEntity"/> helper that reads from a <see cref="DbSet{TEntity}"/>.
+/// Generic base for any <see cref="IEntity{TSelf, T, TNullable}"/>. Supplies
+/// Client, both DbContexts, the current CancellationToken, the standard
+/// write/read routes derived from <see cref="RoutePrefix"/>, HTTP wrappers that
+/// bake in the cancellation token and the <see cref="EntityResponse"/> shape, a
+/// <see cref="Body{TValue, TNullableValue}"/> helper for wire bodies, and the
+/// generic <see cref="AssertEntity"/> helper that reads from a
+/// <see cref="DbSet{TEntity}"/>.
 /// </summary>
-public abstract class IntegrationTestBase<TEntity, T>(TestWebApplicationFactory factory) : IDisposable
-    where TEntity : class, IEntity<TEntity, T>
-    where T : class
+public abstract class IntegrationTestBase<TEntity, T, TNullable>(TestWebApplicationFactory factory) : IDisposable
+    where TEntity : class, IEntity<TEntity, T, TNullable>
+    where T : notnull
 {
     private readonly IServiceScope _scope = factory.Services.CreateScope();
 
@@ -46,10 +47,10 @@ public abstract class IntegrationTestBase<TEntity, T>(TestWebApplicationFactory 
 
     /// <summary>
     /// Builds the { Value, NullableValue } request body used by every write endpoint.
-    /// Generic over the wire type so tests can send plain strings (or any other scalar)
+    /// Generic over the wire types so tests can send plain scalars (int, string, …)
     /// regardless of the strong type the server binds them into.
     /// </summary>
-    protected static object Body<TValue>(TValue value, TValue? nullableValue) =>
+    protected static object Body<TValue, TNullableValue>(TValue value, TNullableValue nullableValue) =>
         new { Value = value, NullableValue = nullableValue };
 
     protected async Task<EntityResponse> Post(string url, object body)
@@ -80,7 +81,7 @@ public abstract class IntegrationTestBase<TEntity, T>(TestWebApplicationFactory 
         DbSet<TEntity> set,
         Guid id,
         T expectedValue,
-        T? expectedNullableValue)
+        TNullable expectedNullableValue)
     {
         var entity = await set.FindAsync([id], Ct);
         Assert.NotNull(entity);

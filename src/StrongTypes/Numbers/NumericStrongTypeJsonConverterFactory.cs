@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -26,16 +27,22 @@ public sealed class NumericStrongTypeJsonConverterFactory : JsonConverterFactory
         typeof(NonPositive<>)
     ];
 
+    // Inner<TWrapper, T> holds no mutable state and is safe to share across all
+    // JsonSerializerOptions instances, so one cached converter per wrapper type
+    // is plenty. Keyed by the closed wrapper type (e.g. Positive<int>).
+    private static readonly ConcurrentDictionary<Type, JsonConverter> s_converterCache = new();
+
     public override bool CanConvert(Type typeToConvert) =>
         typeToConvert.IsGenericType
         && SupportedDefinitions.Contains(typeToConvert.GetGenericTypeDefinition());
 
-    public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
-    {
-        var innerType = typeToConvert.GetGenericArguments()[0];
-        var converterType = typeof(Inner<,>).MakeGenericType(typeToConvert, innerType);
-        return (JsonConverter)Activator.CreateInstance(converterType)!;
-    }
+    public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options) =>
+        s_converterCache.GetOrAdd(typeToConvert, static t =>
+        {
+            var innerType = t.GetGenericArguments()[0];
+            var converterType = typeof(Inner<,>).MakeGenericType(t, innerType);
+            return (JsonConverter)Activator.CreateInstance(converterType)!;
+        });
 
     private sealed class Inner<TWrapper, T> : JsonConverter<TWrapper>
         where TWrapper : struct

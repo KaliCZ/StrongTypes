@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
-namespace StrongTypes.Api.IntegrationTests.NumericItems;
+namespace StrongTypes.Api.IntegrationTests.NumericItems.NonPositive;
 
 [Collection(IntegrationTestCollection.Name)]
 public sealed class CreateNonPositiveIntEntityTests(TestWebApplicationFactory factory)
@@ -33,10 +33,21 @@ public sealed class CreateNonPositiveIntEntityTests(TestWebApplicationFactory fa
         await AssertEntity(PgSet, created.Id, NonPositive<int>.Create(-5), null);
     }
 
-    [Fact]
-    public async Task NonNullable_PositiveValue_ReturnsBadRequest()
+    [Theory]
+    [InlineData(1, 0)]
+    [InlineData(0, 1)]
+    public async Task NonNullable_InvalidValues_ReturnsBadRequest(int value, int nullableValue)
     {
-        var response = await Client.PostAsJsonAsync(NonNullable, Body(1, 0), Ct);
+        var response = await Client.PostAsJsonAsync(NonNullable, Body(value, nullableValue), Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(1, 0)]
+    [InlineData(0, 1)]
+    public async Task Nullable_InvalidValues_ReturnsBadRequest(int value, int? nullableValue)
+    {
+        var response = await Client.PostAsJsonAsync(Nullable, Body(value, nullableValue), Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

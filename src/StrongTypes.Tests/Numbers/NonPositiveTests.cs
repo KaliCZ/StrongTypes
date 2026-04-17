@@ -89,6 +89,9 @@ public class NonPositiveTests
 
         Assert.Equal(a == b, na.Value == nb.Value);
         Assert.Equal(a == b, na.Value.Equals(nb.Value));
+        Assert.Equal(a == b, na.Value.Equals((object)nb.Value));
+        Assert.False(na.Value.Equals((object?)null));
+        Assert.False(na.Value.Equals("not a non-positive"));
     }
 
     [Property]

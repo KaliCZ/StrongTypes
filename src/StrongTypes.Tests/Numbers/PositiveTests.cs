@@ -89,6 +89,9 @@ public class PositiveTests
 
         Assert.Equal(a == b, pa.Value == pb.Value);
         Assert.Equal(a == b, pa.Value.Equals(pb.Value));
+        Assert.Equal(a == b, pa.Value.Equals((object)pb.Value));
+        Assert.False(pa.Value.Equals((object?)null));
+        Assert.False(pa.Value.Equals("not a positive"));
     }
 
     [Property]

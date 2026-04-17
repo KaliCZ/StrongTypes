@@ -7,4 +7,4 @@ namespace StrongTypes.Api.Controllers;
 [ApiController]
 [Route("non-negative-int-entities")]
 public sealed class NonNegativeIntEntityController(SqlServerDbContext sqlCtx, PostgreSqlDbContext pgCtx)
-    : ValueEntityControllerBase<NonNegativeIntEntity, NonNegative<int>>(sqlCtx, pgCtx);
+    : EntityControllerBase<NonNegativeIntEntity, NonNegative<int>, NonNegative<int>?>(sqlCtx, pgCtx);
