@@ -80,8 +80,17 @@ public readonly struct Digit :
     public bool Equals(int other) => Value == other;
 
     public static bool operator ==(Digit left, Digit right) => left.Equals(right);
-
     public static bool operator !=(Digit left, Digit right) => !left.Equals(right);
+
+    public static bool operator ==(Digit left, byte right) => left.Equals(right);
+    public static bool operator !=(Digit left, byte right) => !left.Equals(right);
+    public static bool operator ==(byte left, Digit right) => right.Equals(left);
+    public static bool operator !=(byte left, Digit right) => !right.Equals(left);
+
+    public static bool operator ==(Digit left, int right) => left.Equals(right);
+    public static bool operator !=(Digit left, int right) => !left.Equals(right);
+    public static bool operator ==(int left, Digit right) => right.Equals(left);
+    public static bool operator !=(int left, Digit right) => !right.Equals(left);
 
     #endregion Equality
 
@@ -104,12 +113,27 @@ public readonly struct Digit :
         };
 
     public static bool operator <(Digit left, Digit right) => left.CompareTo(right) < 0;
-
     public static bool operator <=(Digit left, Digit right) => left.CompareTo(right) <= 0;
-
     public static bool operator >(Digit left, Digit right) => left.CompareTo(right) > 0;
-
     public static bool operator >=(Digit left, Digit right) => left.CompareTo(right) >= 0;
+
+    public static bool operator <(Digit left, byte right) => left.CompareTo(right) < 0;
+    public static bool operator <=(Digit left, byte right) => left.CompareTo(right) <= 0;
+    public static bool operator >(Digit left, byte right) => left.CompareTo(right) > 0;
+    public static bool operator >=(Digit left, byte right) => left.CompareTo(right) >= 0;
+    public static bool operator <(byte left, Digit right) => right.CompareTo(left) > 0;
+    public static bool operator <=(byte left, Digit right) => right.CompareTo(left) >= 0;
+    public static bool operator >(byte left, Digit right) => right.CompareTo(left) < 0;
+    public static bool operator >=(byte left, Digit right) => right.CompareTo(left) <= 0;
+
+    public static bool operator <(Digit left, int right) => left.CompareTo(right) < 0;
+    public static bool operator <=(Digit left, int right) => left.CompareTo(right) <= 0;
+    public static bool operator >(Digit left, int right) => left.CompareTo(right) > 0;
+    public static bool operator >=(Digit left, int right) => left.CompareTo(right) >= 0;
+    public static bool operator <(int left, Digit right) => right.CompareTo(left) > 0;
+    public static bool operator <=(int left, Digit right) => right.CompareTo(left) >= 0;
+    public static bool operator >(int left, Digit right) => right.CompareTo(left) < 0;
+    public static bool operator >=(int left, Digit right) => right.CompareTo(left) <= 0;
 
     #endregion Comparison
 

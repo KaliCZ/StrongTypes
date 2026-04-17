@@ -87,6 +87,11 @@ public class DigitTests
         Assert.True(digit.Equals((byte)5));
         Assert.False(digit.Equals((byte)6));
         Assert.True(digit.Equals((object)(byte)5));
+
+        Assert.True(digit == (byte)5);
+        Assert.True((byte)5 == digit);
+        Assert.True(digit != (byte)6);
+        Assert.True((byte)6 != digit);
     }
 
     [Fact]
@@ -97,6 +102,11 @@ public class DigitTests
         Assert.False(digit.Equals(6));
         Assert.False(digit.Equals(500));
         Assert.True(digit.Equals((object)5));
+
+        Assert.True(digit == 5);
+        Assert.True(5 == digit);
+        Assert.True(digit != 500);
+        Assert.True(500 != digit);
     }
 
     [Property]
@@ -136,6 +146,16 @@ public class DigitTests
         Assert.True(digit.CompareTo((byte)4) > 0);
         Assert.True(digit.CompareTo((byte)6) < 0);
         Assert.Equal(0, digit.CompareTo((byte)5));
+
+        Assert.True(digit > (byte)4);
+        Assert.True(digit >= (byte)5);
+        Assert.True(digit < (byte)6);
+        Assert.True(digit <= (byte)5);
+
+        Assert.True((byte)4 < digit);
+        Assert.True((byte)5 <= digit);
+        Assert.True((byte)6 > digit);
+        Assert.True((byte)5 >= digit);
     }
 
     [Fact]
@@ -145,6 +165,16 @@ public class DigitTests
         Assert.True(digit.CompareTo(-1) > 0);
         Assert.True(digit.CompareTo(1000) < 0);
         Assert.Equal(0, digit.CompareTo(5));
+
+        Assert.True(digit > -1);
+        Assert.True(digit >= 5);
+        Assert.True(digit < 1000);
+        Assert.True(digit <= 5);
+
+        Assert.True(-1 < digit);
+        Assert.True(5 <= digit);
+        Assert.True(1000 > digit);
+        Assert.True(5 >= digit);
     }
 
     [Fact]
