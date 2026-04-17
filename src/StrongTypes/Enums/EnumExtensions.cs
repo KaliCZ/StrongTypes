@@ -18,11 +18,17 @@ public static class EnumExtensions
 {
     extension<TEnum>(TEnum) where TEnum : struct, Enum
     {
-        /// <summary>Thin wrapper over <see cref="Enum.Parse{TEnum}(string)"/>. Throws on failure.</summary>
-        public static TEnum Parse(string value) => Enum.Parse<TEnum>(value);
+        /// <summary>
+        /// Thin wrapper over <see cref="Enum.Parse{TEnum}(string)"/>. Throws
+        /// on failure (including <see cref="ArgumentNullException"/> for null).
+        /// </summary>
+        public static TEnum Parse(string? value) => Enum.Parse<TEnum>(value!);
 
-        /// <summary>Thin wrapper over <see cref="Enum.Parse{TEnum}(string, bool)"/>. Throws on failure.</summary>
-        public static TEnum Parse(string value, bool ignoreCase) => Enum.Parse<TEnum>(value, ignoreCase);
+        /// <summary>
+        /// Thin wrapper over <see cref="Enum.Parse{TEnum}(string, bool)"/>.
+        /// Throws on failure (including <see cref="ArgumentNullException"/> for null).
+        /// </summary>
+        public static TEnum Parse(string? value, bool ignoreCase) => Enum.Parse<TEnum>(value!, ignoreCase);
 
         /// <summary>Thin wrapper over <see cref="Enum.TryParse{TEnum}(string, out TEnum)"/>. Returns <c>null</c> on failure.</summary>
         public static TEnum? TryParse(string? value) =>
@@ -32,10 +38,10 @@ public static class EnumExtensions
         public static TEnum? TryParse(string? value, bool ignoreCase) =>
             Enum.TryParse<TEnum>(value, ignoreCase, out var v) ? v : null;
 
-        /// <summary>Alias for <see cref="Parse(string)"/>, matching the repo's validated-type factory naming.</summary>
-        public static TEnum Create(string value) => Enum.Parse<TEnum>(value);
+        /// <summary>Alias for Parse, matching the repo's validated-type factory naming.</summary>
+        public static TEnum Create(string? value) => Enum.Parse<TEnum>(value!);
 
-        /// <summary>Alias for <see cref="TryParse(string)"/>, matching the repo's validated-type factory naming.</summary>
+        /// <summary>Alias for TryParse, matching the repo's validated-type factory naming.</summary>
         public static TEnum? TryCreate(string? value) =>
             Enum.TryParse<TEnum>(value, out var v) ? v : null;
 
