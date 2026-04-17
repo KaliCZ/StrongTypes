@@ -11,6 +11,16 @@ namespace StrongTypes;
 /// </summary>
 public static class NonEmptyStringExtensions
 {
+    /// <summary>
+    /// Returns the underlying <see cref="string"/> value. Intended for LINQ
+    /// expressions translated by EF Core: registering this method as a
+    /// pass-through <c>DbFunction</c> lets callers write
+    /// <c>EF.Functions.Like(e.Value.Unwrap(), "%foo%")</c> or
+    /// <c>e.Value.Unwrap().Contains("foo")</c> and have EF translate it to
+    /// SQL against the underlying string column.
+    /// </summary>
+    public static string Unwrap(this NonEmptyString s) => s.Value;
+
     public static byte? ToByte(this NonEmptyString s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Integer) =>
         byte.TryParse(s.Value, style, format, out var value) ? value : null;
 

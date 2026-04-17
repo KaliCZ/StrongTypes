@@ -25,6 +25,7 @@ public static class StrongTypesModelConfigurationExtensions
         return configurationBuilder;
     }
 
+
     // One call per underlying numeric type registers all four wrapper shapes
     // (Positive, NonNegative, Negative, NonPositive) against the generic
     // NumericStrongTypeValueConverter<TWrapper, T>. Adding a new underlying
