@@ -126,12 +126,10 @@ public class StringAsExtensionsTests
     }
 
     [Fact]
-    public void AsEnum_RejectsNumericStrings() =>
-        Assert.Null("0".AsEnum<Color>());
-
-    [Fact]
-    public void AsEnum_RejectsCommaSeparatedFlagCombinations() =>
-        Assert.Null("Read, Write".AsEnum<Permission>());
+    public void AsEnum_AcceptsCommaSeparatedFlagCombinations() =>
+        // AsEnum now just delegates to Enum.TryParse, which accepts
+        // comma-separated flag names for [Flags] enums.
+        Assert.Equal(Permission.Read | Permission.Write, "Read, Write".AsEnum<Permission>());
 
     [Fact]
     public void AsEnum_RejectsUndefinedValues() =>

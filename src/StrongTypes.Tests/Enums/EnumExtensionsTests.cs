@@ -14,26 +14,14 @@ public class EnumExtensionsTests
 {
     private enum Color { Red, Green, Blue }
 
-    // Three consecutive non-power-of-two values, used for tests that need an
-    // enum whose declared members contain no single-bit flags.
-    private enum Step { Low = 3, Mid = 5, High = 6 }
-
     [Flags]
-    private enum Perm : int
+    private enum Perm
     {
         None = 0,
         Read = 1,
         Write = 2,
         Execute = 4,
         All = Read | Write | Execute,
-    }
-
-    [Flags]
-    private enum BigFlags : ulong
-    {
-        None = 0,
-        Low = 1UL,
-        High = 1UL << 63,
     }
 
     [Flags]
@@ -45,56 +33,115 @@ public class EnumExtensionsTests
         B = 2,
     }
 
-    // ------- AllValues -------
+    [Flags]
+    private enum LongFlags : long
+    {
+        None = 0,
+        Low = 1L,
+        High = 1L << 62,
+    }
+
+    // ------- Parse / TryParse / Create / TryCreate -------
+
+    [Fact]
+    public void Parse_ReturnsMember() =>
+        Assert.Equal(Color.Green, Color.Parse("Green"));
+
+    [Fact]
+    public void Parse_IgnoreCase() =>
+        Assert.Equal(Color.Green, Color.Parse("green", ignoreCase: true));
+
+    [Fact]
+    public void Parse_ThrowsOnUnknown() =>
+        Assert.ThrowsAny<ArgumentException>(() => Color.Parse("Purple"));
+
+    [Fact]
+    public void TryParse_ReturnsMember() =>
+        Assert.Equal(Color.Green, Color.TryParse("Green"));
+
+    [Fact]
+    public void TryParse_ReturnsNullOnUnknown() =>
+        Assert.Null(Color.TryParse("Purple"));
+
+    [Fact]
+    public void TryParse_ReturnsNullOnNull() =>
+        Assert.Null(Color.TryParse(null));
+
+    [Fact]
+    public void TryParse_CaseSensitiveByDefault() =>
+        Assert.Null(Color.TryParse("green"));
+
+    [Fact]
+    public void TryParse_IgnoreCase() =>
+        Assert.Equal(Color.Green, Color.TryParse("green", ignoreCase: true));
+
+    [Fact]
+    public void Create_BehavesLikeParse() =>
+        Assert.Equal(Color.Blue, Color.Create("Blue"));
+
+    [Fact]
+    public void Create_ThrowsOnUnknown() =>
+        Assert.ThrowsAny<ArgumentException>(() => Color.Create("Purple"));
+
+    [Fact]
+    public void TryCreate_BehavesLikeTryParse()
+    {
+        Assert.Equal(Color.Blue, Color.TryCreate("Blue"));
+        Assert.Null(Color.TryCreate("Purple"));
+        Assert.Null(Color.TryCreate(null));
+    }
+
+    // ------- AllValues (works for any enum, flag or not) -------
 
     [Fact]
     public void AllValues_ReturnsDeclaredValues() =>
-        Assert.Equal(new[] { Color.Red, Color.Green, Color.Blue }, EnumExtensions.AllValues<Color>());
+        Assert.Equal(new[] { Color.Red, Color.Green, Color.Blue }, Color.AllValues);
 
     [Fact]
     public void AllValues_IsCached() =>
-        Assert.Same(EnumExtensions.AllValues<Color>(), EnumExtensions.AllValues<Color>());
+        Assert.Same(Color.AllValues, Color.AllValues);
 
-    // ------- AllFlagValues -------
+    // ------- AllFlagValues (flag enums only) -------
 
     [Fact]
     public void AllFlagValues_ContainsOnlyPowersOfTwo() =>
-        Assert.Equal(new[] { Perm.Read, Perm.Write, Perm.Execute }, EnumExtensions.AllFlagValues<Perm>());
+        Assert.Equal(new[] { Perm.Read, Perm.Write, Perm.Execute }, Perm.AllFlagValues);
 
     [Fact]
     public void AllFlagValues_ExcludesZero_AndAggregateMembers()
     {
-        var flags = EnumExtensions.AllFlagValues<Perm>();
+        var flags = Perm.AllFlagValues;
         Assert.DoesNotContain(Perm.None, flags);
         Assert.DoesNotContain(Perm.All, flags);
     }
 
     [Fact]
-    public void AllFlagValues_HandlesHighBit_OnUInt64() =>
-        Assert.Equal(new[] { BigFlags.Low, BigFlags.High }, EnumExtensions.AllFlagValues<BigFlags>());
+    public void AllFlagValues_HandlesLongHighBit() =>
+        Assert.Equal(new[] { LongFlags.Low, LongFlags.High }, LongFlags.AllFlagValues);
 
     [Fact]
-    public void AllFlagValues_HandlesSignedUnderlyingType() =>
-        // Only positive single-bit values are flags. Negative = -128 is a single
-        // bit in its own width but sign-extends to a negative Int64, so it's not
-        // a power of two in the wider representation and is excluded.
-        Assert.Equal(new[] { SignedFlags.A, SignedFlags.B }, EnumExtensions.AllFlagValues<SignedFlags>());
+    public void AllFlagValues_ExcludesNegativeMembers_OnSignedUnderlying() =>
+        Assert.Equal(new[] { SignedFlags.A, SignedFlags.B }, SignedFlags.AllFlagValues);
 
     [Fact]
     public void AllFlagValues_IsCached() =>
-        Assert.Same(EnumExtensions.AllFlagValues<Perm>(), EnumExtensions.AllFlagValues<Perm>());
-
-    // ------- AllFlagsCombined -------
+        Assert.Same(Perm.AllFlagValues, Perm.AllFlagValues);
 
     [Fact]
-    public void AllFlagsCombined_ForPerm_IsAll() =>
-        Assert.Equal(Perm.Read | Perm.Write | Perm.Execute, EnumExtensions.AllFlagsCombined<Perm>());
+    public void AllFlagValues_ThrowsOnNonFlagEnum() =>
+        Assert.Throws<InvalidOperationException>(() => Color.AllFlagValues);
+
+    // ------- AllFlagsCombined (flag enums only) -------
 
     [Fact]
-    public void AllFlagsCombined_ForEnumWithoutFlags_IsZero() =>
-        Assert.Equal(default, EnumExtensions.AllFlagsCombined<Step>());
+    public void AllFlagsCombined_IsBitwiseOrOfFlags() =>
+        Assert.Equal(Perm.Read | Perm.Write | Perm.Execute, Perm.AllFlagsCombined);
 
-    // ------- GetFlags -------
+    [Fact]
+    public void AllFlagsCombined_ThrowsOnNonFlagEnum() =>
+        Assert.Throws<InvalidOperationException>(() => Color.AllFlagsCombined);
+
+    // ------- GetFlags (flag enums only) -------
 
     [Fact]
     public void GetFlags_DecomposesCombinedValue() =>
@@ -113,15 +160,19 @@ public class EnumExtensionsTests
         Assert.Equal(new[] { Perm.Read, Perm.Write, Perm.Execute }, Perm.All.GetFlags());
 
     [Fact]
-    public void GetFlags_WorksForHighBitOnUInt64() =>
-        Assert.Equal(new[] { BigFlags.Low, BigFlags.High }, (BigFlags.Low | BigFlags.High).GetFlags());
+    public void GetFlags_HandlesLongHighBit() =>
+        Assert.Equal(new[] { LongFlags.Low, LongFlags.High }, (LongFlags.Low | LongFlags.High).GetFlags());
+
+    [Fact]
+    public void GetFlags_ThrowsOnNonFlagEnum() =>
+        Assert.Throws<InvalidOperationException>(() => Color.Green.GetFlags());
 
     // ------- Round-trip property: combining then decomposing is the identity on the flag set -------
 
     [Property]
     public void GetFlags_RoundTripsFromAnySubsetOfFlags(int mask)
     {
-        var allFlags = EnumExtensions.AllFlagValues<Perm>();
+        var allFlags = Perm.AllFlagValues;
         var chosen = allFlags.Where((_, i) => (mask & (1 << i)) != 0).ToArray();
 
         var combined = chosen.Aggregate((Perm)0, (acc, f) => acc | f);

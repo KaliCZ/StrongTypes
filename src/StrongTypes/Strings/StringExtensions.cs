@@ -55,24 +55,13 @@ public static class StringExtensions
         Guid.TryParseExact(s, format, out var value) ? value : null;
 
     /// <summary>
-    /// Parses a single named enum member of <typeparamref name="TEnum"/>. Returns
-    /// <c>null</c> when the input is null/whitespace, contains a comma (so a
-    /// caller cannot smuggle in a flag combination), is not a defined member,
-    /// or differs from the parsed member's name in anything other than casing.
+    /// Parses <paramref name="s"/> as a member of <typeparamref name="TEnum"/>
+    /// via <see cref="Enum.TryParse{TEnum}(string, bool, out TEnum)"/>. Returns
+    /// <c>null</c> when parsing fails. Equivalent to <c>TEnum.TryParse(s, ignoreCase)</c>;
+    /// the indirection exists because C# does not allow calling extension-static
+    /// members through an open type parameter.
     /// </summary>
     public static TEnum? AsEnum<TEnum>(this string? s, bool ignoreCase = false)
-        where TEnum : struct, Enum
-    {
-        if (s is null || s.Contains(',') || !Enum.TryParse<TEnum>(s, ignoreCase, out var value))
-        {
-            return null;
-        }
-
-        if (!Enum.IsDefined(value) || !value.ToString().Equals(s, StringComparison.InvariantCultureIgnoreCase))
-        {
-            return null;
-        }
-
-        return value;
-    }
+        where TEnum : struct, Enum =>
+        Enum.TryParse<TEnum>(s, ignoreCase, out var v) ? v : null;
 }
