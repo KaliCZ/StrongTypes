@@ -1,6 +1,5 @@
 #nullable enable
 
-using System;
 using System.Numerics;
 using System.Text.Json.Serialization;
 
@@ -10,18 +9,14 @@ namespace StrongTypes;
 /// A numeric value guaranteed to be strictly greater than <c>T.Zero</c>.
 /// </summary>
 /// <remarks>
-/// Construct via <see cref="TryCreate"/> or <see cref="Create"/>. Internally the
-/// value is stored as an offset from <c>T.One</c> so that <c>default(Positive&lt;T&gt;)</c>
-/// represents <c>T.One</c> — i.e. the zero-initialized struct still satisfies
-/// the positivity invariant.
+/// Construct via <see cref="TryCreate"/> or <c>Create</c> (generated). Internally
+/// the value is stored as an offset from <c>T.One</c> so that
+/// <c>default(Positive&lt;T&gt;)</c> represents <c>T.One</c> — i.e. the
+/// zero-initialized struct still satisfies the positivity invariant.
 /// </remarks>
+[NumericWrapper(InvariantDescription = "positive", GenerateSum = true)]
 [JsonConverter(typeof(NumericStrongTypeJsonConverterFactory))]
-public readonly struct Positive<T> :
-    IEquatable<Positive<T>>,
-    IEquatable<T>,
-    IComparable<Positive<T>>,
-    IComparable<T>,
-    IComparable
+public readonly partial struct Positive<T>
     where T : INumber<T>
 {
     // Stored as (Value - T.One); default(Positive<T>) therefore represents Value == T.One.
@@ -34,10 +29,6 @@ public readonly struct Positive<T> :
 
     public T Value => _offset + T.One;
 
-    public static implicit operator T(Positive<T> value) => value.Value;
-
-    public static explicit operator Positive<T>(T value) => Create(value);
-
     /// <summary>
     /// Returns a <see cref="Positive{T}"/> wrapping <paramref name="value"/>, or
     /// <c>null</c> if <paramref name="value"/> is not strictly greater than zero.
@@ -46,64 +37,4 @@ public readonly struct Positive<T> :
     {
         return value > T.Zero ? new Positive<T>(value - T.One) : null;
     }
-
-    /// <summary>
-    /// Returns a <see cref="Positive{T}"/> wrapping <paramref name="value"/>.
-    /// Throws <see cref="ArgumentException"/> if <paramref name="value"/> is not
-    /// strictly greater than zero.
-    /// </summary>
-    public static Positive<T> Create(T value)
-    {
-        return TryCreate(value)
-            ?? throw new ArgumentException($"Value must be positive, but was '{value}'.", nameof(value));
-    }
-
-    public override int GetHashCode() => Value.GetHashCode();
-
-    public override bool Equals(object? obj) =>
-        obj switch
-        {
-            Positive<T> other => Equals(other),
-            T other => Equals(other),
-            _ => false
-        };
-
-    public bool Equals(Positive<T> other) => Value.Equals(other.Value);
-
-    public bool Equals(T? other) => other is not null && Value.Equals(other);
-
-    public static bool operator ==(Positive<T> left, Positive<T> right) => left.Equals(right);
-    public static bool operator !=(Positive<T> left, Positive<T> right) => !left.Equals(right);
-    public static bool operator ==(Positive<T> left, T right) => left.Value.Equals(right);
-    public static bool operator !=(Positive<T> left, T right) => !left.Value.Equals(right);
-    public static bool operator ==(T left, Positive<T> right) => right.Value.Equals(left);
-    public static bool operator !=(T left, Positive<T> right) => !right.Value.Equals(left);
-
-    public int CompareTo(Positive<T> other) => Value.CompareTo(other.Value);
-
-    public int CompareTo(T? other) => other is null ? 1 : Value.CompareTo(other);
-
-    int IComparable.CompareTo(object? obj) =>
-        obj switch
-        {
-            null => 1,
-            Positive<T> other => CompareTo(other),
-            T other => CompareTo(other),
-            _ => throw new ArgumentException($"Object must be of type {nameof(Positive<T>)} or {typeof(T).Name}.", nameof(obj))
-        };
-
-    public static bool operator <(Positive<T> left, Positive<T> right) => left.CompareTo(right) < 0;
-    public static bool operator <=(Positive<T> left, Positive<T> right) => left.CompareTo(right) <= 0;
-    public static bool operator >(Positive<T> left, Positive<T> right) => left.CompareTo(right) > 0;
-    public static bool operator >=(Positive<T> left, Positive<T> right) => left.CompareTo(right) >= 0;
-    public static bool operator <(Positive<T> left, T right) => left.Value.CompareTo(right) < 0;
-    public static bool operator <=(Positive<T> left, T right) => left.Value.CompareTo(right) <= 0;
-    public static bool operator >(Positive<T> left, T right) => left.Value.CompareTo(right) > 0;
-    public static bool operator >=(Positive<T> left, T right) => left.Value.CompareTo(right) >= 0;
-    public static bool operator <(T left, Positive<T> right) => left.CompareTo(right.Value) < 0;
-    public static bool operator <=(T left, Positive<T> right) => left.CompareTo(right.Value) <= 0;
-    public static bool operator >(T left, Positive<T> right) => left.CompareTo(right.Value) > 0;
-    public static bool operator >=(T left, Positive<T> right) => left.CompareTo(right.Value) >= 0;
-
-    public override string ToString() => Value.ToString() ?? string.Empty;
 }
