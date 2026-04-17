@@ -89,18 +89,6 @@ public static partial class IEnumerableExtensions
         return Enumerable.Except(e, others.Flatten());
     }
 
-    public static IEnumerable<T> ExceptNulls<T>(this IEnumerable<T?> e)
-        where T : struct
-    {
-        return e.Where(item => item.HasValue).Select(item => item.Value);
-    }
-
-    public static IEnumerable<T> ExceptNulls<T>(this IEnumerable<T> e)
-        where T : class
-    {
-        return e.Where(v => v is not null);
-    }
-
     public static bool IsMultiple<T>(this IEnumerable<T> e)
     {
         switch (e)
