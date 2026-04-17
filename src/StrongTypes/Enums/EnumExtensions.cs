@@ -92,14 +92,22 @@ public static class EnumExtensions
 
 internal static class EnumCache<TEnum> where TEnum : struct, Enum
 {
-    // Each cache is its own lazy field so enums that never touch flag APIs
-    // never pay for a flag scan, and vice versa. The ??= pattern is racey
-    // under contention — two threads may both run the compute — but every
-    // producer yields the same result and reference-sized writes are atomic,
-    // so any observer sees either null or a fully-constructed value.
+    // Each cache is its own ??= field so enums that never touch flag APIs
+    // never pay for a flag scan, and vice versa. ??= is racey under
+    // contention — two threads may both run the compute — but every producer
+    // yields the same result and reference-sized writes are atomic, so any
+    // observer sees either null or a fully-constructed value.
     //
-    // Tuples and TEnum need a reference-type holder (record class or boxed
-    // object) because Nullable<T> over a multi-word struct is not atomic.
+    // The combined Values/Bits/Combined data lives in a single FlagMeta
+    // record class (a reference) so that one atomic pointer write publishes
+    // every flag-related field at once. A bare Nullable<TEnum> backing
+    // wouldn't be safe here: Nullable<T> is an inline struct and for
+    // long-backed enums its 16-byte layout isn't written atomically, so a
+    // reader could see HasValue=true with a torn (default) Value.
+
+    // FlagsAttribute lookup only runs once per closed generic type.
+    private static readonly bool IsFlagsEnum =
+        typeof(TEnum).IsDefined(typeof(FlagsAttribute), inherit: false);
 
     private static IReadOnlyList<TEnum>? _allValues;
     public static IReadOnlyList<TEnum> AllValues => _allValues ??= Enum.GetValues<TEnum>();
@@ -110,9 +118,9 @@ internal static class EnumCache<TEnum> where TEnum : struct, Enum
     private static Func<long, TEnum>? _fromLong;
     private static TEnum FromLong(long bits) => (_fromLong ??= CreateFromLong()).Invoke(bits);
 
-    private sealed record FlagData(IReadOnlyList<TEnum> Values, long[] Bits);
-    private static FlagData? _flagData;
-    private static FlagData Flags => _flagData ??= ComputeFlagData();
+    private sealed record FlagMeta(IReadOnlyList<TEnum> Values, long[] Bits, TEnum Combined);
+    private static FlagMeta? _flagMeta;
+    private static FlagMeta Flags => _flagMeta ??= ComputeFlagMeta();
 
     public static IReadOnlyList<TEnum> AllFlagValues
     {
@@ -122,32 +130,26 @@ internal static class EnumCache<TEnum> where TEnum : struct, Enum
     public static IReadOnlyList<TEnum> AllFlagValuesUnchecked => Flags.Values;
     public static long[] AllFlagValueBits => Flags.Bits;
 
-    // Boxed once; reference writes are atomic, so ??= is safe even if the
-    // underlying TEnum is multiple words.
-    private static object? _allFlagsCombinedBox;
     public static TEnum AllFlagsCombined
     {
-        get
-        {
-            EnsureFlagsEnum();
-            return (TEnum)(_allFlagsCombinedBox ??= ComputeAllFlagsCombined());
-        }
+        get { EnsureFlagsEnum(); return Flags.Combined; }
     }
 
     public static void EnsureFlagsEnum()
     {
-        if (!typeof(TEnum).IsDefined(typeof(FlagsAttribute), inherit: false))
+        if (!IsFlagsEnum)
         {
             throw new InvalidOperationException(
                 $"{typeof(TEnum).FullName} is not a [Flags] enum; flag-related APIs are unavailable.");
         }
     }
 
-    private static FlagData ComputeFlagData()
+    private static FlagMeta ComputeFlagMeta()
     {
         var values = AllValues;
         var flagValues = new List<TEnum>(values.Count);
         var flagBits = new List<long>(values.Count);
+        long combined = 0;
         foreach (var v in values)
         {
             var bits = ToLong(v);
@@ -157,19 +159,10 @@ internal static class EnumCache<TEnum> where TEnum : struct, Enum
             {
                 flagValues.Add(v);
                 flagBits.Add(bits);
+                combined |= bits;
             }
         }
-        return new FlagData(flagValues, flagBits.ToArray());
-    }
-
-    private static object ComputeAllFlagsCombined()
-    {
-        long combined = 0;
-        foreach (var b in Flags.Bits)
-        {
-            combined |= b;
-        }
-        return FromLong(combined);
+        return new FlagMeta(flagValues, flagBits.ToArray(), FromLong(combined));
     }
 
     private static Func<TEnum, long> CreateToLong()
