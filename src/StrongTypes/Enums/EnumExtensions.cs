@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Numerics;
+using System.Threading;
 
 namespace StrongTypes;
 
@@ -118,34 +119,24 @@ internal static class EnumCache<TEnum> where TEnum : struct, Enum
     private static Func<long, TEnum>? _fromLong;
     private static TEnum FromLong(long bits) => (_fromLong ??= CreateFromLong()).Invoke(bits);
 
-    private sealed record FlagMeta(IReadOnlyList<TEnum> Values, long[] Bits, TEnum Combined);
-    private static FlagMeta? _flagMeta;
-    private static FlagMeta Flags => _flagMeta ??= ComputeFlagMeta();
+    // Published-flag pattern for the flag metadata: the writer fills in the
+    // three value fields and then Volatile.Writes _flagMetaReady=true. Readers
+    // Volatile.Read the flag first and only touch the fields if it's true,
+    // so they can never observe a half-initialized state. Under contention
+    // multiple threads may compute, but the compute is deterministic so
+    // identical bits land in each field regardless of ordering.
+    private static IReadOnlyList<TEnum> _flagValues = Array.Empty<TEnum>();
+    private static long[] _flagBits = Array.Empty<long>();
+    private static TEnum _flagsCombined;
+    private static bool _flagMetaReady;
 
-    public static IReadOnlyList<TEnum> AllFlagValues
+    private static void EnsureFlagMeta()
     {
-        get { EnsureFlagsEnum(); return Flags.Values; }
-    }
-
-    public static IReadOnlyList<TEnum> AllFlagValuesUnchecked => Flags.Values;
-    public static long[] AllFlagValueBits => Flags.Bits;
-
-    public static TEnum AllFlagsCombined
-    {
-        get { EnsureFlagsEnum(); return Flags.Combined; }
-    }
-
-    public static void EnsureFlagsEnum()
-    {
-        if (!IsFlagsEnum)
+        if (Volatile.Read(ref _flagMetaReady))
         {
-            throw new InvalidOperationException(
-                $"{typeof(TEnum).FullName} is not a [Flags] enum; flag-related APIs are unavailable.");
+            return;
         }
-    }
 
-    private static FlagMeta ComputeFlagMeta()
-    {
         var values = AllValues;
         var flagValues = new List<TEnum>(values.Count);
         var flagBits = new List<long>(values.Count);
@@ -162,7 +153,40 @@ internal static class EnumCache<TEnum> where TEnum : struct, Enum
                 combined |= bits;
             }
         }
-        return new FlagMeta(flagValues, flagBits.ToArray(), FromLong(combined));
+
+        _flagValues = flagValues;
+        _flagBits = flagBits.ToArray();
+        _flagsCombined = FromLong(combined);
+        Volatile.Write(ref _flagMetaReady, true);
+    }
+
+    public static IReadOnlyList<TEnum> AllFlagValues
+    {
+        get { EnsureFlagsEnum(); EnsureFlagMeta(); return _flagValues; }
+    }
+
+    public static IReadOnlyList<TEnum> AllFlagValuesUnchecked
+    {
+        get { EnsureFlagMeta(); return _flagValues; }
+    }
+
+    public static long[] AllFlagValueBits
+    {
+        get { EnsureFlagMeta(); return _flagBits; }
+    }
+
+    public static TEnum AllFlagsCombined
+    {
+        get { EnsureFlagsEnum(); EnsureFlagMeta(); return _flagsCombined; }
+    }
+
+    public static void EnsureFlagsEnum()
+    {
+        if (!IsFlagsEnum)
+        {
+            throw new InvalidOperationException(
+                $"{typeof(TEnum).FullName} is not a [Flags] enum; flag-related APIs are unavailable.");
+        }
     }
 
     private static Func<TEnum, long> CreateToLong()
