@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace StrongTypes.Api.Infrastructure;
+namespace StrongTypes.EfCore;
 
 /// <summary>
 /// Translates <c>Unwrap()</c> calls on strong types as a pass-through to the

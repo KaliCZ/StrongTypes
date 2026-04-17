@@ -2,9 +2,9 @@
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>CS1591</NoWarn>
-    <Version>0.2.0</Version>
-    <AssemblyVersion>0.2.0</AssemblyVersion>
-    <FileVersion>0.2.0</FileVersion>
+    <Version>0.3.0</Version>
+    <AssemblyVersion>0.3.0</AssemblyVersion>
+    <FileVersion>0.3.0</FileVersion>
     <PackageId>Kalicz.StrongTypes</PackageId>
     <Description>A C# library that reduces boilerplate and prevents bugs through stronger typing. Based on FuncSharp by Honza Siroky.</Description>
     <Authors>KaliCZ</Authors>
@@ -13,7 +13,7 @@
     <PackageProjectUrl>https://github.com/KaliCZ/StrongTypes</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>Removed Intervals, DataCubes, Products, Morphism, Order, and Relations.</PackageReleaseNotes>
+    <PackageReleaseNotes>0.3.0: Generic numeric wrappers Positive&lt;T&gt;, NonNegative&lt;T&gt;, Negative&lt;T&gt;, NonPositive&lt;T&gt; emitted by a source generator and covering int, long, short, decimal, float, double. Unwrap() extension on every strong type as a marker for EF Core LINQ translation, paired with the new Kalicz.StrongTypes.EfCore package that ships value converters and the Unwrap translator behind a single optionsBuilder.UseStrongTypes() call.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/KaliCZ/StrongTypes</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

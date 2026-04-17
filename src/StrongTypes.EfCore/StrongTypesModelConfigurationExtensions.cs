@@ -1,14 +1,25 @@
 using System.Numerics;
 using Microsoft.EntityFrameworkCore;
 
-namespace StrongTypes.Api.Infrastructure;
+namespace StrongTypes.EfCore;
 
 /// <summary>
-/// Bundles every strong-type EF Core value converter behind a single call so
-/// DbContexts don't have to enumerate strong types property-by-property or
-/// type-by-type. Add a new converter here once and every DbContext that calls
-/// <see cref="UseStrongTypes"/> picks it up automatically.
+/// Registers value converters for every strong type against a
+/// <see cref="ModelConfigurationBuilder"/>. Call from your DbContext's
+/// <c>ConfigureConventions</c> override — EF Core reads these
+/// pre-conventions before any property is discovered, so wrappers like
+/// <see cref="NonEmptyString"/> get mapped to their underlying columns
+/// instead of being treated as owned types.
 /// </summary>
+/// <remarks>
+/// Pair with
+/// <see cref="StrongTypesDbContextOptionsBuilderExtensions.UseStrongTypes"/>
+/// on the <c>DbContextOptionsBuilder</c> — that one wires in the
+/// <see cref="UnwrapMethodCallTranslator"/> so <c>Unwrap()</c> in LINQ
+/// translates to SQL. The two hooks live in different EF Core phases
+/// (pre-convention property-type config vs. internal service provider),
+/// so they can't be collapsed into a single call.
+/// </remarks>
 public static class StrongTypesModelConfigurationExtensions
 {
     public static ModelConfigurationBuilder UseStrongTypes(this ModelConfigurationBuilder configurationBuilder)
@@ -24,7 +35,6 @@ public static class StrongTypesModelConfigurationExtensions
 
         return configurationBuilder;
     }
-
 
     // One call per underlying numeric type registers all four wrapper shapes
     // (Positive, NonNegative, Negative, NonPositive) against the generic

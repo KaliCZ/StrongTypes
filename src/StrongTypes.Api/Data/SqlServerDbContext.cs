@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using StrongTypes.Api.Entities;
-using StrongTypes.Api.Infrastructure;
+using StrongTypes.EfCore;
 
 namespace StrongTypes.Api.Data;
 

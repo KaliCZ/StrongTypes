@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace StrongTypes.Api.Infrastructure;
+namespace StrongTypes.EfCore;
 
 /// <summary>
 /// Generic EF Core value converter for numeric strong-type wrappers

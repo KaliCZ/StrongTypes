@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using StrongTypes.Api.Data;
-using StrongTypes.Api.Infrastructure;
+using StrongTypes.EfCore;
 
 var builder = WebApplication.CreateBuilder(args);
 

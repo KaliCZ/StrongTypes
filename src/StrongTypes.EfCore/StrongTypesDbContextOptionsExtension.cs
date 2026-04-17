@@ -4,14 +4,21 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace StrongTypes.Api.Infrastructure;
+namespace StrongTypes.EfCore;
 
 /// <summary>
-/// Registers the strong-type EF Core query plugins (currently just
-/// <see cref="UnwrapMethodCallTranslatorPlugin"/>) into a DbContext's internal
-/// service provider. Callers wire it up with
-/// <see cref="StrongTypesDbContextOptionsBuilderExtensions.UseStrongTypes"/>.
+/// Wires the <see cref="UnwrapMethodCallTranslatorPlugin"/> into a DbContext's
+/// internal service provider so <c>strongType.Unwrap()</c> inside LINQ
+/// predicates translates to server-side SQL (e.g.
+/// <c>.Where(e =&gt; e.Name.Unwrap().Contains("foo"))</c> or
+/// <c>EF.Functions.Like(e.Name.Unwrap(), "%foo%")</c>).
 /// </summary>
+/// <remarks>
+/// Pair with <c>ModelConfigurationBuilder.UseStrongTypes()</c> in your
+/// DbContext's <c>ConfigureConventions</c> override — that registers the
+/// value converters, which have to go in EF Core's pre-convention phase
+/// (before property discovery) and can't be registered from DI.
+/// </remarks>
 public sealed class StrongTypesDbContextOptionsExtension : IDbContextOptionsExtension
 {
     public DbContextOptionsExtensionInfo Info => new ExtensionInfo(this);
@@ -38,6 +45,12 @@ public sealed class StrongTypesDbContextOptionsExtension : IDbContextOptionsExte
 
 public static class StrongTypesDbContextOptionsBuilderExtensions
 {
+    /// <summary>
+    /// Registers <see cref="StrongTypesDbContextOptionsExtension"/> on the
+    /// options builder. After this call, any strong-type property on any
+    /// mapped entity gets its value converter applied automatically and
+    /// <c>Unwrap()</c> inside LINQ predicates translates to server-side SQL.
+    /// </summary>
     public static DbContextOptionsBuilder UseStrongTypes(this DbContextOptionsBuilder optionsBuilder)
     {
         var extension = optionsBuilder.Options.FindExtension<StrongTypesDbContextOptionsExtension>()
