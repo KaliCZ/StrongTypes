@@ -159,6 +159,11 @@ Current state: uses plain `string` / `string?`. Strong-type converters
 (EF Core value converters, JSON converters) will be wired in once the
 parallel work on those lands.
 
+## Pull requests
+
+- **Always assign the person running the session** when opening a PR.
+  Use the GitHub `get_me` tool to discover the authenticated user.
+
 ## Style
 
 - Prefer `Edit` over rewriting whole files.
