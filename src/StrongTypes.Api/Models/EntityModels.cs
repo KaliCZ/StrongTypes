@@ -2,8 +2,7 @@ using StrongTypes.Api.Entities;
 
 namespace StrongTypes.Api.Models;
 
-public record NonNullableRequest<T>(T Value, T NullableValue) where T : notnull;
-public record NullableRequest<T, TNullable>(T Value, TNullable NullableValue) where T : notnull;
+public record EntityRequest<T, TNullable>(T Value, TNullable NullableValue) where T : notnull;
 
 public record EntityResponse(Guid Id);
 

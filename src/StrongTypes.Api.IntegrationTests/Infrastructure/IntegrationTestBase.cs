@@ -38,12 +38,10 @@ public abstract class IntegrationTestBase<TEntity, T, TNullable>(TestWebApplicat
     /// <summary>Route segment this entity is exposed under, e.g. "non-empty-string-entities".</summary>
     protected abstract string RoutePrefix { get; }
 
-    protected string NonNullable => $"/{RoutePrefix}/non-nullable";
-    protected string Nullable => $"/{RoutePrefix}/nullable";
-    protected string UpdateNonNullable(Guid id) => $"/{RoutePrefix}/{id}/non-nullable";
-    protected string UpdateNullable(Guid id) => $"/{RoutePrefix}/{id}/nullable";
-    protected string SqlServerGet(Guid id) => $"/{RoutePrefix}/{id}/sql-server";
-    protected string PostgreSqlGet(Guid id) => $"/{RoutePrefix}/{id}/postgresql";
+    protected string CreateEndpoint => $"/{RoutePrefix}";
+    protected string UpdateEndpoint(Guid id) => $"/{RoutePrefix}/{id}";
+    protected string SqlServerGetEndpoint(Guid id) => $"/{RoutePrefix}/{id}/sql-server";
+    protected string PostgreSqlGetEndpoint(Guid id) => $"/{RoutePrefix}/{id}/postgresql";
 
     /// <summary>
     /// Builds the { Value, NullableValue } request body used by every write endpoint.

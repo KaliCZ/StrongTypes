@@ -27,20 +27,12 @@ public abstract class EntityControllerBase<TEntity, T, TNullable>(
     [HttpGet("{id:guid}/postgresql")]
     public Task<IActionResult> GetFromPostgreSql(Guid id) => GetAsync(PgSet, id);
 
-    [HttpPost("non-nullable")]
-    public Task<IActionResult> CreateNonNullable(NonNullableRequest<T> request) =>
-        CreateAsync(request.Value, ToNullable(request.NullableValue));
-
-    [HttpPost("nullable")]
-    public Task<IActionResult> CreateNullable(NullableRequest<T, TNullable> request) =>
+    [HttpPost]
+    public Task<IActionResult> Create(EntityRequest<T, TNullable> request) =>
         CreateAsync(request.Value, request.NullableValue);
 
-    [HttpPut("{id:guid}/non-nullable")]
-    public Task<IActionResult> UpdateNonNullable(Guid id, NonNullableRequest<T> request) =>
-        UpdateAsync(id, request.Value, ToNullable(request.NullableValue));
-
-    [HttpPut("{id:guid}/nullable")]
-    public Task<IActionResult> UpdateNullable(Guid id, NullableRequest<T, TNullable> request) =>
+    [HttpPut("{id:guid}")]
+    public Task<IActionResult> Update(Guid id, EntityRequest<T, TNullable> request) =>
         UpdateAsync(id, request.Value, request.NullableValue);
 
     private async Task<IActionResult> GetAsync(DbSet<TEntity> set, Guid id)
@@ -71,8 +63,4 @@ public abstract class EntityControllerBase<TEntity, T, TNullable>(
         await pgCtx.SaveChangesAsync();
         return Ok(new EntityResponse(id));
     }
-
-    // Bridge from T to TNullable when TNullable is T? — works for both reference
-    // types (identity cast) and value types (boxed T unboxes to Nullable<T>).
-    private static TNullable ToNullable(T value) => (TNullable)(object)value!;
 }
