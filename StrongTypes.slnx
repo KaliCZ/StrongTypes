@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Other/">
+    <File Path=".editorconfig" />
     <File Path="license.txt" />
     <File Path="readme.md" />
   </Folder>

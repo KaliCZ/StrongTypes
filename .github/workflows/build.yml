@@ -1,4 +1,4 @@
-name: build-and-test
+name: build
 
 on:
   push:
@@ -12,14 +12,14 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     env:
       config: 'Release'
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: true
-      
+
     steps:
     - name: Checkout
       uses: actions/checkout@v6
@@ -50,7 +50,7 @@ jobs:
 
     - name: Pack
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: dotnet pack ./src/StrongTypes/StrongTypes.csproj -c $config --no-build -o out
+      run: dotnet pack ./src/StrongTypes/StrongTypes.csproj -c $config -o out
 
     - name: Upload NuGet package
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -61,7 +61,7 @@ jobs:
         retention-days: 1
 
   publish:
-    needs: build-and-test
+    needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: Nuget.org
