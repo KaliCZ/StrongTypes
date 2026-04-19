@@ -28,29 +28,9 @@ public static partial class IEnumerableExtensions
     }
 
     [Pure]
-    public static Option<T> SingleOption<T>(this IReadOnlyList<T> list)
-    {
-        return list.Count == 1
-            ? Option.Valued(list[0])
-            : Option.Empty<T>();
-    }
-
-    [Pure]
     public static T First<T>(this IReadOnlyList<T> list)
     {
         return list.ElementAt(0);
-    }
-
-    /// <summary>
-    /// Returns the first element inside the list or an empty option if the list is empty.
-    /// </summary>
-    /// <exception cref="System.ArgumentNullException">The <paramref name="list"/> parameter is null.</exception>
-    [Pure]
-    public static Option<T> FirstOption<T>(this IReadOnlyList<T> list)
-    {
-        return list.Count == 0
-            ? Option.Empty<T>()
-            : Option.Valued(list[0]);
     }
 
     [Pure]
@@ -80,18 +60,6 @@ public static partial class IEnumerableExtensions
         return list.Count == 0
             ? throw new ArgumentException("Source is empty.")
             : list[list.Count - 1];
-    }
-
-    /// <summary>
-    /// Returns the last element inside the list or an empty option if the list is empty.
-    /// </summary>
-    /// <exception cref="System.ArgumentNullException">The <paramref name="list"/> parameter is null.</exception>
-    [Pure]
-    public static Option<T> LastOption<T>(this IReadOnlyList<T> list)
-    {
-        return list.Count == 0
-            ? Option.Empty<T>()
-            : Option.Valued(list[list.Count - 1]);
     }
 
     [Pure]

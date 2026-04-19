@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -7,15 +7,6 @@ namespace StrongTypes.Tests;
 
 public class IEnumerableExtensionsTests
 {
-    [Fact]
-    public void FirstOption()
-    {
-        Assert.True(new List<int>().FirstOption().IsEmpty);
-        Assert.True(new List<int>().LastOption().IsEmpty);
-        Assert.Equal(1.ToOption(), new List<int> { 1, 2, 3 }.FirstOption());
-        Assert.Equal(3.ToOption(), new List<int> { 1, 2, 3 }.LastOption());
-    }
-
     [Fact]
     public void PartitionMatch()
     {
@@ -48,7 +39,7 @@ public class IEnumerableExtensionsTests
         var e = new Exception();
 
         Assert.Equal(Option.Empty<Exception>(), new List<Exception>().Aggregate());
-        Assert.Equal(e.ToOption(), new[] { e }.Aggregate());
+        Assert.Equal(Option.Valued(e), new[] { e }.Aggregate());
         Assert.True(new[] { e, e, e }.Aggregate().Get() is AggregateException);
     }
 }
