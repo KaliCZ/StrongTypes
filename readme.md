@@ -1,88 +1,177 @@
 # StrongTypes - Stronger Typing for C#
 
-> **Work in Progress** - This repository is based of [FuncSharp](https://github.com/MewsSystems/FuncSharp), originally written by [Honza Siroky](https://github.com/siroky). The goal of StrongTypes is to target .NET 10 with nullable reference types enabled, leveraging modern C# language features while providing extra types that enable a better developer experience.
+> **Work in Progress** - StrongTypes is the continuation of [FuncSharp](https://github.com/MewsSystems/FuncSharp), originally written by [Honza Siroky](https://github.com/siroky), bringing the concepts into modern C#. It targets .NET 10 with nullable reference types enabled and leans on modern language features to deliver extra types that enable a better developer experience.
 
 [![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build.yml?branch=main&label=build)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build.yml)
-[![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/publish.yml?branch=main&label=publish)](https://github.com/KaliCZ/StrongTypes/actions/workflows/publish.yml)
 [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
-[![NuGet Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
 [![NuGet Version](https://img.shields.io/nuget/v/Kalicz.StrongTypes)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
 
-StrongTypes is a C# library whose main purpose is to reduce boilerplate code and avoid bugs thanks to stronger typing. It utilizes many concepts from functional programming languages that are also applicable in C#. Rather than introducing heavyweight abstractions, StrongTypes aims to complement the existing C# type system with a few well-chosen types that make everyday code safer and more expressive.
+StrongTypes adds small, focused value types to C# that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive". Instead of validating the same invariant at every call site, you validate once at the boundary and pass the strong type onwards. The compiler then guarantees the invariant holds wherever that type appears.
 
-Core of the library is formed by **algebraic data types** (ADTs), namely `Product` and `Coproduct`. Get familiar with them first and make sure you understand concepts of algebraic data modeling. Just those two types, on their own, can be pretty helpful when used in your applications. Everything else this library offers is built on top of the ADTs and is an application of ADT principles to solve some real life use-cases. You can find practical examples in the [`StrongTypes.Examples`](https://github.com/KaliCZ/StrongTypes/tree/main/src/StrongTypes.Examples) project.
+## Contents
 
-## Algebraic Data Types
+- [Strong value types](#strong-value-types)
+  - [`NonEmptyString`](#nonemptystring)
+  - [Numeric wrappers: `Positive<T>`, `NonNegative<T>`, `Negative<T>`, `NonPositive<T>`](#numeric-wrappers)
+  - [What you get for free](#what-you-get-for-free)
+  - [JSON serialization](#json-serialization)
+  - [EF Core persistence](#ef-core-persistence)
+- [Parsing helpers](#parsing-helpers)
+  - [Enums](#enums)
+  - [Strings](#strings)
+- [Legacy types (to be replaced)](#legacy-types-to-be-replaced)
+  - [`Option<A>`](#optiona)
+  - [`Try<A, E>`](#trya-e)
+  - [`Coproduct`](#coproduct)
 
-There are basic types in C# like `string`, `int`, `bool`, `DateTime` or others. But how to create more types? The standard approach is to define a new class and "wrap" some of the already available types into it. That's the idiomatic way how to do that in C#, however it has some limitations when it comes to abstraction. Without reflection, you cannot easily iterate over all the properties of a class. Or create a method that accepts classes with 3 properties and whose first property is a string. That's where algebraic data types come into picture by offering alternative ways how to form types. To be specific, 2 ways:
+## Strong value types
 
-- Product (also known as "and type" or "tuple") represents **multiple values of other types** in a single type. For example financial amount can be understood as a product of decimal value **and** string currency code. Written algebraically `decimal AND string`, using StrongTypes code `IProduct2<decimal, string>`. That's nothing surprising and it does not differ from standard tuples in C#.
-- Coproduct (also known as "or type", "sum type" or "disjoint union") represents **exactly one of multiple other types**. For example an API call result can be understood as a coproduct of either successful string response **or** integer error code. In algebraic language `string OR int`, in StrongTypes `Coproduct2<string, int>`. An equivalent in C# would be an abstract class (Animal) with two subclasses (Cat, Dog), however it wouldn't be type-safe and it has other drawbacks.
+### `NonEmptyString`
 
-The nice part about ADTs is that you can combine the types recursively, however deep you want. And build up very complex types using these two basic operations. There are many good posts about ADTs, you can check out the [Haskell primer on algebraic data types](http://learnyouahaskell.com/making-our-own-types-and-typeclasses#algebraic-data-types), how ADTs are implemented in [other programming languages](https://blog.softwaremill.com/algebraic-data-types-in-four-languages-858788043d4e) or great [explanation of coproducts and their advantages](http://chadaustin.me/2015/07/sum-types/).
+A string guaranteed to be non-null, non-empty, and not just whitespace. Construct it via the factory pair:
 
-### Product
+```csharp
+// Returns null when the input is null/empty/whitespace — caller handles the null case.
+NonEmptyString? maybe = NonEmptyString.TryCreate(input);
 
-StrongTypes provides custom product types that can replace standard `Tuple`s which you cannot abstract over, nor enumerate their values. They come equipped with correct structural hash code, structural equality and nice `ToString` method for free. The final implementation of a custom product type is therefore as boilerplate-less as possible. In order to implement a custom product type,  you need to inherit the `Product[N]` class from **StrongTypes** where `[N]` stands for arity of the product. A constructor needs to be defined and it is often good practice to define named getters on top of the standard product value getters (e.g. `ProductValue1`). But this is not obligatory. Custom product type representing a point in 2-deminsional space can be seen on following example:
+// Throws ArgumentException on invalid input.
+NonEmptyString name = NonEmptyString.Create(input);
+```
 
-```C#
-public class Point2D : Product2<float, float>
+Or via the `AsNonEmpty()` extension on any `string?`:
+
+```csharp
+NonEmptyString? name = userInput.AsNonEmpty();
+```
+
+`NonEmptyString` exposes the common `string` surface (`Length`, `Contains`, `StartsWith`, `Substring`, `ToUpper`, etc.) and implicitly converts to `string`, so it drops into existing APIs without friction.
+
+### Numeric wrappers
+
+Four generic wrappers that enforce a sign invariant on any `INumber<T>` — `int`, `long`, `short`, `decimal`, `float`, `double`, and so on:
+
+| Type              | Invariant                  |
+| ----------------- | -------------------------- |
+| `Positive<T>`     | strictly greater than zero |
+| `NonNegative<T>`  | greater than or equal to zero |
+| `Negative<T>`     | strictly less than zero    |
+| `NonPositive<T>`  | less than or equal to zero |
+
+Same factory pattern:
+
+```csharp
+Positive<int>?    p   = Positive<int>.TryCreate(quantity);
+Positive<decimal> amt = Positive<decimal>.Create(price);
+
+NonNegative<int>? age = NonNegative<int>.TryCreate(years);
+```
+
+The structs are laid out so that `default(Positive<T>)` still satisfies the invariant (e.g. `default(Positive<int>)` is `1`, not an invalid `0`), which means they survive zero-initialization without breaking their guarantee.
+
+### What you get for free
+
+Every strong type in this library implements the full set of equality and comparison interfaces, so you can drop them into dictionaries, sorted collections, LINQ `OrderBy`, and equality checks without writing any boilerplate:
+
+- `IEquatable<T>` and the `==` / `!=` operators
+- `IComparable<T>`, `IComparable`, and the `<`, `<=`, `>`, `>=` operators
+- `GetHashCode` and `Equals(object?)` overrides consistent with value-based equality
+- A sensible `ToString()` that returns the underlying value
+
+### JSON serialization
+
+All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]`, so `JsonSerializer.Serialize(value)` and `JsonSerializer.Deserialize<T>(...)` just work — the wire format is the underlying primitive (`"hello"`, `42`, etc.), not an object with a `Value` property. Invalid input during deserialization surfaces as a `JsonException` at the boundary, which is where you want it.
+
+### EF Core persistence
+
+If you want to store strong types directly on your EF Core entities, add the companion package [`Kalicz.StrongTypes.EfCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/). It provides the value converters needed to map `NonEmptyString`, `Positive<T>`, and friends to their underlying column types. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md) for setup details.
+
+## Parsing helpers
+
+### Enums
+
+Extension members on any `enum` type give you cached metadata, factories, and flag helpers without the ceremony of calling `Enum.Parse`, `Enum.GetValues`, or writing your own caches. Everything hangs off the enum type itself, so you call `Roles.Parse(...)` rather than `EnumExtensions.Parse<Roles>(...)`.
+
+```csharp
+[Flags]
+public enum Roles
 {
-    public Point2D(float x, float y)
-        : base(x, y)
-    {
-    }
+    None   = 0,
+    Reader = 1 << 0,
+    Writer = 1 << 1,
+    Admin  = 1 << 2,
+}
 
-    public float X { get { return ProductValue1; } }
-    public float Y { get { return ProductValue2; } }
+// Factories, mirroring the framework's Parse/TryParse naming.
+Roles  r1 = Roles.Parse("Reader");       // throws on failure
+Roles? r2 = Roles.TryParse(userInput);   // null on failure
+Roles? r3 = Roles.TryParse(userInput, ignoreCase: true);
+
+// Same factories under the library's Create/TryCreate naming for
+// consistency with NonEmptyString, Positive<T>, etc.
+Roles  r4 = Roles.Create("Reader");
+Roles? r5 = Roles.TryCreate(userInput);
+
+// All declared members, cached on first read. Fine to call in hot paths.
+IReadOnlyList<Roles> every = Roles.AllValues;  // [None, Reader, Writer, Admin]
+```
+
+For `[Flags]` enums you also get bit-level helpers. `AllFlagValues` gives you just the single-bit members (so `None = 0` and composite values are excluded), and `AllFlagsCombined` OR-s them together — perfect for seeding an "everything on" value at runtime without having to remember to update a `SuperAdmin = Reader | Writer | Admin` literal every time you add a flag.
+
+```csharp
+IReadOnlyList<Roles> flags = Roles.AllFlagValues;     // [Reader, Writer, Admin]
+Roles                super = Roles.AllFlagsCombined;  // Reader | Writer | Admin
+
+// Decompose a value into the single-bit flags it contains, in declaration order.
+Roles user = Roles.Reader | Roles.Admin;
+foreach (var flag in user.GetFlags())
+{
+    // flag is Reader, then Admin
 }
 ```
 
-You can check more extensive example, together with usage, in the [`Product.cs`](https://github.com/KaliCZ/StrongTypes/tree/main/src/StrongTypes.Examples/Product/Product.cs) example. A direct consequence of product types is the `Unit` type that can be understood as a product of zero types. In the world of .NET it becomes particularly useful when abstracting over `Func`tions and `Action`s which aren't compatible. Therefore there are also conversions between `Action`s and `Func`tions returning the `Unit` value.
+The flag helpers throw `InvalidOperationException` if the enum isn't marked `[Flags]`, so a typo at the declaration fails loudly at the first call instead of silently returning the wrong thing.
 
-### Coproduct
+### Strings
 
-Main advantage of coproducts that StrongTypes offers, compared to standard class hierarchy, is that the usage is compile time checked. So if you decide to add/remove another type to/from coproduct, all places that use the coproduct value become identified by compiler as an error until you add/remove the case. Coproducts can be created using `Coproduct.Create[Nth]` function where `[Nth]` stands for e.g. `First` or `Second` depending on which alternative should be created. Size of the new coproduct is inferred from the type arguments. However type signatures can become pretty big when doing this, also it's good in general to name things well, so it is recommended to rather define custom coproduct types. Just inherit `Coproduct[N]` where `[N]` stands for arity (count of alternatives) and implement constructors for each alternative. A simplified example how to represent trees using coproduct type can be seen on the following snippet:
+A small set of extension methods over `string?` for safe, nullable-returning parses:
 
-```cs
-public class Tree<A> : Coproduct2<Node<A>, Leaf>
-{
-    public Tree(Node<A> node) : base(node) { }
-    public Tree(Leaf leaf) : base(leaf) { }
-}
+```csharp
+NonEmptyString? name = userInput.AsNonEmpty();
+int?            id   = queryParam.AsInt();
+decimal?        amt  = body.AsDecimal();
+DateTime?       when = header.AsDateTime();
+Roles?          role = header.AsEnum<Roles>();
 ```
 
-More extensive example can be found in the [`Coproduct.cs`](https://github.com/KaliCZ/StrongTypes/tree/main/src/StrongTypes.Examples/Coproduct/Coproduct.cs) file. A coproduct of zero types (a choice from no types) is also a well known type, in **StrongTypes** named `Nothing`. This type has no instance and can be used e.g. as a return type of function that always throws an exception. So behavior of the function is encoded in its type signature.
+`AsEnum<TEnum>` is a plain extension on `string?` that sidesteps a C# limitation: because `Roles.TryParse(...)` is an extension member on the enum type, it can't be called through an open generic `TEnum` parameter. `AsEnum<TEnum>` closes that gap so you can parse an enum whose type you only know generically.
 
-## Additional Helpful Types
+## Legacy types (to be replaced)
 
-### Option
+> [!WARNING]
+> The types in this section are inherited from FuncSharp and will be removed in a future release. They are kept for now so existing code keeps compiling, but new code should avoid them.
 
-An `Option<A>` is widely used functional data type known from other languages. It represents a value that may or may not be available. Great for avoiding `NullReferenceException`s and handling the two null/non-null cases. Also in C#, nullable types are somewhat different from references (in case of nullables, you have to use the `Value` getter). The option type nicely unifies this discrepancy. Lot of examples how to use options is in [`Option.cs`](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.Examples/Option/Option.cs) file.
+### `Option<A>`
 
-### Try
+An `Option<A>` represents a value that may or may not be available. In modern C# with nullable reference types enabled, `T?` already covers this case at the language level, so `Option<A>` has become redundant.
 
-In order to handle errors or exceptions, StrongTypes features `Try<A, E>` that represents a result of an operation that can end with either success or error. It explicitly communicates all the possible outcomes on type level, unlike exceptions where you have to read a documentation to understand how a method can end. An extensive set of examples can be found in the following files:
+> [!WARNING]
+> `Option<A>` will be replaced by a modern `Maybe<T>` implementation that supports pattern matching and integrates cleanly with nullable reference types.
 
-- [Basics](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.Examples/Try/TryBasics.cs) - Basic concepts.
-- [Exception Handling](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.Examples/Try/TryExceptionHandling.cs) - How to turn a standard API that uses exceptions to strongly typed one, using the try type.
-- [Parsing](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.Examples/Try/TryParsing.cs) - How to safely parse unsafe incoming data.
-- [General Usage](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.Examples/Try/TryGeneral.cs) - Putting it all together, a few advanced concepts.
+### `Try<A, E>`
 
-### Morphism
+`Try<A, E>` represents the result of an operation that can end in either success (`A`) or error (`E`), making the failure path explicit in the type signature instead of hiding it behind exceptions.
 
-Simplistic implementation of finite morphisms between two types. Isomorphisms can be used as a concise representation of a bidirectional mapping that is in .NET traditionally represented as a pair of dictionaries.
+> [!WARNING]
+> `Try<A, E>` will be replaced by a modern `Result<T, E>` implementation that supports pattern matching.
 
-### DataCube
+### `Coproduct`
 
-DataCubes represent sets of data indexed by a multidimensional index. E.g. a two-dimensional data cube is roughly equivalent to `Dictionary<Tuple2<P1, P2>, TValue>`. However data cubes are much more friendlier to work with, they provide nicer API than dictionary and offer many more advanced operations like slicing, aggregations, transformations, filtering etc.
+`Coproduct[N]<T1, …, TN>` is a sum type (tagged union) representing exactly one of N alternatives. Useful for modelling "either-or" outcomes where an abstract class hierarchy would be too loose.
 
-### Order
-
-Defines partial or total order for a type. By implementing the `Less` operation that compares two instances of the type, you get many many useful functions based on that. Starting from finding minimum or maximum in a collection of the instances, it allows you to work with **intervals** bounded by the type instances. And moreover working with **interval sets** which essentially represent a disjoint set of intervals. You can e.g. get an interval set as a result of union of two disjoint intervals.
-
-Generic representation of an interval and interval set may seem simple on the first sight, but becomes really handy when you consider all the cases it supports (and you'd have to implement): empty or single-value interval, any combination a bounded/unbounded interval with open/closed lower/upper bound, and finally unbounded interval. And also interval sets consisting of any combination of the aforementioned intervals. In combination with all the operations on them (`Contains`, `Intersect`, `Union` etc.) it becomes obvious, it's not something anybody would like to implement more than once. Or not even once. However implementing the `Less` operation is trivial and you get the rest for free.
+> [!WARNING]
+> `Coproduct` will be replaced by a more modern `OneOf` implementation with first-class pattern matching support.
 
 ## Acknowledgments
 
-This library is based on [FuncSharp](https://github.com/MewsSystems/FuncSharp) by [Honza Siroky](https://github.com/siroky). Licensed under the [MIT License](license.txt).
+This library is the continuation of [FuncSharp](https://github.com/MewsSystems/FuncSharp) by [Honza Siroky](https://github.com/siroky), bringing the concepts into modern C#. Licensed under the [MIT License](license.txt).

@@ -18,8 +18,6 @@
     <File Path="license.txt" />
     <File Path="readme.md" />
   </Folder>
-  <Project Path="src/StrongTypes.Benchmarks/StrongTypes.Benchmarks.csproj" />
-  <Project Path="src/StrongTypes.Examples/StrongTypes.Examples.csproj" />
   <Properties Name="Performance">
     <Property Name="HasPerformanceSessions" Value="true" />
   </Properties>
