@@ -26,19 +26,16 @@ public static class EnumExtensions
         public static TEnum Parse(string value, bool ignoreCase) => Enum.Parse<TEnum>(value, ignoreCase);
 
         /// <summary>Thin wrapper over <see cref="Enum.TryParse{TEnum}(string, out TEnum)"/>. Returns <c>null</c> on failure.</summary>
-        public static TEnum? TryParse(string? value) =>
-            Enum.TryParse<TEnum>(value, out var v) ? v : null;
+        public static TEnum? TryParse(string? value) => Enum.TryParse<TEnum>(value, out var v) ? v : null;
 
         /// <summary>Thin wrapper over <see cref="Enum.TryParse{TEnum}(string, bool, out TEnum)"/>. Returns <c>null</c> on failure.</summary>
-        public static TEnum? TryParse(string? value, bool ignoreCase) =>
-            Enum.TryParse<TEnum>(value, ignoreCase, out var v) ? v : null;
+        public static TEnum? TryParse(string? value, bool ignoreCase) => Enum.TryParse<TEnum>(value, ignoreCase, out var v) ? v : null;
 
         /// <summary>Alias for Parse, matching the repo's validated-type factory naming.</summary>
         public static TEnum Create(string value) => Enum.Parse<TEnum>(value);
 
         /// <summary>Alias for TryParse, matching the repo's validated-type factory naming.</summary>
-        public static TEnum? TryCreate(string? value) =>
-            Enum.TryParse<TEnum>(value, out var v) ? v : null;
+        public static TEnum? TryCreate(string? value) => Enum.TryParse<TEnum>(value, out var v) ? v : null;
 
         /// <summary>All declared values of <typeparamref name="TEnum"/>, cached on first type use.</summary>
         public static IReadOnlyList<TEnum> AllValues => EnumMeta<TEnum>.Values;
@@ -103,8 +100,7 @@ internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
     public static readonly Func<TEnum, long> ToLong = CompileToLong();
     public static readonly Func<long, TEnum> FromLong = CompileFromLong();
 
-    private static readonly bool HasFlagsAttribute =
-        typeof(TEnum).IsDefined(typeof(FlagsAttribute), inherit: false);
+    private static readonly bool HasFlagsAttribute = typeof(TEnum).IsDefined(typeof(FlagsAttribute), inherit: false);
 
     // FlagValues is a reference: a plain ??= is enough. A race can run
     // ScanForFlagValues more than once, but the scan is deterministic so
@@ -120,18 +116,9 @@ internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
     private static TEnum _flagsCombined;
     private static bool _flagsCombinedReady;
     private static object? _flagsCombinedLock;
-    public static TEnum FlagsCombined =>
-        LazyInitializer.EnsureInitialized(
-            ref _flagsCombined, ref _flagsCombinedReady, ref _flagsCombinedLock, OrAllFlagValues);
-
-    private static void RequireFlagsAttribute()
-    {
-        if (!HasFlagsAttribute)
-        {
-            throw new InvalidOperationException(
-                $"{typeof(TEnum).FullName} is not a [Flags] enum; flag-related APIs are unavailable.");
-        }
-    }
+    public static TEnum FlagsCombined => LazyInitializer.EnsureInitialized(
+        ref _flagsCombined, ref _flagsCombinedReady, ref _flagsCombinedLock, OrAllFlagValues
+    );
 
     // Validation is done inside the factory (not at each getter call) so a
     // well-formed flag enum pays only the LazyInitializer fast path on
@@ -143,7 +130,8 @@ internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
     // high bit on a signed underlying type is excluded.
     private static IReadOnlyList<TEnum> ScanForFlagValues()
     {
-        RequireFlagsAttribute();
+        if (!HasFlagsAttribute)
+            throw new InvalidOperationException($"{typeof(TEnum).FullName} is not a [Flags] enum; flag-related APIs are unavailable.");
         return EnumMeta<TEnum>.Values.Where(v => BitOperations.IsPow2(ToLong(v))).ToArray();
     }
 
