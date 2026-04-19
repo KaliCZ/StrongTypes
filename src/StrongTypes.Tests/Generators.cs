@@ -24,4 +24,27 @@ public static class Generators
             (9, ArbMap.Default.ArbFor<string>().Generator
                 .Where(s => !string.IsNullOrWhiteSpace(s))
                 .Select(s => (NonEmptyString?)NonEmptyString.Create(s)))));
+
+    /// <summary>
+    /// <see cref="Maybe{Int32}"/> with ~20% chance of <see cref="Maybe{T}.Empty"/>.
+    /// Higher empty rate than NullableNonEmptyString because Maybe's equality and
+    /// comparison logic has distinct empty/populated branches that benefit from
+    /// denser coverage of the empty case.
+    /// </summary>
+    public static Arbitrary<Maybe<int>> MaybeInt { get; } =
+        Arb.From(Gen.Frequency(
+            (1, Gen.Constant(Maybe<int>.Empty)),
+            (4, ArbMap.Default.ArbFor<int>().Generator.Select(Maybe<int>.Some))));
+
+    /// <summary>
+    /// <see cref="Maybe{String}"/> with ~20% chance of <see cref="Maybe{T}.Empty"/>.
+    /// Generated strings are constrained to non-empty / non-whitespace so the value
+    /// carries information distinguishable from the empty case when asserting.
+    /// </summary>
+    public static Arbitrary<Maybe<string>> MaybeString { get; } =
+        Arb.From(Gen.Frequency(
+            (1, Gen.Constant(Maybe<string>.Empty)),
+            (4, ArbMap.Default.ArbFor<string>().Generator
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(Maybe<string>.Some))));
 }

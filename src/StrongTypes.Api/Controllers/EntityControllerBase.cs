@@ -35,6 +35,10 @@ public abstract class EntityControllerBase<TEntity, T, TNullable>(
     public Task<IActionResult> Update(Guid id, EntityRequest<T, TNullable> request) =>
         UpdateAsync(id, request.Value, request.NullableValue);
 
+    [HttpPatch("{id:guid}")]
+    public Task<IActionResult> Patch(Guid id, EntityPatchRequest<T, TNullable> request) =>
+        PatchAsync(id, request.Value, request.NullableValue);
+
     private async Task<IActionResult> GetAsync(DbSet<TEntity> set, Guid id)
     {
         var entity = await set.FindAsync(id);
@@ -59,6 +63,40 @@ public abstract class EntityControllerBase<TEntity, T, TNullable>(
             return NotFound();
         sqlEntity.Update(value, nullableValue);
         pgEntity.Update(value, nullableValue);
+        await sqlCtx.SaveChangesAsync();
+        await pgCtx.SaveChangesAsync();
+        return Ok(new EntityResponse(id));
+    }
+
+    // Unboxing TNullable to T for struct TNullable=Nullable<T> unboxes the
+    // populated inner value; for class TNullable=T?, the cast is identity.
+    // The caller guarantees `value` is not null before invoking this helper.
+    private static T ToValue(TNullable value) => (T)(object)value!;
+
+    // And the inverse: wrap a populated T into the shape TNullable expects.
+    private static TNullable ToNullable(T value) => (TNullable)(object)value!;
+
+    private async Task<IActionResult> PatchAsync(Guid id, TNullable value, Maybe<T>? nullableValue)
+    {
+        var sqlEntity = await SqlSet.FindAsync(id);
+        var pgEntity = await PgSet.FindAsync(id);
+        if (sqlEntity is null || pgEntity is null)
+            return NotFound();
+
+        if (value is not null)
+        {
+            var unwrapped = ToValue(value);
+            sqlEntity.Value = unwrapped;
+            pgEntity.Value = unwrapped;
+        }
+
+        if (nullableValue is { } nv)
+        {
+            var newNullable = nv.Match(ToNullable, () => default(TNullable)!);
+            sqlEntity.NullableValue = newNullable;
+            pgEntity.NullableValue = newNullable;
+        }
+
         await sqlCtx.SaveChangesAsync();
         await pgCtx.SaveChangesAsync();
         return Ok(new EntityResponse(id));

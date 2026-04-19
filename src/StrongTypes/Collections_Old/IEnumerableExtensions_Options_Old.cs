@@ -14,21 +14,9 @@ public static partial class IEnumerableExtensions
         return source.Where(o => o.NonEmpty).Select(o => o.Value);
     }
 
-    /// <summary>
-    /// Returns the max value of the enumerable or an empty option if it is empty.
-    /// </summary>
-    public static Option<TValue> SafeMax<T, TValue>(this IEnumerable<T> source, Func<T, TValue> selector)
-    {
-        return source.AsNonEmpty().Map(s => s.Max(selector));
-    }
-
-    /// <summary>
-    /// Returns the min value of the enumerable or an empty option if it is empty.
-    /// </summary>
-    public static Option<TValue> SafeMin<T, TValue>(this IEnumerable<T> source, Func<T, TValue> selector)
-    {
-        return source.AsNonEmpty().Map(s => s.Min(selector));
-    }
+    // Option-returning SafeMax/SafeMin were replaced by Maybe-returning ones in
+    // src/StrongTypes/Maybe/MaybeCollectionExtensions.cs. The _Old Option-based
+    // FirstOption/LastOption/SingleOption below remain until they migrate.
 
     /// <summary>
     /// Returns the first element satisfying the predicate or an empty option if no such element exists.

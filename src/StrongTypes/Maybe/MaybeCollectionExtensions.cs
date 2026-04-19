@@ -1,0 +1,158 @@
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace StrongTypes;
+
+/// <summary>
+/// Extensions over <see cref="Maybe{T}"/> that interact with collections and vice-versa:
+/// unwrapping <c>Maybe&lt;Collection&lt;T&gt;&gt;</c> to an empty collection, pulling a
+/// single <see cref="Maybe{T}"/> out of an <see cref="IEnumerable{T}"/>, and flattening
+/// a sequence of <see cref="Maybe{T}"/> down to its populated values.
+/// </summary>
+public static class MaybeCollectionExtensions
+{
+    #region ValueOrEmpty (unwrap Maybe<collection> to an empty collection on Empty)
+
+    public static IEnumerable<T> ValueOrEmpty<T>(this Maybe<IEnumerable<T>> m)
+        where T : notnull
+        => m.HasValue ? m.InternalValue : [];
+
+    public static IReadOnlyList<T> ValueOrEmpty<T>(this Maybe<IReadOnlyList<T>> m)
+        where T : notnull
+        => m.HasValue ? m.InternalValue : [];
+
+    public static IReadOnlyCollection<T> ValueOrEmpty<T>(this Maybe<IReadOnlyCollection<T>> m)
+        where T : notnull
+        => m.HasValue ? m.InternalValue : [];
+
+    public static T[] ValueOrEmpty<T>(this Maybe<T[]> m)
+        where T : notnull
+        => m.HasValue ? m.InternalValue : [];
+
+    public static List<T> ValueOrEmpty<T>(this Maybe<List<T>> m)
+        where T : notnull
+        => m.HasValue ? m.InternalValue : [];
+
+    public static IEnumerable<TValue> ValueOrEmpty<TKey, TValue>(this Maybe<IGrouping<TKey, TValue>> m)
+        where TKey : notnull
+        => m.HasValue ? m.InternalValue : [];
+
+    public static IReadOnlyCollection<KeyValuePair<TKey, TValue>> ValueOrEmpty<TKey, TValue>(this Maybe<Dictionary<TKey, TValue>> m)
+        where TKey : notnull
+        => m.HasValue ? m.InternalValue : [];
+
+    public static ICollection<KeyValuePair<TKey, TValue>> ValueOrEmpty<TKey, TValue>(this Maybe<IDictionary<TKey, TValue>> m)
+        where TKey : notnull
+        => m.HasValue ? m.InternalValue : Array.Empty<KeyValuePair<TKey, TValue>>();
+
+    public static IReadOnlyCollection<KeyValuePair<TKey, TValue>> ValueOrEmpty<TKey, TValue>(this Maybe<IReadOnlyDictionary<TKey, TValue>> m)
+        where TKey : notnull
+        => m.HasValue ? m.InternalValue.ToArray() : [];
+
+    public static IEnumerable<KeyValuePair<TKey, TValue>> ValueOrEmpty<TKey, TValue>(this Maybe<IEnumerable<KeyValuePair<TKey, TValue>>> m)
+        where TKey : notnull
+        => m.HasValue ? m.InternalValue : [];
+
+    #endregion
+
+    #region IEnumerable<T> → Maybe<T>
+
+    /// <summary>
+    /// Returns the first element satisfying <paramref name="predicate"/>, or
+    /// <see cref="Maybe{T}.Empty"/> if no element matches.
+    /// </summary>
+    public static Maybe<T> SafeFirst<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        where T : notnull
+        => source.Where(predicate).SafeFirst();
+
+    /// <summary>
+    /// Returns the first element of <paramref name="source"/>, or
+    /// <see cref="Maybe{T}.Empty"/> if the sequence is empty.
+    /// </summary>
+    public static Maybe<T> SafeFirst<T>(this IEnumerable<T> source) where T : notnull
+    {
+        if (source is IReadOnlyList<T> list)
+            return list.Count == 0 ? Maybe<T>.Empty : Maybe<T>.Some(list[0]);
+
+        using var enumerator = source.GetEnumerator();
+        return enumerator.MoveNext() ? Maybe<T>.Some(enumerator.Current) : Maybe<T>.Empty;
+    }
+
+    public static Maybe<T> SafeLast<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        where T : notnull
+        => source.Where(predicate).SafeLast();
+
+    public static Maybe<T> SafeLast<T>(this IEnumerable<T> source) where T : notnull
+    {
+        if (source is IReadOnlyList<T> list)
+            return list.Count == 0 ? Maybe<T>.Empty : Maybe<T>.Some(list[list.Count - 1]);
+
+        return source.Reverse().SafeFirst();
+    }
+
+    public static Maybe<T> SafeSingle<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        where T : notnull
+        => source.Where(predicate).SafeSingle();
+
+    /// <summary>
+    /// Returns the single element of <paramref name="source"/> if it contains exactly
+    /// one; <see cref="Maybe{T}.Empty"/> for zero OR more than one.
+    /// </summary>
+    public static Maybe<T> SafeSingle<T>(this IEnumerable<T> source) where T : notnull
+    {
+        using var enumerator = source.GetEnumerator();
+        if (!enumerator.MoveNext()) return Maybe<T>.Empty;
+        var candidate = enumerator.Current;
+        return enumerator.MoveNext() ? Maybe<T>.Empty : Maybe<T>.Some(candidate);
+    }
+
+    public static Maybe<TValue> SafeMax<T, TValue>(this IEnumerable<T> source, Func<T, TValue> selector)
+        where TValue : notnull
+        => source.Select(selector).SafeMax();
+
+    public static Maybe<T> SafeMax<T>(this IEnumerable<T> source) where T : notnull
+    {
+        using var enumerator = source.GetEnumerator();
+        if (!enumerator.MoveNext()) return Maybe<T>.Empty;
+        var max = enumerator.Current;
+        var comparer = Comparer<T>.Default;
+        while (enumerator.MoveNext())
+        {
+            if (comparer.Compare(enumerator.Current, max) > 0) max = enumerator.Current;
+        }
+        return Maybe<T>.Some(max);
+    }
+
+    public static Maybe<TValue> SafeMin<T, TValue>(this IEnumerable<T> source, Func<T, TValue> selector)
+        where TValue : notnull
+        => source.Select(selector).SafeMin();
+
+    public static Maybe<T> SafeMin<T>(this IEnumerable<T> source) where T : notnull
+    {
+        using var enumerator = source.GetEnumerator();
+        if (!enumerator.MoveNext()) return Maybe<T>.Empty;
+        var min = enumerator.Current;
+        var comparer = Comparer<T>.Default;
+        while (enumerator.MoveNext())
+        {
+            if (comparer.Compare(enumerator.Current, min) < 0) min = enumerator.Current;
+        }
+        return Maybe<T>.Some(min);
+    }
+
+    #endregion
+
+    #region Values (flatten IEnumerable<Maybe<T>> to its populated values)
+
+    /// <summary>
+    /// Extracts the underlying values from every populated <see cref="Maybe{T}"/>,
+    /// dropping empties.
+    /// </summary>
+    public static IEnumerable<T> Values<T>(this IEnumerable<Maybe<T>> source) where T : notnull
+        => source.Where(m => m.HasValue).Select(m => m.InternalValue);
+
+    #endregion
+}
