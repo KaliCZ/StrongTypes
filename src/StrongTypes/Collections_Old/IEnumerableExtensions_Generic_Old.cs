@@ -137,38 +137,4 @@ public static partial class IEnumerableExtensions
         return e.ElementAt(4);
     }
 
-    /// <summary>
-    /// Aggregates the exceptions into an AggregateException. If there is a single exception, returns it directly.
-    /// </summary>
-    public static Option<Exception> Aggregate(this IEnumerable<Exception> source)
-    {
-        return Aggregate(source.AsReadOnlyList());
-    }
-
-    /// <summary>
-    /// Aggregates the exceptions into an AggregateException. If there is a single exception, returns it directly.
-    /// </summary>
-    [Pure]
-    public static Option<Exception> Aggregate(this IReadOnlyList<Exception> source)
-    {
-        return source.Count switch
-        {
-            0 => Option<Exception>.Empty,
-            1 => Option.Valued(source[0]),
-            _ => Option.Valued<Exception>(new AggregateException(source))
-        };
-    }
-
-    /// <summary>
-    /// Aggregates the exceptions into an AggregateException. If there is a single exception, returns it directly.
-    /// </summary>
-    [Pure]
-    public static Exception Aggregate(this INonEmptyEnumerable<Exception> source)
-    {
-        return source.Count switch
-        {
-            1 => source[0],
-            _ => new AggregateException(source)
-        };
-    }
 }

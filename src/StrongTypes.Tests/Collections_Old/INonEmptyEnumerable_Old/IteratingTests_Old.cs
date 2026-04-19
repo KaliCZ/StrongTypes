@@ -42,7 +42,7 @@ public class SelectManyTests
     public void Foreach()
     {
         var expected = new List<string> { "1 potato", "2 potatoes", "3 potatoes", "4 potatoes", "5 potatoes"};
-        var nonEmpty = NonEmptyEnumerable.Create(expected).Get();
+        var nonEmpty = NonEmptyEnumerable.Create(expected)!;
 
         var result = new List<string>();
         foreach (var text in nonEmpty)

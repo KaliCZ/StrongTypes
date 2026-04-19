@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
@@ -9,27 +11,27 @@ namespace StrongTypes;
 public static partial class IEnumerableExtensions
 {
     /// <summary>
-    /// Returns a nonEmptyEnumerable in case the collection is nonempty. Otherwise returns empty option.
+    /// Returns an <see cref="INonEmptyEnumerable{T}"/> when the source has at least one element,
+    /// otherwise <c>null</c>.
     /// </summary>
     [DebuggerStepThrough]
-    public static Option<INonEmptyEnumerable<T>> AsNonEmpty<T>(this IEnumerable<T> source)
+    public static INonEmptyEnumerable<T>? AsNonEmpty<T>(this IEnumerable<T>? source)
     {
         return source switch
         {
-            null => Option.Empty<INonEmptyEnumerable<T>>(),
-            INonEmptyEnumerable<T> list => Option.Valued(list),
+            null => null,
+            INonEmptyEnumerable<T> list => list,
             _ => NonEmptyEnumerable.Create(source)
         };
     }
 
     /// <summary>
-    /// Returns the same enumerable that was provided because it's already not empty. It's just wrapped in an option.
+    /// The source is already non-empty; callers shouldn't need to re-assert that.
     /// </summary>
-    /// <exception cref="System.ArgumentNullException">The <paramref name="source"/> parameter is null.</exception>
     [Obsolete("This is already a NonEmptyEnumerable.", error: true)]
-    public static Option<INonEmptyEnumerable<T>> AsNonEmpty<T>(this INonEmptyEnumerable<T> source)
+    public static INonEmptyEnumerable<T> AsNonEmpty<T>(this INonEmptyEnumerable<T> source)
     {
-        return Option.Valued(source);
+        return source;
     }
 
     /// <summary>

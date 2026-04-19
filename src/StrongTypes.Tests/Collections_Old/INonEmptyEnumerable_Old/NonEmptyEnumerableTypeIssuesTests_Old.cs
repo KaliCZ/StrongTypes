@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using StrongTypes.Tests.Generative;
 using Xunit;
 
@@ -16,8 +16,8 @@ public class NonEmptyEnumerableTypeIssuesTests
         ReferenceTypeBase[] baseArray = new ReferenceTypeBase[] { new ReferenceTypeBase(14) };
         ReferenceTypeBase[] exactArray = new ReferenceType[] { new ReferenceType(14) };
 
-        OptionAssert.NonEmpty(baseArray.AsNonEmpty());
-        OptionAssert.NonEmpty(exactArray.AsNonEmpty());
+        Assert.True(baseArray.AsNonEmpty() is not null);
+        Assert.True(exactArray.AsNonEmpty() is not null);
     }
 
     [Fact]
@@ -26,8 +26,8 @@ public class NonEmptyEnumerableTypeIssuesTests
         IEnumerable<ReferenceTypeBase> baseArray = new ReferenceTypeBase[] { new ReferenceTypeBase(14) };
         IEnumerable<ReferenceTypeBase> exactArray = new ReferenceType[] { new ReferenceType(14) };
 
-        OptionAssert.NonEmpty(baseArray.AsNonEmpty());
-        OptionAssert.NonEmpty(exactArray.AsNonEmpty());
+        Assert.True(baseArray.AsNonEmpty() is not null);
+        Assert.True(exactArray.AsNonEmpty() is not null);
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class NonEmptyEnumerableTypeIssuesTests
         IEnumerable<ReferenceTypeBase> baseArray = new List<ReferenceTypeBase>() { new ReferenceTypeBase(14) };
         IEnumerable<ReferenceTypeBase> exactArray = new List<ReferenceType>() { new ReferenceType(14) };
 
-        OptionAssert.NonEmpty(baseArray.AsNonEmpty());
-        OptionAssert.NonEmpty(exactArray.AsNonEmpty());
+        Assert.True(baseArray.AsNonEmpty() is not null);
+        Assert.True(exactArray.AsNonEmpty() is not null);
     }
 }

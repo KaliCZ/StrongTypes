@@ -40,11 +40,11 @@ public class CoproductTests
         var u1 = Coproduct2.CreateFirst<string, int>("foo");
         var u2 = Coproduct2.CreateSecond<string, int>(42);
 
-        Assert.Equal(Option.Valued("foo"), u1.First);
-        Assert.Equal(Option.Empty<int>(), u1.Second);
+        Assert.Equal(Maybe<string>.Some("foo"), u1.First);
+        Assert.Equal(Maybe<int>.None, u1.Second);
 
-        Assert.Equal(Option.Empty<string>(), u2.First);
-        Assert.Equal(Option.Valued(42), u2.Second);
+        Assert.Equal(Maybe<string>.None, u2.First);
+        Assert.Equal(Maybe<int>.Some(42), u2.Second);
     }
 
     [Fact]

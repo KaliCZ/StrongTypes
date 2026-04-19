@@ -34,7 +34,7 @@ public interface ICoproduct
 /// <summary>
 /// A <#= i #>-dimensional strongly-typed coproduct.
 /// </summary>
-public interface <#= CoproductType(i, name: "T") #> : ICoproduct
+public interface <#= CoproductType(i, name: "T") #> : ICoproduct<#= NotNullConstraints(i) #>
 {
 <#      for (var j = 1; j <= i; j++) { #>
     /// <summary>
@@ -43,10 +43,10 @@ public interface <#= CoproductType(i, name: "T") #> : ICoproduct
     bool Is<#= GetOrdinal(j) #> { get; }
 
     /// <summary>
-    /// Returns <#= GetLowerOrdinal(j) #> value of the coproduct as an option. The option contains the <#= GetLowerOrdinal(j) #>
-    /// value or is empty if the coproduct contains different value.
+    /// Returns <#= GetLowerOrdinal(j) #> value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// <#= GetLowerOrdinal(j) #> value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<<#= Type(j) #>> <#= GetOrdinal(j) #> { get; }
+    Maybe<<#= Type(j) #>> <#= GetOrdinal(j) #> { get; }
 
 <#      } #>
 <#      if (i > 0) { #>

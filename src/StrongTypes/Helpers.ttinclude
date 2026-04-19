@@ -188,4 +188,14 @@
     {
         return "if" + GetOrdinal(i);
     }
+
+    // Emits ` where T1 : notnull where T2 : notnull …` so generic types that carry
+    // Maybe<Ti> projections satisfy Maybe's `notnull` constraint. Returns an empty
+    // string when the arity is 0 so nullary types stay clean.
+    public string NotNullConstraints(int i, string name = "T")
+    {
+        if (i == 0) return "";
+        var parts = Enumerable.Range(1, i).Select(k => " where " + name + k + " : notnull");
+        return string.Concat(parts);
+    }
 #>

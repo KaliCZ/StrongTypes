@@ -16,6 +16,7 @@ public static class TryExtensions
     /// </summary>
     public static Try<A, E> ToTry<A, E>(this A? value, Func<E> error)
         where A : class
+        where E : notnull
     {
         return value is null
             ? Try.Error<A, E>(error())
@@ -29,6 +30,7 @@ public static class TryExtensions
     /// </summary>
     public static Try<A, E> ToTry<A, E>(this A? value, Func<E> error)
         where A : struct
+        where E : notnull
     {
         return value is null
             ? Try.Error<A, E>(error())

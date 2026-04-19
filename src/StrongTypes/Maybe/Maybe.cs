@@ -63,6 +63,15 @@ public readonly struct Maybe<T> :
         else ifNone?.Invoke();
     }
 
+    /// <summary>
+    /// Returns the underlying value or throws if empty. Intended for imperative
+    /// post-check usage (tests, guarded branches); production code should prefer
+    /// <c>if (maybe.Value is {} v)</c>.
+    /// </summary>
+    public T Get() => HasValue
+        ? InternalValue
+        : throw new InvalidOperationException($"Empty Maybe<{typeof(T).Name}> has no value.");
+
     public Maybe<B> Map<B>(Func<T, B> f) where B : notnull =>
         IsSome ? Maybe<B>.Some(f(InternalValue)) : default;
 

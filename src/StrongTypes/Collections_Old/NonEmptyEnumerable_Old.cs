@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -28,26 +30,26 @@ public static class NonEmptyEnumerable
     }
 
     [Pure]
-    public static Option<INonEmptyEnumerable<T>> Create<T>(List<T> values)
+    public static INonEmptyEnumerable<T>? Create<T>(List<T> values)
     {
         return NonEmptyEnumerable<T>.Create(values);
     }
 
     [Pure]
-    public static Option<INonEmptyEnumerable<T>> Create<T>(T[] values)
+    public static INonEmptyEnumerable<T>? Create<T>(T[] values)
     {
         return NonEmptyEnumerable<T>.Create(values);
     }
 
-    public static Option<INonEmptyEnumerable<T>> Create<T>(IEnumerable<T> values)
+    public static INonEmptyEnumerable<T>? Create<T>(IEnumerable<T> values)
     {
         return NonEmptyEnumerable<T>.Create(values);
     }
 
     [Pure]
-    public static Option<INonEmptyEnumerable<T>> CreateFlat<T>(params Option<T>[] values)
+    public static INonEmptyEnumerable<T>? CreateFlat<T>(params Maybe<T>[] values) where T : notnull
     {
-        return NonEmptyEnumerable<T>.CreateFlat(values);
+        return NonEmptyEnumerable<T>.Create(values.Values());
     }
 
     public static INonEmptyEnumerable<T> CreateFlat<T>(INonEmptyEnumerable<T> head, params IEnumerable<T>[] tail)
@@ -159,38 +161,32 @@ public class NonEmptyEnumerable<T> : IReadOnlyList<T>, INonEmptyEnumerable<T>
         return new NonEmptyEnumerable<T>(head, tail);
     }
 
-    public static Option<INonEmptyEnumerable<T>> Create(IEnumerable<T> values)
+    public static INonEmptyEnumerable<T>? Create(IEnumerable<T> values)
     {
         return values switch
         {
             List<T> list => Create(list),
             T[] array => array.Length == 0
-                ? Option.Empty<INonEmptyEnumerable<T>>()
-                : Option.Valued<INonEmptyEnumerable<T>>(new NonEmptyEnumerable<T>(array[0], array.Skip(1).ToArray())), // This is here, because you can theoretically have array of a more specific type passed in as an array of a less specific type. That would then crash as you try to make a Span out of it. Because the type would not match.
+                ? null
+                : new NonEmptyEnumerable<T>(array[0], array.Skip(1).ToArray()), // This is here, because you can theoretically have array of a more specific type passed in as an array of a less specific type. That would then crash as you try to make a Span out of it. Because the type would not match.
             _ => Create(values.ToArray())
         };
     }
 
     [Pure]
-    public static Option<INonEmptyEnumerable<T>> Create(List<T> list)
+    public static INonEmptyEnumerable<T>? Create(List<T> list)
     {
         return list.Count == 0
-            ? Option.Empty<INonEmptyEnumerable<T>>()
-            : Option.Valued<INonEmptyEnumerable<T>>(new NonEmptyEnumerable<T>(list[0], CollectionsMarshal.AsSpan(list).Slice(1).ToArray()));
+            ? null
+            : new NonEmptyEnumerable<T>(list[0], CollectionsMarshal.AsSpan(list).Slice(1).ToArray());
     }
 
     [Pure]
-    public static Option<INonEmptyEnumerable<T>> Create(T[] array)
+    public static INonEmptyEnumerable<T>? Create(T[] array)
     {
         return array.Length == 0
-            ? Option.Empty<INonEmptyEnumerable<T>>()
-            : Option.Valued(CreateFromNonEmptyArray(array));
-    }
-
-    [Pure]
-    public static Option<INonEmptyEnumerable<T>> CreateFlat(params Option<T>[] values)
-    {
-        return Create(values.Flatten());
+            ? null
+            : CreateFromNonEmptyArray(array);
     }
 
     public static INonEmptyEnumerable<T> CreateFlat(INonEmptyEnumerable<T> head, params IEnumerable<T>[] tail)

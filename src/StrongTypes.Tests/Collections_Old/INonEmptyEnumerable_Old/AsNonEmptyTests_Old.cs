@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -12,29 +12,29 @@ public class AsNonEmptyTests
         IEnumerable<string> enumerableNull = null;
         string[] arrayNull = null;
 
-        OptionAssert.IsEmpty(enumerableNull.AsNonEmpty());
-        OptionAssert.IsEmpty(arrayNull.AsNonEmpty());
+        Assert.Null(enumerableNull.AsNonEmpty());
+        Assert.Null(arrayNull.AsNonEmpty());
     }
 
     [Fact]
     public void AsNonEmpty_Empty()
     {
         IEnumerable<string> enumerableEmpty = Enumerable.Empty<string>();
-        string[] arrayEmpty = new string[]{};
+        string[] arrayEmpty = new string[] { };
 
-        OptionAssert.IsEmpty(enumerableEmpty.AsNonEmpty());
-        OptionAssert.IsEmpty(arrayEmpty.AsNonEmpty());
+        Assert.Null(enumerableEmpty.AsNonEmpty());
+        Assert.Null(arrayEmpty.AsNonEmpty());
     }
 
     [Fact]
     public void AsNonEmpty_Single()
     {
         IEnumerable<string> enumerableSingle = Enumerable.Repeat("A potato", 1);
-        string[] arraySingle = new []{"A potato"};
+        string[] arraySingle = new[] { "A potato" };
         var expected = NonEmptyEnumerable.Create("A potato");
 
-        OptionAssert.NonEmptyWithValue(expected, enumerableSingle.AsNonEmpty());
-        OptionAssert.NonEmptyWithValue(expected, arraySingle.AsNonEmpty());
+        Assert.Equal(expected, enumerableSingle.AsNonEmpty());
+        Assert.Equal(expected, arraySingle.AsNonEmpty());
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public class AsNonEmptyTests
         string[] arrayMultiple = Enumerable.Range(0, 4).Select(i => $"{i} potatoes").ToArray();
         var expected = NonEmptyEnumerable.Create("0 potatoes", "1 potatoes", "2 potatoes", "3 potatoes");
 
-        OptionAssert.NonEmptyWithValue(expected, enumerableMultiple.AsNonEmpty());
-        OptionAssert.NonEmptyWithValue(expected, arrayMultiple.AsNonEmpty());
+        Assert.Equal(expected, enumerableMultiple.AsNonEmpty());
+        Assert.Equal(expected, arrayMultiple.AsNonEmpty());
     }
 }
