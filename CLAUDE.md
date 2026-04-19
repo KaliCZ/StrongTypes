@@ -174,3 +174,9 @@ parallel work on those lands.
   statements that fit within that limit; one-liners are preferred over
   mechanical wrapping at arbitrary thresholds. Only wrap when a line
   actually exceeds `max_line_length`.
+- **Expression-bodied members** — keep them on a single line whenever
+  they fit within `max_line_length`. That applies to expression-bodied
+  methods, properties, getters, constructors, and local functions
+  (`=>` form). Don't break `=>` onto its own line or split the body
+  across multiple lines; if the result genuinely doesn't fit, switch
+  to a block body (`{ ... }`) rather than a wrapped expression body.
