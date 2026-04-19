@@ -169,3 +169,14 @@ parallel work on those lands.
 - Prefer `Edit` over rewriting whole files.
 - Keep public API changes minimal and documented.
 - Do not add files, abstractions, or configurability beyond what the task asks for.
+- **Line wrapping** — `.editorconfig` sets `max_line_length`. Don't
+  pre-emptively wrap expressions, lambdas, method chains, or `throw`
+  statements that fit within that limit; one-liners are preferred over
+  mechanical wrapping at arbitrary thresholds. Only wrap when a line
+  actually exceeds `max_line_length`.
+- **Expression-bodied members** — keep them on a single line whenever
+  they fit within `max_line_length`. That applies to expression-bodied
+  methods, properties, getters, constructors, and local functions
+  (`=>` form). Don't break `=>` onto its own line or split the body
+  across multiple lines; if the result genuinely doesn't fit, switch
+  to a block body (`{ ... }`) rather than a wrapped expression body.
