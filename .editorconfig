@@ -7,7 +7,7 @@ trim_trailing_whitespace = true
 
 [*.cs]
 indent_size = 4
-max_line_length = 160
+max_line_length = 140
 
 [*.{json,yml,yaml,csproj,props,targets}]
 indent_size = 2
