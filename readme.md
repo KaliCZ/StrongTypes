@@ -1,6 +1,6 @@
 # StrongTypes - Stronger Typing for C#
 
-> **Work in Progress** - This repository is based of [FuncSharp](https://github.com/MewsSystems/FuncSharp), originally written by [Honza Siroky](https://github.com/siroky). The goal of StrongTypes is to target .NET 10 with nullable reference types enabled, leveraging modern C# language features while providing extra types that enable a better developer experience.
+> **Work in Progress** - StrongTypes is the continuation of [FuncSharp](https://github.com/MewsSystems/FuncSharp), originally written by [Honza Siroky](https://github.com/siroky), bringing the concepts into modern C#. It targets .NET 10 with nullable reference types enabled and leans on modern language features to deliver extra types that enable a better developer experience.
 
 [![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build.yml?branch=main&label=build)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build.yml)
 [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
@@ -130,4 +130,4 @@ An `Option<A>` represents a value that may or may not be available. In modern C#
 
 ## Acknowledgments
 
-This library is based on [FuncSharp](https://github.com/MewsSystems/FuncSharp) by [Honza Siroky](https://github.com/siroky). Licensed under the [MIT License](license.txt).
+This library is the continuation of [FuncSharp](https://github.com/MewsSystems/FuncSharp) by [Honza Siroky](https://github.com/siroky), bringing the concepts into modern C#. Licensed under the [MIT License](license.txt).
