@@ -18,6 +18,8 @@ StrongTypes adds small, focused value types to C# that make everyday code safer 
   - [JSON serialization](#json-serialization)
   - [EF Core persistence](#ef-core-persistence)
 - [Parsing helpers](#parsing-helpers)
+  - [Strings](#strings)
+  - [Enums](#enums)
 - [Legacy types (to be replaced)](#legacy-types-to-be-replaced)
   - [`Option<A>`](#optiona)
   - [`Try<A, E>`](#trya-e)
@@ -86,6 +88,8 @@ If you want to store strong types directly on your EF Core entities, add the com
 
 ## Parsing helpers
 
+### Strings
+
 A small set of extension methods over `string?` for safe, nullable-returning parses:
 
 ```csharp
@@ -95,12 +99,51 @@ decimal?        amt  = body.AsDecimal();
 DateTime?       when = header.AsDateTime();
 ```
 
-Plus extensions on enums for cached, allocation-free metadata and `TryCreate`/`Create` factories that match the rest of the library:
+### Enums
+
+Extension members on any `enum` type give you cached metadata, factories, and flag helpers without the ceremony of calling `Enum.Parse`, `Enum.GetValues`, or writing your own caches. Everything hangs off the enum type itself, so you call `Roles.Parse(...)` rather than `EnumExtensions.Parse<Roles>(...)`.
 
 ```csharp
-Status? parsed = EnumExtensions.TryCreate<Status>(input);
-var all        = EnumExtensions.AllValues<Status>();  // cached
+public enum Status
+{
+    Active,
+    Archived,
+    Banned,
+}
+
+// Factories — Parse throws, TryParse returns null.
+Status  s  = Status.Parse("Active");
+Status? ok = Status.TryParse(userInput);
+Status? ci = Status.TryParse(userInput, ignoreCase: true);
+
+// All declared members, cached on first read. Fine to call in hot paths.
+IReadOnlyList<Status> every = Status.AllValues;
 ```
+
+For `[Flags]` enums you also get bit-level helpers. `AllFlagValues` gives you just the single-bit members (so `None = 0` and composite values are excluded), and `AllFlagsCombined` OR-s them together — perfect for seeding an "everything on" value at runtime without having to remember to update a `SuperAdmin = Reader | Writer | Admin` literal every time you add a flag.
+
+```csharp
+[Flags]
+public enum Roles
+{
+    None   = 0,
+    Reader = 1 << 0,
+    Writer = 1 << 1,
+    Admin  = 1 << 2,
+}
+
+IReadOnlyList<Roles> flags = Roles.AllFlagValues;     // [Reader, Writer, Admin]
+Roles                super = Roles.AllFlagsCombined;  // Reader | Writer | Admin
+
+// Decompose a value into the single-bit flags it contains, in declaration order.
+Roles user = Roles.Reader | Roles.Admin;
+foreach (var flag in user.GetFlags())
+{
+    // flag is Reader, then Admin
+}
+```
+
+The flag helpers throw `InvalidOperationException` if the enum isn't marked `[Flags]`, so a typo at the declaration fails loudly at the first call instead of silently returning the wrong thing.
 
 ## Legacy types (to be replaced)
 
