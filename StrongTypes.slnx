@@ -1,18 +1,24 @@
 <Solution>
+  <Folder Name="/API Tests/">
+    <Project Path="src/StrongTypes.Api.IntegrationTests/StrongTypes.Api.IntegrationTests.csproj" />
+    <Project Path="src/StrongTypes.Api/StrongTypes.Api.csproj" />
+  </Folder>
+  <Folder Name="/EF Core package/">
+    <Project Path="src/StrongTypes.EfCore/StrongTypes.EfCore.csproj" />
+  </Folder>
+  <Folder Name="/Main Package/">
+    <Project Path="src/StrongTypes.Analyzers/StrongTypes.Analyzers.csproj" />
+    <Project Path="src/StrongTypes.SourceGenerators/StrongTypes.SourceGenerators.csproj" />
+    <Project Path="src/StrongTypes.Tests/StrongTypes.Tests.csproj" />
+    <Project Path="src/StrongTypes/StrongTypes.csproj" />
+  </Folder>
   <Folder Name="/Other/">
     <File Path=".editorconfig" />
     <File Path="license.txt" />
     <File Path="readme.md" />
   </Folder>
-  <Project Path="src/StrongTypes.Analyzers/StrongTypes.Analyzers.csproj" />
-  <Project Path="src/StrongTypes.Api.IntegrationTests/StrongTypes.Api.IntegrationTests.csproj" />
-  <Project Path="src/StrongTypes.Api/StrongTypes.Api.csproj" />
   <Project Path="src/StrongTypes.Benchmarks/StrongTypes.Benchmarks.csproj" />
-  <Project Path="src/StrongTypes.EfCore/StrongTypes.EfCore.csproj" />
-  <Project Path="src/StrongTypes.SourceGenerators/StrongTypes.SourceGenerators.csproj" />
   <Project Path="src/StrongTypes.Examples/StrongTypes.Examples.csproj" />
-  <Project Path="src/StrongTypes.Tests/StrongTypes.Tests.csproj" />
-  <Project Path="src/StrongTypes/StrongTypes.csproj" />
   <Properties Name="Performance">
     <Property Name="HasPerformanceSessions" Value="true" />
   </Properties>
