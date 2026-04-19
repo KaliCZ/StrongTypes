@@ -17,7 +17,7 @@ namespace StrongTypes;
 /// </summary>
 public static class EnumExtensions
 {
-    extension<TEnum>(TEnum) where TEnum : struct, Enum
+    extension<TEnum>(TEnum source) where TEnum : struct, Enum
     {
         /// <summary>Thin wrapper over <see cref="Enum.Parse{TEnum}(string)"/>. Throws on failure.</summary>
         public static TEnum Parse(string value) => Enum.Parse<TEnum>(value);
@@ -57,10 +57,7 @@ public static class EnumExtensions
         /// lacks <c>[Flags]</c>.
         /// </summary>
         public static TEnum AllFlagsCombined => EnumMeta<TEnum>.FlagsCombined;
-    }
 
-    extension<TEnum>(TEnum value) where TEnum : struct, Enum
-    {
         /// <summary>
         /// Splits the receiver into the individual single-bit flags it
         /// contains, in declaration order. Returns an empty list for zero.
@@ -72,7 +69,7 @@ public static class EnumExtensions
             // the receiver is zero.
             var flags = EnumMeta<TEnum>.FlagValues;
 
-            var bits = EnumMeta<TEnum>.ToLong(value);
+            var bits = EnumMeta<TEnum>.ToLong(source);
             if (bits == 0)
             {
                 return Array.Empty<TEnum>();
@@ -105,21 +102,18 @@ internal static class EnumMeta<TEnum> where TEnum : struct, Enum
 
     // Per-property lazy caches so an enum that never asks for flag data
     // never pays for a flag scan, and vice versa.
-    //
-    // LazyInitializer.EnsureInitialized gives us double-checked locking:
-    // the fast path is a plain bool read + value read; on the slow path
-    // it Monitor.Enters the (lazily-allocated) lock object, re-checks the
-    // flag, runs the factory once, publishes the result, and releases.
-    // Gives us exactly-once compute without the size/atomicity concerns
-    // of a bare Nullable<TEnum> backing.
 
-    private static IReadOnlyList<TEnum> _flagValues = null!;
-    private static bool _flagValuesReady;
-    private static object? _flagValuesLock;
-    public static IReadOnlyList<TEnum> FlagValues =>
-        LazyInitializer.EnsureInitialized(
-            ref _flagValues, ref _flagValuesReady, ref _flagValuesLock, ScanForFlagValues);
+    // FlagValues is a reference: a plain ??= is enough. A race can run
+    // ScanForFlagValues more than once, but the scan is deterministic so
+    // last-write-wins is benign, and .NET guarantees the array's writes
+    // are visible before its reference is published.
+    private static IReadOnlyList<TEnum>? _flagValues;
+    public static IReadOnlyList<TEnum> FlagValues => _flagValues ??= ScanForFlagValues();
 
+    // FlagsCombined is a TEnum (up to 8 bytes; not atomic on 32-bit) and
+    // default(TEnum) == 0 is a valid computed result, so we can't use
+    // the value itself as a freshness marker. A separate bool gives us
+    // that marker; LazyInitializer handles the DCL and release barrier.
     private static TEnum _flagsCombined;
     private static bool _flagsCombinedReady;
     private static object? _flagsCombinedLock;
