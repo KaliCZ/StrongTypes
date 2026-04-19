@@ -48,7 +48,7 @@ public static class EnumExtensions
         /// a single power of two. Computed and cached the first time it's
         /// read. Throws if <typeparamref name="TEnum"/> lacks <c>[Flags]</c>.
         /// </summary>
-        public static IReadOnlyList<TEnum> AllFlagValues => EnumMeta<TEnum>.FlagValues;
+        public static IReadOnlyList<TEnum> AllFlagValues => FlagEnumMeta<TEnum>.FlagValues;
 
         /// <summary>
         /// Every single-bit flag OR-ed into one value — suitable for
@@ -56,7 +56,7 @@ public static class EnumExtensions
         /// first time it's read. Throws if <typeparamref name="TEnum"/>
         /// lacks <c>[Flags]</c>.
         /// </summary>
-        public static TEnum AllFlagsCombined => EnumMeta<TEnum>.FlagsCombined;
+        public static TEnum AllFlagsCombined => FlagEnumMeta<TEnum>.FlagsCombined;
 
         /// <summary>
         /// Splits the receiver into the individual single-bit flags it
@@ -67,9 +67,9 @@ public static class EnumExtensions
         {
             // Access FlagValues first so non-[Flags] enums throw even when
             // the receiver is zero.
-            var flags = EnumMeta<TEnum>.FlagValues;
+            var flags = FlagEnumMeta<TEnum>.FlagValues;
 
-            var bits = EnumMeta<TEnum>.ToLong(source);
+            var bits = FlagEnumMeta<TEnum>.ToLong(source);
             if (bits == 0)
             {
                 return Array.Empty<TEnum>();
@@ -78,7 +78,7 @@ public static class EnumExtensions
             var matched = new List<TEnum>(flags.Count);
             foreach (var flag in flags)
             {
-                var flagBits = EnumMeta<TEnum>.ToLong(flag);
+                var flagBits = FlagEnumMeta<TEnum>.ToLong(flag);
                 if ((bits & flagBits) == flagBits)
                 {
                     matched.Add(flag);
@@ -89,19 +89,22 @@ public static class EnumExtensions
     }
 }
 
+// Split in two so non-flag enums never pay for the flag-related state:
+// reflecting for [Flags], compiling the ToLong/FromLong conversions, and
+// allocating the lazy caches. Touching AllValues on a plain enum only
+// cctors EnumMeta; FlagEnumMeta's cctor fires only when flag APIs are used.
 internal static class EnumMeta<TEnum> where TEnum : struct, Enum
 {
-    // Eager one-shot fields: paid once on first touch of this closed generic,
-    // no null-check on subsequent reads.
     public static readonly IReadOnlyList<TEnum> Values = Enum.GetValues<TEnum>();
+}
+
+internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
+{
     public static readonly Func<TEnum, long> ToLong = CompileToLong();
     public static readonly Func<long, TEnum> FromLong = CompileFromLong();
 
     private static readonly bool HasFlagsAttribute =
         typeof(TEnum).IsDefined(typeof(FlagsAttribute), inherit: false);
-
-    // Per-property lazy caches so an enum that never asks for flag data
-    // never pays for a flag scan, and vice versa.
 
     // FlagValues is a reference: a plain ??= is enough. A race can run
     // ScanForFlagValues more than once, but the scan is deterministic so
@@ -141,7 +144,7 @@ internal static class EnumMeta<TEnum> where TEnum : struct, Enum
     private static IReadOnlyList<TEnum> ScanForFlagValues()
     {
         RequireFlagsAttribute();
-        return Values.Where(v => BitOperations.IsPow2(ToLong(v))).ToArray();
+        return EnumMeta<TEnum>.Values.Where(v => BitOperations.IsPow2(ToLong(v))).ToArray();
     }
 
     private static TEnum OrAllFlagValues()
