@@ -84,8 +84,9 @@ public class AddEfCorePackageCodeFixProviderTests : IDisposable
         var newRef = Assert.Single(packageReferences);
 
         Assert.Equal(MissingEfCorePackageAnalyzer.EfCorePackageId, (string?)newRef.Attribute("Include"));
-        Assert.False(string.IsNullOrEmpty((string?)newRef.Attribute("Version")));
-        Assert.Equal("ItemGroup", newRef.Parent!.Name.LocalName);
+        Assert.Equal(AddEfCorePackageCodeFixProvider.EfCorePackageVersion, (string?)newRef.Attribute("Version"));
+        // The original csproj had no ItemGroup at all, so the fix must have added exactly one.
+        Assert.Single(doc.Descendants("ItemGroup"));
     }
 
     [Fact]

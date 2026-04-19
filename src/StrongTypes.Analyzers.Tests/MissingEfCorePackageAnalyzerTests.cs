@@ -37,8 +37,8 @@ public class MissingEfCorePackageAnalyzerTests
             DbContextWithNonEmptyStringEntity,
             TestReferences.With(TestReferences.EntityFrameworkCore));
 
-        Assert.All(diagnostics, d => Assert.Equal(MissingEfCorePackageAnalyzer.DiagnosticId, d.Id));
         Assert.NotEmpty(diagnostics);
+        Assert.All(diagnostics, d => Assert.Equal(MissingEfCorePackageAnalyzer.DiagnosticId, d.Id));
     }
 
     [Fact]

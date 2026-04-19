@@ -23,7 +23,7 @@ namespace StrongTypes.Analyzers;
 public sealed class AddEfCorePackageCodeFixProvider : CodeFixProvider
 {
     // Kept in one place so bumping the EfCore version is a one-line change.
-    private const string EfCorePackageVersion = "0.3.0";
+    public const string EfCorePackageVersion = "0.3.0";
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         ImmutableArray.Create(MissingEfCorePackageAnalyzer.DiagnosticId);
