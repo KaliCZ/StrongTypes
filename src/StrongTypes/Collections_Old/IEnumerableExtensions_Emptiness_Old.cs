@@ -29,7 +29,7 @@ public static partial class IEnumerableExtensions
     [Obsolete("This is already a NonEmptyEnumerable.", error: true)]
     public static Option<INonEmptyEnumerable<T>> AsNonEmpty<T>(this INonEmptyEnumerable<T> source)
     {
-        return source.ToOption();
+        return Option.Valued(source);
     }
 
     /// <summary>

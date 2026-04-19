@@ -178,16 +178,6 @@ namespace StrongTypes
         }
 
         /// <summary>
-        /// Casts the specified object to the given type.
-        /// </summary>
-        [Pure]
-        public static Option<A> As<A>(this object o)
-            where A : class
-        {
-            return (o as A).ToOption();
-        }
-
-        /// <summary>
         /// Returns string representation of the object. If the object is null, return the optionally specified null text.
         /// </summary>
         [Pure]
@@ -196,24 +186,6 @@ namespace StrongTypes
             return o == null
                 ? nullText
                 : o.ToString();
-        }
-
-        /// <summary>
-        /// Turns the specified value into an option.
-        /// </summary>
-        [Pure]
-        public static Option<A> ToOption<A>(this A value)
-        {
-            return Option.Create(value);
-        }
-
-        /// <summary>
-        /// Turns the specified value into an option.
-        /// </summary>
-        public static Option<A> ToOption<A>(this A? value)
-            where A : struct
-        {
-            return Option.Create(value);
         }
 
         /// <summary>

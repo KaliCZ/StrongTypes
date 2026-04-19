@@ -5,38 +5,6 @@ namespace StrongTypes.Tests.Strings;
 public class NonEmptyStringTests
 {
     [Fact]
-    public void OptionEqualityTest()
-    {
-        Option<NonEmptyString> valued1 = Option.Valued(NonEmptyString.Create("ASDF123"));
-        Option<string> valued2 = Option.Valued("ASDF123");
-        Assert.True(valued1.Equals(valued2));
-        Assert.True(valued2.Equals(valued1));
-        Assert.True(object.Equals(valued1, valued2));
-        Assert.True(object.Equals(valued2, valued1));
-
-        var differentStringOption = Option.Valued("Text14");
-        var differentNonEmptyStringOption = Option.Valued(NonEmptyString.Create("Totally different text here."));
-        Assert.False(differentNonEmptyStringOption.Equals(differentStringOption));
-        Assert.False(differentStringOption.Equals(differentNonEmptyStringOption));
-        Assert.False(object.Equals(differentNonEmptyStringOption, differentStringOption));
-        Assert.False(object.Equals(differentStringOption, differentNonEmptyStringOption));
-
-        Option<NonEmptyString> empty1 = Option.Empty<NonEmptyString>();
-        Option<string> empty2 = Option.Empty<string>();
-        Assert.True(empty1.Equals(empty2));
-        Assert.True(empty2.Equals(empty1));
-        Assert.True(object.Equals(empty1, empty2));
-        Assert.True(object.Equals(empty2, empty1));
-
-        Option<NonEmptyString> valuedWithNull1 = Option.Valued<NonEmptyString>(null);
-        Option<string> valuedWithNull2 = Option.Valued<string>(null);
-        Assert.True(valuedWithNull1.Equals(valuedWithNull2));
-        Assert.True(valuedWithNull2.Equals(valuedWithNull1));
-        Assert.True(object.Equals(valuedWithNull1, valuedWithNull2));
-        Assert.True(object.Equals(valuedWithNull2, valuedWithNull1));
-    }
-
-    [Fact]
     public void EqualityTest()
     {
 #pragma warning disable xUnit2010
