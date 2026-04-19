@@ -48,14 +48,7 @@ public static class EnumExtensions
         /// a single power of two. Computed and cached the first time it's
         /// read. Throws if <typeparamref name="TEnum"/> lacks <c>[Flags]</c>.
         /// </summary>
-        public static IReadOnlyList<TEnum> AllFlagValues
-        {
-            get
-            {
-                EnumMeta<TEnum>.RequireFlagsAttribute();
-                return EnumMeta<TEnum>.FlagValues;
-            }
-        }
+        public static IReadOnlyList<TEnum> AllFlagValues => EnumMeta<TEnum>.FlagValues;
 
         /// <summary>
         /// Every single-bit flag OR-ed into one value — suitable for
@@ -63,14 +56,7 @@ public static class EnumExtensions
         /// first time it's read. Throws if <typeparamref name="TEnum"/>
         /// lacks <c>[Flags]</c>.
         /// </summary>
-        public static TEnum AllFlagsCombined
-        {
-            get
-            {
-                EnumMeta<TEnum>.RequireFlagsAttribute();
-                return EnumMeta<TEnum>.FlagsCombined;
-            }
-        }
+        public static TEnum AllFlagsCombined => EnumMeta<TEnum>.FlagsCombined;
     }
 
     extension<TEnum>(TEnum value) where TEnum : struct, Enum
@@ -82,7 +68,9 @@ public static class EnumExtensions
         /// </summary>
         public IReadOnlyList<TEnum> GetFlags()
         {
-            EnumMeta<TEnum>.RequireFlagsAttribute();
+            // Access FlagValues first so non-[Flags] enums throw even when
+            // the receiver is zero.
+            var flags = EnumMeta<TEnum>.FlagValues;
 
             var bits = EnumMeta<TEnum>.ToLong(value);
             if (bits == 0)
@@ -90,7 +78,6 @@ public static class EnumExtensions
                 return Array.Empty<TEnum>();
             }
 
-            var flags = EnumMeta<TEnum>.FlagValues;
             var matched = new List<TEnum>(flags.Count);
             foreach (var flag in flags)
             {
@@ -140,7 +127,7 @@ internal static class EnumMeta<TEnum> where TEnum : struct, Enum
         LazyInitializer.EnsureInitialized(
             ref _flagsCombined, ref _flagsCombinedReady, ref _flagsCombinedLock, OrAllFlagValues);
 
-    public static void RequireFlagsAttribute()
+    private static void RequireFlagsAttribute()
     {
         if (!HasFlagsAttribute)
         {
@@ -149,11 +136,19 @@ internal static class EnumMeta<TEnum> where TEnum : struct, Enum
         }
     }
 
+    // Validation is done inside the factory (not at each getter call) so a
+    // well-formed flag enum pays only the LazyInitializer fast path on
+    // subsequent reads. Factory throws propagate through LazyInitializer
+    // without caching, so non-flag enums still throw on every access.
+    //
     // BitOperations.IsPow2 treats negatives as non-flags, which is what we
     // want: a power of two is by definition positive, so a sign-extended
     // high bit on a signed underlying type is excluded.
-    private static IReadOnlyList<TEnum> ScanForFlagValues() =>
-        Values.Where(v => BitOperations.IsPow2(ToLong(v))).ToArray();
+    private static IReadOnlyList<TEnum> ScanForFlagValues()
+    {
+        RequireFlagsAttribute();
+        return Values.Where(v => BitOperations.IsPow2(ToLong(v))).ToArray();
+    }
 
     private static TEnum OrAllFlagValues()
     {
