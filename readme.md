@@ -162,7 +162,15 @@ DateTime?       when = header.AsDateTime();
 Roles?          role = header.AsEnum<Roles>();
 ```
 
-`AsEnum<TEnum>` is a plain extension on `string?` that sidesteps a C# limitation: because `Roles.TryParse(...)` is an extension member on the enum type, it can't be called through an open generic `TEnum` parameter. `AsEnum<TEnum>` closes that gap so you can parse an enum whose type you only know generically.
+Each `As*` helper has a `To*` sibling that throws instead of returning `null` — pick the one that matches how you want to handle bad input at the call site:
+
+```csharp
+NonEmptyString name = userInput.ToNonEmpty();   // throws ArgumentException
+int            id   = queryParam.ToInt();       // throws FormatException / OverflowException
+Roles          role = header.ToEnum<Roles>();   // throws ArgumentException
+```
+
+`AsEnum<TEnum>` / `ToEnum<TEnum>` are plain extensions on `string?` that sidestep a C# limitation: because `Roles.TryParse(...)` is an extension member on the enum type, it can't be called through an open generic `TEnum` parameter. These close the gap so you can parse an enum whose type you only know generically.
 
 ## Legacy types (to be replaced)
 

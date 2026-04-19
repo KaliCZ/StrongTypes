@@ -55,4 +55,45 @@ public class NonEmptyStringExtensionsTests
     [Fact]
     public void AsEnum_RejectsUndefinedNames() =>
         Assert.Null(NonEmptyString.Create("Fri").AsEnum<Day>());
+
+    // ------- Throwing To* variants -------
+
+    [Property]
+    public void ToInt_RoundTrips(int value) =>
+        Assert.Equal(value, NonEmptyString.Create(value.ToString(CultureInfo.InvariantCulture))
+            .ToInt(CultureInfo.InvariantCulture));
+
+    [Property]
+    public void ToLong_RoundTrips(long value) =>
+        Assert.Equal(value, NonEmptyString.Create(value.ToString(CultureInfo.InvariantCulture))
+            .ToLong(CultureInfo.InvariantCulture));
+
+    [Property]
+    public void ToDecimal_RoundTrips(decimal value) =>
+        Assert.Equal(value, NonEmptyString.Create(value.ToString(CultureInfo.InvariantCulture))
+            .ToDecimal(CultureInfo.InvariantCulture));
+
+    [Property]
+    public void ToGuid_RoundTrips(Guid value) =>
+        Assert.Equal(value, NonEmptyString.Create(value.ToString()).ToGuid());
+
+    [Fact]
+    public void ToInt_Throws_OnGarbage() =>
+        Assert.Throws<FormatException>(() => NonEmptyString.Create("ASDF").ToInt());
+
+    [Fact]
+    public void ToBool_RoundTrips()
+    {
+        Assert.True(NonEmptyString.Create("true").ToBool());
+        Assert.False(NonEmptyString.Create("false").ToBool());
+        Assert.Throws<FormatException>(() => NonEmptyString.Create("ASDF").ToBool());
+    }
+
+    [Fact]
+    public void ToEnum_ParsesDefinedNames() =>
+        Assert.Equal(Day.Mon, NonEmptyString.Create("Mon").ToEnum<Day>());
+
+    [Fact]
+    public void ToEnum_Throws_OnUndefinedName() =>
+        Assert.Throws<ArgumentException>(() => NonEmptyString.Create("Fri").ToEnum<Day>());
 }
