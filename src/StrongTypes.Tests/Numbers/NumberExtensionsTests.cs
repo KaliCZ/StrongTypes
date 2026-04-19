@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using FsCheck.Xunit;
 using Xunit;
 
@@ -229,5 +230,159 @@ public class NumberExtensionsTests
         var wrapped = 0.AsNonPositive();
         Assert.NotNull(wrapped);
         Assert.Equal(0, wrapped.Value.Value);
+    }
+
+    [Property]
+    public void ToPositive_Int_MatchesCreate(int value)
+    {
+        if (value > 0)
+        {
+            Assert.Equal(value, value.ToPositive().Value);
+        }
+        else
+        {
+            Assert.Throws<ArgumentException>(() => value.ToPositive());
+        }
+    }
+
+    [Property]
+    public void ToPositive_Long_MatchesCreate(long value)
+    {
+        if (value > 0L)
+        {
+            Assert.Equal(value, value.ToPositive().Value);
+        }
+        else
+        {
+            Assert.Throws<ArgumentException>(() => value.ToPositive());
+        }
+    }
+
+    [Property]
+    public void ToPositive_Decimal_MatchesCreate(decimal value)
+    {
+        if (value > 0m)
+        {
+            Assert.Equal(value, value.ToPositive().Value);
+        }
+        else
+        {
+            Assert.Throws<ArgumentException>(() => value.ToPositive());
+        }
+    }
+
+    [Property]
+    public void ToNonNegative_Int_MatchesCreate(int value)
+    {
+        if (value >= 0)
+        {
+            Assert.Equal(value, value.ToNonNegative().Value);
+        }
+        else
+        {
+            Assert.Throws<ArgumentException>(() => value.ToNonNegative());
+        }
+    }
+
+    [Property]
+    public void ToNonNegative_Decimal_MatchesCreate(decimal value)
+    {
+        if (value >= 0m)
+        {
+            Assert.Equal(value, value.ToNonNegative().Value);
+        }
+        else
+        {
+            Assert.Throws<ArgumentException>(() => value.ToNonNegative());
+        }
+    }
+
+    [Property]
+    public void ToNegative_Int_MatchesCreate(int value)
+    {
+        if (value < 0)
+        {
+            Assert.Equal(value, value.ToNegative().Value);
+        }
+        else
+        {
+            Assert.Throws<ArgumentException>(() => value.ToNegative());
+        }
+    }
+
+    [Property]
+    public void ToNegative_Long_MatchesCreate(long value)
+    {
+        if (value < 0L)
+        {
+            Assert.Equal(value, value.ToNegative().Value);
+        }
+        else
+        {
+            Assert.Throws<ArgumentException>(() => value.ToNegative());
+        }
+    }
+
+    [Property]
+    public void ToNegative_Decimal_MatchesCreate(decimal value)
+    {
+        if (value < 0m)
+        {
+            Assert.Equal(value, value.ToNegative().Value);
+        }
+        else
+        {
+            Assert.Throws<ArgumentException>(() => value.ToNegative());
+        }
+    }
+
+    [Property]
+    public void ToNonPositive_Int_MatchesCreate(int value)
+    {
+        if (value <= 0)
+        {
+            Assert.Equal(value, value.ToNonPositive().Value);
+        }
+        else
+        {
+            Assert.Throws<ArgumentException>(() => value.ToNonPositive());
+        }
+    }
+
+    [Property]
+    public void ToNonPositive_Decimal_MatchesCreate(decimal value)
+    {
+        if (value <= 0m)
+        {
+            Assert.Equal(value, value.ToNonPositive().Value);
+        }
+        else
+        {
+            Assert.Throws<ArgumentException>(() => value.ToNonPositive());
+        }
+    }
+
+    [Fact]
+    public void ToPositive_Zero_Throws()
+    {
+        Assert.Throws<ArgumentException>(() => 0.ToPositive());
+    }
+
+    [Fact]
+    public void ToNegative_Zero_Throws()
+    {
+        Assert.Throws<ArgumentException>(() => 0.ToNegative());
+    }
+
+    [Fact]
+    public void ToNonNegative_Zero_ReturnsZero()
+    {
+        Assert.Equal(0, 0.ToNonNegative().Value);
+    }
+
+    [Fact]
+    public void ToNonPositive_Zero_ReturnsZero()
+    {
+        Assert.Equal(0, 0.ToNonPositive().Value);
     }
 }

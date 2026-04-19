@@ -76,6 +76,15 @@ Negative<int>?    debt = balance.AsNegative();
 NonPositive<decimal>? loss = pnl.AsNonPositive();
 ```
 
+When you'd rather fail loudly at the boundary than deal with `null`, the `To…` variants throw `ArgumentException` on invariant violation — same relationship as `Create` vs `TryCreate`:
+
+```csharp
+Positive<int>    p    = quantity.ToPositive();      // throws if quantity <= 0
+NonNegative<int> age  = years.ToNonNegative();
+Negative<int>    debt = balance.ToNegative();
+NonPositive<decimal> loss = pnl.ToNonPositive();
+```
+
 The structs are laid out so that `default(Positive<T>)` still satisfies the invariant (e.g. `default(Positive<int>)` is `1`, not an invalid `0`), which means they survive zero-initialization without breaking their guarantee.
 
 ### What you get for free
