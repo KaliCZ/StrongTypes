@@ -13,7 +13,7 @@
     <PackageId>Kalicz.StrongTypes.EfCore</PackageId>
     <Authors>KaliCZ</Authors>
     <Copyright>Copyright © 2026 KaliCZ</Copyright>
-    <Description>EF Core value converters and LINQ translation plugins for Kalicz.StrongTypes. Enables persisting NonEmptyString, Positive&lt;T&gt;, NonNegative&lt;T&gt;, Negative&lt;T&gt;, NonPositive&lt;T&gt; via a single optionsBuilder.UseStrongTypes() call, and translates Unwrap() to server-side SQL for LINQ predicates.</Description>
+    <Description>EF Core value converters and LINQ translation plugins for Kalicz.StrongTypes. Enables persisting NonEmptyString, Positive&lt;T&gt;, NonNegative&lt;T&gt;, Negative&lt;T&gt;, NonPositive&lt;T&gt; via a single registration call.</Description>
     <PackageTags>StrongTypes, EntityFrameworkCore, EFCore, ValueConverter, NonEmptyString, LINQ, DbFunction</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -21,7 +21,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/KaliCZ/StrongTypes.git</RepositoryUrl>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
-    <PackageReleaseNotes>0.3.0: Initial release. Ships NonEmptyString and numeric-wrapper value converters, plus a Unwrap() LINQ translator that keeps string/numeric predicates server-side on both SQL Server and PostgreSQL. Single-call configuration via optionsBuilder.UseStrongTypes().</PackageReleaseNotes>
+    <PackageReleaseNotes>0.3.0: Initial release. Ships NonEmptyString and numeric-wrapper value converters. Single-call configuration via optionsBuilder.UseStrongTypes().</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
