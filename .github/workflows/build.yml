@@ -50,7 +50,9 @@ jobs:
 
     - name: Pack
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: dotnet pack ./src/StrongTypes/StrongTypes.csproj -c $config -o out
+      run: |
+        dotnet pack ./src/StrongTypes/StrongTypes.csproj -c $config -o out
+        dotnet pack ./src/StrongTypes.EfCore/StrongTypes.EfCore.csproj -c $config -o out
 
     - name: Upload NuGet package
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
