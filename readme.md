@@ -67,6 +67,24 @@ Positive<decimal> amt = Positive<decimal>.Create(price);
 NonNegative<int>? age = NonNegative<int>.TryCreate(years);
 ```
 
+Or via the `AsPositive()`, `AsNonNegative()`, `AsNegative()`, and `AsNonPositive()` extensions on any `INumber<T>` — mirroring `AsNonEmpty()` on `string?`. Each returns `null` when the invariant isn't met:
+
+```csharp
+Positive<int>?    p   = quantity.AsPositive();
+NonNegative<int>? age = years.AsNonNegative();
+Negative<int>?    debt = balance.AsNegative();
+NonPositive<decimal>? loss = pnl.AsNonPositive();
+```
+
+When you'd rather fail loudly at the boundary than deal with `null`, the `To…` variants throw `ArgumentException` on invariant violation — same relationship as `Create` vs `TryCreate`:
+
+```csharp
+Positive<int>    p    = quantity.ToPositive();      // throws if quantity <= 0
+NonNegative<int> age  = years.ToNonNegative();
+Negative<int>    debt = balance.ToNegative();
+NonPositive<decimal> loss = pnl.ToNonPositive();
+```
+
 The structs are laid out so that `default(Positive<T>)` still satisfies the invariant (e.g. `default(Positive<int>)` is `1`, not an invalid `0`), which means they survive zero-initialization without breaking their guarantee.
 
 ### What you get for free
@@ -144,7 +162,15 @@ DateTime?       when = header.AsDateTime();
 Roles?          role = header.AsEnum<Roles>();
 ```
 
-`AsEnum<TEnum>` is a plain extension on `string?` that sidesteps a C# limitation: because `Roles.TryParse(...)` is an extension member on the enum type, it can't be called through an open generic `TEnum` parameter. `AsEnum<TEnum>` closes that gap so you can parse an enum whose type you only know generically.
+Each `As*` helper has a `To*` sibling that throws instead of returning `null` — pick the one that matches how you want to handle bad input at the call site:
+
+```csharp
+NonEmptyString name = userInput.ToNonEmpty();   // throws ArgumentException
+int            id   = queryParam.ToInt();       // throws FormatException / OverflowException
+Roles          role = header.ToEnum<Roles>();   // throws ArgumentException
+```
+
+`AsEnum<TEnum>` / `ToEnum<TEnum>` are plain extensions on `string?` that sidestep a C# limitation: because `Roles.TryParse(...)` is an extension member on the enum type, it can't be called through an open generic `TEnum` parameter. These close the gap so you can parse an enum whose type you only know generically.
 
 ## Legacy types (to be replaced)
 

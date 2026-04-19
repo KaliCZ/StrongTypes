@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace StrongTypes.Api.Infrastructure;
+namespace StrongTypes.EfCore;
 
 /// <summary>
 /// EF Core value converter that round-trips <see cref="NonEmptyString"/> through

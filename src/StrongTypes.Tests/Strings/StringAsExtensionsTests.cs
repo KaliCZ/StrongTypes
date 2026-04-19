@@ -137,4 +137,91 @@ public class StringAsExtensionsTests
 
     [Theory, InlineData(null), InlineData(""), InlineData("   ")]
     public void AsEnum_ReturnsNull_OnEmptyInput(string? s) => Assert.Null(s.AsEnum<Color>());
+
+    // ------- Throwing To* variants: happy path -------
+
+    [Property]
+    public void ToByte_RoundTrips(byte value) =>
+        Assert.Equal(value, value.ToString(CultureInfo.InvariantCulture).ToByte(CultureInfo.InvariantCulture));
+
+    [Property]
+    public void ToShort_RoundTrips(short value) =>
+        Assert.Equal(value, value.ToString(CultureInfo.InvariantCulture).ToShort(CultureInfo.InvariantCulture));
+
+    [Property]
+    public void ToInt_RoundTrips(int value) =>
+        Assert.Equal(value, value.ToString(CultureInfo.InvariantCulture).ToInt(CultureInfo.InvariantCulture));
+
+    [Property]
+    public void ToLong_RoundTrips(long value) =>
+        Assert.Equal(value, value.ToString(CultureInfo.InvariantCulture).ToLong(CultureInfo.InvariantCulture));
+
+    [Property]
+    public void ToDecimal_RoundTrips(decimal value) =>
+        Assert.Equal(value, value.ToString(CultureInfo.InvariantCulture).ToDecimal(CultureInfo.InvariantCulture));
+
+    [Property]
+    public void ToBool_RoundTrips(bool value) =>
+        Assert.Equal(value, value.ToString().ToBool());
+
+    [Property]
+    public void ToGuid_RoundTrips(Guid value) =>
+        Assert.Equal(value, value.ToString().ToGuid());
+
+    [Fact]
+    public void ToNonEmpty_RoundTrips()
+    {
+        NonEmptyString s = "hello".ToNonEmpty();
+        Assert.Equal("hello", s.Value);
+    }
+
+    [Fact]
+    public void ToDateTime_ParsesISO8601() =>
+        Assert.Equal(new DateTime(2022, 1, 13, 16, 25, 35), "2022-01-13T16:25:35".ToDateTime());
+
+    [Fact]
+    public void ToTimeSpan_Parses() =>
+        Assert.Equal(new TimeSpan(1, 12, 24, 2), "1.12:24:02".ToTimeSpan());
+
+    [Fact]
+    public void ToEnum_ParsesDefinedName() =>
+        Assert.Equal(Color.Red, "Red".ToEnum<Color>());
+
+    [Fact]
+    public void ToEnum_IgnoreCase() =>
+        Assert.Equal(Color.Red, "red".ToEnum<Color>(ignoreCase: true));
+
+    // ------- Throwing To* variants: failure paths -------
+
+    [Theory, MemberData(nameof(BadNumericInputs))]
+    public void ToInt_Throws_OnBadInput(string? s) => Assert.ThrowsAny<Exception>(() => s.ToInt());
+
+    [Theory, MemberData(nameof(BadNumericInputs))]
+    public void ToLong_Throws_OnBadInput(string? s) => Assert.ThrowsAny<Exception>(() => s.ToLong());
+
+    [Theory, MemberData(nameof(BadNumericInputs))]
+    public void ToDecimal_Throws_OnBadInput(string? s) => Assert.ThrowsAny<Exception>(() => s.ToDecimal());
+
+    [Theory, MemberData(nameof(BadNumericInputs))]
+    public void ToBool_Throws_OnBadInput(string? s) => Assert.ThrowsAny<Exception>(() => s.ToBool());
+
+    [Theory, MemberData(nameof(BadNumericInputs))]
+    public void ToGuid_Throws_OnBadInput(string? s) => Assert.ThrowsAny<Exception>(() => s.ToGuid());
+
+    [Fact]
+    public void ToByte_Throws_OnOverflow() => Assert.Throws<OverflowException>(() => "258".ToByte());
+
+    [Fact]
+    public void ToInt_Throws_OnOverflow() => Assert.Throws<OverflowException>(() => "2147483648".ToInt());
+
+    [Fact]
+    public void ToInt_Throws_OnFormatError() => Assert.Throws<FormatException>(() => "ASDF".ToInt());
+
+    [Fact]
+    public void ToEnum_Throws_OnUndefinedValue() =>
+        Assert.Throws<ArgumentException>(() => "Purple".ToEnum<Color>());
+
+    [Theory, InlineData(null), InlineData(""), InlineData("   ")]
+    public void ToNonEmpty_Throws_OnEmptyInput(string? s) =>
+        Assert.Throws<ArgumentException>(() => s.ToNonEmpty());
 }

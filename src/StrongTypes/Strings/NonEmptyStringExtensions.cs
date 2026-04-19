@@ -11,6 +11,16 @@ namespace StrongTypes;
 /// </summary>
 public static class NonEmptyStringExtensions
 {
+    /// <summary>
+    /// Returns the underlying <see cref="string"/> value. Intended for LINQ
+    /// expressions translated by EF Core: the StrongTypes.EfCore package
+    /// registers a method call translator that rewrites this call as the
+    /// underlying string column, so callers can write
+    /// <c>e.Value.Unwrap().Contains("foo")</c> and have EF translate it to
+    /// SQL against the underlying string column.
+    /// </summary>
+    public static string Unwrap(this NonEmptyString s) => s.Value;
+
     public static byte? AsByte(this NonEmptyString s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Integer) =>
         s.Value.AsByte(format, style);
 
@@ -50,4 +60,45 @@ public static class NonEmptyStringExtensions
     public static TEnum? AsEnum<TEnum>(this NonEmptyString s, bool ignoreCase = false)
         where TEnum : struct, Enum =>
         s.Value.AsEnum<TEnum>(ignoreCase);
+
+    // --- Throwing variants. Delegate to the string overloads, which in ---
+    // --- turn call the framework Parse methods and throw on failure.   ---
+
+    public static byte ToByte(this NonEmptyString s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Integer) =>
+        s.Value.ToByte(format, style);
+
+    public static short ToShort(this NonEmptyString s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Integer) =>
+        s.Value.ToShort(format, style);
+
+    public static int ToInt(this NonEmptyString s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Integer) =>
+        s.Value.ToInt(format, style);
+
+    public static long ToLong(this NonEmptyString s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Integer) =>
+        s.Value.ToLong(format, style);
+
+    public static float ToFloat(this NonEmptyString s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Float | NumberStyles.AllowThousands) =>
+        s.Value.ToFloat(format, style);
+
+    public static double ToDouble(this NonEmptyString s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Float | NumberStyles.AllowThousands) =>
+        s.Value.ToDouble(format, style);
+
+    public static decimal ToDecimal(this NonEmptyString s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Number) =>
+        s.Value.ToDecimal(format, style);
+
+    public static bool ToBool(this NonEmptyString s) => s.Value.ToBool();
+
+    public static DateTime ToDateTime(this NonEmptyString s, IFormatProvider? format = null, DateTimeStyles style = DateTimeStyles.None) =>
+        s.Value.ToDateTime(format, style);
+
+    public static TimeSpan ToTimeSpan(this NonEmptyString s, IFormatProvider? format = null) =>
+        s.Value.ToTimeSpan(format);
+
+    public static Guid ToGuid(this NonEmptyString s) => s.Value.ToGuid();
+
+    public static Guid ToGuidExact(this NonEmptyString s, string format = "D") =>
+        s.Value.ToGuidExact(format);
+
+    public static TEnum ToEnum<TEnum>(this NonEmptyString s, bool ignoreCase = false)
+        where TEnum : struct, Enum =>
+        s.Value.ToEnum<TEnum>(ignoreCase);
 }

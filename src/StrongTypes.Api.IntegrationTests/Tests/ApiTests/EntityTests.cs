@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using StrongTypes.Api.Entities;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
+using StrongTypes.Api.Models;
 using Xunit;
 
 namespace StrongTypes.Api.IntegrationTests.Tests;
@@ -42,6 +43,42 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     where TEntity : class, IEntity<TEntity, T, TNullable>
     where T : notnull
 {
+    /// <summary>Route segment this entity is exposed under, e.g. "non-empty-string-entities".</summary>
+    protected abstract string RoutePrefix { get; }
+
+    protected string CreateEndpoint => $"/{RoutePrefix}";
+    protected string UpdateEndpoint(Guid id) => $"/{RoutePrefix}/{id}";
+    protected string SqlServerGetEndpoint(Guid id) => $"/{RoutePrefix}/{id}/sql-server";
+    protected string PostgreSqlGetEndpoint(Guid id) => $"/{RoutePrefix}/{id}/postgresql";
+
+    /// <summary>
+    /// Builds the { Value, NullableValue } request body used by every write endpoint.
+    /// Generic over the wire types so tests can send plain scalars (int, string, …)
+    /// regardless of the strong type the server binds them into.
+    /// </summary>
+    protected static object Body<TValue, TNullableValue>(TValue value, TNullableValue nullableValue) =>
+        new { Value = value, NullableValue = nullableValue };
+
+    protected async Task<EntityResponse> Post(string url, object body)
+    {
+        var response = await Client.PostAsJsonAsync(url, body, Ct);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        return (await response.Content.ReadFromJsonAsync<EntityResponse>(Ct))!;
+    }
+
+    protected async Task Put(string url, object body)
+    {
+        var response = await Client.PutAsJsonAsync(url, body, Ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    protected async Task<JsonElement> Get(string url)
+    {
+        var response = await Client.GetAsync(url, Ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+    }
+
     /// <summary>Wraps a raw wire-format value in the strong type.</summary>
     protected abstract T Create(TWire raw);
 

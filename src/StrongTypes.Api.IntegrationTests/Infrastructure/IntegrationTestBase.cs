@@ -1,23 +1,17 @@
-using System.Net;
-using System.Net.Http.Json;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using StrongTypes.Api.Data;
 using StrongTypes.Api.Entities;
-using StrongTypes.Api.Models;
 using Xunit;
 
 namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 
 /// <summary>
 /// Generic base for any <see cref="IEntity{TSelf, T, TNullable}"/>. Supplies
-/// Client, both DbContexts, the current CancellationToken, the standard
-/// write/read routes derived from <see cref="RoutePrefix"/>, HTTP wrappers that
-/// bake in the cancellation token and the <see cref="EntityResponse"/> shape, a
-/// <see cref="Body{TValue, TNullableValue}"/> helper for wire bodies, and the
+/// the HTTP Client, both DbContexts, the current CancellationToken, and the
 /// generic <see cref="AssertEntity"/> helper that reads from a
-/// <see cref="DbSet{TEntity}"/>.
+/// <see cref="DbSet{TEntity}"/>. HTTP route/body helpers live on the
+/// subclass that actually uses them (<c>EntityTests</c>).
 /// </summary>
 public abstract class IntegrationTestBase<TEntity, T, TNullable>(TestWebApplicationFactory factory) : IDisposable
     where TEntity : class, IEntity<TEntity, T, TNullable>
@@ -34,42 +28,6 @@ public abstract class IntegrationTestBase<TEntity, T, TNullable>(TestWebApplicat
     protected DbSet<TEntity> PgSet => PgDb.Set<TEntity>();
 
     protected static CancellationToken Ct => TestContext.Current.CancellationToken;
-
-    /// <summary>Route segment this entity is exposed under, e.g. "non-empty-string-entities".</summary>
-    protected abstract string RoutePrefix { get; }
-
-    protected string CreateEndpoint => $"/{RoutePrefix}";
-    protected string UpdateEndpoint(Guid id) => $"/{RoutePrefix}/{id}";
-    protected string SqlServerGetEndpoint(Guid id) => $"/{RoutePrefix}/{id}/sql-server";
-    protected string PostgreSqlGetEndpoint(Guid id) => $"/{RoutePrefix}/{id}/postgresql";
-
-    /// <summary>
-    /// Builds the { Value, NullableValue } request body used by every write endpoint.
-    /// Generic over the wire types so tests can send plain scalars (int, string, …)
-    /// regardless of the strong type the server binds them into.
-    /// </summary>
-    protected static object Body<TValue, TNullableValue>(TValue value, TNullableValue nullableValue) =>
-        new { Value = value, NullableValue = nullableValue };
-
-    protected async Task<EntityResponse> Post(string url, object body)
-    {
-        var response = await Client.PostAsJsonAsync(url, body, Ct);
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        return (await response.Content.ReadFromJsonAsync<EntityResponse>(Ct))!;
-    }
-
-    protected async Task Put(string url, object body)
-    {
-        var response = await Client.PutAsJsonAsync(url, body, Ct);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    }
-
-    protected async Task<JsonElement> Get(string url)
-    {
-        var response = await Client.GetAsync(url, Ct);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        return await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-    }
 
     /// <summary>
     /// Fetches the entity with the given id from the supplied DbSet and asserts
