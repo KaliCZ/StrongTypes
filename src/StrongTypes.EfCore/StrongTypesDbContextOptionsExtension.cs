@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -7,18 +8,22 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace StrongTypes.EfCore;
 
 /// <summary>
-/// Wires the <see cref="UnwrapMethodCallTranslatorPlugin"/> into a DbContext's
-/// internal service provider so <c>strongType.Unwrap()</c> inside LINQ
-/// predicates translates to server-side SQL (e.g.
+/// Wires StrongTypes into a DbContext's internal service provider:
+/// <list type="bullet">
+/// <item><see cref="StrongTypesConventionSetPlugin"/> auto-applies the right
+/// <c>ValueConverter</c> to every strong-type property on every mapped
+/// entity, running before EF's property-discovery convention so wrappers
+/// never get inferred as owned entity types.</item>
+/// <item><see cref="UnwrapMethodCallTranslatorPlugin"/> translates
+/// <c>strongType.Unwrap()</c> inside LINQ predicates so filters like
 /// <c>.Where(e =&gt; e.Name.Unwrap().Contains("foo"))</c> or
-/// <c>EF.Functions.Like(e.Name.Unwrap(), "%foo%")</c>).
+/// <c>EF.Functions.Like(e.Name.Unwrap(), "%foo%")</c> run server-side.</item>
+/// </list>
+/// Callers wire it up with a single
+/// <see cref="StrongTypesDbContextOptionsBuilderExtensions.UseStrongTypes"/>
+/// call on the options builder — no <c>ConfigureConventions</c> override
+/// needed on the DbContext.
 /// </summary>
-/// <remarks>
-/// Pair with <c>ModelConfigurationBuilder.UseStrongTypes()</c> in your
-/// DbContext's <c>ConfigureConventions</c> override — that registers the
-/// value converters, which have to go in EF Core's pre-convention phase
-/// (before property discovery) and can't be registered from DI.
-/// </remarks>
 public sealed class StrongTypesDbContextOptionsExtension : IDbContextOptionsExtension
 {
     public DbContextOptionsExtensionInfo Info => new ExtensionInfo(this);
@@ -26,6 +31,7 @@ public sealed class StrongTypesDbContextOptionsExtension : IDbContextOptionsExte
     public void ApplyServices(IServiceCollection services)
     {
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IMethodCallTranslatorPlugin, UnwrapMethodCallTranslatorPlugin>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IConventionSetPlugin, StrongTypesConventionSetPlugin>());
     }
 
     public void Validate(IDbContextOptions options)

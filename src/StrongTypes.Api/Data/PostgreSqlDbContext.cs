@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using StrongTypes.Api.Entities;
-using StrongTypes.EfCore;
 
 namespace StrongTypes.Api.Data;
 
@@ -37,7 +36,4 @@ public class PostgreSqlDbContext(DbContextOptions<PostgreSqlDbContext> options) 
     public DbSet<NonNegativeDoubleEntity> NonNegativeDoubleEntities { get; set; }
     public DbSet<NegativeDoubleEntity> NegativeDoubleEntities { get; set; }
     public DbSet<NonPositiveDoubleEntity> NonPositiveDoubleEntities { get; set; }
-
-    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) =>
-        configurationBuilder.UseStrongTypes();
 }
