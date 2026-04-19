@@ -11,6 +11,13 @@ namespace StrongTypes.Api.IntegrationTests.Tests;
 /// (arithmetic, <c>Math.Abs</c>, etc.) evaluate server-side on both providers.
 /// One representative case per wrapper type — the translator logic is identical
 /// across shapes, so we don't need to matrix every arithmetic operator.
+///
+/// Integration tests share a single database across the collection, so other
+/// suites may have seeded rows containing <c>int.MaxValue</c>/<c>int.MinValue</c>
+/// into the same table. We therefore cast to <c>long</c> inside arithmetic
+/// predicates — SQL Server does not guarantee short-circuit evaluation, so any
+/// predicate that multiplies a 32-bit column would otherwise overflow on those
+/// extreme-value rows before the ID filter gets a chance to exclude them.
 /// </summary>
 [Collection(IntegrationTestCollection.Name)]
 public sealed class NumericUnwrapFilterTests(TestWebApplicationFactory factory)
@@ -31,7 +38,7 @@ public sealed class NumericUnwrapFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.PositiveIntEntities : PgDb.PositiveIntEntities;
 
         var ids = await set
-            .Where(e => (e.Id == small.Id || e.Id == large.Id) && e.Value.Unwrap() * 2 > 10)
+            .Where(e => (e.Id == small.Id || e.Id == large.Id) && (long)e.Value.Unwrap() * 2 > 10)
             .Select(e => e.Id)
             .ToListAsync(Ct);
 
@@ -52,7 +59,7 @@ public sealed class NumericUnwrapFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.NonNegativeIntEntities : PgDb.NonNegativeIntEntities;
 
         var ids = await set
-            .Where(e => (e.Id == zero.Id || e.Id == big.Id) && e.Value.Unwrap() + 5 > 6)
+            .Where(e => (e.Id == zero.Id || e.Id == big.Id) && (long)e.Value.Unwrap() + 5 > 6)
             .Select(e => e.Id)
             .ToListAsync(Ct);
 
@@ -73,7 +80,7 @@ public sealed class NumericUnwrapFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.NegativeIntEntities : PgDb.NegativeIntEntities;
 
         var ids = await set
-            .Where(e => (e.Id == small.Id || e.Id == large.Id) && e.Value.Unwrap() < -10)
+            .Where(e => (e.Id == small.Id || e.Id == large.Id) && (long)e.Value.Unwrap() < -10)
             .Select(e => e.Id)
             .ToListAsync(Ct);
 
@@ -94,7 +101,7 @@ public sealed class NumericUnwrapFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.NonPositiveIntEntities : PgDb.NonPositiveIntEntities;
 
         var ids = await set
-            .Where(e => (e.Id == zero.Id || e.Id == negative.Id) && e.Value.Unwrap() - 1 < -3)
+            .Where(e => (e.Id == zero.Id || e.Id == negative.Id) && (long)e.Value.Unwrap() - 1 < -3)
             .Select(e => e.Id)
             .ToListAsync(Ct);
 
