@@ -67,6 +67,15 @@ Positive<decimal> amt = Positive<decimal>.Create(price);
 NonNegative<int>? age = NonNegative<int>.TryCreate(years);
 ```
 
+Or via the `AsPositive()`, `AsNonNegative()`, `AsNegative()`, and `AsNonPositive()` extensions on any `INumber<T>` — mirroring `AsNonEmpty()` on `string?`. Each returns `null` when the invariant isn't met:
+
+```csharp
+Positive<int>?    p   = quantity.AsPositive();
+NonNegative<int>? age = years.AsNonNegative();
+Negative<int>?    debt = balance.AsNegative();
+NonPositive<decimal>? loss = pnl.AsNonPositive();
+```
+
 The structs are laid out so that `default(Positive<T>)` still satisfies the invariant (e.g. `default(Positive<int>)` is `1`, not an invalid `0`), which means they survive zero-initialization without breaking their guarantee.
 
 ### What you get for free

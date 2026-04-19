@@ -96,4 +96,138 @@ public class NumberExtensionsTests
     {
         Assert.Equal(a.Divide(b) ?? otherwise, a.SafeDivide(b, otherwise));
     }
+
+    [Property]
+    public void AsPositive_Int_ReturnsNonNullIffPositive(int value)
+    {
+        var result = value.AsPositive();
+        Assert.Equal(value > 0, result is not null);
+        if (result is { } p) Assert.Equal(value, p.Value);
+    }
+
+    [Property]
+    public void AsPositive_Long_ReturnsNonNullIffPositive(long value)
+    {
+        var result = value.AsPositive();
+        Assert.Equal(value > 0L, result is not null);
+        if (result is { } p) Assert.Equal(value, p.Value);
+    }
+
+    [Property]
+    public void AsPositive_Decimal_ReturnsNonNullIffPositive(decimal value)
+    {
+        var result = value.AsPositive();
+        Assert.Equal(value > 0m, result is not null);
+        if (result is { } p) Assert.Equal(value, p.Value);
+    }
+
+    [Property]
+    public void AsPositive_Short_ReturnsNonNullIffPositive(short value)
+    {
+        var result = value.AsPositive();
+        Assert.Equal(value > 0, result is not null);
+        if (result is { } p) Assert.Equal(value, p.Value);
+    }
+
+    [Property]
+    public void AsNonNegative_Int_ReturnsNonNullIffNonNegative(int value)
+    {
+        var result = value.AsNonNegative();
+        Assert.Equal(value >= 0, result is not null);
+        if (result is { } n) Assert.Equal(value, n.Value);
+    }
+
+    [Property]
+    public void AsNonNegative_Long_ReturnsNonNullIffNonNegative(long value)
+    {
+        var result = value.AsNonNegative();
+        Assert.Equal(value >= 0L, result is not null);
+        if (result is { } n) Assert.Equal(value, n.Value);
+    }
+
+    [Property]
+    public void AsNonNegative_Decimal_ReturnsNonNullIffNonNegative(decimal value)
+    {
+        var result = value.AsNonNegative();
+        Assert.Equal(value >= 0m, result is not null);
+        if (result is { } n) Assert.Equal(value, n.Value);
+    }
+
+    [Property]
+    public void AsNegative_Int_ReturnsNonNullIffNegative(int value)
+    {
+        var result = value.AsNegative();
+        Assert.Equal(value < 0, result is not null);
+        if (result is { } n) Assert.Equal(value, n.Value);
+    }
+
+    [Property]
+    public void AsNegative_Long_ReturnsNonNullIffNegative(long value)
+    {
+        var result = value.AsNegative();
+        Assert.Equal(value < 0L, result is not null);
+        if (result is { } n) Assert.Equal(value, n.Value);
+    }
+
+    [Property]
+    public void AsNegative_Decimal_ReturnsNonNullIffNegative(decimal value)
+    {
+        var result = value.AsNegative();
+        Assert.Equal(value < 0m, result is not null);
+        if (result is { } n) Assert.Equal(value, n.Value);
+    }
+
+    [Property]
+    public void AsNonPositive_Int_ReturnsNonNullIffNonPositive(int value)
+    {
+        var result = value.AsNonPositive();
+        Assert.Equal(value <= 0, result is not null);
+        if (result is { } n) Assert.Equal(value, n.Value);
+    }
+
+    [Property]
+    public void AsNonPositive_Long_ReturnsNonNullIffNonPositive(long value)
+    {
+        var result = value.AsNonPositive();
+        Assert.Equal(value <= 0L, result is not null);
+        if (result is { } n) Assert.Equal(value, n.Value);
+    }
+
+    [Property]
+    public void AsNonPositive_Decimal_ReturnsNonNullIffNonPositive(decimal value)
+    {
+        var result = value.AsNonPositive();
+        Assert.Equal(value <= 0m, result is not null);
+        if (result is { } n) Assert.Equal(value, n.Value);
+    }
+
+    [Fact]
+    public void AsPositive_Zero_ReturnsNull()
+    {
+        Assert.Null(0.AsPositive());
+        Assert.Null(0m.AsPositive());
+    }
+
+    [Fact]
+    public void AsNonNegative_Zero_ReturnsZero()
+    {
+        var wrapped = 0.AsNonNegative();
+        Assert.NotNull(wrapped);
+        Assert.Equal(0, wrapped.Value.Value);
+    }
+
+    [Fact]
+    public void AsNegative_Zero_ReturnsNull()
+    {
+        Assert.Null(0.AsNegative());
+        Assert.Null(0m.AsNegative());
+    }
+
+    [Fact]
+    public void AsNonPositive_Zero_ReturnsZero()
+    {
+        var wrapped = 0.AsNonPositive();
+        Assert.NotNull(wrapped);
+        Assert.Equal(0, wrapped.Value.Value);
+    }
 }
