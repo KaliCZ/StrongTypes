@@ -42,21 +42,21 @@ public class NonEmptyEnumerableTests
     [Fact]
     public void TryCreate_EmptySequence_ReturnsNull()
     {
-        Assert.Null(NonEmptyEnumerable.TryCreate(Array.Empty<int>()));
-        Assert.Null(NonEmptyEnumerable.TryCreate(new List<int>()));
-        Assert.Null(NonEmptyEnumerable.TryCreate(Enumerable.Empty<int>()));
+        Assert.Null(NonEmptyEnumerable.TryCreateRange(Array.Empty<int>()));
+        Assert.Null(NonEmptyEnumerable.TryCreateRange(new List<int>()));
+        Assert.Null(NonEmptyEnumerable.TryCreateRange(Enumerable.Empty<int>()));
     }
 
     [Fact]
     public void TryCreate_NullSequence_ReturnsNull()
     {
-        Assert.Null(NonEmptyEnumerable.TryCreate<int>(null));
+        Assert.Null(NonEmptyEnumerable.TryCreateRange<int>(null));
     }
 
     [Fact]
     public void TryCreate_PopulatedSequence_ReturnsNonEmpty()
     {
-        var list = NonEmptyEnumerable.TryCreate(new[] { 1, 2, 3 });
+        var list = NonEmptyEnumerable.TryCreateRange(new[] { 1, 2, 3 });
         Assert.NotNull(list);
         Assert.Equal(new[] { 1, 2, 3 }, list);
     }
@@ -64,8 +64,11 @@ public class NonEmptyEnumerableTests
     [Fact]
     public void Create_EmptySequence_Throws()
     {
+        // Create(params ROS<T>) — empty span.
         Assert.Throws<ArgumentException>(() => NonEmptyEnumerable.Create(Array.Empty<int>()));
-        Assert.Throws<ArgumentException>(() => NonEmptyEnumerable.Create<int>(null));
+        // CreateRange(IEnumerable<T>?) — both null and empty paths.
+        Assert.Throws<ArgumentException>(() => NonEmptyEnumerable.CreateRange<int>(null));
+        Assert.Throws<ArgumentException>(() => NonEmptyEnumerable.CreateRange(Enumerable.Empty<int>()));
     }
 
     [Fact]
@@ -73,7 +76,7 @@ public class NonEmptyEnumerableTests
     {
         // Idempotent wrap: re-wrapping an already non-empty enumerable doesn't allocate.
         var original = NonEmptyEnumerable.Of(1, 2, 3);
-        var wrapped = NonEmptyEnumerable.TryCreate((IEnumerable<int>)original);
+        var wrapped = NonEmptyEnumerable.TryCreateRange((IEnumerable<int>)original);
         Assert.Same(original, wrapped);
     }
 
@@ -112,7 +115,7 @@ public class NonEmptyEnumerableTests
     [Property]
     public void Equality_SameContent(NonEmptyEnumerable<int> list)
     {
-        var copy = NonEmptyEnumerable.Create(list.AsEnumerable());
+        var copy = NonEmptyEnumerable.CreateRange(list.AsEnumerable());
         Assert.Equal(list, copy);
         Assert.Equal(list.GetHashCode(), copy.GetHashCode());
     }
@@ -122,6 +125,43 @@ public class NonEmptyEnumerableTests
     {
         Assert.NotEqual(NonEmptyEnumerable.Of(1, 2), NonEmptyEnumerable.Of(1, 3));
         Assert.NotEqual(NonEmptyEnumerable.Of(1, 2), NonEmptyEnumerable.Of(1, 2, 3));
+    }
+
+    // ── Collection expression syntax ────────────────────────────────────
+
+    [Fact]
+    public void CollectionExpression_BuildsNonEmpty()
+    {
+        NonEmptyEnumerable<int> list = [1, 2, 3];
+        Assert.Equal(new[] { 1, 2, 3 }, list);
+    }
+
+    [Fact]
+    public void CollectionExpression_Single_BuildsNonEmpty()
+    {
+        NonEmptyEnumerable<string> list = ["only"];
+        Assert.Single(list);
+        Assert.Equal("only", list.Head);
+    }
+
+    [Fact]
+    public void CollectionExpression_Spread_BuildsNonEmpty()
+    {
+        int[] tail = [2, 3, 4];
+        NonEmptyEnumerable<int> list = [1, .. tail];
+        Assert.Equal(new[] { 1, 2, 3, 4 }, list);
+    }
+
+    [Fact]
+    public void CollectionExpression_Empty_Throws()
+    {
+        // The compiler has no way to statically reject `[]` for a non-empty type, so the
+        // invariant is enforced at runtime — an empty collection expression throws.
+        Assert.Throws<ArgumentException>(() =>
+        {
+            NonEmptyEnumerable<int> list = [];
+            _ = list;
+        });
     }
 
     // ── Input isolation ─────────────────────────────────────────────────

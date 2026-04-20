@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 
@@ -15,8 +16,10 @@ namespace StrongTypes;
 /// <para>
 /// Use <see cref="Of{T}(T, ReadOnlySpan{T})"/> (or its tail-sequence overload) when the
 /// non-empty shape is known statically — they construct without validation.
-/// Use <see cref="TryCreate{T}(IEnumerable{T})"/> (nullable) or <see cref="Create{T}(IEnumerable{T})"/>
-/// (throwing) when wrapping an existing sequence whose emptiness must be checked.
+/// Use <see cref="Create{T}(ReadOnlySpan{T})"/> for a variadic / collection-expression shape.
+/// Use <see cref="TryCreateRange{T}(IEnumerable{T})"/> (nullable) or
+/// <see cref="CreateRange{T}(IEnumerable{T})"/> (throwing) when wrapping an existing sequence
+/// whose emptiness must be checked.
 /// </para>
 /// </summary>
 public static class NonEmptyEnumerable
@@ -25,10 +28,9 @@ public static class NonEmptyEnumerable
     /// Creates a non-empty enumerable from a head element and zero or more tail elements.
     /// </summary>
     /// <remarks>
-    /// Named <c>Of</c> rather than <c>Create</c> so that passing a single array — e.g.
-    /// <c>NonEmptyEnumerable.Create(someArray)</c> — unambiguously reaches the sequence-validating
-    /// <see cref="Create{T}(IEnumerable{T})"/> instead of silently wrapping the array as a
-    /// single-element <c>NonEmptyEnumerable&lt;T[]&gt;</c>.
+    /// Named <c>Of</c> rather than <c>Create</c> so that this head-plus-tail shape doesn't
+    /// collide with the <see cref="Create{T}(ReadOnlySpan{T})"/> collection-builder shape
+    /// during overload resolution.
     /// </remarks>
     public static NonEmptyEnumerable<T> Of<T>(T head, params ReadOnlySpan<T> tail)
     {
@@ -53,7 +55,7 @@ public static class NonEmptyEnumerable
     /// is already a <see cref="NonEmptyEnumerable{T}"/>, it is returned as-is — callers may
     /// rely on this for idempotent wrapping.
     /// </summary>
-    public static NonEmptyEnumerable<T>? TryCreate<T>(IEnumerable<T>? values) =>
+    public static NonEmptyEnumerable<T>? TryCreateRange<T>(IEnumerable<T>? values) =>
         values switch
         {
             null => null,
@@ -72,16 +74,42 @@ public static class NonEmptyEnumerable
     /// Returns a <see cref="NonEmptyEnumerable{T}"/> wrapping <paramref name="values"/>.
     /// Throws <see cref="ArgumentException"/> if <paramref name="values"/> is null or empty.
     /// </summary>
-    public static NonEmptyEnumerable<T> Create<T>(IEnumerable<T>? values)
-        => TryCreate(values)
+    public static NonEmptyEnumerable<T> CreateRange<T>(IEnumerable<T>? values)
+        => TryCreateRange(values)
            ?? throw new ArgumentException("You cannot create NonEmptyEnumerable from a null or empty sequence.", nameof(values));
+
+    /// <summary>
+    /// Returns a <see cref="NonEmptyEnumerable{T}"/> wrapping <paramref name="values"/>.
+    /// Throws <see cref="ArgumentException"/> if <paramref name="values"/> is empty.
+    /// </summary>
+    /// <remarks>
+    /// This overload is the <see cref="System.Runtime.CompilerServices.CollectionBuilderAttribute"/>
+    /// target for <see cref="NonEmptyEnumerable{T}"/>, enabling collection expression syntax
+    /// (<c>NonEmptyEnumerable&lt;int&gt; list = [1, 2, 3];</c>). An empty collection expression
+    /// (<c>[]</c>) throws at runtime — the compiler has no way to reject it statically.
+    /// <para>
+    /// Named differently from <see cref="CreateRange{T}(IEnumerable{T})"/> so array arguments
+    /// resolve unambiguously: <c>new int[] {1,2,3}</c> is implicitly convertible to both
+    /// <see cref="ReadOnlySpan{T}"/> and <see cref="IEnumerable{T}"/>, and the pair would
+    /// otherwise be indistinguishable at the call site. Follows the BCL precedent of
+    /// <c>ImmutableArray.Create(params ROS&lt;T&gt;)</c> + <c>ImmutableArray.CreateRange(IEnumerable&lt;T&gt;)</c>.
+    /// </para>
+    /// </remarks>
+    public static NonEmptyEnumerable<T> Create<T>(params ReadOnlySpan<T> values)
+    {
+        if (values.IsEmpty)
+            throw new ArgumentException("You cannot create NonEmptyEnumerable from an empty sequence.", nameof(values));
+        return NonEmptyEnumerable<T>.FromValidatedArray(values.ToArray());
+    }
 }
 
 /// <summary>
 /// A read-only list of <typeparamref name="T"/> guaranteed to contain at least one element.
-/// Construct via <see cref="NonEmptyEnumerable.Of{T}(T, ReadOnlySpan{T})"/> or its overloads.
+/// Construct via <see cref="NonEmptyEnumerable.Of{T}(T, ReadOnlySpan{T})"/>, one of its overloads,
+/// or a collection expression: <c>NonEmptyEnumerable&lt;int&gt; list = [1, 2, 3];</c>.
 /// </summary>
 [JsonConverter(typeof(NonEmptyEnumerableJsonConverterFactory))]
+[CollectionBuilder(typeof(NonEmptyEnumerable), nameof(NonEmptyEnumerable.Create))]
 [DebuggerTypeProxy(typeof(NonEmptyEnumerableDebugView<>))]
 [DebuggerDisplay("Count = {Count}")]
 public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<T>, IEquatable<NonEmptyEnumerable<T>>

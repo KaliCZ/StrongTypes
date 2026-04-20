@@ -111,5 +111,5 @@ public static class Generators
     /// </summary>
     public static Arbitrary<NonEmptyEnumerable<int>> NonEmptyEnumerableInt { get; } =
         Arb.From(Gen.NonEmptyListOf(ArbMap.Default.ArbFor<int>().Generator)
-            .Select(list => NonEmptyEnumerable.Create(list)));
+            .Select(list => NonEmptyEnumerable.CreateRange(list)));
 }

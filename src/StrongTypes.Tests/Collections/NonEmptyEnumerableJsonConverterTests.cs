@@ -53,6 +53,54 @@ public class NonEmptyEnumerableJsonConverterTests
             JsonSerializer.Deserialize<NonEmptyEnumerable<string>>("""["a",null,"c"]"""));
     }
 
+    [Fact]
+    public void Read_SingleNullElement_Throws()
+    {
+        // `[null]` is syntactically a non-empty array, but the element itself violates
+        // the no-null-reference-element invariant — still must not construct.
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<NonEmptyEnumerable<string>>("[null]"));
+    }
+
+    [Fact]
+    public void Read_AllNullElements_Throws()
+    {
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<NonEmptyEnumerable<string>>("[null,null]"));
+    }
+
+    [Theory]
+    [InlineData("true")]
+    [InlineData("false")]
+    [InlineData("\"hello\"")]
+    [InlineData("42.5")]
+    public void Read_NonArrayToken_Throws(string json)
+    {
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<NonEmptyEnumerable<int>>(json));
+    }
+
+    [Fact]
+    public void Read_OfPositiveInt_InvalidInner_Throws()
+    {
+        // The inner Positive<int> converter rejects non-positive numbers — its JsonException
+        // must bubble through the outer array converter so an invalid element can never
+        // sneak into a NonEmptyEnumerable<Positive<int>>.
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<NonEmptyEnumerable<Positive<int>>>("[1,-5,3]"));
+
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<NonEmptyEnumerable<Positive<int>>>("[0]"));
+    }
+
+    [Fact]
+    public void Read_OfPositiveInt_Valid_Deserializes()
+    {
+        var list = JsonSerializer.Deserialize<NonEmptyEnumerable<Positive<int>>>("[1,2,3]");
+        Assert.NotNull(list);
+        Assert.Equal(new[] { 1, 2, 3 }, list.Select(p => p.Value));
+    }
+
     // ── Write ───────────────────────────────────────────────────────────
 
     [Fact]

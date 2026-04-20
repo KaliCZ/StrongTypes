@@ -18,7 +18,7 @@ public static class NonEmptyEnumerableExtensions
     /// <c>null</c> when the sequence is null or empty.
     /// </summary>
     public static NonEmptyEnumerable<T>? TryAsNonEmpty<T>(this IEnumerable<T>? source)
-        => NonEmptyEnumerable.TryCreate(source);
+        => NonEmptyEnumerable.TryCreateRange(source);
 
     /// <summary>
     /// Maps every element and returns a <see cref="NonEmptyEnumerable{TResult}"/> — the

@@ -18,7 +18,7 @@ public static partial class IEnumerableExtensions
         {
             null => Option.Empty<INonEmptyEnumerable<T>>(),
             INonEmptyEnumerable<T> list => Option.Valued(list),
-            _ => NonEmptyEnumerable.TryCreate(source) is { } nel
+            _ => NonEmptyEnumerable.TryCreateRange(source) is { } nel
                 ? Option.Valued<INonEmptyEnumerable<T>>(nel)
                 : Option.Empty<INonEmptyEnumerable<T>>()
         };
