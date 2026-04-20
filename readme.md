@@ -7,11 +7,12 @@
 [![NuGet Version](https://img.shields.io/nuget/v/Kalicz.StrongTypes)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
 
-StrongTypes adds small, focused value types to C# that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive". Instead of validating the same invariant at every call site, you validate once at the boundary and pass the strong type onwards. The compiler then guarantees the invariant holds wherever that type appears.
+StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused value types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive". Every type ships with `System.Text.Json` converters wired up out of the box, so validation runs at the wire boundary during deserialization without any extra setup.
 
 ## Contents
 
-- [Strong value types](#strong-value-types)
+- [`Maybe<T>`](#maybet)
+- [Helpful Types](#helpful-types)
   - [`NonEmptyString`](#nonemptystring)
   - [Numeric wrappers: `Positive<T>`, `NonNegative<T>`, `Negative<T>`, `NonPositive<T>`](#numeric-wrappers)
   - [What you get for free](#what-you-get-for-free)
@@ -25,7 +26,59 @@ StrongTypes adds small, focused value types to C# that make everyday code safer 
   - [`Try<A, E>`](#trya-e)
   - [`Coproduct`](#coproduct)
 
-## Strong value types
+## `Maybe<T>`
+
+A value type that holds either a value of `T` (`Some`) or no value (`None`). It works for both reference and value types, plays well with collection expressions, LINQ, pattern matching, and `System.Text.Json`, and avoids the double-wrap awkwardness that `Nullable<T>` has when `T` is itself nullable.
+
+```csharp
+Maybe<int>    some   = Maybe.Some(42);   // T inferred from the argument
+Maybe<int>    direct = 42;               // implicit conversion from T
+Maybe<string> none   = Maybe.None;       // binds to whatever Maybe<T> the context expects
+```
+
+The implicit conversions from `T` and from the untyped `Maybe.None` make collection expressions read naturally — no need to spell out `Maybe<int>.Some(...)` for every element:
+
+```csharp
+Maybe<int>[] xs = [4, 2, 3, Maybe.None, 4];
+int[] values = xs.Values().ToArray();    // [4, 2, 3, 4]
+```
+
+### Unwrapping
+
+The idiomatic "has value" check uses the `is { } v` pattern on the `Value` extension property. `Value` is provided through C# 14 extension members split between struct- and class-constrained branches, so it returns `Nullable<T>` for value types and `T?` for reference types — and the pattern unwraps to the underlying `T` directly:
+
+```csharp
+if (maybe.Value is { } v)
+{
+    // v is the underlying T — int (not int?), string (not string?)
+}
+```
+
+For exhaustive handling, `Match` takes both branches:
+
+```csharp
+var label = maybe.Match(
+    ifSome: x => $"got {x}",
+    ifNone: () => "nothing"
+);
+```
+
+### Composition
+
+`Maybe<T>` composes monadically through `Map`, `FlatMap`, and `Where`, and supports LINQ query syntax via `Select` / `SelectMany`:
+
+```csharp
+var sum =
+    from a in Maybe<int>.Some(2)
+    from b in Maybe<int>.Some(3)
+    select a + b;                        // Maybe<int>.Some(5)
+```
+
+### JSON
+
+`Maybe<T>` serializes via `System.Text.Json` as `{ "Value": x }` for `Some` and `{ "Value": null }` for `None`. Deserialization also accepts `{}` for `None`, so callers can omit the property entirely.
+
+## Helpful Types
 
 ### `NonEmptyString`
 
@@ -182,7 +235,7 @@ Roles          role = header.ToEnum<Roles>();   // throws ArgumentException
 An `Option<A>` represents a value that may or may not be available. In modern C# with nullable reference types enabled, `T?` already covers this case at the language level, so `Option<A>` has become redundant.
 
 > [!WARNING]
-> `Option<A>` will be replaced by a modern `Maybe<T>` implementation that supports pattern matching and integrates cleanly with nullable reference types.
+> `Option<A>` is superseded by [`Maybe<T>`](#maybet). New code should use `Maybe<T>`; `Option<A>` will be removed in a future release.
 
 ### `Try<A, E>`
 

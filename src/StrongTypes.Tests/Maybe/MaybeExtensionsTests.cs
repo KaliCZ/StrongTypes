@@ -281,7 +281,7 @@ public class MaybeExtensionsTests
     [Fact]
     public void Values_FiltersEmptiesAndUnwrapsSome()
     {
-        Maybe<int>[] input = [Maybe<int>.Some(1), Maybe<int>.None, Maybe<int>.Some(2), Maybe<int>.None];
+        Maybe<int>[] input = [1, Maybe.None, 2, Maybe.None];
         Assert.Equal([1, 2], input.Values().ToArray());
     }
 

@@ -47,6 +47,11 @@ public readonly struct Maybe<T> :
     // gets from the language.
     public static implicit operator Maybe<T>(MaybeNone _) => default;
 
+    // Lets a bare T flow into a Maybe<T> slot — most useful inside collection
+    // expressions like `Maybe<int>[] xs = [1, 2, Maybe.None, 4]`, where each
+    // numeric literal converts to Maybe<int>.Some(literal).
+    public static implicit operator Maybe<T>(T value) => Some(value);
+
     #region Match / Map / FlatMap / Where
 
     public R Match<R>(Func<T, R> ifSome, Func<R> ifNone) =>
