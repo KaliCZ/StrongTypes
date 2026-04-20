@@ -123,6 +123,11 @@ public readonly struct Maybe<T> :
     public static bool operator ==(Maybe<T> left, Maybe<T> right) => left.Equals(right);
     public static bool operator !=(Maybe<T> left, Maybe<T> right) => !left.Equals(right);
 
+    public static bool operator ==(Maybe<T> left, T right) => left.Equals(right);
+    public static bool operator !=(Maybe<T> left, T right) => !left.Equals(right);
+    public static bool operator ==(T left, Maybe<T> right) => right.Equals(left);
+    public static bool operator !=(T left, Maybe<T> right) => !right.Equals(left);
+
     #endregion
 
     #region Comparison
@@ -140,6 +145,23 @@ public readonly struct Maybe<T> :
         if (IsNone) return other is null ? 0 : -1;
         return Comparer<T>.Default.Compare(InternalValue, other!);
     }
+
+    public static bool operator <(Maybe<T> left, Maybe<T> right) => left.CompareTo(right) < 0;
+    public static bool operator <=(Maybe<T> left, Maybe<T> right) => left.CompareTo(right) <= 0;
+    public static bool operator >(Maybe<T> left, Maybe<T> right) => left.CompareTo(right) > 0;
+    public static bool operator >=(Maybe<T> left, Maybe<T> right) => left.CompareTo(right) >= 0;
+
+    public static bool operator <(Maybe<T> left, T right) => left.CompareTo(right) < 0;
+    public static bool operator <=(Maybe<T> left, T right) => left.CompareTo(right) <= 0;
+    public static bool operator >(Maybe<T> left, T right) => left.CompareTo(right) > 0;
+    public static bool operator >=(Maybe<T> left, T right) => left.CompareTo(right) >= 0;
+
+    // (T, Maybe<T>) ordering inverts the sign because we delegate to the same
+    // CompareTo on the right operand.
+    public static bool operator <(T left, Maybe<T> right) => right.CompareTo(left) > 0;
+    public static bool operator <=(T left, Maybe<T> right) => right.CompareTo(left) >= 0;
+    public static bool operator >(T left, Maybe<T> right) => right.CompareTo(left) < 0;
+    public static bool operator >=(T left, Maybe<T> right) => right.CompareTo(left) <= 0;
 
     #endregion
 

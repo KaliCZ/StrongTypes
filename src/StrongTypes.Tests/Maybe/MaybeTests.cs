@@ -331,6 +331,58 @@ public class MaybeTests
         Assert.Equal(System.Math.Sign(a.CompareTo(b)), System.Math.Sign(result));
     }
 
+    // ── Operators (==, !=, <, <=, >, >= agree with Equals/CompareTo) ────
+
+    [Property]
+    public void Operators_Equality_AgreesWithEquals(Maybe<int> a, Maybe<int> b)
+    {
+        Assert.Equal(a.Equals(b), a == b);
+        Assert.Equal(!a.Equals(b), a != b);
+    }
+
+    [Property]
+    public void Operators_EqualityAgainstT_AgreesWithEquals(Maybe<int> m, int t)
+    {
+        Assert.Equal(m.Equals(t), m == t);
+        Assert.Equal(m.Equals(t), t == m);
+        Assert.Equal(!m.Equals(t), m != t);
+        Assert.Equal(!m.Equals(t), t != m);
+    }
+
+    [Property]
+    public void Operators_Comparison_AgreesWithCompareTo(Maybe<int> a, Maybe<int> b)
+    {
+        var c = a.CompareTo(b);
+        Assert.Equal(c < 0, a < b);
+        Assert.Equal(c <= 0, a <= b);
+        Assert.Equal(c > 0, a > b);
+        Assert.Equal(c >= 0, a >= b);
+    }
+
+    [Property]
+    public void Operators_ComparisonAgainstT_AgreesWithCompareTo(Maybe<int> m, int t)
+    {
+        var c = m.CompareTo(t);
+        Assert.Equal(c < 0, m < t);
+        Assert.Equal(c <= 0, m <= t);
+        Assert.Equal(c > 0, m > t);
+        Assert.Equal(c >= 0, m >= t);
+        // (T, Maybe<T>) flips the sign because both delegate to CompareTo on the Maybe side.
+        Assert.Equal(c > 0, t < m);
+        Assert.Equal(c >= 0, t <= m);
+        Assert.Equal(c < 0, t > m);
+        Assert.Equal(c <= 0, t >= m);
+    }
+
+    [Fact]
+    public void Operators_NoneOrdersBeforeAnySome()
+    {
+        Assert.True(Maybe<int>.None < Maybe<int>.Some(int.MinValue));
+        Assert.True(Maybe<int>.None < 0);
+        Assert.True(0 > Maybe<int>.None);
+        Assert.False(Maybe<int>.None > 0);
+    }
+
     // ── ToString ────────────────────────────────────────────────────────
 
     [Fact]
