@@ -21,7 +21,7 @@ public static class Generators
     public static Arbitrary<NonEmptyString> NonEmptyString { get; } =
         Arb.From(ArbMap.Default.ArbFor<string>().Generator
             .Where(s => !string.IsNullOrWhiteSpace(s))
-            .Select(StrongTypes.NonEmptyString.Create));
+            .Select(s => s.ToNonEmpty()));
 
     /// <summary>
     /// <see cref="NonEmptyString"/> with ~10% chance of <c>null</c>. Tuned
@@ -39,7 +39,7 @@ public static class Generators
     public static Arbitrary<Positive<int>> PositiveInt { get; } =
         Arb.From(ArbMap.Default.ArbFor<int>().Generator
             .Where(i => i > 0)
-            .Select(Positive<int>.Create));
+            .Select(i => i.ToPositive()));
 
     /// <summary>
     /// <see cref="Negative{Int32}"/> — values strictly less than zero.
@@ -47,7 +47,7 @@ public static class Generators
     public static Arbitrary<Negative<int>> NegativeInt { get; } =
         Arb.From(ArbMap.Default.ArbFor<int>().Generator
             .Where(i => i < 0)
-            .Select(Negative<int>.Create));
+            .Select(i => i.ToNegative()));
 
     /// <summary>
     /// <see cref="NonNegative{Int32}"/> — values greater than or equal to zero.
@@ -55,7 +55,7 @@ public static class Generators
     public static Arbitrary<NonNegative<int>> NonNegativeInt { get; } =
         Arb.From(ArbMap.Default.ArbFor<int>().Generator
             .Where(i => i >= 0)
-            .Select(NonNegative<int>.Create));
+            .Select(i => i.ToNonNegative()));
 
     /// <summary>
     /// <see cref="NonPositive{Int32}"/> — values less than or equal to zero.
@@ -63,7 +63,7 @@ public static class Generators
     public static Arbitrary<NonPositive<int>> NonPositiveInt { get; } =
         Arb.From(ArbMap.Default.ArbFor<int>().Generator
             .Where(i => i <= 0)
-            .Select(NonPositive<int>.Create));
+            .Select(i => i.ToNonPositive()));
 
     /// <summary>
     /// <see cref="Maybe{Int32}"/> with ~20% chance of <see cref="Maybe{T}.None"/>.
@@ -74,18 +74,19 @@ public static class Generators
     public static Arbitrary<Maybe<int>> MaybeInt { get; } =
         Arb.From(Gen.Frequency(
             (1, Gen.Constant(Maybe<int>.None)),
-            (4, ArbMap.Default.ArbFor<int>().Generator.Select(Maybe<int>.Some))));
+            (4, ArbMap.Default.ArbFor<int>().Generator.Select(Maybe.Some))));
 
     /// <summary>
     /// <see cref="Maybe{String}"/> with ~20% chance of <see cref="Maybe{T}.None"/>.
-    /// Only <c>null</c> from the underlying generator collapses to None — empty
-    /// and whitespace strings are valid <c>Some</c> values, since <c>string</c>
-    /// itself doesn't forbid them. Use <see cref="MaybeNonEmptyString"/> when
-    /// you want the non-empty invariant.
+    /// FsCheck's default <c>string</c> generator never produces <c>null</c>, so
+    /// the None branch has to be injected explicitly via <see cref="Gen.Frequency"/>.
+    /// Empty and whitespace strings are kept as valid <c>Some</c> values — use
+    /// <see cref="MaybeNonEmptyString"/> when you want the non-empty invariant.
     /// </summary>
     public static Arbitrary<Maybe<string>> MaybeString { get; } =
-        Arb.From(ArbMap.Default.ArbFor<string>().Generator
-            .Select(s => s is null ? Maybe<string>.None : Maybe<string>.Some(s)));
+        Arb.From(Gen.Frequency(
+            (1, Gen.Constant(Maybe<string>.None)),
+            (4, ArbMap.Default.ArbFor<string>().Generator.Select(Maybe.Some))));
 
     /// <summary>
     /// <see cref="Maybe{T}"/> of <see cref="NonEmptyString"/> with ~20% None rate.
@@ -93,7 +94,7 @@ public static class Generators
     public static Arbitrary<Maybe<NonEmptyString>> MaybeNonEmptyString { get; } =
         Arb.From(Gen.Frequency(
             (1, Gen.Constant(Maybe<NonEmptyString>.None)),
-            (4, NonEmptyString.Generator.Select(Maybe<NonEmptyString>.Some))));
+            (4, NonEmptyString.Generator.Select(Maybe.Some))));
 
     /// <summary>
     /// <see cref="Maybe{T}"/> of <see cref="Positive{Int32}"/> with ~20% None rate.
@@ -101,5 +102,5 @@ public static class Generators
     public static Arbitrary<Maybe<Positive<int>>> MaybePositiveInt { get; } =
         Arb.From(Gen.Frequency(
             (1, Gen.Constant(Maybe<Positive<int>>.None)),
-            (4, PositiveInt.Generator.Select(Maybe<Positive<int>>.Some))));
+            (4, PositiveInt.Generator.Select(Maybe.Some))));
 }
