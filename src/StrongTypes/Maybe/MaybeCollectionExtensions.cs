@@ -75,10 +75,10 @@ public static class MaybeCollectionExtensions
     public static Maybe<T> SafeFirst<T>(this IEnumerable<T> source) where T : notnull
     {
         if (source is IReadOnlyList<T> list)
-            return list.Count == 0 ? Maybe<T>.None : Maybe<T>.Some(list[0]);
+            return list.Count == 0 ? default : Maybe<T>.Some(list[0]);
 
         using var enumerator = source.GetEnumerator();
-        return enumerator.MoveNext() ? Maybe<T>.Some(enumerator.Current) : Maybe<T>.None;
+        return enumerator.MoveNext() ? Maybe<T>.Some(enumerator.Current) : default;
     }
 
     public static Maybe<T> SafeLast<T>(this IEnumerable<T> source, Func<T, bool> predicate)
@@ -88,7 +88,7 @@ public static class MaybeCollectionExtensions
     public static Maybe<T> SafeLast<T>(this IEnumerable<T> source) where T : notnull
     {
         if (source is IReadOnlyList<T> list)
-            return list.Count == 0 ? Maybe<T>.None : Maybe<T>.Some(list[list.Count - 1]);
+            return list.Count == 0 ? default : Maybe<T>.Some(list[list.Count - 1]);
 
         return source.Reverse().SafeFirst();
     }
@@ -104,9 +104,9 @@ public static class MaybeCollectionExtensions
     public static Maybe<T> SafeSingle<T>(this IEnumerable<T> source) where T : notnull
     {
         using var enumerator = source.GetEnumerator();
-        if (!enumerator.MoveNext()) return Maybe<T>.None;
+        if (!enumerator.MoveNext()) return default;
         var candidate = enumerator.Current;
-        return enumerator.MoveNext() ? Maybe<T>.None : Maybe<T>.Some(candidate);
+        return enumerator.MoveNext() ? default : Maybe<T>.Some(candidate);
     }
 
     public static Maybe<TValue> SafeMax<T, TValue>(this IEnumerable<T> source, Func<T, TValue> selector)
@@ -116,7 +116,7 @@ public static class MaybeCollectionExtensions
     public static Maybe<T> SafeMax<T>(this IEnumerable<T> source) where T : notnull
     {
         using var enumerator = source.GetEnumerator();
-        if (!enumerator.MoveNext()) return Maybe<T>.None;
+        if (!enumerator.MoveNext()) return default;
         var max = enumerator.Current;
         var comparer = Comparer<T>.Default;
         while (enumerator.MoveNext())
@@ -133,7 +133,7 @@ public static class MaybeCollectionExtensions
     public static Maybe<T> SafeMin<T>(this IEnumerable<T> source) where T : notnull
     {
         using var enumerator = source.GetEnumerator();
-        if (!enumerator.MoveNext()) return Maybe<T>.None;
+        if (!enumerator.MoveNext()) return default;
         var min = enumerator.Current;
         var comparer = Comparer<T>.Default;
         while (enumerator.MoveNext())

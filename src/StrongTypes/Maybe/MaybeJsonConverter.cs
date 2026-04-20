@@ -41,7 +41,7 @@ public sealed class MaybeJsonConverterFactory : JsonConverterFactory
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException($"Expected StartObject for {typeof(Maybe<T>).Name}, got {reader.TokenType}.");
 
-            var result = Maybe<T>.None;
+            Maybe<T> result = default;
             while (reader.Read())
             {
                 if (reader.TokenType == JsonTokenType.EndObject) return result;
@@ -56,7 +56,7 @@ public sealed class MaybeJsonConverterFactory : JsonConverterFactory
                 {
                     if (reader.TokenType == JsonTokenType.Null)
                     {
-                        result = Maybe<T>.None;
+                        result = default;
                     }
                     else
                     {

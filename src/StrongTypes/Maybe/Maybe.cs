@@ -59,13 +59,13 @@ public readonly struct Maybe<T> :
     }
 
     public Maybe<B> Map<B>(Func<T, B> f) where B : notnull =>
-        IsSome ? Maybe<B>.Some(f(InternalValue)) : Maybe<B>.None;
+        IsSome ? Maybe<B>.Some(f(InternalValue)) : default;
 
     public Maybe<B> FlatMap<B>(Func<T, Maybe<B>> f) where B : notnull =>
-        IsSome ? f(InternalValue) : Maybe<B>.None;
+        IsSome ? f(InternalValue) : default;
 
     public Maybe<T> Where(Func<T, bool> predicate) =>
-        IsSome && predicate(InternalValue) ? this : None;
+        IsSome && predicate(InternalValue) ? this : default;
 
     #endregion
 

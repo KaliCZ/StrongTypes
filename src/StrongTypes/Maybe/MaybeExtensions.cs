@@ -56,12 +56,12 @@ public static class MaybeExtensions
     public static async Task<Maybe<B>> MapAsync<A, B>(this Maybe<A> m, Func<A, Task<B>> f)
         where A : notnull
         where B : notnull
-        => m.HasValue ? Maybe<B>.Some(await f(m.InternalValue)) : Maybe<B>.None;
+        => m.HasValue ? Maybe<B>.Some(await f(m.InternalValue)) : default;
 
     public static async Task<Maybe<B>> FlatMapAsync<A, B>(this Maybe<A> m, Func<A, Task<Maybe<B>>> f)
         where A : notnull
         where B : notnull
-        => m.HasValue ? await f(m.InternalValue) : Maybe<B>.None;
+        => m.HasValue ? await f(m.InternalValue) : default;
 
     public static async Task MatchAsync<A>(
         this Maybe<A> m,
@@ -99,11 +99,11 @@ public static class MaybeExtensions
 
     public static Maybe<T> ToMaybe<T>(this T? value)
         where T : struct
-        => value.HasValue ? Maybe<T>.Some(value.Value) : Maybe<T>.None;
+        => value.HasValue ? Maybe<T>.Some(value.Value) : default;
 
     public static Maybe<T> ToMaybe<T>(this T? value)
         where T : class
-        => value is not null ? Maybe<T>.Some(value) : Maybe<T>.None;
+        => value is not null ? Maybe<T>.Some(value) : default;
 
     #endregion
 }
