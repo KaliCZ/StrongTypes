@@ -7,4 +7,4 @@ namespace StrongTypes.Api.Controllers;
 [ApiController]
 [Route("non-positive-double-entities")]
 public sealed class NonPositiveDoubleEntityController(SqlServerDbContext sqlCtx, PostgreSqlDbContext pgCtx)
-    : EntityControllerBase<NonPositiveDoubleEntity, NonPositive<double>, NonPositive<double>?>(sqlCtx, pgCtx);
+    : StructTypeEntityControllerBase<NonPositiveDoubleEntity, NonPositive<double>>(sqlCtx, pgCtx);

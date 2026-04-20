@@ -48,6 +48,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
 
     protected string CreateEndpoint => $"/{RoutePrefix}";
     protected string UpdateEndpoint(Guid id) => $"/{RoutePrefix}/{id}";
+    protected string PatchEndpoint(Guid id) => $"/{RoutePrefix}/{id}";
     protected string SqlServerGetEndpoint(Guid id) => $"/{RoutePrefix}/{id}/sql-server";
     protected string PostgreSqlGetEndpoint(Guid id) => $"/{RoutePrefix}/{id}/postgresql";
 
@@ -70,6 +71,12 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     {
         var response = await Client.PutAsJsonAsync(url, body, Ct);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    protected async Task<HttpResponseMessage> Patch(string url, object body)
+    {
+        using var content = JsonContent.Create(body);
+        return await Client.PatchAsync(url, content, Ct);
     }
 
     protected async Task<JsonElement> Get(string url)
@@ -123,8 +130,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     [Fact]
     public async Task ValidValueWithNullNullable_PersistsInBothDatabases()
     {
-        var created = await Post(CreateEndpoint,
-            new { value = (object?)FirstValid, nullableValue = (object?)null });
+        var created = await Post(CreateEndpoint, new { value = (object?)FirstValid, nullableValue = (object?)null });
         await AssertEntity(SqlSet, created.Id, Create(FirstValid), NullNullable);
         await AssertEntity(PgSet, created.Id, Create(FirstValid), NullNullable);
     }
@@ -137,8 +143,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     [MemberData(InvalidInputsMember)]
     public async Task InvalidValue_ReturnsBadRequest(TWire invalid)
     {
-        var response = await Client.PostAsJsonAsync(
-            CreateEndpoint, new { value = (object?)invalid, nullableValue = (object?)FirstValid }, Ct);
+        var response = await Client.PostAsJsonAsync(CreateEndpoint, new { value = (object?)invalid, nullableValue = (object?)FirstValid }, Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
@@ -146,8 +151,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     [MemberData(InvalidInputsMember)]
     public async Task InvalidNullableValue_ReturnsBadRequest(TWire invalid)
     {
-        var response = await Client.PostAsJsonAsync(
-            CreateEndpoint, new { value = (object?)FirstValid, nullableValue = (object?)invalid }, Ct);
+        var response = await Client.PostAsJsonAsync(CreateEndpoint, new { value = (object?)FirstValid, nullableValue = (object?)invalid }, Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 #pragma warning restore xUnit1015
@@ -211,8 +215,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     public async Task Update_PersistsNewValueAndNullableValueInBothDatabases()
     {
         var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
-        await Put(UpdateEndpoint(created.Id),
-            new { value = UpdatedValid, nullableValue = UpdatedValid });
+        await Put(UpdateEndpoint(created.Id), new { value = UpdatedValid, nullableValue = UpdatedValid });
 
         var updated = Create(UpdatedValid);
         await AssertEntity(SqlSet, created.Id, updated, ToNullable(updated));
@@ -222,10 +225,8 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     [Fact]
     public async Task Update_SetsNullableValueFromNullToValueInBothDatabases()
     {
-        var created = await Post(CreateEndpoint,
-            new { value = (object?)FirstValid, nullableValue = (object?)null });
-        await Put(UpdateEndpoint(created.Id),
-            new { value = (object?)FirstValid, nullableValue = (object?)UpdatedValid });
+        var created = await Post(CreateEndpoint, new { value = (object?)FirstValid, nullableValue = (object?)null });
+        await Put(UpdateEndpoint(created.Id), new { value = (object?)FirstValid, nullableValue = (object?)UpdatedValid });
 
         await AssertEntity(SqlSet, created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
         await AssertEntity(PgSet, created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
@@ -235,11 +236,111 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     public async Task Update_ClearsNullableValueToNullInBothDatabases()
     {
         var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
-        await Put(UpdateEndpoint(created.Id),
-            new { value = (object?)FirstValid, nullableValue = (object?)null });
+        await Put(UpdateEndpoint(created.Id), new { value = (object?)FirstValid, nullableValue = (object?)null });
 
         await AssertEntity(SqlSet, created.Id, Create(FirstValid), NullNullable);
         await AssertEntity(PgSet, created.Id, Create(FirstValid), NullNullable);
+    }
+
+    // ── Patch ────────────────────────────────────────────────────────────
+    //
+    // Patch wire semantics:
+    //   Value        — null/absent ⇒ skip. Non-null ⇒ update.
+    //   NullableValue — null/absent ⇒ skip. Maybe Some ⇒ update. Maybe Empty ⇒ clear.
+    // "Empty" on the wire is any of {}, {"Value":null}, or {"value":null}.
+
+    [Fact]
+    public async Task Patch_EmptyBody_LeavesBothFieldsUnchanged()
+    {
+        var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
+
+        var response = await Patch(PatchEndpoint(created.Id), new { });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var expected = Create(FirstValid);
+        await AssertEntity(SqlSet, created.Id, expected, ToNullable(expected));
+        await AssertEntity(PgSet, created.Id, expected, ToNullable(expected));
+    }
+
+    [Fact]
+    public async Task Patch_ValueOnly_UpdatesValueLeavesNullableValueUnchanged()
+    {
+        var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
+
+        var response = await Patch(PatchEndpoint(created.Id), new { value = UpdatedValid });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await AssertEntity(SqlSet, created.Id, Create(UpdatedValid), ToNullable(Create(FirstValid)));
+        await AssertEntity(PgSet, created.Id, Create(UpdatedValid), ToNullable(Create(FirstValid)));
+    }
+
+    [Fact]
+    public async Task Patch_ExplicitNullValue_LeavesValueUnchanged()
+    {
+        var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
+
+        var response = await Patch(PatchEndpoint(created.Id),
+            new { value = (object?)null, nullableValue = (object?)null });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var expected = Create(FirstValid);
+        await AssertEntity(SqlSet, created.Id, expected, ToNullable(expected));
+        await AssertEntity(PgSet, created.Id, expected, ToNullable(expected));
+    }
+
+    [Fact]
+    public async Task Patch_NullableValueSome_UpdatesNullableValueLeavesValueUnchanged()
+    {
+        var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = (object?)null });
+
+        var response = await Patch(PatchEndpoint(created.Id), new { nullableValue = new { Value = UpdatedValid } });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await AssertEntity(SqlSet, created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
+        await AssertEntity(PgSet, created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
+    }
+
+    [Fact]
+    public async Task Patch_NullableValueEmptyObject_ClearsNullableValue()
+    {
+        var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
+
+        var response = await Patch(PatchEndpoint(created.Id), new { nullableValue = new { } });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await AssertEntity(SqlSet, created.Id, Create(FirstValid), NullNullable);
+        await AssertEntity(PgSet, created.Id, Create(FirstValid), NullNullable);
+    }
+
+    [Fact]
+    public async Task Patch_NullableValueWithExplicitNullInner_ClearsNullableValue()
+    {
+        var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
+
+        var response = await Patch(PatchEndpoint(created.Id), new { nullableValue = new { Value = (object?)null } });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await AssertEntity(SqlSet, created.Id, Create(FirstValid), NullNullable);
+        await AssertEntity(PgSet, created.Id, Create(FirstValid), NullNullable);
+    }
+
+    [Fact]
+    public async Task Patch_UpdatesBothFieldsIndependently()
+    {
+        var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = (object?)null });
+
+        var response = await Patch(PatchEndpoint(created.Id), new { value = UpdatedValid, nullableValue = new { Value = UpdatedValid } });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await AssertEntity(SqlSet, created.Id, Create(UpdatedValid), ToNullable(Create(UpdatedValid)));
+        await AssertEntity(PgSet, created.Id, Create(UpdatedValid), ToNullable(Create(UpdatedValid)));
+    }
+
+    [Fact]
+    public async Task Patch_NonExistentId_ReturnsNotFound()
+    {
+        var response = await Patch(PatchEndpoint(Guid.NewGuid()), new { value = UpdatedValid });
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     private static void AssertJsonEquals(JsonElement element, TWire expected)

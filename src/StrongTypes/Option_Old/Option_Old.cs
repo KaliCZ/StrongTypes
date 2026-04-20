@@ -10,19 +10,19 @@ public static class Option
     /// True value as an option.
     /// </summary>
     [Pure]
-    public static Option<bool> True { get; } = true.ToOption();
+    public static Option<bool> True { get; } = Valued(true);
 
     /// <summary>
     /// False value as an option.
     /// </summary>
     [Pure]
-    public static Option<bool> False { get; } = false.ToOption();
+    public static Option<bool> False { get; } = Valued(false);
 
     /// <summary>
     /// Unit value as an option.
     /// </summary>
     [Pure]
-    public static Option<Unit> Unit { get; } = StrongTypes.Unit.Value.ToOption();
+    public static Option<Unit> Unit { get; } = Valued(StrongTypes.Unit.Value);
 
     /// <summary>
     /// Creates a new option based on the specified value. Returns option with the value if is is non-null, empty otherwise.

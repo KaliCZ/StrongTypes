@@ -16,11 +16,11 @@ public static partial class IEnumerableExtensions
         {
             if (value.IsSuccess)
             {
-                successes.Add(value.Success.GetOrDefault());
+                successes.Add(value.Success.Value);
             }
             else
             {
-                errors.Add(value.Error.GetOrDefault());
+                errors.Add(value.Error.Value);
             }
         }
         return (successes, errors);
