@@ -191,8 +191,12 @@ public class MaybeJsonConverterTests
 
     // The absent/null/value distinction only matters in a parent object
     // context, because "absent" means STJ never invokes the converter for
-    // that property. A simple record exercises all three states end-to-end.
+    // that property. Two records cover both shapes end-to-end — Maybe<T>?
+    // for the tri-state PATCH case and plain Maybe<T> for the flat case.
     private sealed record PatchDto(int? Value, Maybe<int>? NullableValue);
+    private sealed record PlainDto(Maybe<int> NullableValue);
+
+    // ── Maybe<T>? as a property: read ────────────────────────────────────
 
     [Fact]
     public void ReadPatchDto_PropertyAbsent_StaysNull()
@@ -217,5 +221,72 @@ public class MaybeJsonConverterTests
         var dto = JsonSerializer.Deserialize<PatchDto>("""{"NullableValue":42}""", TriStateOptions());
         Assert.NotNull(dto);
         Assert.Equal(Maybe<int>.Some(42), dto!.NullableValue);
+    }
+
+    // ── Maybe<T>? as a property: write ───────────────────────────────────
+
+    [Fact]
+    public void WritePatchDto_PropertyNull_EmitsJsonNull()
+    {
+        var json = JsonSerializer.Serialize(new PatchDto(null, null), TriStateOptions());
+        Assert.Equal("""{"Value":null,"NullableValue":null}""", json);
+    }
+
+    [Fact]
+    public void WritePatchDto_PropertyNone_EmitsJsonNull()
+    {
+        var json = JsonSerializer.Serialize(new PatchDto(null, Maybe<int>.None), TriStateOptions());
+        Assert.Equal("""{"Value":null,"NullableValue":null}""", json);
+    }
+
+    [Fact]
+    public void WritePatchDto_PropertySome_EmitsRawValue()
+    {
+        var json = JsonSerializer.Serialize(new PatchDto(null, Maybe<int>.Some(42)), TriStateOptions());
+        Assert.Equal("""{"Value":null,"NullableValue":42}""", json);
+    }
+
+    // ── Maybe<T> as a property (non-nullable): read ──────────────────────
+    // Absent and null both land on Maybe<T>.None — the flat shape collapses
+    // them, which is why PATCH DTOs use Maybe<T>? instead.
+
+    [Fact]
+    public void ReadPlainDto_PropertyAbsent_IsNone()
+    {
+        var dto = JsonSerializer.Deserialize<PlainDto>("{}", TriStateOptions());
+        Assert.NotNull(dto);
+        Assert.Equal(Maybe<int>.None, dto!.NullableValue);
+    }
+
+    [Fact]
+    public void ReadPlainDto_PropertyJsonNull_IsNone()
+    {
+        var dto = JsonSerializer.Deserialize<PlainDto>("""{"NullableValue":null}""", TriStateOptions());
+        Assert.NotNull(dto);
+        Assert.Equal(Maybe<int>.None, dto!.NullableValue);
+    }
+
+    [Fact]
+    public void ReadPlainDto_PropertyJsonValue_IsSome()
+    {
+        var dto = JsonSerializer.Deserialize<PlainDto>("""{"NullableValue":42}""", TriStateOptions());
+        Assert.NotNull(dto);
+        Assert.Equal(Maybe<int>.Some(42), dto!.NullableValue);
+    }
+
+    // ── Maybe<T> as a property (non-nullable): write ─────────────────────
+
+    [Fact]
+    public void WritePlainDto_PropertyNone_EmitsJsonNull()
+    {
+        var json = JsonSerializer.Serialize(new PlainDto(Maybe<int>.None), TriStateOptions());
+        Assert.Equal("""{"NullableValue":null}""", json);
+    }
+
+    [Fact]
+    public void WritePlainDto_PropertySome_EmitsRawValue()
+    {
+        var json = JsonSerializer.Serialize(new PlainDto(Maybe<int>.Some(42)), TriStateOptions());
+        Assert.Equal("""{"NullableValue":42}""", json);
     }
 }
