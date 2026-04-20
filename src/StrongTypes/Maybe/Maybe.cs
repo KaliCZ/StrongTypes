@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 namespace StrongTypes;
 
 /// <summary>
-/// A value type that either holds a value of <typeparamref name="T"/> or is empty.
+/// A value type that either holds a value of <typeparamref name="T"/> (Some) or has no value (None).
 /// <para>
 /// The typical "has value" check is the extension-property pattern
 /// <c>if (maybe.Value is {} v)</c>, which unwraps to the underlying value in a single
@@ -28,37 +28,44 @@ public readonly struct Maybe<T> :
 {
     internal readonly T InternalValue;
 
-    public bool HasValue { get; }
+    public bool IsSome { get; }
+    public bool IsNone => !IsSome;
+    public bool HasValue => IsSome;
 
     private Maybe(T value)
     {
         InternalValue = value;
-        HasValue = true;
+        IsSome = true;
     }
 
     public static Maybe<T> Some(T value) => new(value);
 
-    public static Maybe<T> Empty => default;
+    public static readonly Maybe<T> None = default;
+
+    // Lets callers write the untyped `Maybe.None` and have the compiler bind it to
+    // any closed `Maybe<T>` from context — same pattern Nullable<T>'s null literal
+    // gets from the language.
+    public static implicit operator Maybe<T>(MaybeNone _) => default;
 
     #region Match / Map / FlatMap / Where
 
     public R Match<R>(Func<T, R> ifSome, Func<R> ifNone) =>
-        HasValue ? ifSome(InternalValue) : ifNone();
+        IsSome ? ifSome(InternalValue) : ifNone();
 
     public void Match(Action<T>? ifSome = null, Action? ifNone = null)
     {
-        if (HasValue) ifSome?.Invoke(InternalValue);
+        if (IsSome) ifSome?.Invoke(InternalValue);
         else ifNone?.Invoke();
     }
 
     public Maybe<B> Map<B>(Func<T, B> f) where B : notnull =>
-        HasValue ? Maybe<B>.Some(f(InternalValue)) : Maybe<B>.Empty;
+        IsSome ? Maybe<B>.Some(f(InternalValue)) : Maybe<B>.None;
 
     public Maybe<B> FlatMap<B>(Func<T, Maybe<B>> f) where B : notnull =>
-        HasValue ? f(InternalValue) : Maybe<B>.Empty;
+        IsSome ? f(InternalValue) : Maybe<B>.None;
 
     public Maybe<T> Where(Func<T, bool> predicate) =>
-        HasValue && predicate(InternalValue) ? this : Empty;
+        IsSome && predicate(InternalValue) ? this : None;
 
     #endregion
 
@@ -66,7 +73,7 @@ public readonly struct Maybe<T> :
 
     public IEnumerator<T> GetEnumerator()
     {
-        if (HasValue) yield return InternalValue;
+        if (IsSome) yield return InternalValue;
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -76,11 +83,11 @@ public readonly struct Maybe<T> :
     #region Equality
 
     public bool Equals(Maybe<T> other) =>
-        HasValue == other.HasValue
-        && (!HasValue || EqualityComparer<T>.Default.Equals(InternalValue, other.InternalValue));
+        IsSome == other.IsSome
+        && (IsNone || EqualityComparer<T>.Default.Equals(InternalValue, other.InternalValue));
 
     public bool Equals(T? other) =>
-        HasValue && other is not null && EqualityComparer<T>.Default.Equals(InternalValue, other);
+        IsSome && other is not null && EqualityComparer<T>.Default.Equals(InternalValue, other);
 
     // Cross-type equality between Maybe<string> and Maybe<NonEmptyString> mirrors the
     // legacy Option_Old behaviour. A broader scheme covering numeric strong types is
@@ -91,14 +98,14 @@ public readonly struct Maybe<T> :
 
         if (typeof(T) == typeof(string) && obj is Maybe<NonEmptyString> nesOther)
         {
-            if (HasValue != nesOther.HasValue) return false;
-            if (!HasValue) return true;
+            if (IsSome != nesOther.IsSome) return false;
+            if (IsNone) return true;
             return string.Equals((string)(object)InternalValue!, nesOther.InternalValue.Value);
         }
         if (typeof(T) == typeof(NonEmptyString) && obj is Maybe<string> strOther)
         {
-            if (HasValue != strOther.HasValue) return false;
-            if (!HasValue) return true;
+            if (IsSome != strOther.IsSome) return false;
+            if (IsNone) return true;
             return string.Equals(((NonEmptyString)(object)InternalValue!).Value, strOther.InternalValue);
         }
 
@@ -106,7 +113,7 @@ public readonly struct Maybe<T> :
     }
 
     public override int GetHashCode() =>
-        HasValue ? EqualityComparer<T>.Default.GetHashCode(InternalValue) : 0;
+        IsSome ? EqualityComparer<T>.Default.GetHashCode(InternalValue) : 0;
 
     public static bool operator ==(Maybe<T> left, Maybe<T> right) => left.Equals(right);
     public static bool operator !=(Maybe<T> left, Maybe<T> right) => !left.Equals(right);
@@ -117,30 +124,40 @@ public readonly struct Maybe<T> :
 
     public int CompareTo(Maybe<T> other)
     {
-        if (!HasValue && !other.HasValue) return 0;
-        if (!HasValue) return -1;
-        if (!other.HasValue) return 1;
+        if (IsNone && other.IsNone) return 0;
+        if (IsNone) return -1;
+        if (other.IsNone) return 1;
         return Comparer<T>.Default.Compare(InternalValue, other.InternalValue);
     }
 
     public int CompareTo(T? other)
     {
-        if (!HasValue) return other is null ? 0 : -1;
+        if (IsNone) return other is null ? 0 : -1;
         return Comparer<T>.Default.Compare(InternalValue, other!);
     }
 
     #endregion
 
-    public override string ToString() => HasValue ? $"Some({InternalValue})" : "Empty";
+    public override string ToString() => IsSome ? $"Some({InternalValue})" : "None";
 }
 
 /// <summary>
+/// Marker struct backing the untyped <see cref="Maybe.None"/> singleton. It carries
+/// no state; its only job is to be implicitly convertible to <see cref="Maybe{T}"/>
+/// for any T, so callers can write <c>Maybe.None</c> wherever a typed
+/// <c>Maybe&lt;T&gt;</c> is expected without naming T.
+/// </summary>
+public readonly struct MaybeNone;
+
+/// <summary>
 /// Factory helpers for <see cref="Maybe{T}"/> that let callers skip the explicit
-/// generic argument (e.g. <c>Maybe.Some("x")</c> instead of <c>Maybe&lt;string&gt;.Some("x")</c>).
+/// generic argument: <c>Maybe.Some(5)</c> infers <c>Maybe&lt;int&gt;</c> from the
+/// argument; <c>Maybe.None</c> binds to whatever <c>Maybe&lt;T&gt;</c> the
+/// surrounding context expects.
 /// </summary>
 public static class Maybe
 {
     public static Maybe<T> Some<T>(T value) where T : notnull => Maybe<T>.Some(value);
 
-    public static Maybe<T> Empty<T>() where T : notnull => Maybe<T>.Empty;
+    public static MaybeNone None => default;
 }

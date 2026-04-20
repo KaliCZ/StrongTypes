@@ -74,7 +74,7 @@ public class MaybeJsonConverterTests
     [Fact]
     public void Write_Empty_EmitsValueNull()
     {
-        var json = JsonSerializer.Serialize(Maybe<int>.Empty);
+        var json = JsonSerializer.Serialize(Maybe<int>.None);
         Assert.Equal("""{"Value":null}""", json);
     }
 

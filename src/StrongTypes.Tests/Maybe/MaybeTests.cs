@@ -21,7 +21,7 @@ public class MaybeTests
     [Fact]
     public void Empty_IsEmpty()
     {
-        var m = Maybe<int>.Empty;
+        var m = Maybe<int>.None;
         Assert.False(m.HasValue);
         Assert.Null(m.Value);
     }
@@ -77,7 +77,7 @@ public class MaybeTests
     [Fact]
     public void IsPattern_EmptyValueType_DoesNotMatch()
     {
-        var m = Maybe<int>.Empty;
+        var m = Maybe<int>.None;
         var matched = m.Value is { };
         Assert.False(matched);
     }
@@ -85,7 +85,7 @@ public class MaybeTests
     [Fact]
     public void IsPattern_EmptyReferenceType_DoesNotMatch()
     {
-        var m = Maybe<string>.Empty;
+        var m = Maybe<string>.None;
         var matched = m.Value is { };
         Assert.False(matched);
     }
@@ -123,7 +123,7 @@ public class MaybeTests
     public void FlatMap_Associativity(Maybe<int> m)
     {
         Maybe<int> f(int a) => Maybe<int>.Some(a + 1);
-        Maybe<int> g(int a) => a > 0 ? Maybe<int>.Some(a * 10) : Maybe<int>.Empty;
+        Maybe<int> g(int a) => a > 0 ? Maybe<int>.Some(a * 10) : Maybe<int>.None;
 
         Assert.Equal(m.FlatMap(f).FlatMap(g), m.FlatMap(a => f(a).FlatMap(g)));
     }
@@ -137,7 +137,7 @@ public class MaybeTests
     [Property]
     public void Where_False_Empty(Maybe<int> m)
     {
-        Assert.Equal(Maybe<int>.Empty, m.Where(_ => false));
+        Assert.Equal(Maybe<int>.None, m.Where(_ => false));
     }
 
     // ── Match ───────────────────────────────────────────────────────────
@@ -152,7 +152,7 @@ public class MaybeTests
     [Fact]
     public void Match_Empty_InvokesIfNone()
     {
-        var result = Maybe<int>.Empty.Match(x => x + 1, () => -1);
+        var result = Maybe<int>.None.Match(x => x + 1, () => -1);
         Assert.Equal(-1, result);
     }
 
@@ -171,7 +171,7 @@ public class MaybeTests
     {
         var someHits = 0;
         var noneHits = 0;
-        Maybe<int>.Empty.Match(_ => someHits++, () => noneHits++);
+        Maybe<int>.None.Match(_ => someHits++, () => noneHits++);
         Assert.Equal(0, someHits);
         Assert.Equal(1, noneHits);
     }
@@ -180,7 +180,7 @@ public class MaybeTests
     public void Match_Void_NullActionsAreSkipped()
     {
         Maybe<int>.Some(1).Match(ifNone: () => Assert.Fail());
-        Maybe<int>.Empty.Match(ifSome: _ => Assert.Fail());
+        Maybe<int>.None.Match(ifSome: _ => Assert.Fail());
     }
 
     // ── Enumeration / `..` spread / foreach ─────────────────────────────
@@ -188,7 +188,7 @@ public class MaybeTests
     [Fact]
     public void Spread_Empty_YieldsNoElements()
     {
-        var maybe = Maybe<int>.Empty;
+        var maybe = Maybe<int>.None;
         int[] spread = [.. maybe];
         Assert.Empty(spread);
     }
@@ -213,7 +213,7 @@ public class MaybeTests
     public void Foreach_Empty_IteratesZeroTimes()
     {
         var count = 0;
-        foreach (var _ in Maybe<int>.Empty) count++;
+        foreach (var _ in Maybe<int>.None) count++;
         Assert.Equal(0, count);
     }
 
@@ -237,8 +237,8 @@ public class MaybeTests
     [Fact]
     public void Equality_EmptyEqualsEmpty_AcrossInstances()
     {
-        Assert.Equal(Maybe<int>.Empty, default);
-        Assert.Equal(Maybe<string>.Empty, default);
+        Assert.Equal(Maybe<int>.None, default);
+        Assert.Equal(Maybe<string>.None, default);
     }
 
     [Fact]
@@ -252,14 +252,14 @@ public class MaybeTests
     [Fact]
     public void Equality_DirectTValue_Empty()
     {
-        Assert.False(Maybe<int>.Empty.Equals(0));
+        Assert.False(Maybe<int>.None.Equals(0));
     }
 
     [Fact]
     public void Equality_HashCodesMatch_WhenEqual()
     {
         Assert.Equal(Maybe<int>.Some(5).GetHashCode(), Maybe<int>.Some(5).GetHashCode());
-        Assert.Equal(Maybe<int>.Empty.GetHashCode(), Maybe<int>.Empty.GetHashCode());
+        Assert.Equal(Maybe<int>.None.GetHashCode(), Maybe<int>.None.GetHashCode());
     }
 
     // ── Cross-type equality: Maybe<string> <-> Maybe<NonEmptyString> ────
@@ -285,8 +285,8 @@ public class MaybeTests
     [Fact]
     public void CrossTypeEquality_BothEmpty_Equal()
     {
-        Assert.True(Maybe<string>.Empty.Equals((object)Maybe<NonEmptyString>.Empty));
-        Assert.True(Maybe<NonEmptyString>.Empty.Equals((object)Maybe<string>.Empty));
+        Assert.True(Maybe<string>.None.Equals((object)Maybe<NonEmptyString>.None));
+        Assert.True(Maybe<NonEmptyString>.None.Equals((object)Maybe<string>.None));
     }
 
     [Fact]
@@ -302,26 +302,26 @@ public class MaybeTests
     [Fact]
     public void CompareTo_EmptyLessThanAnyValue()
     {
-        Assert.True(Maybe<int>.Empty.CompareTo(Maybe<int>.Some(int.MinValue)) < 0);
-        Assert.True(Maybe<int>.Empty.CompareTo(Maybe<int>.Some(0)) < 0);
+        Assert.True(Maybe<int>.None.CompareTo(Maybe<int>.Some(int.MinValue)) < 0);
+        Assert.True(Maybe<int>.None.CompareTo(Maybe<int>.Some(0)) < 0);
     }
 
     [Fact]
     public void CompareTo_TwoEmpty_Equal()
     {
-        Assert.Equal(0, Maybe<int>.Empty.CompareTo(Maybe<int>.Empty));
+        Assert.Equal(0, Maybe<int>.None.CompareTo(Maybe<int>.None));
     }
 
     [Fact]
     public void CompareTo_SomeGreaterThanEmpty()
     {
-        Assert.True(Maybe<int>.Some(0).CompareTo(Maybe<int>.Empty) > 0);
+        Assert.True(Maybe<int>.Some(0).CompareTo(Maybe<int>.None) > 0);
     }
 
     [Fact]
     public void CompareTo_DirectTValue_EmptyLessThan()
     {
-        Assert.True(Maybe<int>.Empty.CompareTo(0) < 0);
+        Assert.True(Maybe<int>.None.CompareTo(0) < 0);
     }
 
     [Property]
@@ -337,5 +337,5 @@ public class MaybeTests
     public void ToString_Some() => Assert.Equal("Some(5)", Maybe<int>.Some(5).ToString());
 
     [Fact]
-    public void ToString_Empty() => Assert.Equal("Empty", Maybe<int>.Empty.ToString());
+    public void ToString_None() => Assert.Equal("None", Maybe<int>.None.ToString());
 }

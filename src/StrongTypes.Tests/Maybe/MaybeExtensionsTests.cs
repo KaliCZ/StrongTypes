@@ -23,7 +23,7 @@ public class MaybeExtensionsTests
     [Property]
     public void SelectMany_IsFlatMap(Maybe<int> m)
     {
-        Maybe<int> f(int x) => x > 0 ? Maybe<int>.Some(x * 2) : Maybe<int>.Empty;
+        Maybe<int> f(int x) => x > 0 ? Maybe<int>.Some(x * 2) : Maybe<int>.None;
         Assert.Equal(m.FlatMap(f), m.SelectMany(f));
     }
 
@@ -44,7 +44,7 @@ public class MaybeExtensionsTests
     {
         var result =
             from a in Maybe<int>.Some(2)
-            from b in Maybe<int>.Empty
+            from b in Maybe<int>.None
             select a + b;
 
         Assert.False(result.HasValue);
@@ -67,14 +67,14 @@ public class MaybeExtensionsTests
     public async Task MapAsync_Empty_DoesNotInvokeFunc()
     {
         var invoked = false;
-        var result = await Maybe<int>.Empty.MapAsync(async x =>
+        var result = await Maybe<int>.None.MapAsync(async x =>
         {
             invoked = true;
             await Task.Yield();
             return x;
         });
         Assert.False(invoked);
-        Assert.Equal(Maybe<int>.Empty, result);
+        Assert.Equal(Maybe<int>.None, result);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class MaybeExtensionsTests
         var result = await Maybe<int>.Some(3).FlatMapAsync(async x =>
         {
             await Task.Yield();
-            return x > 0 ? Maybe<int>.Some(x * x) : Maybe<int>.Empty;
+            return x > 0 ? Maybe<int>.Some(x * x) : Maybe<int>.None;
         });
         Assert.Equal(Maybe<int>.Some(9), result);
     }
@@ -100,7 +100,7 @@ public class MaybeExtensionsTests
     [Fact]
     public async Task MatchAsync_WithResult_Empty()
     {
-        var result = await Maybe<int>.Empty.MatchAsync(
+        var result = await Maybe<int>.None.MatchAsync(
             async x => { await Task.Yield(); return x + 1; },
             async () => { await Task.Yield(); return -1; });
         Assert.Equal(-1, result);
@@ -120,7 +120,7 @@ public class MaybeExtensionsTests
     public async Task MatchAsync_Void_Empty_NullIfNoneIsNoop()
     {
         // ifNone is optional; make sure a null doesn't throw.
-        await Maybe<int>.Empty.MatchAsync(async _ => { await Task.Yield(); });
+        await Maybe<int>.None.MatchAsync(async _ => { await Task.Yield(); });
     }
 
     // ── ToTry ───────────────────────────────────────────────────────────
@@ -145,7 +145,7 @@ public class MaybeExtensionsTests
     public void ToTry_Empty_Error()
     {
         var calls = 0;
-        var result = Maybe<int>.Empty.ToTry(() => { calls++; return ParseError.Missing; });
+        var result = Maybe<int>.None.ToTry(() => { calls++; return ParseError.Missing; });
         Assert.True(result.IsError);
         Assert.Equal(ParseError.Missing, result.Error.Get());
         Assert.Equal(1, calls);
@@ -188,7 +188,7 @@ public class MaybeExtensionsTests
     [Fact]
     public void ValueOrEmpty_Enumerable_Empty_ReturnsEmptySequence()
     {
-        Maybe<IEnumerable<int>> m = Maybe<IEnumerable<int>>.Empty;
+        Maybe<IEnumerable<int>> m = Maybe<IEnumerable<int>>.None;
         Assert.Empty(m.ValueOrEmpty());
     }
 
@@ -203,7 +203,7 @@ public class MaybeExtensionsTests
     [Fact]
     public void ValueOrEmpty_Array_Empty_ReturnsEmptyArray()
     {
-        var arr = Maybe<int[]>.Empty.ValueOrEmpty();
+        var arr = Maybe<int[]>.None.ValueOrEmpty();
         Assert.Empty(arr);
     }
 
@@ -217,7 +217,7 @@ public class MaybeExtensionsTests
     [Fact]
     public void ValueOrEmpty_Dictionary_Empty_Enumerates()
     {
-        var empty = Maybe<Dictionary<int, string>>.Empty.ValueOrEmpty();
+        var empty = Maybe<Dictionary<int, string>>.None.ValueOrEmpty();
         Assert.Empty(empty);
     }
 
@@ -225,7 +225,7 @@ public class MaybeExtensionsTests
 
     [Fact]
     public void SafeFirst_Empty_IsEmpty() =>
-        Assert.Equal(Maybe<int>.Empty, Array.Empty<int>().SafeFirst());
+        Assert.Equal(Maybe<int>.None, Array.Empty<int>().SafeFirst());
 
     [Fact]
     public void SafeFirst_NonEmpty_ReturnsFirst() =>
@@ -237,7 +237,7 @@ public class MaybeExtensionsTests
 
     [Fact]
     public void SafeFirst_Predicate_NoMatch_IsEmpty() =>
-        Assert.Equal(Maybe<int>.Empty, new[] { 1, 2, 3 }.SafeFirst(x => x > 10));
+        Assert.Equal(Maybe<int>.None, new[] { 1, 2, 3 }.SafeFirst(x => x > 10));
 
     [Fact]
     public void SafeLast_NonEmpty_ReturnsLast() =>
@@ -245,7 +245,7 @@ public class MaybeExtensionsTests
 
     [Fact]
     public void SafeLast_Empty_IsEmpty() =>
-        Assert.Equal(Maybe<int>.Empty, Array.Empty<int>().SafeLast());
+        Assert.Equal(Maybe<int>.None, Array.Empty<int>().SafeLast());
 
     [Fact]
     public void SafeSingle_SingleElement_ReturnsIt() =>
@@ -253,15 +253,15 @@ public class MaybeExtensionsTests
 
     [Fact]
     public void SafeSingle_Empty_IsEmpty() =>
-        Assert.Equal(Maybe<int>.Empty, Array.Empty<int>().SafeSingle());
+        Assert.Equal(Maybe<int>.None, Array.Empty<int>().SafeSingle());
 
     [Fact]
     public void SafeSingle_MultipleElements_IsEmpty() =>
-        Assert.Equal(Maybe<int>.Empty, new[] { 1, 2 }.SafeSingle());
+        Assert.Equal(Maybe<int>.None, new[] { 1, 2 }.SafeSingle());
 
     [Fact]
     public void SafeMax_Empty_IsEmpty() =>
-        Assert.Equal(Maybe<int>.Empty, Array.Empty<int>().SafeMax());
+        Assert.Equal(Maybe<int>.None, Array.Empty<int>().SafeMax());
 
     [Fact]
     public void SafeMax_NonEmpty_ReturnsMax() =>
@@ -281,14 +281,14 @@ public class MaybeExtensionsTests
     [Fact]
     public void Values_FiltersEmptiesAndUnwrapsSome()
     {
-        Maybe<int>[] input = [Maybe<int>.Some(1), Maybe<int>.Empty, Maybe<int>.Some(2), Maybe<int>.Empty];
+        Maybe<int>[] input = [Maybe<int>.Some(1), Maybe<int>.None, Maybe<int>.Some(2), Maybe<int>.None];
         Assert.Equal([1, 2], input.Values().ToArray());
     }
 
     [Fact]
     public void Values_AllEmpty_YieldsNothing()
     {
-        Maybe<int>[] input = [Maybe<int>.Empty, Maybe<int>.Empty];
+        Maybe<int>[] input = [Maybe<int>.None, Maybe<int>.None];
         Assert.Empty(input.Values());
     }
 }

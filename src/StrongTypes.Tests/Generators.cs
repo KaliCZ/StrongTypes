@@ -33,7 +33,7 @@ public static class Generators
     /// </summary>
     public static Arbitrary<Maybe<int>> MaybeInt { get; } =
         Arb.From(Gen.Frequency(
-            (1, Gen.Constant(Maybe<int>.Empty)),
+            (1, Gen.Constant(Maybe<int>.None)),
             (4, ArbMap.Default.ArbFor<int>().Generator.Select(Maybe<int>.Some))));
 
     /// <summary>
@@ -43,7 +43,7 @@ public static class Generators
     /// </summary>
     public static Arbitrary<Maybe<string>> MaybeString { get; } =
         Arb.From(Gen.Frequency(
-            (1, Gen.Constant(Maybe<string>.Empty)),
+            (1, Gen.Constant(Maybe<string>.None)),
             (4, ArbMap.Default.ArbFor<string>().Generator
                 .Where(s => !string.IsNullOrWhiteSpace(s))
                 .Select(Maybe<string>.Some))));
