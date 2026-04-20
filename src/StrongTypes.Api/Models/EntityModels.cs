@@ -7,13 +7,14 @@ public record StructEntityRequest<T>(T Value, T? NullableValue) where T : struct
 public record ReferenceEntityRequest<T>(T Value, T? NullableValue) where T : class;
 
 /// <summary>
-/// PATCH request body. Each field is independently "sent or not":
+/// PATCH request body following JSON Merge Patch (RFC 7396). Each field is
+/// independently absent, <c>null</c>, or a value:
 /// <list type="bullet">
-///   <item><description><c>Value</c>: <c>null</c> (or absent) ⇒ do not update; a value ⇒ update.
-///     The entity's Value is non-nullable so it can only be updated, never cleared.</description></item>
-///   <item><description><c>NullableValue</c>: <c>null</c> (or absent) ⇒ do not update;
-///     <c>Maybe</c> empty (<c>{}</c> or <c>{"Value":null}</c>) ⇒ clear to null on the entity;
-///     <c>{"Value":x}</c> ⇒ set to x.</description></item>
+///   <item><description><c>Value</c>: absent or <c>null</c> ⇒ do not update;
+///     a value ⇒ update. The entity's Value is non-nullable so it can only
+///     be updated, never cleared — explicit <c>null</c> is a no-op.</description></item>
+///   <item><description><c>NullableValue</c>: absent ⇒ do not update;
+///     <c>null</c> ⇒ clear to null on the entity; a value ⇒ set to that value.</description></item>
 /// </list>
 /// </summary>
 public record StructEntityPatchRequest<T>(T? Value, Maybe<T>? NullableValue) where T : struct;

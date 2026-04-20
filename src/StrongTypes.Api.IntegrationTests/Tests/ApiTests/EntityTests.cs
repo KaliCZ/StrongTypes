@@ -244,10 +244,12 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
 
     // ── Patch ────────────────────────────────────────────────────────────
     //
-    // Patch wire semantics:
-    //   Value        — null/absent ⇒ skip. Non-null ⇒ update.
-    //   NullableValue — null/absent ⇒ skip. Maybe Some ⇒ update. Maybe Empty ⇒ clear.
-    // "Empty" on the wire is any of {}, {"Value":null}, or {"value":null}.
+    // Patch wire semantics follow JSON Merge Patch (RFC 7396): each field is
+    // independently absent, null, or a value.
+    //   Value        — absent/null ⇒ skip. A value ⇒ update.
+    //                  (The field is non-nullable on the entity, so there is
+    //                  nothing to clear; explicit null is a no-op.)
+    //   NullableValue — absent ⇒ skip. null ⇒ clear. A value ⇒ update.
 
     [Fact]
     public async Task Patch_EmptyBody_LeavesBothFieldsUnchanged()
@@ -279,8 +281,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     {
         var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
 
-        var response = await Patch(PatchEndpoint(created.Id),
-            new { value = (object?)null, nullableValue = (object?)null });
+        var response = await Patch(PatchEndpoint(created.Id), new { value = (object?)null });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var expected = Create(FirstValid);
@@ -293,7 +294,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     {
         var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = (object?)null });
 
-        var response = await Patch(PatchEndpoint(created.Id), new { nullableValue = new { Value = UpdatedValid } });
+        var response = await Patch(PatchEndpoint(created.Id), new { nullableValue = UpdatedValid });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         await AssertEntity(SqlSet, created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
@@ -301,23 +302,11 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     }
 
     [Fact]
-    public async Task Patch_NullableValueEmptyObject_ClearsNullableValue()
+    public async Task Patch_NullableValueExplicitNull_ClearsNullableValue()
     {
         var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
 
-        var response = await Patch(PatchEndpoint(created.Id), new { nullableValue = new { } });
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        await AssertEntity(SqlSet, created.Id, Create(FirstValid), NullNullable);
-        await AssertEntity(PgSet, created.Id, Create(FirstValid), NullNullable);
-    }
-
-    [Fact]
-    public async Task Patch_NullableValueWithExplicitNullInner_ClearsNullableValue()
-    {
-        var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
-
-        var response = await Patch(PatchEndpoint(created.Id), new { nullableValue = new { Value = (object?)null } });
+        var response = await Patch(PatchEndpoint(created.Id), new { nullableValue = (object?)null });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         await AssertEntity(SqlSet, created.Id, Create(FirstValid), NullNullable);
@@ -329,7 +318,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     {
         var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = (object?)null });
 
-        var response = await Patch(PatchEndpoint(created.Id), new { value = UpdatedValid, nullableValue = new { Value = UpdatedValid } });
+        var response = await Patch(PatchEndpoint(created.Id), new { value = UpdatedValid, nullableValue = UpdatedValid });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         await AssertEntity(SqlSet, created.Id, Create(UpdatedValid), ToNullable(Create(UpdatedValid)));

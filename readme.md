@@ -106,17 +106,17 @@ var missing =
 
 ### JSON
 
-`Maybe<T>` serializes via `System.Text.Json` as `{ "Value": x }` for `Some` and `{ "Value": null }` for `None`. Deserialization also accepts `{}` for `None`, so callers can omit the property entirely.
+`Maybe<T>` serializes via `System.Text.Json` to the raw JSON representation of the inner value: `Some(x)` writes as `x` and `None` writes as `null`. Deserialization is the inverse — `null` reads as `None`, any value reads as `Some`. The wire format matches what a plain `T?` would produce, so callers and consumers don't need to know the property is a `Maybe` at all.
 
 ### Idiomatic usage: tri-state PATCH
 
-HTTP `PATCH` has a long-standing modelling problem for nullable fields: a request needs to distinguish three intents — *don't touch this field*, *clear this field to null*, and *set it to a new value*. A plain `T?` collapses the first two cases. `Maybe<T>?` keeps them apart, because `Maybe<T>` itself is a value, so wrapping it in `T?` adds a real third state:
+HTTP `PATCH` has a long-standing modelling problem for nullable fields: a request needs to distinguish three intents — *don't touch this field*, *clear this field to null*, and *set it to a new value*. A plain `T?` collapses the first two cases, because on the wire "property absent" and "property set to null" both bind to a null reference. `Maybe<T>?` keeps them apart, because `Maybe<T>` itself is a value, so wrapping it in `Nullable<>` adds a real third state — and the tri-state is encoded on the wire using the standard JSON Merge Patch ([RFC 7396](https://datatracker.ietf.org/doc/html/rfc7396)) conventions:
 
-| JSON                     | Property value      | Intent                |
-| ------------------------ | ------------------- | --------------------- |
-| field omitted, or `null` | `null`              | leave field untouched |
-| `{}` or `{"Value":null}` | `Maybe<T>.None`     | clear field to `null` |
-| `{"Value":x}`            | `Maybe<T>.Some(x)`  | set field to `x`      |
+| JSON          | Property value       | Intent                |
+| ------------- | -------------------- | --------------------- |
+| field omitted | `null`               | leave field untouched |
+| `null`        | `Maybe<T>.None`      | clear field to `null` |
+| `x`           | `Maybe<T>.Some(x)`   | set field to `x`      |
 
 The request DTO and PATCH handler then read straight off pattern matching, with no out-of-band sentinel values:
 
@@ -139,6 +139,13 @@ public async Task<IActionResult> Patch(Guid id, PatchRequest request)
     await Db.SaveChangesAsync();
     return Ok();
 }
+```
+
+For the tri-state to survive deserialization, `MaybeJsonConverterFactory` has to be registered in `JsonSerializerOptions.Converters`. The `[JsonConverter]` attribute on `Maybe<T>` covers `Maybe<T>` itself, but `System.Text.Json`'s built-in `Nullable<T>` handling would otherwise intercept JSON `null` before the underlying converter runs, collapsing the *clear* case back into a null reference. Registering the factory makes STJ route `Nullable<Maybe<T>>` through the library's own converter, which preserves `null` as `Maybe<T>.None`:
+
+```csharp
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new MaybeJsonConverterFactory()));
 ```
 
 The `StrongTypes.Api` project in this repo uses exactly this pattern — see [`StructTypeEntityControllerBase.Patch`](src/StrongTypes.Api/Controllers/StructTypeEntityControllerBase.cs) and [`StructEntityPatchRequest`](src/StrongTypes.Api/Models/EntityModels.cs) for the production version that round-trips through both SQL Server and PostgreSQL.
