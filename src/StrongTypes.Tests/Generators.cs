@@ -26,10 +26,10 @@ public static class Generators
                 .Select(s => (NonEmptyString?)NonEmptyString.Create(s)))));
 
     /// <summary>
-    /// <see cref="Maybe{Int32}"/> with ~20% chance of <see cref="Maybe{T}.Empty"/>.
-    /// Higher empty rate than NullableNonEmptyString because Maybe's equality and
-    /// comparison logic has distinct empty/populated branches that benefit from
-    /// denser coverage of the empty case.
+    /// <see cref="Maybe{Int32}"/> with ~20% chance of <see cref="Maybe{T}.None"/>.
+    /// Higher None rate than NullableNonEmptyString because Maybe's equality and
+    /// comparison logic has distinct None/Some branches that benefit from
+    /// denser coverage of the None case.
     /// </summary>
     public static Arbitrary<Maybe<int>> MaybeInt { get; } =
         Arb.From(Gen.Frequency(
@@ -37,9 +37,9 @@ public static class Generators
             (4, ArbMap.Default.ArbFor<int>().Generator.Select(Maybe<int>.Some))));
 
     /// <summary>
-    /// <see cref="Maybe{String}"/> with ~20% chance of <see cref="Maybe{T}.Empty"/>.
+    /// <see cref="Maybe{String}"/> with ~20% chance of <see cref="Maybe{T}.None"/>.
     /// Generated strings are constrained to non-empty / non-whitespace so the value
-    /// carries information distinguishable from the empty case when asserting.
+    /// carries information distinguishable from the None case when asserting.
     /// </summary>
     public static Arbitrary<Maybe<string>> MaybeString { get; } =
         Arb.From(Gen.Frequency(
@@ -47,4 +47,17 @@ public static class Generators
             (4, ArbMap.Default.ArbFor<string>().Generator
                 .Where(s => !string.IsNullOrWhiteSpace(s))
                 .Select(Maybe<string>.Some))));
+
+    /// <summary>
+    /// <see cref="Maybe{T}"/> of <see cref="Positive{Int32}"/> with ~20% None rate.
+    /// The wrapped int is constrained to <c>&gt; 0</c> to satisfy the Positive
+    /// invariant, so generated values always round-trip cleanly through the
+    /// strong-type converter.
+    /// </summary>
+    public static Arbitrary<Maybe<Positive<int>>> MaybePositiveInt { get; } =
+        Arb.From(Gen.Frequency(
+            (1, Gen.Constant(Maybe<Positive<int>>.None)),
+            (4, ArbMap.Default.ArbFor<int>().Generator
+                .Where(i => i > 0)
+                .Select(i => Maybe<Positive<int>>.Some(Positive<int>.Create(i))))));
 }

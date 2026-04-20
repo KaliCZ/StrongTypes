@@ -117,4 +117,54 @@ public class MaybeJsonConverterTests
         var json = JsonSerializer.Serialize(Maybe<NonEmptyString>.Some(NonEmptyString.Create("abc")));
         Assert.Equal("""{"Value":"abc"}""", json);
     }
+
+    [Fact]
+    public void Read_MaybeOfNonEmptyString_InvalidValue_Throws()
+    {
+        // The inner NonEmptyString converter rejects whitespace/empty, and that
+        // JsonException must surface — we don't want a silent fallback to None.
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<Maybe<NonEmptyString>>("""{"Value":"   "}"""));
+    }
+
+    [Fact]
+    public void Read_MaybeOfPositiveInt_Some()
+    {
+        var m = JsonSerializer.Deserialize<Maybe<Positive<int>>>("""{"Value":7}""");
+        Assert.True(m.HasValue);
+        Assert.Equal(Positive<int>.Create(7), m.Value);
+    }
+
+    [Fact]
+    public void Read_MaybeOfPositiveInt_Empty()
+    {
+        var m = JsonSerializer.Deserialize<Maybe<Positive<int>>>("{}");
+        Assert.False(m.HasValue);
+    }
+
+    [Fact]
+    public void Write_MaybeOfPositiveInt_Some()
+    {
+        var json = JsonSerializer.Serialize(Maybe<Positive<int>>.Some(Positive<int>.Create(7)));
+        Assert.Equal("""{"Value":7}""", json);
+    }
+
+    [Fact]
+    public void Read_MaybeOfPositiveInt_InvalidValue_Throws()
+    {
+        // Zero violates the Positive invariant — the inner converter throws
+        // and that exception propagates through the Maybe converter.
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<Maybe<Positive<int>>>("""{"Value":0}"""));
+
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<Maybe<Positive<int>>>("""{"Value":-5}"""));
+    }
+
+    [Property]
+    public void Roundtrip_PositiveInt(Maybe<Positive<int>> m)
+    {
+        var json = JsonSerializer.Serialize(m);
+        Assert.Equal(m, JsonSerializer.Deserialize<Maybe<Positive<int>>>(json));
+    }
 }
