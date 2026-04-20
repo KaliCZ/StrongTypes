@@ -30,17 +30,20 @@ StrongTypes is not an attempt to build a full algebraic type system on top of C#
 
 A value type that holds either a value of `T` (`Some`) or no value (`None`). It works for both reference and value types, plays well with collection expressions, LINQ, pattern matching, and `System.Text.Json`, and avoids the double-wrap awkwardness that `Nullable<T>` has when `T` is itself nullable.
 
+`Maybe<int?>` and `Maybe<string?>` are deliberately not allowed — the generic constraint is `where T : notnull`. Permitting a nullable `T` would collapse the `None` and `Some(null)` cases and break the `is { } v` pattern that powers idiomatic unwrapping (see more below).
+
 ```csharp
 Maybe<int>    some   = Maybe.Some(42);   // T inferred from the argument
 Maybe<int>    direct = 42;               // implicit conversion from T
 Maybe<string> none   = Maybe.None;       // binds to whatever Maybe<T> the context expects
 ```
 
-The implicit conversions from `T` and from the untyped `Maybe.None` make collection expressions read naturally — no need to spell out `Maybe<int>.Some(...)` for every element:
+The implicit conversions from `T` and from the untyped `Maybe.None` make collection expressions read naturally — no need to spell out `Maybe<int>.Some(...)` for every element, and the `..` spread operator splices existing sequences in alongside literal `Maybe.None` markers:
 
 ```csharp
-Maybe<int>[] xs = [4, 2, 3, Maybe.None, 4];
-int[] values = xs.Values().ToArray();    // [4, 2, 3, 4]
+int[] middle = [4, 2, 3];
+Maybe<int>[] xs = [..middle, Maybe.None, 4];
+IEnumerable<int> values = xs.Values();   // [4, 2, 3, 4]
 ```
 
 ### Unwrapping
@@ -65,18 +68,78 @@ var label = maybe.Match(
 
 ### Composition
 
-`Maybe<T>` composes monadically through `Map`, `FlatMap`, and `Where`, and supports LINQ query syntax via `Select` / `SelectMany`:
+`Maybe<T>` composes monadically through `Map`, `FlatMap`, and `Where`. Each operation is a no-op on `None`, so chains short-circuit cleanly without explicit null checks:
+
+```csharp
+// Map — transform the inner value when present.
+Maybe<int> doubled = Maybe.Some(3).Map(x => x * 2);          // Some(6)
+Maybe<int> stillNone = Maybe<int>.None.Map(x => x * 2);      // None
+
+// FlatMap — chain an operation that itself returns a Maybe, without nesting.
+Maybe<int> Parse(string s) =>
+    int.TryParse(s, out var n) ? Maybe.Some(n) : Maybe<int>.None;
+
+Maybe<int> good = Maybe.Some("42").FlatMap(Parse);           // Some(42)
+Maybe<int> bad  = Maybe.Some("nope").FlatMap(Parse);         // None
+
+// Where — keep the value only if it satisfies the predicate.
+Maybe<int> even = Maybe.Some(4).Where(x => x % 2 == 0);      // Some(4)
+Maybe<int> dropped = Maybe.Some(5).Where(x => x % 2 == 0);   // None
+```
+
+LINQ query syntax is supported through `Select` / `SelectMany`, and a single `None` anywhere in the chain empties the whole expression:
 
 ```csharp
 var sum =
     from a in Maybe<int>.Some(2)
     from b in Maybe<int>.Some(3)
-    select a + b;                        // Maybe<int>.Some(5)
+    select a + b;                                            // Some(5)
+
+var missing =
+    from a in Maybe<int>.Some(2)
+    from b in Maybe<int>.None        // short-circuits here
+    from c in Maybe<int>.Some(10)    // never evaluated
+    select a + b + c;                                        // None
 ```
 
 ### JSON
 
 `Maybe<T>` serializes via `System.Text.Json` as `{ "Value": x }` for `Some` and `{ "Value": null }` for `None`. Deserialization also accepts `{}` for `None`, so callers can omit the property entirely.
+
+### Idiomatic usage: tri-state PATCH
+
+HTTP `PATCH` has a long-standing modelling problem for nullable fields: a request needs to distinguish three intents — *don't touch this field*, *clear this field to null*, and *set it to a new value*. A plain `T?` collapses the first two cases. `Maybe<T>?` keeps them apart, because `Maybe<T>` itself is a value, so wrapping it in `T?` adds a real third state:
+
+| JSON                     | Property value      | Intent                |
+| ------------------------ | ------------------- | --------------------- |
+| field omitted, or `null` | `null`              | leave field untouched |
+| `{}` or `{"Value":null}` | `Maybe<T>.None`     | clear field to `null` |
+| `{"Value":x}`            | `Maybe<T>.Some(x)`  | set field to `x`      |
+
+The request DTO and PATCH handler then read straight off pattern matching, with no out-of-band sentinel values:
+
+```csharp
+public record PatchRequest(Maybe<string>? NullableValue);
+
+[HttpPatch("{id:guid}")]
+public async Task<IActionResult> Patch(Guid id, PatchRequest request)
+{
+    var entity = await Db.FindAsync<MyEntity>(id);
+    if (entity is null) return NotFound();
+
+    // request.NullableValue is null     → caller didn't send the field, skip.
+    // request.NullableValue is { } nv   → caller sent it; nv.Value is the new
+    //                                     string? (None unwraps to null, Some
+    //                                     unwraps to the inner string).
+    if (request.NullableValue is { } nv)
+        entity.NullableValue = nv.Value;
+
+    await Db.SaveChangesAsync();
+    return Ok();
+}
+```
+
+The `StrongTypes.Api` project in this repo uses exactly this pattern — see [`StructTypeEntityControllerBase.Patch`](src/StrongTypes.Api/Controllers/StructTypeEntityControllerBase.cs) and [`StructEntityPatchRequest`](src/StrongTypes.Api/Models/EntityModels.cs) for the production version that round-trips through both SQL Server and PostgreSQL.
 
 ## Helpful Types
 
