@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace StrongTypes;
 
@@ -101,87 +100,30 @@ public static class NonEmptyEnumerableExtensions
     {
         ArgumentNullException.ThrowIfNull(source);
 
+        // Hand-rolled because LINQ's Concat doesn't accept a span — converting would
+        // cost an extra array allocation to save nothing.
         var buffer = new T[source.Count + items.Length];
-        CopyNonEmptyInto(source, buffer, 0);
+        if (source is NonEmptyEnumerable<T> concrete)
+            concrete.AsSpan().CopyTo(buffer);
+        else
+            for (var i = 0; i < source.Count; i++) buffer[i] = source[i];
         items.CopyTo(buffer.AsSpan(source.Count));
         return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
     }
 
     /// <summary>
-    /// Concatenates an additional sequence onto a non-empty sequence. Known array-backed
-    /// or <see cref="ICollection{T}"/>-shaped inputs take a vectorized copy path; other
-    /// enumerables fall back to a single-pass enumeration.
+    /// Concatenates an additional sequence onto a non-empty sequence.
     /// </summary>
+    /// <remarks>
+    /// Delegates to <see cref="Enumerable.Concat{TSource}"/> — now that
+    /// <see cref="NonEmptyEnumerable{T}"/> implements <see cref="ICollection{T}"/>, LINQ's
+    /// <c>Concat2Iterator.ToArray</c> pre-sizes and runs a Memmove-backed copy for both halves.
+    /// </remarks>
     public static NonEmptyEnumerable<T> Concat<T>(this INonEmptyEnumerable<T> source, IEnumerable<T> items)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(items);
 
-        if (TryGetCount(items, out var itemCount))
-        {
-            var buffer = new T[source.Count + itemCount];
-            CopyNonEmptyInto(source, buffer, 0);
-            CopyEnumerableInto(items, buffer, source.Count);
-            return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
-        }
-
-        // Unknown count: let the collection-expression lowering manage the growable buffer.
-        return NonEmptyEnumerable<T>.FromValidatedArray([.. source, .. items]);
-    }
-
-    // ─── Fast-path copy helpers ──────────────────────────────────────────
-
-    private static bool TryGetCount<T>(IEnumerable<T> source, out int count)
-    {
-        switch (source)
-        {
-            case ICollection<T> c: count = c.Count; return true;
-            case IReadOnlyCollection<T> r: count = r.Count; return true;
-            default: count = 0; return false;
-        }
-    }
-
-    private static void CopyNonEmptyInto<T>(INonEmptyEnumerable<T> source, T[] destination, int offset)
-    {
-        if (source is NonEmptyEnumerable<T> concrete)
-        {
-            concrete.AsSpan().CopyTo(destination.AsSpan(offset));
-            return;
-        }
-        for (var i = 0; i < source.Count; i++) destination[offset + i] = source[i];
-    }
-
-    // Takes the fastest available copy path for each known-shape source:
-    //   • NonEmptyEnumerable<T>, T[], List<T>, ArraySegment<T> → Memmove-backed span copy
-    //   • ICollection<T> (HashSet, LinkedList, …)             → CopyTo(T[], int)
-    //   • IReadOnlyList<T>                                    → indexer loop, no allocation
-    //   • Anything else                                       → single-pass enumeration
-    private static void CopyEnumerableInto<T>(IEnumerable<T> source, T[] destination, int offset)
-    {
-        switch (source)
-        {
-            case NonEmptyEnumerable<T> nel:
-                nel.AsSpan().CopyTo(destination.AsSpan(offset));
-                return;
-            case T[] array:
-                array.AsSpan().CopyTo(destination.AsSpan(offset));
-                return;
-            case List<T> list:
-                CollectionsMarshal.AsSpan(list).CopyTo(destination.AsSpan(offset));
-                return;
-            case ArraySegment<T> seg:
-                seg.AsSpan().CopyTo(destination.AsSpan(offset));
-                return;
-            case ICollection<T> coll:
-                coll.CopyTo(destination, offset);
-                return;
-            case IReadOnlyList<T> rol:
-                for (var i = 0; i < rol.Count; i++) destination[offset + i] = rol[i];
-                return;
-            default:
-                var n = 0;
-                foreach (var item in source) destination[offset + n++] = item;
-                return;
-        }
+        return NonEmptyEnumerable<T>.FromValidatedArray(Enumerable.Concat(source, items).ToArray());
     }
 }

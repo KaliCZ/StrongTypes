@@ -136,4 +136,39 @@ public class NonEmptyEnumerableTests
         source[0] = 999;
         Assert.Equal(1, list.Head);
     }
+
+    // ── ICollection<T> surface ──────────────────────────────────────────
+
+    [Fact]
+    public void ICollection_IsReadOnly()
+    {
+        var list = NonEmptyEnumerable.Of(1, 2, 3);
+        Assert.True(((ICollection<int>)list).IsReadOnly);
+    }
+
+    [Fact]
+    public void ICollection_Mutators_Throw()
+    {
+        var list = (ICollection<int>)NonEmptyEnumerable.Of(1, 2, 3);
+        Assert.Throws<NotSupportedException>(() => list.Add(4));
+        Assert.Throws<NotSupportedException>(() => list.Clear());
+        Assert.Throws<NotSupportedException>(() => list.Remove(1));
+    }
+
+    [Fact]
+    public void ICollection_Contains()
+    {
+        var list = NonEmptyEnumerable.Of(1, 2, 3);
+        Assert.Contains(2, list);
+        Assert.DoesNotContain(99, list);
+    }
+
+    [Fact]
+    public void ICollection_CopyTo_WritesAtOffset()
+    {
+        var list = NonEmptyEnumerable.Of(1, 2, 3);
+        var target = new int[5];
+        list.CopyTo(target, 1);
+        Assert.Equal(new[] { 0, 1, 2, 3, 0 }, target);
+    }
 }

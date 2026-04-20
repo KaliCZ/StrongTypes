@@ -84,7 +84,7 @@ public static class NonEmptyEnumerable
 [JsonConverter(typeof(NonEmptyEnumerableJsonConverterFactory))]
 [DebuggerTypeProxy(typeof(NonEmptyEnumerableDebugView<>))]
 [DebuggerDisplay("Count = {Count}")]
-public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, IEquatable<NonEmptyEnumerable<T>>
+public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<T>, IEquatable<NonEmptyEnumerable<T>>
 {
     // Owned buffer — factories copy inputs, callers can never mutate us from outside.
     private readonly T[] _values;
@@ -134,6 +134,26 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, IEquatable<N
     /// allocation-free iteration; the span must not outlive the enumerable.
     /// </summary>
     public ReadOnlySpan<T> AsSpan() => _values;
+
+    #region ICollection<T> — read-only implementation
+
+    // ICollection<T> is implemented primarily so LINQ and System.Text.Json recognize this
+    // type for their fast paths (ToArray pre-sizing, Concat count-aware copying, etc.).
+    // The mutator methods are standard read-only throws — same pattern ReadOnlyCollection<T>,
+    // ImmutableArray<T>, and Array use for this purpose.
+
+    bool ICollection<T>.IsReadOnly => true;
+
+    public bool Contains(T item) => Array.IndexOf(_values, item) >= 0;
+
+    public void CopyTo(T[] array, int arrayIndex)
+        => _values.AsSpan().CopyTo(array.AsSpan(arrayIndex));
+
+    void ICollection<T>.Add(T item) => throw new NotSupportedException("NonEmptyEnumerable is read-only.");
+    void ICollection<T>.Clear() => throw new NotSupportedException("NonEmptyEnumerable is read-only.");
+    bool ICollection<T>.Remove(T item) => throw new NotSupportedException("NonEmptyEnumerable is read-only.");
+
+    #endregion
 
     public struct Enumerator : IEnumerator<T>
     {
