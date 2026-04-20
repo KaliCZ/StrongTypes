@@ -189,6 +189,93 @@ public class MaybeJsonConverterTests
         Assert.Equal("42", json);
     }
 
+    [Fact]
+    public void ReadNullable_ReferenceType_Scalar_IsPresentSome()
+    {
+        var m = JsonSerializer.Deserialize<Maybe<string>?>("\"hello\"", TriStateOptions());
+        Assert.Equal(Maybe<string>.Some("hello"), m);
+    }
+
+    [Fact]
+    public void ReadNullable_ReferenceType_Null_IsPresentNone()
+    {
+        var m = JsonSerializer.Deserialize<Maybe<string>?>("null", TriStateOptions());
+        Assert.True(m.HasValue);
+        Assert.Equal(Maybe<string>.None, m!.Value);
+    }
+
+    [Fact]
+    public void WriteNullable_ReferenceType_Some()
+    {
+        var json = JsonSerializer.Serialize<Maybe<string>?>(Maybe<string>.Some("hi"), TriStateOptions());
+        Assert.Equal("\"hi\"", json);
+    }
+
+    // ── Nullable + strong-type inner converters ─────────────────────────
+
+    [Fact]
+    public void ReadNullable_MaybeOfNonEmptyString_Some()
+    {
+        var m = JsonSerializer.Deserialize<Maybe<NonEmptyString>?>("\"abc\"", TriStateOptions());
+        Assert.Equal(Maybe<NonEmptyString>.Some(NonEmptyString.Create("abc")), m);
+    }
+
+    [Fact]
+    public void ReadNullable_MaybeOfNonEmptyString_Null_IsPresentNone()
+    {
+        var m = JsonSerializer.Deserialize<Maybe<NonEmptyString>?>("null", TriStateOptions());
+        Assert.True(m.HasValue);
+        Assert.Equal(Maybe<NonEmptyString>.None, m!.Value);
+    }
+
+    [Fact]
+    public void WriteNullable_MaybeOfNonEmptyString_Some()
+    {
+        var json = JsonSerializer.Serialize<Maybe<NonEmptyString>?>(
+            Maybe<NonEmptyString>.Some(NonEmptyString.Create("abc")), TriStateOptions());
+        Assert.Equal("\"abc\"", json);
+    }
+
+    [Fact]
+    public void ReadNullable_MaybeOfNonEmptyString_InvalidValue_Throws()
+    {
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<Maybe<NonEmptyString>?>("\"   \"", TriStateOptions()));
+    }
+
+    [Fact]
+    public void ReadNullable_MaybeOfPositiveInt_Some()
+    {
+        var m = JsonSerializer.Deserialize<Maybe<Positive<int>>?>("7", TriStateOptions());
+        Assert.Equal(Maybe<Positive<int>>.Some(Positive<int>.Create(7)), m);
+    }
+
+    [Fact]
+    public void ReadNullable_MaybeOfPositiveInt_Null_IsPresentNone()
+    {
+        var m = JsonSerializer.Deserialize<Maybe<Positive<int>>?>("null", TriStateOptions());
+        Assert.True(m.HasValue);
+        Assert.Equal(Maybe<Positive<int>>.None, m!.Value);
+    }
+
+    [Fact]
+    public void WriteNullable_MaybeOfPositiveInt_Some()
+    {
+        var json = JsonSerializer.Serialize<Maybe<Positive<int>>?>(
+            Maybe<Positive<int>>.Some(Positive<int>.Create(7)), TriStateOptions());
+        Assert.Equal("7", json);
+    }
+
+    [Fact]
+    public void ReadNullable_MaybeOfPositiveInt_InvalidValue_Throws()
+    {
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<Maybe<Positive<int>>?>("0", TriStateOptions()));
+
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<Maybe<Positive<int>>?>("-5", TriStateOptions()));
+    }
+
     // The absent/null/value distinction only matters in a parent object
     // context, because "absent" means STJ never invokes the converter for
     // that property. Two records cover both shapes end-to-end — Maybe<T>?
