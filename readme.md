@@ -46,6 +46,16 @@ Maybe<int>[] xs = [..middle, Maybe.None, 4];
 IEnumerable<int> values = xs.Values();   // [4, 2, 3, 4]
 ```
 
+When you already hold a `T?` from existing code, lift it with the `ToMaybe()` extension. There's no implicit operator from `T?` because a single operator can't cover both `Nullable<T>` (for value types) and the nullable annotation on a reference type without colliding with `implicit operator Maybe<T>(T)`. The extension splits cleanly into two constrained overloads:
+
+```csharp
+int?    maybeInt    = GetIntOrNull();
+string? maybeString = GetStringOrNull();
+
+Maybe<int>    a = maybeInt.ToMaybe();      // Some(x) when HasValue, None otherwise
+Maybe<string> b = maybeString.ToMaybe();   // Some(x) when not null, None otherwise
+```
+
 ### Unwrapping
 
 The idiomatic "has value" check uses the `is { } v` pattern on the `Value` extension property. `Value` is provided through C# 14 extension members split between struct- and class-constrained branches, so it returns `Nullable<T>` for value types and `T?` for reference types — and the pattern unwraps to the underlying `T` directly:
