@@ -58,12 +58,13 @@ public sealed class NonEmptyEnumerableJsonConverterFactory : JsonConverterFactor
                     return NonEmptyEnumerable<T>.FromValidatedArray(CollectionsMarshal.AsSpan(buffer).ToArray());
                 }
 
+                // The non-empty invariant is about Count, not element content — mirrors the
+                // factories, which also let nulls through. If T itself forbids null (e.g. a
+                // struct, or a strong type whose own converter rejects null) that check lives
+                // on T's converter and will raise before we see it here. For reference T and
+                // Nullable<T>, the caller asked for a collection whose element type admits
+                // null, so admitting it is the correct behavior.
                 var element = JsonSerializer.Deserialize<T>(ref reader, options);
-                // Null on the wire for a reference-typed element violates the invariant —
-                // the type guarantees its contents are well-formed, not just non-empty.
-                if (element is null && default(T) is null)
-                    throw new JsonException($"Null element in {typeof(NonEmptyEnumerable<T>).Name} is not allowed.");
-
                 buffer.Add(element!);
             }
 

@@ -45,28 +45,46 @@ public class NonEmptyEnumerableJsonConverterTests
     }
 
     [Fact]
-    public void Read_NullElement_OfReferenceType_Throws()
+    public void Read_NullElement_OfNullableReferenceType_IsKept()
     {
-        // A stray null in the array is a contract violation — the converter
-        // must not silently keep it.
-        Assert.Throws<JsonException>(() =>
-            JsonSerializer.Deserialize<NonEmptyEnumerable<string>>("""["a",null,"c"]"""));
+        // The type's invariant is Count >= 1, not "no null elements". For reference T,
+        // `NonEmptyEnumerable<string>` and `NonEmptyEnumerable<string?>` erase to the same
+        // runtime type, so the converter can't enforce non-null without also breaking
+        // the legitimate nullable case — and the factories already allow nulls through.
+        var list = JsonSerializer.Deserialize<NonEmptyEnumerable<string?>>("""["a",null,"c"]""");
+        Assert.NotNull(list);
+        Assert.Equal(new[] { "a", null, "c" }, list);
     }
 
     [Fact]
-    public void Read_SingleNullElement_Throws()
+    public void Read_SingleNullElement_IsValid()
     {
-        // `[null]` is syntactically a non-empty array, but the element itself violates
-        // the no-null-reference-element invariant — still must not construct.
-        Assert.Throws<JsonException>(() =>
-            JsonSerializer.Deserialize<NonEmptyEnumerable<string>>("[null]"));
+        // `[null]` has one element, which satisfies Count >= 1. The element happens to be
+        // null — that's a content concern, not a non-empty concern.
+        var list = JsonSerializer.Deserialize<NonEmptyEnumerable<string?>>("[null]");
+        Assert.NotNull(list);
+        Assert.Single(list);
+        Assert.Null(list.Head);
     }
 
     [Fact]
-    public void Read_AllNullElements_Throws()
+    public void Read_NullableValueType_AllowsNulls()
     {
-        Assert.Throws<JsonException>(() =>
-            JsonSerializer.Deserialize<NonEmptyEnumerable<string>>("[null,null]"));
+        // int? is literally the nullable-int type — null is a valid value. Rejecting it
+        // would make `NonEmptyEnumerable<int?>` unusable for any wire format that encodes
+        // a "known absence" as JSON null.
+        var list = JsonSerializer.Deserialize<NonEmptyEnumerable<int?>>("[1,null,3]");
+        Assert.NotNull(list);
+        Assert.Equal(new int?[] { 1, null, 3 }, list);
+    }
+
+    [Fact]
+    public void Read_NullableValueType_SingleNull_IsValid()
+    {
+        var list = JsonSerializer.Deserialize<NonEmptyEnumerable<int?>>("[null]");
+        Assert.NotNull(list);
+        Assert.Single(list);
+        Assert.Null(list.Head);
     }
 
     [Theory]
