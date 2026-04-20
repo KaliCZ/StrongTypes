@@ -7,4 +7,4 @@ namespace StrongTypes.Api.Controllers;
 [ApiController]
 [Route("positive-short-entities")]
 public sealed class PositiveShortEntityController(SqlServerDbContext sqlCtx, PostgreSqlDbContext pgCtx)
-    : EntityControllerBase<PositiveShortEntity, Positive<short>, Positive<short>?>(sqlCtx, pgCtx);
+    : StructTypeEntityControllerBase<PositiveShortEntity, Positive<short>>(sqlCtx, pgCtx);

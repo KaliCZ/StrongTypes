@@ -1,104 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StrongTypes.Api.Data;
-using StrongTypes.Api.Entities;
-using StrongTypes.Api.Models;
 
 namespace StrongTypes.Api.Controllers;
 
 /// <summary>
-/// Shared controller logic for any <see cref="IEntity{TSelf, T, TNullable}"/>:
-/// writes to both SQL Server and PostgreSQL, reads from whichever the route
-/// specifies. Concrete controllers just supply a class-level <c>[Route]</c> +
-/// <c>[ApiController]</c>; construction goes through <c>TEntity.Create</c>.
+/// Shared infrastructure for the struct- and reference-typed controller bases:
+/// the two <see cref="DbSet{TEntity}"/> accessors and a helper that flushes both
+/// <see cref="DbContext"/>s. Concrete controllers do not derive from this
+/// directly — they pick <see cref="StructTypeEntityControllerBase{TEntity, T}"/>
+/// or <see cref="ReferenceTypeEntityControllerBase{TEntity, T}"/>.
 /// </summary>
-public abstract class EntityControllerBase<TEntity, T, TNullable>(
+public abstract class EntityControllerBase<TEntity>(
     SqlServerDbContext sqlCtx,
     PostgreSqlDbContext pgCtx) : ControllerBase
-    where TEntity : class, IEntity<TEntity, T, TNullable>
-    where T : notnull
+    where TEntity : class
 {
-    private DbSet<TEntity> SqlSet => sqlCtx.Set<TEntity>();
-    private DbSet<TEntity> PgSet => pgCtx.Set<TEntity>();
+    protected DbSet<TEntity> SqlSet => sqlCtx.Set<TEntity>();
+    protected DbSet<TEntity> PgSet => pgCtx.Set<TEntity>();
 
-    [HttpGet("{id:guid}/sql-server")]
-    public Task<IActionResult> GetFromSqlServer(Guid id) => GetAsync(SqlSet, id);
-
-    [HttpGet("{id:guid}/postgresql")]
-    public Task<IActionResult> GetFromPostgreSql(Guid id) => GetAsync(PgSet, id);
-
-    [HttpPost]
-    public Task<IActionResult> Create(EntityRequest<T, TNullable> request) =>
-        CreateAsync(request.Value, request.NullableValue);
-
-    [HttpPut("{id:guid}")]
-    public Task<IActionResult> Update(Guid id, EntityRequest<T, TNullable> request) =>
-        UpdateAsync(id, request.Value, request.NullableValue);
-
-    [HttpPatch("{id:guid}")]
-    public Task<IActionResult> Patch(Guid id, EntityPatchRequest<T, TNullable> request) =>
-        PatchAsync(id, request.Value, request.NullableValue);
-
-    private async Task<IActionResult> GetAsync(DbSet<TEntity> set, Guid id)
+    protected async Task SaveAllAsync()
     {
-        var entity = await set.FindAsync(id);
-        return entity is null ? NotFound() : Ok(EntityDto<T, TNullable>.From(entity));
-    }
-
-    private async Task<IActionResult> CreateAsync(T value, TNullable nullableValue)
-    {
-        var entity = TEntity.Create(value, nullableValue);
-        SqlSet.Add(entity);
-        PgSet.Add(entity);
         await sqlCtx.SaveChangesAsync();
         await pgCtx.SaveChangesAsync();
-        return Created($"{Request.Path}/{entity.Id}", new EntityResponse(entity.Id));
-    }
-
-    private async Task<IActionResult> UpdateAsync(Guid id, T value, TNullable nullableValue)
-    {
-        var sqlEntity = await SqlSet.FindAsync(id);
-        var pgEntity = await PgSet.FindAsync(id);
-        if (sqlEntity is null || pgEntity is null)
-            return NotFound();
-        sqlEntity.Update(value, nullableValue);
-        pgEntity.Update(value, nullableValue);
-        await sqlCtx.SaveChangesAsync();
-        await pgCtx.SaveChangesAsync();
-        return Ok(new EntityResponse(id));
-    }
-
-    // Unboxing TNullable to T for struct TNullable=Nullable<T> unboxes the
-    // populated inner value; for class TNullable=T?, the cast is identity.
-    // The caller guarantees `value` is not null before invoking this helper.
-    private static T ToValue(TNullable value) => (T)(object)value!;
-
-    // And the inverse: wrap a populated T into the shape TNullable expects.
-    private static TNullable ToNullable(T value) => (TNullable)(object)value!;
-
-    private async Task<IActionResult> PatchAsync(Guid id, TNullable value, Maybe<T>? nullableValue)
-    {
-        var sqlEntity = await SqlSet.FindAsync(id);
-        var pgEntity = await PgSet.FindAsync(id);
-        if (sqlEntity is null || pgEntity is null)
-            return NotFound();
-
-        if (value is not null)
-        {
-            var unwrapped = ToValue(value);
-            sqlEntity.Value = unwrapped;
-            pgEntity.Value = unwrapped;
-        }
-
-        if (nullableValue is { } nv)
-        {
-            var newNullable = nv.Match(ToNullable, () => default(TNullable)!);
-            sqlEntity.NullableValue = newNullable;
-            pgEntity.NullableValue = newNullable;
-        }
-
-        await sqlCtx.SaveChangesAsync();
-        await pgCtx.SaveChangesAsync();
-        return Ok(new EntityResponse(id));
     }
 }

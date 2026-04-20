@@ -2,7 +2,9 @@ using StrongTypes.Api.Entities;
 
 namespace StrongTypes.Api.Models;
 
-public record EntityRequest<T, TNullable>(T Value, TNullable NullableValue) where T : notnull;
+public record StructEntityRequest<T>(T Value, T? NullableValue) where T : struct;
+
+public record ReferenceEntityRequest<T>(T Value, T? NullableValue) where T : class;
 
 /// <summary>
 /// PATCH request body. Each field is independently "sent or not":
@@ -14,14 +16,23 @@ public record EntityRequest<T, TNullable>(T Value, TNullable NullableValue) wher
 ///     <c>{"Value":x}</c> ⇒ set to x.</description></item>
 /// </list>
 /// </summary>
-public record EntityPatchRequest<T, TNullable>(TNullable Value, Maybe<T>? NullableValue)
-    where T : notnull;
+public record StructEntityPatchRequest<T>(T? Value, Maybe<T>? NullableValue) where T : struct;
+
+/// <inheritdoc cref="StructEntityPatchRequest{T}"/>
+public record ReferenceEntityPatchRequest<T>(T? Value, Maybe<T>? NullableValue) where T : class;
 
 public record EntityResponse(Guid Id);
 
-public record EntityDto<T, TNullable>(Guid Id, T Value, TNullable NullableValue) where T : notnull
+public record StructEntityDto<T>(Guid Id, T Value, T? NullableValue) where T : struct
 {
-    public static EntityDto<T, TNullable> From<TEntity>(TEntity entity)
-        where TEntity : IEntity<TEntity, T, TNullable>
+    public static StructEntityDto<T> From<TEntity>(TEntity entity)
+        where TEntity : IEntity<TEntity, T, T?>
+        => new(entity.Id, entity.Value, entity.NullableValue);
+}
+
+public record ReferenceEntityDto<T>(Guid Id, T Value, T? NullableValue) where T : class
+{
+    public static ReferenceEntityDto<T> From<TEntity>(TEntity entity)
+        where TEntity : IEntity<TEntity, T, T?>
         => new(entity.Id, entity.Value, entity.NullableValue);
 }

@@ -7,4 +7,4 @@ namespace StrongTypes.Api.Controllers;
 [ApiController]
 [Route("non-positive-float-entities")]
 public sealed class NonPositiveFloatEntityController(SqlServerDbContext sqlCtx, PostgreSqlDbContext pgCtx)
-    : EntityControllerBase<NonPositiveFloatEntity, NonPositive<float>, NonPositive<float>?>(sqlCtx, pgCtx);
+    : StructTypeEntityControllerBase<NonPositiveFloatEntity, NonPositive<float>>(sqlCtx, pgCtx);

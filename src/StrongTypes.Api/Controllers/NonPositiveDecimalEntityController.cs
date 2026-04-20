@@ -7,4 +7,4 @@ namespace StrongTypes.Api.Controllers;
 [ApiController]
 [Route("non-positive-decimal-entities")]
 public sealed class NonPositiveDecimalEntityController(SqlServerDbContext sqlCtx, PostgreSqlDbContext pgCtx)
-    : EntityControllerBase<NonPositiveDecimalEntity, NonPositive<decimal>, NonPositive<decimal>?>(sqlCtx, pgCtx);
+    : StructTypeEntityControllerBase<NonPositiveDecimalEntity, NonPositive<decimal>>(sqlCtx, pgCtx);
