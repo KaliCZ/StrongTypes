@@ -10,8 +10,7 @@ namespace StrongTypes;
 /// <summary>
 /// <see cref="JsonConverterFactory"/> for <see cref="Maybe{T}"/> and for
 /// <see cref="Nullable{T}"/> of <see cref="Maybe{T}"/>. Both use the flat wire
-/// format — the underlying <typeparamref name="T"/>'s JSON value, not an object
-/// wrapper:
+/// format — the underlying <c>T</c>'s JSON value, not an object wrapper:
 /// <list type="bullet">
 ///   <item><description><c>Maybe&lt;T&gt;</c> serializes <c>Some(x)</c> as the raw
 ///     JSON representation of <c>x</c> and <c>None</c> as <c>null</c>.
