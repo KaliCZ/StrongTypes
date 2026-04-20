@@ -14,33 +14,32 @@ namespace StrongTypes.Api.IntegrationTests.Tests;
 /// lists — a missing one is a build error, not a silently skipped test. xUnit
 /// resolves the actual members by reflection on the concrete type at discovery time.
 /// </summary>
-public interface IEntityTestData<TRaw>
+public interface IEntityTestData<TWire>
 {
-    static abstract TheoryData<TRaw> ValidInputs { get; }
-    static abstract TheoryData<TRaw> InvalidInputs { get; }
+    static abstract TheoryData<TWire> ValidInputs { get; }
+    static abstract TheoryData<TWire> InvalidInputs { get; }
 }
 
 /// <summary>
 /// Shared Create/Get/Update suite for every <see cref="IEntity{TSelf, T, TNullable}"/>.
 /// The test shape (valid inputs, invalid inputs, null handling) is identical for
-/// numeric and string strong types; only the underlying raw type
-/// (<typeparamref name="TRaw"/> — e.g. <c>int</c> for <c>Positive&lt;int&gt;</c>,
-/// <c>string</c> for <c>NonEmptyString</c>) and the wrapper factory differ.
-/// Concrete subclasses plug in a <c>Create(TRaw)</c> factory, two seed values
+/// numeric and string strong types; only the wire-format raw type
+/// (<typeparamref name="TWire"/>) and the wrapper factory differ. Concrete
+/// subclasses plug in a <c>Create(TWire)</c> factory, two seed values
 /// (<see cref="FirstValid"/>, <see cref="UpdatedValid"/>), the <see cref="RoutePrefix"/>
 /// inherited from <see cref="IntegrationTestBase{TEntity, T, TNullable}"/>, and
 /// the two <see cref="TheoryData{T}"/> lists required by
-/// <see cref="IEntityTestData{TRaw}"/>.
+/// <see cref="IEntityTestData{TWire}"/>.
 /// </summary>
 /// <remarks>
 /// <typeparamref name="TSelf"/> uses the curiously recurring template pattern so
 /// each concrete subclass passes itself and must implement
-/// <see cref="IEntityTestData{TRaw}"/> — a missing data member is a CS0535
+/// <see cref="IEntityTestData{TWire}"/> — a missing data member is a CS0535
 /// build error instead of a silently skipped test.
 /// </remarks>
-public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApplicationFactory factory)
+public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebApplicationFactory factory)
     : IntegrationTestBase<TEntity, T, TNullable>(factory)
-    where TSelf : EntityTests<TSelf, TEntity, T, TNullable, TRaw>, IEntityTestData<TRaw>
+    where TSelf : EntityTests<TSelf, TEntity, T, TNullable, TWire>, IEntityTestData<TWire>
     where TEntity : class, IEntity<TEntity, T, TNullable>
     where T : notnull
 {
@@ -55,7 +54,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApp
 
     /// <summary>
     /// Builds the { Value, NullableValue } request body used by every write endpoint.
-    /// Generic over the raw types so tests can send plain scalars (int, string, …)
+    /// Generic over the wire types so tests can send plain scalars (int, string, …)
     /// regardless of the strong type the server binds them into.
     /// </summary>
     protected static object Body<TValue, TNullableValue>(TValue value, TNullableValue nullableValue) =>
@@ -87,17 +86,17 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApp
         return await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
     }
 
-    /// <summary>Wraps a raw underlying value in the strong type.</summary>
-    protected abstract T Create(TRaw raw);
+    /// <summary>Wraps a raw wire-format value in the strong type.</summary>
+    protected abstract T Create(TWire raw);
 
     /// <summary>
     /// Seed valid value used as the "other" slot when testing one field in
     /// isolation, and as the baseline for Get/Update tests.
     /// </summary>
-    protected abstract TRaw FirstValid { get; }
+    protected abstract TWire FirstValid { get; }
 
     /// <summary>Target value for the update test; must differ from <see cref="FirstValid"/>.</summary>
-    protected abstract TRaw UpdatedValid { get; }
+    protected abstract TWire UpdatedValid { get; }
 
     // T → TNullable bridge. For struct T with TNullable = Nullable<T>, boxing
     // then unboxing to Nullable<T> is a supported CLR conversion. For class T
@@ -111,8 +110,8 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApp
     // xUnit resolves these names on the concrete test class at runtime; the
     // analyzer can't see through the static abstract + CRTP, so we suppress
     // xUnit1015 where we reference them.
-    protected const string ValidInputsMember = nameof(IEntityTestData<TRaw>.ValidInputs);
-    protected const string InvalidInputsMember = nameof(IEntityTestData<TRaw>.InvalidInputs);
+    protected const string ValidInputsMember = nameof(IEntityTestData<TWire>.ValidInputs);
+    protected const string InvalidInputsMember = nameof(IEntityTestData<TWire>.InvalidInputs);
 
 #pragma warning disable xUnit1015
 
@@ -120,7 +119,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApp
 
     [Theory]
     [MemberData(ValidInputsMember)]
-    public async Task ValidInput_PersistsInBothDatabases(TRaw value)
+    public async Task ValidInput_PersistsInBothDatabases(TWire value)
     {
         var created = await Post(CreateEndpoint, new { value, nullableValue = value });
         var expected = Create(value);
@@ -131,8 +130,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApp
     [Fact]
     public async Task ValidValueWithNullNullable_PersistsInBothDatabases()
     {
-        var created = await Post(CreateEndpoint,
-            new { value = (object?)FirstValid, nullableValue = (object?)null });
+        var created = await Post(CreateEndpoint, new { value = (object?)FirstValid, nullableValue = (object?)null });
         await AssertEntity(SqlSet, created.Id, Create(FirstValid), NullNullable);
         await AssertEntity(PgSet, created.Id, Create(FirstValid), NullNullable);
     }
@@ -143,19 +141,17 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApp
 
     [Theory]
     [MemberData(InvalidInputsMember)]
-    public async Task InvalidValue_ReturnsBadRequest(TRaw invalid)
+    public async Task InvalidValue_ReturnsBadRequest(TWire invalid)
     {
-        var response = await Client.PostAsJsonAsync(
-            CreateEndpoint, new { value = (object?)invalid, nullableValue = (object?)FirstValid }, Ct);
+        var response = await Client.PostAsJsonAsync(CreateEndpoint, new { value = (object?)invalid, nullableValue = (object?)FirstValid }, Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Theory]
     [MemberData(InvalidInputsMember)]
-    public async Task InvalidNullableValue_ReturnsBadRequest(TRaw invalid)
+    public async Task InvalidNullableValue_ReturnsBadRequest(TWire invalid)
     {
-        var response = await Client.PostAsJsonAsync(
-            CreateEndpoint, new { value = (object?)FirstValid, nullableValue = (object?)invalid }, Ct);
+        var response = await Client.PostAsJsonAsync(CreateEndpoint, new { value = (object?)FirstValid, nullableValue = (object?)invalid }, Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 #pragma warning restore xUnit1015
@@ -219,8 +215,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApp
     public async Task Update_PersistsNewValueAndNullableValueInBothDatabases()
     {
         var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
-        await Put(UpdateEndpoint(created.Id),
-            new { value = UpdatedValid, nullableValue = UpdatedValid });
+        await Put(UpdateEndpoint(created.Id), new { value = UpdatedValid, nullableValue = UpdatedValid });
 
         var updated = Create(UpdatedValid);
         await AssertEntity(SqlSet, created.Id, updated, ToNullable(updated));
@@ -230,10 +225,8 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApp
     [Fact]
     public async Task Update_SetsNullableValueFromNullToValueInBothDatabases()
     {
-        var created = await Post(CreateEndpoint,
-            new { value = (object?)FirstValid, nullableValue = (object?)null });
-        await Put(UpdateEndpoint(created.Id),
-            new { value = (object?)FirstValid, nullableValue = (object?)UpdatedValid });
+        var created = await Post(CreateEndpoint, new { value = (object?)FirstValid, nullableValue = (object?)null });
+        await Put(UpdateEndpoint(created.Id), new { value = (object?)FirstValid, nullableValue = (object?)UpdatedValid });
 
         await AssertEntity(SqlSet, created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
         await AssertEntity(PgSet, created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
@@ -243,8 +236,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApp
     public async Task Update_ClearsNullableValueToNullInBothDatabases()
     {
         var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
-        await Put(UpdateEndpoint(created.Id),
-            new { value = (object?)FirstValid, nullableValue = (object?)null });
+        await Put(UpdateEndpoint(created.Id), new { value = (object?)FirstValid, nullableValue = (object?)null });
 
         await AssertEntity(SqlSet, created.Id, Create(FirstValid), NullNullable);
         await AssertEntity(PgSet, created.Id, Create(FirstValid), NullNullable);
@@ -301,8 +293,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApp
     {
         var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = (object?)null });
 
-        var response = await Patch(PatchEndpoint(created.Id),
-            new { nullableValue = new { Value = UpdatedValid } });
+        var response = await Patch(PatchEndpoint(created.Id), new { nullableValue = new { Value = UpdatedValid } });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         await AssertEntity(SqlSet, created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
@@ -326,8 +317,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApp
     {
         var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
 
-        var response = await Patch(PatchEndpoint(created.Id),
-            new { nullableValue = new { Value = (object?)null } });
+        var response = await Patch(PatchEndpoint(created.Id), new { nullableValue = new { Value = (object?)null } });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         await AssertEntity(SqlSet, created.Id, Create(FirstValid), NullNullable);
@@ -339,8 +329,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApp
     {
         var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = (object?)null });
 
-        var response = await Patch(PatchEndpoint(created.Id),
-            new { value = UpdatedValid, nullableValue = new { Value = UpdatedValid } });
+        var response = await Patch(PatchEndpoint(created.Id), new { value = UpdatedValid, nullableValue = new { Value = UpdatedValid } });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         await AssertEntity(SqlSet, created.Id, Create(UpdatedValid), ToNullable(Create(UpdatedValid)));
@@ -354,8 +343,8 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApp
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    private static void AssertJsonEquals(JsonElement element, TRaw expected)
+    private static void AssertJsonEquals(JsonElement element, TWire expected)
     {
-        Assert.Equal(expected, element.Deserialize<TRaw>());
+        Assert.Equal(expected, element.Deserialize<TWire>());
     }
 }
