@@ -183,44 +183,6 @@ public class MaybeExtensionsTests
         }
     }
 
-    // ── ValueOrEmpty (collection-typed Maybe) ───────────────────────────
-
-    [Fact]
-    public void ValueOrEmpty_Enumerable_Empty_ReturnsEmptySequence()
-    {
-        Maybe<IEnumerable<int>> m = Maybe<IEnumerable<int>>.None;
-        Assert.Empty(m.ValueOrEmpty());
-    }
-
-    [Fact]
-    public void ValueOrEmpty_Enumerable_Some_ReturnsUnderlying()
-    {
-        var underlying = new[] { 1, 2, 3 };
-        var m = Maybe<IEnumerable<int>>.Some(underlying);
-        Assert.Equal(underlying, m.ValueOrEmpty());
-    }
-
-    [Fact]
-    public void ValueOrEmpty_Array_Empty_ReturnsEmptyArray()
-    {
-        var arr = Maybe<int[]>.None.ValueOrEmpty();
-        Assert.Empty(arr);
-    }
-
-    [Fact]
-    public void ValueOrEmpty_List_Some_ReturnsUnderlying()
-    {
-        var underlying = new List<int> { 7, 8 };
-        Assert.Equal(underlying, Maybe<List<int>>.Some(underlying).ValueOrEmpty());
-    }
-
-    [Fact]
-    public void ValueOrEmpty_Dictionary_Empty_Enumerates()
-    {
-        var empty = Maybe<Dictionary<int, string>>.None.ValueOrEmpty();
-        Assert.Empty(empty);
-    }
-
     // ── IEnumerable<T> → Maybe<T> (Safe* family) ────────────────────────
 
     [Fact]

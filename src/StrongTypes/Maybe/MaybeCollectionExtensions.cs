@@ -8,56 +8,11 @@ namespace StrongTypes;
 
 /// <summary>
 /// Extensions over <see cref="Maybe{T}"/> that interact with collections and vice-versa:
-/// unwrapping <c>Maybe&lt;Collection&lt;T&gt;&gt;</c> to an empty collection, pulling a
-/// single <see cref="Maybe{T}"/> out of an <see cref="IEnumerable{T}"/>, and flattening
-/// a sequence of <see cref="Maybe{T}"/> down to its populated values.
+/// pulling a single <see cref="Maybe{T}"/> out of an <see cref="IEnumerable{T}"/>, and
+/// flattening a sequence of <see cref="Maybe{T}"/> down to its populated values.
 /// </summary>
 public static class MaybeCollectionExtensions
 {
-    #region ValueOrEmpty (unwrap Maybe<collection> to an empty collection on Empty)
-
-    public static IEnumerable<T> ValueOrEmpty<T>(this Maybe<IEnumerable<T>> m)
-        where T : notnull
-        => m.HasValue ? m.InternalValue : [];
-
-    public static IReadOnlyList<T> ValueOrEmpty<T>(this Maybe<IReadOnlyList<T>> m)
-        where T : notnull
-        => m.HasValue ? m.InternalValue : [];
-
-    public static IReadOnlyCollection<T> ValueOrEmpty<T>(this Maybe<IReadOnlyCollection<T>> m)
-        where T : notnull
-        => m.HasValue ? m.InternalValue : [];
-
-    public static T[] ValueOrEmpty<T>(this Maybe<T[]> m)
-        where T : notnull
-        => m.HasValue ? m.InternalValue : [];
-
-    public static List<T> ValueOrEmpty<T>(this Maybe<List<T>> m)
-        where T : notnull
-        => m.HasValue ? m.InternalValue : [];
-
-    public static IEnumerable<TValue> ValueOrEmpty<TKey, TValue>(this Maybe<IGrouping<TKey, TValue>> m)
-        where TKey : notnull
-        => m.HasValue ? m.InternalValue : [];
-
-    public static IReadOnlyCollection<KeyValuePair<TKey, TValue>> ValueOrEmpty<TKey, TValue>(this Maybe<Dictionary<TKey, TValue>> m)
-        where TKey : notnull
-        => m.HasValue ? m.InternalValue : [];
-
-    public static ICollection<KeyValuePair<TKey, TValue>> ValueOrEmpty<TKey, TValue>(this Maybe<IDictionary<TKey, TValue>> m)
-        where TKey : notnull
-        => m.HasValue ? m.InternalValue : Array.Empty<KeyValuePair<TKey, TValue>>();
-
-    public static IReadOnlyCollection<KeyValuePair<TKey, TValue>> ValueOrEmpty<TKey, TValue>(this Maybe<IReadOnlyDictionary<TKey, TValue>> m)
-        where TKey : notnull
-        => m.HasValue ? m.InternalValue.ToArray() : [];
-
-    public static IEnumerable<KeyValuePair<TKey, TValue>> ValueOrEmpty<TKey, TValue>(this Maybe<IEnumerable<KeyValuePair<TKey, TValue>>> m)
-        where TKey : notnull
-        => m.HasValue ? m.InternalValue : [];
-
-    #endregion
-
     #region IEnumerable<T> → Maybe<T>
 
     /// <summary>
