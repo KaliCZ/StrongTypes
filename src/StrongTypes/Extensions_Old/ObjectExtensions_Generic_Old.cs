@@ -10,7 +10,7 @@ namespace StrongTypes
         [Pure]
         public static INonEmptyEnumerable<T> ToEnumerable<T>(this T value)
         {
-            return NonEmptyEnumerable.Create(value);
+            return NonEmptyEnumerable.Of(value);
         }
 
         [DebuggerStepThrough]

@@ -1,5 +1,6 @@
 #nullable enable
 
+using System.Collections.Generic;
 using FsCheck;
 using FsCheck.Fluent;
 
@@ -103,4 +104,12 @@ public static class Generators
         Arb.From(Gen.Frequency(
             (1, Gen.Constant(Maybe<Positive<int>>.None)),
             (4, PositiveInt.Generator.Select(Maybe.Some))));
+
+    /// <summary>
+    /// <see cref="NonEmptyEnumerable{Int32}"/>. Built on FsCheck's <c>NonEmptyListOf</c>
+    /// so every generated value automatically satisfies the non-empty invariant.
+    /// </summary>
+    public static Arbitrary<NonEmptyEnumerable<int>> NonEmptyEnumerableInt { get; } =
+        Arb.From(Gen.NonEmptyListOf(ArbMap.Default.ArbFor<int>().Generator)
+            .Select(list => NonEmptyEnumerable.Create(list)));
 }

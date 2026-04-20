@@ -37,17 +37,6 @@ public static partial class IEnumerableExtensions
 
     public static INonEmptyEnumerable<T> Concat<T>(this T e, params IEnumerable<T>[] others)
     {
-        return NonEmptyEnumerable.Create(e, others.Flatten().ToArray());
-    }
-
-    [Pure]
-    public static INonEmptyEnumerable<T> Concat<T>(this INonEmptyEnumerable<T> source, params T[] items)
-    {
-        return NonEmptyEnumerable.Create(source.Head, source.Tail.Concat(items).ToArray());
-    }
-
-    public static INonEmptyEnumerable<T> Concat<T>(this INonEmptyEnumerable<T> source, params IEnumerable<T>[] items)
-    {
-        return NonEmptyEnumerable.Create(source.Head, source.Tail.Concat(items).ToArray());
+        return NonEmptyEnumerable.Of(e, others.Flatten().ToArray());
     }
 }

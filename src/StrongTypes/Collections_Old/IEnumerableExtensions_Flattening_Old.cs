@@ -17,6 +17,6 @@ public static partial class IEnumerableExtensions
     [Pure]
     public static INonEmptyEnumerable<T> Flatten<T>(this INonEmptyEnumerable<INonEmptyEnumerable<T>> source)
     {
-        return NonEmptyEnumerable<T>.Create(source.Head.Head, source.Head.Tail.Concat(source.Tail.Flatten()).ToArray());
+        return NonEmptyEnumerable.Of(source.Head.Head, source.Head.Tail.Concat(source.Tail.Flatten()).ToArray());
     }
 }
