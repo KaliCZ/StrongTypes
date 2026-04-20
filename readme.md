@@ -36,6 +36,8 @@ A value type that holds either a value of `T` (`Some`) or no value (`None`). It 
 Maybe<int>    some   = Maybe.Some(42);   // T inferred from the argument
 Maybe<int>    direct = 42;               // implicit conversion from T
 Maybe<string> none   = Maybe.None;       // binds to whatever Maybe<T> the context expects
+Maybe<int>    a      = nullableInt.ToMaybe();      // Some(x) when HasValue, None otherwise
+Maybe<string> b      = nullableString.ToMaybe();   // Some(x) when not null, None otherwise
 ```
 
 The implicit conversions from `T` and from the untyped `Maybe.None` make collection expressions read naturally — no need to spell out `Maybe<int>.Some(...)` for every element, and the `..` spread operator splices existing sequences in alongside literal `Maybe.None` markers:
@@ -44,16 +46,6 @@ The implicit conversions from `T` and from the untyped `Maybe.None` make collect
 int[] middle = [4, 2, 3];
 Maybe<int>[] xs = [..middle, Maybe.None, 4];
 IEnumerable<int> values = xs.Values();   // [4, 2, 3, 4]
-```
-
-When you already hold a `T?` from existing code, lift it with the `ToMaybe()` extension. There's no implicit operator from `T?` because a single operator can't cover both `Nullable<T>` (for value types) and the nullable annotation on a reference type without colliding with `implicit operator Maybe<T>(T)`. The extension splits cleanly into two constrained overloads:
-
-```csharp
-int?    maybeInt    = GetIntOrNull();
-string? maybeString = GetStringOrNull();
-
-Maybe<int>    a = maybeInt.ToMaybe();      // Some(x) when HasValue, None otherwise
-Maybe<string> b = maybeString.ToMaybe();   // Some(x) when not null, None otherwise
 ```
 
 ### Unwrapping
