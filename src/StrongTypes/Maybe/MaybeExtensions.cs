@@ -28,6 +28,33 @@ public static class MaybeClassValueExtensions
 
 public static class MaybeExtensions
 {
+    public static Maybe<T> ToMaybe<T>(this T? value)
+        where T : struct
+        => value.HasValue ? Maybe<T>.Some(value.Value) : default;
+
+    public static Maybe<T> ToMaybe<T>(this T? value)
+        where T : class
+        => value is not null ? Maybe<T>.Some(value) : default;
+
+    /// <summary>
+    /// Turns a <see cref="Maybe{T}"/> into a <see cref="Try{T, E}"/>: a populated
+    /// Maybe becomes a success; an empty Maybe becomes the error produced by
+    /// <paramref name="error"/>.
+    /// </summary>
+    public static Try<T, E> ToTry<T, E>(this Maybe<T> m, Func<E> error)
+        where T : notnull
+        => m.HasValue ? Try.Success<T, E>(m.InternalValue) : Try.Error<T, E>(error());
+
+    public static async Task<Maybe<B>> MapAsync<A, B>(this Maybe<A> m, Func<A, Task<B>> f)
+        where A : notnull
+        where B : notnull
+        => m.HasValue ? Maybe<B>.Some(await f(m.InternalValue)) : default;
+
+    public static async Task<Maybe<B>> FlatMapAsync<A, B>(this Maybe<A> m, Func<A, Task<Maybe<B>>> f)
+        where A : notnull
+        where B : notnull
+        => m.HasValue ? await f(m.InternalValue) : default;
+
     #region LINQ aliases
 
     public static Maybe<B> Select<A, B>(this Maybe<A> m, Func<A, B> f)
@@ -48,62 +75,6 @@ public static class MaybeExtensions
         where X : notnull
         where B : notnull
         => m.FlatMap(a => f(a).Map(x => compose(a, x)));
-
-    #endregion
-
-    #region Async
-
-    public static async Task<Maybe<B>> MapAsync<A, B>(this Maybe<A> m, Func<A, Task<B>> f)
-        where A : notnull
-        where B : notnull
-        => m.HasValue ? Maybe<B>.Some(await f(m.InternalValue)) : default;
-
-    public static async Task<Maybe<B>> FlatMapAsync<A, B>(this Maybe<A> m, Func<A, Task<Maybe<B>>> f)
-        where A : notnull
-        where B : notnull
-        => m.HasValue ? await f(m.InternalValue) : default;
-
-    public static async Task MatchAsync<A>(
-        this Maybe<A> m,
-        Func<A, Task> ifSome,
-        Func<Task>? ifNone = null)
-        where A : notnull
-    {
-        if (m.HasValue) await ifSome(m.InternalValue);
-        else if (ifNone is not null) await ifNone();
-    }
-
-    public static async Task<R> MatchAsync<A, R>(
-        this Maybe<A> m,
-        Func<A, Task<R>> ifSome,
-        Func<Task<R>> ifNone)
-        where A : notnull
-        => m.HasValue ? await ifSome(m.InternalValue) : await ifNone();
-
-    #endregion
-
-    #region ToTry
-
-    /// <summary>
-    /// Turns a <see cref="Maybe{T}"/> into a <see cref="Try{T, E}"/>: a populated
-    /// Maybe becomes a success; an empty Maybe becomes the error produced by
-    /// <paramref name="error"/>.
-    /// </summary>
-    public static Try<T, E> ToTry<T, E>(this Maybe<T> m, Func<E> error)
-        where T : notnull
-        => m.HasValue ? Try.Success<T, E>(m.InternalValue) : Try.Error<T, E>(error());
-
-    #endregion
-
-    #region ToMaybe (from nullable reference / value types)
-
-    public static Maybe<T> ToMaybe<T>(this T? value)
-        where T : struct
-        => value.HasValue ? Maybe<T>.Some(value.Value) : default;
-
-    public static Maybe<T> ToMaybe<T>(this T? value)
-        where T : class
-        => value is not null ? Maybe<T>.Some(value) : default;
 
     #endregion
 }

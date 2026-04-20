@@ -89,38 +89,23 @@ public class MaybeExtensionsTests
     }
 
     [Fact]
-    public async Task MatchAsync_WithResult_Some()
+    public async Task Match_WithAsyncLambdas_Some()
     {
-        var result = await Maybe<int>.Some(5).MatchAsync(
+        // Match<R> with R = Task<int> covers what MatchAsync used to do — the
+        // async lambdas just return Task<int>, Match returns Task<int>, await unwraps.
+        var result = await Maybe<int>.Some(5).Match(
             async x => { await Task.Yield(); return x + 1; },
             async () => { await Task.Yield(); return -1; });
         Assert.Equal(6, result);
     }
 
     [Fact]
-    public async Task MatchAsync_WithResult_Empty()
+    public async Task Match_WithAsyncLambdas_Empty()
     {
-        var result = await Maybe<int>.None.MatchAsync(
+        var result = await Maybe<int>.None.Match(
             async x => { await Task.Yield(); return x + 1; },
             async () => { await Task.Yield(); return -1; });
         Assert.Equal(-1, result);
-    }
-
-    [Fact]
-    public async Task MatchAsync_Void_Some()
-    {
-        var hit = 0;
-        await Maybe<int>.Some(1).MatchAsync(
-            async _ => { await Task.Yield(); hit++; },
-            async () => { await Task.Yield(); hit += 100; });
-        Assert.Equal(1, hit);
-    }
-
-    [Fact]
-    public async Task MatchAsync_Void_Empty_NullIfNoneIsNoop()
-    {
-        // ifNone is optional; make sure a null doesn't throw.
-        await Maybe<int>.None.MatchAsync(async _ => { await Task.Yield(); });
     }
 
     // ── ToTry ───────────────────────────────────────────────────────────
