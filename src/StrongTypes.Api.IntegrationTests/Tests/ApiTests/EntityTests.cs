@@ -14,32 +14,33 @@ namespace StrongTypes.Api.IntegrationTests.Tests;
 /// lists — a missing one is a build error, not a silently skipped test. xUnit
 /// resolves the actual members by reflection on the concrete type at discovery time.
 /// </summary>
-public interface IEntityTestData<TWire>
+public interface IEntityTestData<TRaw>
 {
-    static abstract TheoryData<TWire> ValidInputs { get; }
-    static abstract TheoryData<TWire> InvalidInputs { get; }
+    static abstract TheoryData<TRaw> ValidInputs { get; }
+    static abstract TheoryData<TRaw> InvalidInputs { get; }
 }
 
 /// <summary>
 /// Shared Create/Get/Update suite for every <see cref="IEntity{TSelf, T, TNullable}"/>.
 /// The test shape (valid inputs, invalid inputs, null handling) is identical for
-/// numeric and string strong types; only the wire-format raw type
-/// (<typeparamref name="TWire"/>) and the wrapper factory differ. Concrete
-/// subclasses plug in a <c>Create(TWire)</c> factory, two seed values
+/// numeric and string strong types; only the underlying raw type
+/// (<typeparamref name="TRaw"/> — e.g. <c>int</c> for <c>Positive&lt;int&gt;</c>,
+/// <c>string</c> for <c>NonEmptyString</c>) and the wrapper factory differ.
+/// Concrete subclasses plug in a <c>Create(TRaw)</c> factory, two seed values
 /// (<see cref="FirstValid"/>, <see cref="UpdatedValid"/>), the <see cref="RoutePrefix"/>
 /// inherited from <see cref="IntegrationTestBase{TEntity, T, TNullable}"/>, and
 /// the two <see cref="TheoryData{T}"/> lists required by
-/// <see cref="IEntityTestData{TWire}"/>.
+/// <see cref="IEntityTestData{TRaw}"/>.
 /// </summary>
 /// <remarks>
 /// <typeparamref name="TSelf"/> uses the curiously recurring template pattern so
 /// each concrete subclass passes itself and must implement
-/// <see cref="IEntityTestData{TWire}"/> — a missing data member is a CS0535
+/// <see cref="IEntityTestData{TRaw}"/> — a missing data member is a CS0535
 /// build error instead of a silently skipped test.
 /// </remarks>
-public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebApplicationFactory factory)
+public abstract class EntityTests<TSelf, TEntity, T, TNullable, TRaw>(TestWebApplicationFactory factory)
     : IntegrationTestBase<TEntity, T, TNullable>(factory)
-    where TSelf : EntityTests<TSelf, TEntity, T, TNullable, TWire>, IEntityTestData<TWire>
+    where TSelf : EntityTests<TSelf, TEntity, T, TNullable, TRaw>, IEntityTestData<TRaw>
     where TEntity : class, IEntity<TEntity, T, TNullable>
     where T : notnull
 {
@@ -54,7 +55,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
 
     /// <summary>
     /// Builds the { Value, NullableValue } request body used by every write endpoint.
-    /// Generic over the wire types so tests can send plain scalars (int, string, …)
+    /// Generic over the raw types so tests can send plain scalars (int, string, …)
     /// regardless of the strong type the server binds them into.
     /// </summary>
     protected static object Body<TValue, TNullableValue>(TValue value, TNullableValue nullableValue) =>
@@ -86,17 +87,17 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         return await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
     }
 
-    /// <summary>Wraps a raw wire-format value in the strong type.</summary>
-    protected abstract T Create(TWire raw);
+    /// <summary>Wraps a raw underlying value in the strong type.</summary>
+    protected abstract T Create(TRaw raw);
 
     /// <summary>
     /// Seed valid value used as the "other" slot when testing one field in
     /// isolation, and as the baseline for Get/Update tests.
     /// </summary>
-    protected abstract TWire FirstValid { get; }
+    protected abstract TRaw FirstValid { get; }
 
     /// <summary>Target value for the update test; must differ from <see cref="FirstValid"/>.</summary>
-    protected abstract TWire UpdatedValid { get; }
+    protected abstract TRaw UpdatedValid { get; }
 
     // T → TNullable bridge. For struct T with TNullable = Nullable<T>, boxing
     // then unboxing to Nullable<T> is a supported CLR conversion. For class T
@@ -110,8 +111,8 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     // xUnit resolves these names on the concrete test class at runtime; the
     // analyzer can't see through the static abstract + CRTP, so we suppress
     // xUnit1015 where we reference them.
-    protected const string ValidInputsMember = nameof(IEntityTestData<TWire>.ValidInputs);
-    protected const string InvalidInputsMember = nameof(IEntityTestData<TWire>.InvalidInputs);
+    protected const string ValidInputsMember = nameof(IEntityTestData<TRaw>.ValidInputs);
+    protected const string InvalidInputsMember = nameof(IEntityTestData<TRaw>.InvalidInputs);
 
 #pragma warning disable xUnit1015
 
@@ -119,7 +120,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
 
     [Theory]
     [MemberData(ValidInputsMember)]
-    public async Task ValidInput_PersistsInBothDatabases(TWire value)
+    public async Task ValidInput_PersistsInBothDatabases(TRaw value)
     {
         var created = await Post(CreateEndpoint, new { value, nullableValue = value });
         var expected = Create(value);
@@ -142,7 +143,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
 
     [Theory]
     [MemberData(InvalidInputsMember)]
-    public async Task InvalidValue_ReturnsBadRequest(TWire invalid)
+    public async Task InvalidValue_ReturnsBadRequest(TRaw invalid)
     {
         var response = await Client.PostAsJsonAsync(
             CreateEndpoint, new { value = (object?)invalid, nullableValue = (object?)FirstValid }, Ct);
@@ -151,7 +152,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
 
     [Theory]
     [MemberData(InvalidInputsMember)]
-    public async Task InvalidNullableValue_ReturnsBadRequest(TWire invalid)
+    public async Task InvalidNullableValue_ReturnsBadRequest(TRaw invalid)
     {
         var response = await Client.PostAsJsonAsync(
             CreateEndpoint, new { value = (object?)FirstValid, nullableValue = (object?)invalid }, Ct);
@@ -353,8 +354,8 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    private static void AssertJsonEquals(JsonElement element, TWire expected)
+    private static void AssertJsonEquals(JsonElement element, TRaw expected)
     {
-        Assert.Equal(expected, element.Deserialize<TWire>());
+        Assert.Equal(expected, element.Deserialize<TRaw>());
     }
 }
