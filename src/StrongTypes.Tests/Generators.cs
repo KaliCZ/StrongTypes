@@ -31,9 +31,7 @@ public static class Generators
     public static Arbitrary<NonEmptyString?> NullableNonEmptyString { get; } =
         Arb.From(Gen.Frequency(
             (1, Gen.Constant<NonEmptyString?>(null)),
-            (9, ArbMap.Default.ArbFor<string>().Generator
-                .Where(s => !string.IsNullOrWhiteSpace(s))
-                .Select(s => (NonEmptyString?)StrongTypes.NonEmptyString.Create(s)))));
+            (9, NonEmptyString.Generator.Select(nes => (NonEmptyString?)nes))));
 
     /// <summary>
     /// <see cref="Positive{Int32}"/> — values strictly greater than zero.
@@ -95,20 +93,13 @@ public static class Generators
     public static Arbitrary<Maybe<NonEmptyString>> MaybeNonEmptyString { get; } =
         Arb.From(Gen.Frequency(
             (1, Gen.Constant(Maybe<NonEmptyString>.None)),
-            (4, ArbMap.Default.ArbFor<string>().Generator
-                .Where(s => !string.IsNullOrWhiteSpace(s))
-                .Select(s => Maybe<NonEmptyString>.Some(StrongTypes.NonEmptyString.Create(s))))));
+            (4, NonEmptyString.Generator.Select(Maybe<NonEmptyString>.Some))));
 
     /// <summary>
     /// <see cref="Maybe{T}"/> of <see cref="Positive{Int32}"/> with ~20% None rate.
-    /// The wrapped int is constrained to <c>&gt; 0</c> to satisfy the Positive
-    /// invariant, so generated values always round-trip cleanly through the
-    /// strong-type converter.
     /// </summary>
     public static Arbitrary<Maybe<Positive<int>>> MaybePositiveInt { get; } =
         Arb.From(Gen.Frequency(
             (1, Gen.Constant(Maybe<Positive<int>>.None)),
-            (4, ArbMap.Default.ArbFor<int>().Generator
-                .Where(i => i > 0)
-                .Select(i => Maybe<Positive<int>>.Some(Positive<int>.Create(i))))));
+            (4, PositiveInt.Generator.Select(Maybe<Positive<int>>.Some))));
 }
