@@ -118,9 +118,16 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, IEquatable<N
 
     public T this[int index] => _values[index];
 
-    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_values).GetEnumerator();
+    /// <summary>
+    /// Returns a struct enumerator so <c>foreach (var x in nonEmpty)</c> on the concrete type
+    /// is allocation-free. Calls via <see cref="IEnumerable{T}"/> still box through the
+    /// explicit interface impls — unavoidable for the interface contract.
+    /// </summary>
+    public Enumerator GetEnumerator() => new(_values);
 
-    IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     /// <summary>
     /// Returns the underlying buffer as a <see cref="ReadOnlySpan{T}"/>. Useful for
@@ -128,10 +135,34 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, IEquatable<N
     /// </summary>
     public ReadOnlySpan<T> AsSpan() => _values;
 
+    public struct Enumerator : IEnumerator<T>
+    {
+        private readonly T[] _values;
+        private int _index;
+
+        internal Enumerator(T[] values)
+        {
+            _values = values;
+            _index = -1;
+        }
+
+        public readonly T Current => _values[_index];
+        readonly object? IEnumerator.Current => Current;
+
+        public bool MoveNext() => ++_index < _values.Length;
+
+        public void Reset() => _index = -1;
+
+        public readonly void Dispose() { }
+    }
+
     #region Equality
 
     public bool Equals(NonEmptyEnumerable<T>? other)
-        => other is not null && _values.AsSpan().SequenceEqual(other._values, EqualityComparer<T>.Default);
+        // No explicit comparer — the parameterless SequenceEqual takes the SIMD-vectorized path
+        // for bitwise-equatable T (primitives, enums, Guid, unmanaged structs) and still falls
+        // back to EqualityComparer<T>.Default.Equals for everything else.
+        => other is not null && _values.AsSpan().SequenceEqual(other._values);
 
     public override bool Equals(object? obj) => obj is NonEmptyEnumerable<T> other && Equals(other);
 
