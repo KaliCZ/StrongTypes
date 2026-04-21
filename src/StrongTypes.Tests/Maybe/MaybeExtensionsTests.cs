@@ -122,7 +122,8 @@ public class MaybeExtensionsTests
         var calls = 0;
         var result = Maybe<int>.Some(7).ToTry(() => { calls++; return ParseError.Missing; });
         Assert.True(result.IsSuccess);
-        Assert.Equal(7, result.Success.Get());
+        Assert.True(result.Success.IsSome);
+        Assert.Equal(7, result.Success.Value);
         Assert.Equal(0, calls);
     }
 
@@ -132,7 +133,8 @@ public class MaybeExtensionsTests
         var calls = 0;
         var result = Maybe<int>.None.ToTry(() => { calls++; return ParseError.Missing; });
         Assert.True(result.IsError);
-        Assert.Equal(ParseError.Missing, result.Error.Get());
+        Assert.True(result.Error.IsSome);
+        Assert.Equal(ParseError.Missing, result.Error.Value);
         Assert.Equal(1, calls);
     }
 

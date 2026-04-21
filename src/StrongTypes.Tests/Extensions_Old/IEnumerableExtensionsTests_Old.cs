@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -31,15 +29,5 @@ public class IEnumerableExtensionsTests
         );
 
         Assert.True(lengths.SequenceEqual(new[] { 3, 3, 42, 21 }));
-    }
-
-    [Fact]
-    public void Aggregate()
-    {
-        var e = new Exception();
-
-        Assert.Equal(Option.Empty<Exception>(), new List<Exception>().Aggregate());
-        Assert.Equal(Option.Valued(e), new[] { e }.Aggregate());
-        Assert.True(new[] { e, e, e }.Aggregate().Get() is AggregateException);
     }
 }

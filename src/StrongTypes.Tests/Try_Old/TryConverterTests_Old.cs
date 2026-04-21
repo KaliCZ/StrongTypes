@@ -34,7 +34,8 @@ public class TryConverterTests
 
         // Assert
         Assert.True(value.IsSuccess);
-        Assert.Equal(42, value.Success.Get());
+        Assert.True(value.Success.IsSome);
+        Assert.Equal(42, value.Success.Value);
     }
 
     [Fact]
@@ -61,7 +62,8 @@ public class TryConverterTests
 
         // Assert
         Assert.True(value.IsSuccess);
-        Assert.Equal(new DummySuccess("success!"), value.Success.Get());
+        Assert.True(value.Success.IsSome);
+        Assert.Equal(new DummySuccess("success!"), value.Success.Value);
     }
 
     [Fact]
@@ -115,7 +117,8 @@ public class TryConverterTests
         // Assert
         Assert.Equal("before", value.PropertyBefore);
         Assert.True(value.Value.IsSuccess);
-        Assert.Equal(new DummySuccess("success!"), value.Value.Success.Get());
+        Assert.True(value.Value.Success.IsSome);
+        Assert.Equal(new DummySuccess("success!"), value.Value.Success.Value);
         Assert.Equal("after", value.PropertyAfter);
     }
 }

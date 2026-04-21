@@ -34,7 +34,7 @@ public interface ICoproduct0 : ICoproduct
 /// <summary>
 /// A 1-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct1<T1> : ICoproduct
+public interface ICoproduct1<T1> : ICoproduct where T1 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -42,10 +42,10 @@ public interface ICoproduct1<T1> : ICoproduct
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -78,7 +78,7 @@ public interface ICoproduct1<T1> : ICoproduct
 /// <summary>
 /// A 2-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct2<T1, T2> : ICoproduct
+public interface ICoproduct2<T1, T2> : ICoproduct where T1 : notnull where T2 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -86,10 +86,10 @@ public interface ICoproduct2<T1, T2> : ICoproduct
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -97,10 +97,10 @@ public interface ICoproduct2<T1, T2> : ICoproduct
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -137,7 +137,7 @@ public interface ICoproduct2<T1, T2> : ICoproduct
 /// <summary>
 /// A 3-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct3<T1, T2, T3> : ICoproduct
+public interface ICoproduct3<T1, T2, T3> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -145,10 +145,10 @@ public interface ICoproduct3<T1, T2, T3> : ICoproduct
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -156,10 +156,10 @@ public interface ICoproduct3<T1, T2, T3> : ICoproduct
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -167,10 +167,10 @@ public interface ICoproduct3<T1, T2, T3> : ICoproduct
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -211,7 +211,7 @@ public interface ICoproduct3<T1, T2, T3> : ICoproduct
 /// <summary>
 /// A 4-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct4<T1, T2, T3, T4> : ICoproduct
+public interface ICoproduct4<T1, T2, T3, T4> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -219,10 +219,10 @@ public interface ICoproduct4<T1, T2, T3, T4> : ICoproduct
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -230,10 +230,10 @@ public interface ICoproduct4<T1, T2, T3, T4> : ICoproduct
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -241,10 +241,10 @@ public interface ICoproduct4<T1, T2, T3, T4> : ICoproduct
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -252,10 +252,10 @@ public interface ICoproduct4<T1, T2, T3, T4> : ICoproduct
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -300,7 +300,7 @@ public interface ICoproduct4<T1, T2, T3, T4> : ICoproduct
 /// <summary>
 /// A 5-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct5<T1, T2, T3, T4, T5> : ICoproduct
+public interface ICoproduct5<T1, T2, T3, T4, T5> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -308,10 +308,10 @@ public interface ICoproduct5<T1, T2, T3, T4, T5> : ICoproduct
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -319,10 +319,10 @@ public interface ICoproduct5<T1, T2, T3, T4, T5> : ICoproduct
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -330,10 +330,10 @@ public interface ICoproduct5<T1, T2, T3, T4, T5> : ICoproduct
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -341,10 +341,10 @@ public interface ICoproduct5<T1, T2, T3, T4, T5> : ICoproduct
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -352,10 +352,10 @@ public interface ICoproduct5<T1, T2, T3, T4, T5> : ICoproduct
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -404,7 +404,7 @@ public interface ICoproduct5<T1, T2, T3, T4, T5> : ICoproduct
 /// <summary>
 /// A 6-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct6<T1, T2, T3, T4, T5, T6> : ICoproduct
+public interface ICoproduct6<T1, T2, T3, T4, T5, T6> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -412,10 +412,10 @@ public interface ICoproduct6<T1, T2, T3, T4, T5, T6> : ICoproduct
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -423,10 +423,10 @@ public interface ICoproduct6<T1, T2, T3, T4, T5, T6> : ICoproduct
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -434,10 +434,10 @@ public interface ICoproduct6<T1, T2, T3, T4, T5, T6> : ICoproduct
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -445,10 +445,10 @@ public interface ICoproduct6<T1, T2, T3, T4, T5, T6> : ICoproduct
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -456,10 +456,10 @@ public interface ICoproduct6<T1, T2, T3, T4, T5, T6> : ICoproduct
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -467,10 +467,10 @@ public interface ICoproduct6<T1, T2, T3, T4, T5, T6> : ICoproduct
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -523,7 +523,7 @@ public interface ICoproduct6<T1, T2, T3, T4, T5, T6> : ICoproduct
 /// <summary>
 /// A 7-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct7<T1, T2, T3, T4, T5, T6, T7> : ICoproduct
+public interface ICoproduct7<T1, T2, T3, T4, T5, T6, T7> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -531,10 +531,10 @@ public interface ICoproduct7<T1, T2, T3, T4, T5, T6, T7> : ICoproduct
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -542,10 +542,10 @@ public interface ICoproduct7<T1, T2, T3, T4, T5, T6, T7> : ICoproduct
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -553,10 +553,10 @@ public interface ICoproduct7<T1, T2, T3, T4, T5, T6, T7> : ICoproduct
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -564,10 +564,10 @@ public interface ICoproduct7<T1, T2, T3, T4, T5, T6, T7> : ICoproduct
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -575,10 +575,10 @@ public interface ICoproduct7<T1, T2, T3, T4, T5, T6, T7> : ICoproduct
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -586,10 +586,10 @@ public interface ICoproduct7<T1, T2, T3, T4, T5, T6, T7> : ICoproduct
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -597,10 +597,10 @@ public interface ICoproduct7<T1, T2, T3, T4, T5, T6, T7> : ICoproduct
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -657,7 +657,7 @@ public interface ICoproduct7<T1, T2, T3, T4, T5, T6, T7> : ICoproduct
 /// <summary>
 /// A 8-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : ICoproduct
+public interface ICoproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -665,10 +665,10 @@ public interface ICoproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : ICoproduct
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -676,10 +676,10 @@ public interface ICoproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : ICoproduct
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -687,10 +687,10 @@ public interface ICoproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : ICoproduct
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -698,10 +698,10 @@ public interface ICoproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : ICoproduct
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -709,10 +709,10 @@ public interface ICoproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : ICoproduct
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -720,10 +720,10 @@ public interface ICoproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : ICoproduct
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -731,10 +731,10 @@ public interface ICoproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : ICoproduct
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -742,10 +742,10 @@ public interface ICoproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : ICoproduct
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -806,7 +806,7 @@ public interface ICoproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : ICoproduct
 /// <summary>
 /// A 9-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : ICoproduct
+public interface ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -814,10 +814,10 @@ public interface ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : ICoproduct
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -825,10 +825,10 @@ public interface ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : ICoproduct
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -836,10 +836,10 @@ public interface ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : ICoproduct
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -847,10 +847,10 @@ public interface ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : ICoproduct
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -858,10 +858,10 @@ public interface ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : ICoproduct
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -869,10 +869,10 @@ public interface ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : ICoproduct
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -880,10 +880,10 @@ public interface ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : ICoproduct
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -891,10 +891,10 @@ public interface ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : ICoproduct
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the ninth value.
@@ -902,10 +902,10 @@ public interface ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : ICoproduct
     bool IsNinth { get; }
 
     /// <summary>
-    /// Returns ninth value of the coproduct as an option. The option contains the ninth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns ninth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// ninth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T9> Ninth { get; }
+    Maybe<T9> Ninth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -970,7 +970,7 @@ public interface ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : ICoproduct
 /// <summary>
 /// A 10-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ICoproduct
+public interface ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -978,10 +978,10 @@ public interface ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ICoprod
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -989,10 +989,10 @@ public interface ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ICoprod
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -1000,10 +1000,10 @@ public interface ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ICoprod
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -1011,10 +1011,10 @@ public interface ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ICoprod
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -1022,10 +1022,10 @@ public interface ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ICoprod
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -1033,10 +1033,10 @@ public interface ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ICoprod
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -1044,10 +1044,10 @@ public interface ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ICoprod
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -1055,10 +1055,10 @@ public interface ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ICoprod
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the ninth value.
@@ -1066,10 +1066,10 @@ public interface ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ICoprod
     bool IsNinth { get; }
 
     /// <summary>
-    /// Returns ninth value of the coproduct as an option. The option contains the ninth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns ninth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// ninth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T9> Ninth { get; }
+    Maybe<T9> Ninth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the tenth value.
@@ -1077,10 +1077,10 @@ public interface ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ICoprod
     bool IsTenth { get; }
 
     /// <summary>
-    /// Returns tenth value of the coproduct as an option. The option contains the tenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns tenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// tenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T10> Tenth { get; }
+    Maybe<T10> Tenth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -1149,7 +1149,7 @@ public interface ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ICoprod
 /// <summary>
 /// A 11-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : ICoproduct
+public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -1157,10 +1157,10 @@ public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IC
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -1168,10 +1168,10 @@ public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IC
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -1179,10 +1179,10 @@ public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IC
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -1190,10 +1190,10 @@ public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IC
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -1201,10 +1201,10 @@ public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IC
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -1212,10 +1212,10 @@ public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IC
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -1223,10 +1223,10 @@ public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IC
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -1234,10 +1234,10 @@ public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IC
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the ninth value.
@@ -1245,10 +1245,10 @@ public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IC
     bool IsNinth { get; }
 
     /// <summary>
-    /// Returns ninth value of the coproduct as an option. The option contains the ninth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns ninth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// ninth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T9> Ninth { get; }
+    Maybe<T9> Ninth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the tenth value.
@@ -1256,10 +1256,10 @@ public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IC
     bool IsTenth { get; }
 
     /// <summary>
-    /// Returns tenth value of the coproduct as an option. The option contains the tenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns tenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// tenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T10> Tenth { get; }
+    Maybe<T10> Tenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eleventh value.
@@ -1267,10 +1267,10 @@ public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IC
     bool IsEleventh { get; }
 
     /// <summary>
-    /// Returns eleventh value of the coproduct as an option. The option contains the eleventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eleventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eleventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T11> Eleventh { get; }
+    Maybe<T11> Eleventh { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -1343,7 +1343,7 @@ public interface ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IC
 /// <summary>
 /// A 12-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : ICoproduct
+public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -1351,10 +1351,10 @@ public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -1362,10 +1362,10 @@ public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -1373,10 +1373,10 @@ public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -1384,10 +1384,10 @@ public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -1395,10 +1395,10 @@ public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -1406,10 +1406,10 @@ public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -1417,10 +1417,10 @@ public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -1428,10 +1428,10 @@ public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the ninth value.
@@ -1439,10 +1439,10 @@ public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     bool IsNinth { get; }
 
     /// <summary>
-    /// Returns ninth value of the coproduct as an option. The option contains the ninth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns ninth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// ninth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T9> Ninth { get; }
+    Maybe<T9> Ninth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the tenth value.
@@ -1450,10 +1450,10 @@ public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     bool IsTenth { get; }
 
     /// <summary>
-    /// Returns tenth value of the coproduct as an option. The option contains the tenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns tenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// tenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T10> Tenth { get; }
+    Maybe<T10> Tenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eleventh value.
@@ -1461,10 +1461,10 @@ public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     bool IsEleventh { get; }
 
     /// <summary>
-    /// Returns eleventh value of the coproduct as an option. The option contains the eleventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eleventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eleventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T11> Eleventh { get; }
+    Maybe<T11> Eleventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the twelfth value.
@@ -1472,10 +1472,10 @@ public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     bool IsTwelfth { get; }
 
     /// <summary>
-    /// Returns twelfth value of the coproduct as an option. The option contains the twelfth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns twelfth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// twelfth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T12> Twelfth { get; }
+    Maybe<T12> Twelfth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -1552,7 +1552,7 @@ public interface ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
 /// <summary>
 /// A 13-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : ICoproduct
+public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -1560,10 +1560,10 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -1571,10 +1571,10 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -1582,10 +1582,10 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -1593,10 +1593,10 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -1604,10 +1604,10 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -1615,10 +1615,10 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -1626,10 +1626,10 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -1637,10 +1637,10 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the ninth value.
@@ -1648,10 +1648,10 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsNinth { get; }
 
     /// <summary>
-    /// Returns ninth value of the coproduct as an option. The option contains the ninth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns ninth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// ninth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T9> Ninth { get; }
+    Maybe<T9> Ninth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the tenth value.
@@ -1659,10 +1659,10 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTenth { get; }
 
     /// <summary>
-    /// Returns tenth value of the coproduct as an option. The option contains the tenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns tenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// tenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T10> Tenth { get; }
+    Maybe<T10> Tenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eleventh value.
@@ -1670,10 +1670,10 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEleventh { get; }
 
     /// <summary>
-    /// Returns eleventh value of the coproduct as an option. The option contains the eleventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eleventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eleventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T11> Eleventh { get; }
+    Maybe<T11> Eleventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the twelfth value.
@@ -1681,10 +1681,10 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTwelfth { get; }
 
     /// <summary>
-    /// Returns twelfth value of the coproduct as an option. The option contains the twelfth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns twelfth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// twelfth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T12> Twelfth { get; }
+    Maybe<T12> Twelfth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the thirteenth value.
@@ -1692,10 +1692,10 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThirteenth { get; }
 
     /// <summary>
-    /// Returns thirteenth value of the coproduct as an option. The option contains the thirteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns thirteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// thirteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T13> Thirteenth { get; }
+    Maybe<T13> Thirteenth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -1776,7 +1776,7 @@ public interface ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
 /// <summary>
 /// A 14-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : ICoproduct
+public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -1784,10 +1784,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -1795,10 +1795,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -1806,10 +1806,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -1817,10 +1817,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -1828,10 +1828,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -1839,10 +1839,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -1850,10 +1850,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -1861,10 +1861,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the ninth value.
@@ -1872,10 +1872,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsNinth { get; }
 
     /// <summary>
-    /// Returns ninth value of the coproduct as an option. The option contains the ninth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns ninth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// ninth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T9> Ninth { get; }
+    Maybe<T9> Ninth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the tenth value.
@@ -1883,10 +1883,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTenth { get; }
 
     /// <summary>
-    /// Returns tenth value of the coproduct as an option. The option contains the tenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns tenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// tenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T10> Tenth { get; }
+    Maybe<T10> Tenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eleventh value.
@@ -1894,10 +1894,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEleventh { get; }
 
     /// <summary>
-    /// Returns eleventh value of the coproduct as an option. The option contains the eleventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eleventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eleventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T11> Eleventh { get; }
+    Maybe<T11> Eleventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the twelfth value.
@@ -1905,10 +1905,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTwelfth { get; }
 
     /// <summary>
-    /// Returns twelfth value of the coproduct as an option. The option contains the twelfth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns twelfth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// twelfth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T12> Twelfth { get; }
+    Maybe<T12> Twelfth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the thirteenth value.
@@ -1916,10 +1916,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThirteenth { get; }
 
     /// <summary>
-    /// Returns thirteenth value of the coproduct as an option. The option contains the thirteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns thirteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// thirteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T13> Thirteenth { get; }
+    Maybe<T13> Thirteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourteenth value.
@@ -1927,10 +1927,10 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourteenth { get; }
 
     /// <summary>
-    /// Returns fourteenth value of the coproduct as an option. The option contains the fourteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T14> Fourteenth { get; }
+    Maybe<T14> Fourteenth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -2015,7 +2015,7 @@ public interface ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
 /// <summary>
 /// A 15-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : ICoproduct
+public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -2023,10 +2023,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -2034,10 +2034,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -2045,10 +2045,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -2056,10 +2056,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -2067,10 +2067,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -2078,10 +2078,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -2089,10 +2089,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -2100,10 +2100,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the ninth value.
@@ -2111,10 +2111,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsNinth { get; }
 
     /// <summary>
-    /// Returns ninth value of the coproduct as an option. The option contains the ninth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns ninth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// ninth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T9> Ninth { get; }
+    Maybe<T9> Ninth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the tenth value.
@@ -2122,10 +2122,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTenth { get; }
 
     /// <summary>
-    /// Returns tenth value of the coproduct as an option. The option contains the tenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns tenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// tenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T10> Tenth { get; }
+    Maybe<T10> Tenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eleventh value.
@@ -2133,10 +2133,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEleventh { get; }
 
     /// <summary>
-    /// Returns eleventh value of the coproduct as an option. The option contains the eleventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eleventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eleventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T11> Eleventh { get; }
+    Maybe<T11> Eleventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the twelfth value.
@@ -2144,10 +2144,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTwelfth { get; }
 
     /// <summary>
-    /// Returns twelfth value of the coproduct as an option. The option contains the twelfth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns twelfth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// twelfth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T12> Twelfth { get; }
+    Maybe<T12> Twelfth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the thirteenth value.
@@ -2155,10 +2155,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThirteenth { get; }
 
     /// <summary>
-    /// Returns thirteenth value of the coproduct as an option. The option contains the thirteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns thirteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// thirteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T13> Thirteenth { get; }
+    Maybe<T13> Thirteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourteenth value.
@@ -2166,10 +2166,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourteenth { get; }
 
     /// <summary>
-    /// Returns fourteenth value of the coproduct as an option. The option contains the fourteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T14> Fourteenth { get; }
+    Maybe<T14> Fourteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifteenth value.
@@ -2177,10 +2177,10 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifteenth { get; }
 
     /// <summary>
-    /// Returns fifteenth value of the coproduct as an option. The option contains the fifteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T15> Fifteenth { get; }
+    Maybe<T15> Fifteenth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -2269,7 +2269,7 @@ public interface ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
 /// <summary>
 /// A 16-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : ICoproduct
+public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -2277,10 +2277,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -2288,10 +2288,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -2299,10 +2299,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -2310,10 +2310,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -2321,10 +2321,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -2332,10 +2332,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -2343,10 +2343,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -2354,10 +2354,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the ninth value.
@@ -2365,10 +2365,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsNinth { get; }
 
     /// <summary>
-    /// Returns ninth value of the coproduct as an option. The option contains the ninth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns ninth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// ninth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T9> Ninth { get; }
+    Maybe<T9> Ninth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the tenth value.
@@ -2376,10 +2376,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTenth { get; }
 
     /// <summary>
-    /// Returns tenth value of the coproduct as an option. The option contains the tenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns tenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// tenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T10> Tenth { get; }
+    Maybe<T10> Tenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eleventh value.
@@ -2387,10 +2387,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEleventh { get; }
 
     /// <summary>
-    /// Returns eleventh value of the coproduct as an option. The option contains the eleventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eleventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eleventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T11> Eleventh { get; }
+    Maybe<T11> Eleventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the twelfth value.
@@ -2398,10 +2398,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTwelfth { get; }
 
     /// <summary>
-    /// Returns twelfth value of the coproduct as an option. The option contains the twelfth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns twelfth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// twelfth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T12> Twelfth { get; }
+    Maybe<T12> Twelfth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the thirteenth value.
@@ -2409,10 +2409,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThirteenth { get; }
 
     /// <summary>
-    /// Returns thirteenth value of the coproduct as an option. The option contains the thirteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns thirteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// thirteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T13> Thirteenth { get; }
+    Maybe<T13> Thirteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourteenth value.
@@ -2420,10 +2420,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourteenth { get; }
 
     /// <summary>
-    /// Returns fourteenth value of the coproduct as an option. The option contains the fourteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T14> Fourteenth { get; }
+    Maybe<T14> Fourteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifteenth value.
@@ -2431,10 +2431,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifteenth { get; }
 
     /// <summary>
-    /// Returns fifteenth value of the coproduct as an option. The option contains the fifteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T15> Fifteenth { get; }
+    Maybe<T15> Fifteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixteenth value.
@@ -2442,10 +2442,10 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixteenth { get; }
 
     /// <summary>
-    /// Returns sixteenth value of the coproduct as an option. The option contains the sixteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T16> Sixteenth { get; }
+    Maybe<T16> Sixteenth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -2538,7 +2538,7 @@ public interface ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
 /// <summary>
 /// A 17-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> : ICoproduct
+public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -2546,10 +2546,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -2557,10 +2557,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -2568,10 +2568,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -2579,10 +2579,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -2590,10 +2590,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -2601,10 +2601,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -2612,10 +2612,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -2623,10 +2623,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the ninth value.
@@ -2634,10 +2634,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsNinth { get; }
 
     /// <summary>
-    /// Returns ninth value of the coproduct as an option. The option contains the ninth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns ninth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// ninth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T9> Ninth { get; }
+    Maybe<T9> Ninth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the tenth value.
@@ -2645,10 +2645,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTenth { get; }
 
     /// <summary>
-    /// Returns tenth value of the coproduct as an option. The option contains the tenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns tenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// tenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T10> Tenth { get; }
+    Maybe<T10> Tenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eleventh value.
@@ -2656,10 +2656,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEleventh { get; }
 
     /// <summary>
-    /// Returns eleventh value of the coproduct as an option. The option contains the eleventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eleventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eleventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T11> Eleventh { get; }
+    Maybe<T11> Eleventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the twelfth value.
@@ -2667,10 +2667,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTwelfth { get; }
 
     /// <summary>
-    /// Returns twelfth value of the coproduct as an option. The option contains the twelfth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns twelfth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// twelfth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T12> Twelfth { get; }
+    Maybe<T12> Twelfth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the thirteenth value.
@@ -2678,10 +2678,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThirteenth { get; }
 
     /// <summary>
-    /// Returns thirteenth value of the coproduct as an option. The option contains the thirteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns thirteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// thirteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T13> Thirteenth { get; }
+    Maybe<T13> Thirteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourteenth value.
@@ -2689,10 +2689,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourteenth { get; }
 
     /// <summary>
-    /// Returns fourteenth value of the coproduct as an option. The option contains the fourteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T14> Fourteenth { get; }
+    Maybe<T14> Fourteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifteenth value.
@@ -2700,10 +2700,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifteenth { get; }
 
     /// <summary>
-    /// Returns fifteenth value of the coproduct as an option. The option contains the fifteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T15> Fifteenth { get; }
+    Maybe<T15> Fifteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixteenth value.
@@ -2711,10 +2711,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixteenth { get; }
 
     /// <summary>
-    /// Returns sixteenth value of the coproduct as an option. The option contains the sixteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T16> Sixteenth { get; }
+    Maybe<T16> Sixteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventeenth value.
@@ -2722,10 +2722,10 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventeenth { get; }
 
     /// <summary>
-    /// Returns seventeenth value of the coproduct as an option. The option contains the seventeenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventeenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventeenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T17> Seventeenth { get; }
+    Maybe<T17> Seventeenth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -2822,7 +2822,7 @@ public interface ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
 /// <summary>
 /// A 18-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> : ICoproduct
+public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -2830,10 +2830,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -2841,10 +2841,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -2852,10 +2852,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -2863,10 +2863,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -2874,10 +2874,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -2885,10 +2885,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -2896,10 +2896,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -2907,10 +2907,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the ninth value.
@@ -2918,10 +2918,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsNinth { get; }
 
     /// <summary>
-    /// Returns ninth value of the coproduct as an option. The option contains the ninth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns ninth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// ninth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T9> Ninth { get; }
+    Maybe<T9> Ninth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the tenth value.
@@ -2929,10 +2929,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTenth { get; }
 
     /// <summary>
-    /// Returns tenth value of the coproduct as an option. The option contains the tenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns tenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// tenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T10> Tenth { get; }
+    Maybe<T10> Tenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eleventh value.
@@ -2940,10 +2940,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEleventh { get; }
 
     /// <summary>
-    /// Returns eleventh value of the coproduct as an option. The option contains the eleventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eleventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eleventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T11> Eleventh { get; }
+    Maybe<T11> Eleventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the twelfth value.
@@ -2951,10 +2951,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTwelfth { get; }
 
     /// <summary>
-    /// Returns twelfth value of the coproduct as an option. The option contains the twelfth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns twelfth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// twelfth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T12> Twelfth { get; }
+    Maybe<T12> Twelfth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the thirteenth value.
@@ -2962,10 +2962,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThirteenth { get; }
 
     /// <summary>
-    /// Returns thirteenth value of the coproduct as an option. The option contains the thirteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns thirteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// thirteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T13> Thirteenth { get; }
+    Maybe<T13> Thirteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourteenth value.
@@ -2973,10 +2973,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourteenth { get; }
 
     /// <summary>
-    /// Returns fourteenth value of the coproduct as an option. The option contains the fourteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T14> Fourteenth { get; }
+    Maybe<T14> Fourteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifteenth value.
@@ -2984,10 +2984,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifteenth { get; }
 
     /// <summary>
-    /// Returns fifteenth value of the coproduct as an option. The option contains the fifteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T15> Fifteenth { get; }
+    Maybe<T15> Fifteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixteenth value.
@@ -2995,10 +2995,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixteenth { get; }
 
     /// <summary>
-    /// Returns sixteenth value of the coproduct as an option. The option contains the sixteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T16> Sixteenth { get; }
+    Maybe<T16> Sixteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventeenth value.
@@ -3006,10 +3006,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventeenth { get; }
 
     /// <summary>
-    /// Returns seventeenth value of the coproduct as an option. The option contains the seventeenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventeenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventeenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T17> Seventeenth { get; }
+    Maybe<T17> Seventeenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighteenth value.
@@ -3017,10 +3017,10 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEighteenth { get; }
 
     /// <summary>
-    /// Returns eighteenth value of the coproduct as an option. The option contains the eighteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T18> Eighteenth { get; }
+    Maybe<T18> Eighteenth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -3121,7 +3121,7 @@ public interface ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
 /// <summary>
 /// A 19-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> : ICoproduct
+public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -3129,10 +3129,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -3140,10 +3140,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -3151,10 +3151,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -3162,10 +3162,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -3173,10 +3173,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -3184,10 +3184,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -3195,10 +3195,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -3206,10 +3206,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the ninth value.
@@ -3217,10 +3217,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsNinth { get; }
 
     /// <summary>
-    /// Returns ninth value of the coproduct as an option. The option contains the ninth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns ninth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// ninth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T9> Ninth { get; }
+    Maybe<T9> Ninth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the tenth value.
@@ -3228,10 +3228,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTenth { get; }
 
     /// <summary>
-    /// Returns tenth value of the coproduct as an option. The option contains the tenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns tenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// tenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T10> Tenth { get; }
+    Maybe<T10> Tenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eleventh value.
@@ -3239,10 +3239,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEleventh { get; }
 
     /// <summary>
-    /// Returns eleventh value of the coproduct as an option. The option contains the eleventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eleventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eleventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T11> Eleventh { get; }
+    Maybe<T11> Eleventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the twelfth value.
@@ -3250,10 +3250,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTwelfth { get; }
 
     /// <summary>
-    /// Returns twelfth value of the coproduct as an option. The option contains the twelfth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns twelfth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// twelfth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T12> Twelfth { get; }
+    Maybe<T12> Twelfth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the thirteenth value.
@@ -3261,10 +3261,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThirteenth { get; }
 
     /// <summary>
-    /// Returns thirteenth value of the coproduct as an option. The option contains the thirteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns thirteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// thirteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T13> Thirteenth { get; }
+    Maybe<T13> Thirteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourteenth value.
@@ -3272,10 +3272,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourteenth { get; }
 
     /// <summary>
-    /// Returns fourteenth value of the coproduct as an option. The option contains the fourteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T14> Fourteenth { get; }
+    Maybe<T14> Fourteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifteenth value.
@@ -3283,10 +3283,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifteenth { get; }
 
     /// <summary>
-    /// Returns fifteenth value of the coproduct as an option. The option contains the fifteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T15> Fifteenth { get; }
+    Maybe<T15> Fifteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixteenth value.
@@ -3294,10 +3294,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixteenth { get; }
 
     /// <summary>
-    /// Returns sixteenth value of the coproduct as an option. The option contains the sixteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T16> Sixteenth { get; }
+    Maybe<T16> Sixteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventeenth value.
@@ -3305,10 +3305,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventeenth { get; }
 
     /// <summary>
-    /// Returns seventeenth value of the coproduct as an option. The option contains the seventeenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventeenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventeenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T17> Seventeenth { get; }
+    Maybe<T17> Seventeenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighteenth value.
@@ -3316,10 +3316,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEighteenth { get; }
 
     /// <summary>
-    /// Returns eighteenth value of the coproduct as an option. The option contains the eighteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T18> Eighteenth { get; }
+    Maybe<T18> Eighteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the nineteenth value.
@@ -3327,10 +3327,10 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsNineteenth { get; }
 
     /// <summary>
-    /// Returns nineteenth value of the coproduct as an option. The option contains the nineteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns nineteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// nineteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T19> Nineteenth { get; }
+    Maybe<T19> Nineteenth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -3435,7 +3435,7 @@ public interface ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
 /// <summary>
 /// A 20-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> : ICoproduct
+public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -3443,10 +3443,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -3454,10 +3454,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -3465,10 +3465,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -3476,10 +3476,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -3487,10 +3487,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -3498,10 +3498,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -3509,10 +3509,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -3520,10 +3520,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the ninth value.
@@ -3531,10 +3531,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsNinth { get; }
 
     /// <summary>
-    /// Returns ninth value of the coproduct as an option. The option contains the ninth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns ninth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// ninth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T9> Ninth { get; }
+    Maybe<T9> Ninth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the tenth value.
@@ -3542,10 +3542,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTenth { get; }
 
     /// <summary>
-    /// Returns tenth value of the coproduct as an option. The option contains the tenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns tenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// tenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T10> Tenth { get; }
+    Maybe<T10> Tenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eleventh value.
@@ -3553,10 +3553,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEleventh { get; }
 
     /// <summary>
-    /// Returns eleventh value of the coproduct as an option. The option contains the eleventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eleventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eleventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T11> Eleventh { get; }
+    Maybe<T11> Eleventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the twelfth value.
@@ -3564,10 +3564,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTwelfth { get; }
 
     /// <summary>
-    /// Returns twelfth value of the coproduct as an option. The option contains the twelfth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns twelfth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// twelfth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T12> Twelfth { get; }
+    Maybe<T12> Twelfth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the thirteenth value.
@@ -3575,10 +3575,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThirteenth { get; }
 
     /// <summary>
-    /// Returns thirteenth value of the coproduct as an option. The option contains the thirteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns thirteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// thirteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T13> Thirteenth { get; }
+    Maybe<T13> Thirteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourteenth value.
@@ -3586,10 +3586,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourteenth { get; }
 
     /// <summary>
-    /// Returns fourteenth value of the coproduct as an option. The option contains the fourteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T14> Fourteenth { get; }
+    Maybe<T14> Fourteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifteenth value.
@@ -3597,10 +3597,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifteenth { get; }
 
     /// <summary>
-    /// Returns fifteenth value of the coproduct as an option. The option contains the fifteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T15> Fifteenth { get; }
+    Maybe<T15> Fifteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixteenth value.
@@ -3608,10 +3608,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixteenth { get; }
 
     /// <summary>
-    /// Returns sixteenth value of the coproduct as an option. The option contains the sixteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T16> Sixteenth { get; }
+    Maybe<T16> Sixteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventeenth value.
@@ -3619,10 +3619,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventeenth { get; }
 
     /// <summary>
-    /// Returns seventeenth value of the coproduct as an option. The option contains the seventeenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventeenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventeenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T17> Seventeenth { get; }
+    Maybe<T17> Seventeenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighteenth value.
@@ -3630,10 +3630,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEighteenth { get; }
 
     /// <summary>
-    /// Returns eighteenth value of the coproduct as an option. The option contains the eighteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T18> Eighteenth { get; }
+    Maybe<T18> Eighteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the nineteenth value.
@@ -3641,10 +3641,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsNineteenth { get; }
 
     /// <summary>
-    /// Returns nineteenth value of the coproduct as an option. The option contains the nineteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns nineteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// nineteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T19> Nineteenth { get; }
+    Maybe<T19> Nineteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the twentieth value.
@@ -3652,10 +3652,10 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTwentieth { get; }
 
     /// <summary>
-    /// Returns twentieth value of the coproduct as an option. The option contains the twentieth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns twentieth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// twentieth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T20> Twentieth { get; }
+    Maybe<T20> Twentieth { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result
@@ -3764,7 +3764,7 @@ public interface ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
 /// <summary>
 /// A 21-dimensional strongly-typed coproduct.
 /// </summary>
-public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> : ICoproduct
+public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> : ICoproduct where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
 {
     /// <summary>
     /// Returns whether the coproduct contains the first value.
@@ -3772,10 +3772,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFirst { get; }
 
     /// <summary>
-    /// Returns first value of the coproduct as an option. The option contains the first
-    /// value or is empty if the coproduct contains different value.
+    /// Returns first value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// first value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T1> First { get; }
+    Maybe<T1> First { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the second value.
@@ -3783,10 +3783,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSecond { get; }
 
     /// <summary>
-    /// Returns second value of the coproduct as an option. The option contains the second
-    /// value or is empty if the coproduct contains different value.
+    /// Returns second value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// second value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T2> Second { get; }
+    Maybe<T2> Second { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the third value.
@@ -3794,10 +3794,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThird { get; }
 
     /// <summary>
-    /// Returns third value of the coproduct as an option. The option contains the third
-    /// value or is empty if the coproduct contains different value.
+    /// Returns third value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// third value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T3> Third { get; }
+    Maybe<T3> Third { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourth value.
@@ -3805,10 +3805,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourth { get; }
 
     /// <summary>
-    /// Returns fourth value of the coproduct as an option. The option contains the fourth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T4> Fourth { get; }
+    Maybe<T4> Fourth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifth value.
@@ -3816,10 +3816,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifth { get; }
 
     /// <summary>
-    /// Returns fifth value of the coproduct as an option. The option contains the fifth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T5> Fifth { get; }
+    Maybe<T5> Fifth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixth value.
@@ -3827,10 +3827,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixth { get; }
 
     /// <summary>
-    /// Returns sixth value of the coproduct as an option. The option contains the sixth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T6> Sixth { get; }
+    Maybe<T6> Sixth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventh value.
@@ -3838,10 +3838,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventh { get; }
 
     /// <summary>
-    /// Returns seventh value of the coproduct as an option. The option contains the seventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T7> Seventh { get; }
+    Maybe<T7> Seventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighth value.
@@ -3849,10 +3849,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEighth { get; }
 
     /// <summary>
-    /// Returns eighth value of the coproduct as an option. The option contains the eighth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T8> Eighth { get; }
+    Maybe<T8> Eighth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the ninth value.
@@ -3860,10 +3860,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsNinth { get; }
 
     /// <summary>
-    /// Returns ninth value of the coproduct as an option. The option contains the ninth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns ninth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// ninth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T9> Ninth { get; }
+    Maybe<T9> Ninth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the tenth value.
@@ -3871,10 +3871,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTenth { get; }
 
     /// <summary>
-    /// Returns tenth value of the coproduct as an option. The option contains the tenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns tenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// tenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T10> Tenth { get; }
+    Maybe<T10> Tenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eleventh value.
@@ -3882,10 +3882,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEleventh { get; }
 
     /// <summary>
-    /// Returns eleventh value of the coproduct as an option. The option contains the eleventh
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eleventh value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eleventh value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T11> Eleventh { get; }
+    Maybe<T11> Eleventh { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the twelfth value.
@@ -3893,10 +3893,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTwelfth { get; }
 
     /// <summary>
-    /// Returns twelfth value of the coproduct as an option. The option contains the twelfth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns twelfth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// twelfth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T12> Twelfth { get; }
+    Maybe<T12> Twelfth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the thirteenth value.
@@ -3904,10 +3904,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsThirteenth { get; }
 
     /// <summary>
-    /// Returns thirteenth value of the coproduct as an option. The option contains the thirteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns thirteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// thirteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T13> Thirteenth { get; }
+    Maybe<T13> Thirteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fourteenth value.
@@ -3915,10 +3915,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFourteenth { get; }
 
     /// <summary>
-    /// Returns fourteenth value of the coproduct as an option. The option contains the fourteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fourteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fourteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T14> Fourteenth { get; }
+    Maybe<T14> Fourteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the fifteenth value.
@@ -3926,10 +3926,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsFifteenth { get; }
 
     /// <summary>
-    /// Returns fifteenth value of the coproduct as an option. The option contains the fifteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns fifteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// fifteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T15> Fifteenth { get; }
+    Maybe<T15> Fifteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the sixteenth value.
@@ -3937,10 +3937,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSixteenth { get; }
 
     /// <summary>
-    /// Returns sixteenth value of the coproduct as an option. The option contains the sixteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns sixteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// sixteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T16> Sixteenth { get; }
+    Maybe<T16> Sixteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the seventeenth value.
@@ -3948,10 +3948,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsSeventeenth { get; }
 
     /// <summary>
-    /// Returns seventeenth value of the coproduct as an option. The option contains the seventeenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns seventeenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// seventeenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T17> Seventeenth { get; }
+    Maybe<T17> Seventeenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the eighteenth value.
@@ -3959,10 +3959,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsEighteenth { get; }
 
     /// <summary>
-    /// Returns eighteenth value of the coproduct as an option. The option contains the eighteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns eighteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// eighteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T18> Eighteenth { get; }
+    Maybe<T18> Eighteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the nineteenth value.
@@ -3970,10 +3970,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsNineteenth { get; }
 
     /// <summary>
-    /// Returns nineteenth value of the coproduct as an option. The option contains the nineteenth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns nineteenth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// nineteenth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T19> Nineteenth { get; }
+    Maybe<T19> Nineteenth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the twentieth value.
@@ -3981,10 +3981,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTwentieth { get; }
 
     /// <summary>
-    /// Returns twentieth value of the coproduct as an option. The option contains the twentieth
-    /// value or is empty if the coproduct contains different value.
+    /// Returns twentieth value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// twentieth value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T20> Twentieth { get; }
+    Maybe<T20> Twentieth { get; }
 
     /// <summary>
     /// Returns whether the coproduct contains the twentyfirst value.
@@ -3992,10 +3992,10 @@ public interface ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
     bool IsTwentyFirst { get; }
 
     /// <summary>
-    /// Returns twentyfirst value of the coproduct as an option. The option contains the twentyfirst
-    /// value or is empty if the coproduct contains different value.
+    /// Returns twentyfirst value of the coproduct as a <see cref="Maybe{T}"/>. The result holds the
+    /// twentyfirst value when the coproduct contains it, or is empty otherwise.
     /// </summary>
-    Option<T21> TwentyFirst { get; }
+    Maybe<T21> TwentyFirst { get; }
 
     /// <summary>
     /// Returns result of a function that matches the coproduct value. E.g. if the coproduct is the first value, returns result

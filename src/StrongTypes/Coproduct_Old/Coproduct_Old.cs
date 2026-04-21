@@ -54,7 +54,7 @@ public static class Coproduct1
     /// <summary>
     /// Creates a new 1-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct1<T1> CreateFirst<T1>(T1 value)
+    public static Coproduct1<T1> CreateFirst<T1>(T1 value) where T1 : notnull
     {
         return new Coproduct1<T1>(value);
     }
@@ -64,7 +64,7 @@ public static class Coproduct1
 /// <summary>
 /// A 1-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct1<T1> : CoproductBase, ICoproduct1<T1>
+public class Coproduct1<T1> : CoproductBase, ICoproduct1<T1> where T1 : notnull
 {
     /// <summary>
     /// Creates a new 1-dimensional coproduct with the specified value on the first position.
@@ -97,13 +97,13 @@ public class Coproduct1<T1> : CoproductBase, ICoproduct1<T1>
         get { return CoproductDiscriminator == 1; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
 
     public Coproduct1<R1> Map<R1>(
-        Func<T1, R1> ifFirst)
+        Func<T1, R1> ifFirst) where R1 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -160,7 +160,7 @@ public static class Coproduct2
     /// <summary>
     /// Creates a new 2-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct2<T1, T2> CreateFirst<T1, T2>(T1 value)
+    public static Coproduct2<T1, T2> CreateFirst<T1, T2>(T1 value) where T1 : notnull where T2 : notnull
     {
         return new Coproduct2<T1, T2>(value);
     }
@@ -168,7 +168,7 @@ public static class Coproduct2
     /// <summary>
     /// Creates a new 2-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct2<T1, T2> CreateSecond<T1, T2>(T2 value)
+    public static Coproduct2<T1, T2> CreateSecond<T1, T2>(T2 value) where T1 : notnull where T2 : notnull
     {
         return new Coproduct2<T1, T2>(value);
     }
@@ -178,7 +178,7 @@ public static class Coproduct2
 /// <summary>
 /// A 2-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct2<T1, T2> : CoproductBase, ICoproduct2<T1, T2>
+public class Coproduct2<T1, T2> : CoproductBase, ICoproduct2<T1, T2> where T1 : notnull where T2 : notnull
 {
     /// <summary>
     /// Creates a new 2-dimensional coproduct with the specified value on the first position.
@@ -223,18 +223,18 @@ public class Coproduct2<T1, T2> : CoproductBase, ICoproduct2<T1, T2>
         get { return CoproductDiscriminator == 2; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
 
     public Coproduct2<R1, R2> Map<R1, R2>(
         Func<T1, R1> ifFirst,
-        Func<T2, R2> ifSecond)
+        Func<T2, R2> ifSecond) where R1 : notnull where R2 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -300,7 +300,7 @@ public static class Coproduct3
     /// <summary>
     /// Creates a new 3-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct3<T1, T2, T3> CreateFirst<T1, T2, T3>(T1 value)
+    public static Coproduct3<T1, T2, T3> CreateFirst<T1, T2, T3>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull
     {
         return new Coproduct3<T1, T2, T3>(value);
     }
@@ -308,7 +308,7 @@ public static class Coproduct3
     /// <summary>
     /// Creates a new 3-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct3<T1, T2, T3> CreateSecond<T1, T2, T3>(T2 value)
+    public static Coproduct3<T1, T2, T3> CreateSecond<T1, T2, T3>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull
     {
         return new Coproduct3<T1, T2, T3>(value);
     }
@@ -316,7 +316,7 @@ public static class Coproduct3
     /// <summary>
     /// Creates a new 3-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct3<T1, T2, T3> CreateThird<T1, T2, T3>(T3 value)
+    public static Coproduct3<T1, T2, T3> CreateThird<T1, T2, T3>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull
     {
         return new Coproduct3<T1, T2, T3>(value);
     }
@@ -326,7 +326,7 @@ public static class Coproduct3
 /// <summary>
 /// A 3-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct3<T1, T2, T3> : CoproductBase, ICoproduct3<T1, T2, T3>
+public class Coproduct3<T1, T2, T3> : CoproductBase, ICoproduct3<T1, T2, T3> where T1 : notnull where T2 : notnull where T3 : notnull
 {
     /// <summary>
     /// Creates a new 3-dimensional coproduct with the specified value on the first position.
@@ -383,23 +383,23 @@ public class Coproduct3<T1, T2, T3> : CoproductBase, ICoproduct3<T1, T2, T3>
         get { return CoproductDiscriminator == 3; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
 
     public Coproduct3<R1, R2, R3> Map<R1, R2, R3>(
         Func<T1, R1> ifFirst,
         Func<T2, R2> ifSecond,
-        Func<T3, R3> ifThird)
+        Func<T3, R3> ifThird) where R1 : notnull where R2 : notnull where R3 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -474,7 +474,7 @@ public static class Coproduct4
     /// <summary>
     /// Creates a new 4-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct4<T1, T2, T3, T4> CreateFirst<T1, T2, T3, T4>(T1 value)
+    public static Coproduct4<T1, T2, T3, T4> CreateFirst<T1, T2, T3, T4>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull
     {
         return new Coproduct4<T1, T2, T3, T4>(value);
     }
@@ -482,7 +482,7 @@ public static class Coproduct4
     /// <summary>
     /// Creates a new 4-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct4<T1, T2, T3, T4> CreateSecond<T1, T2, T3, T4>(T2 value)
+    public static Coproduct4<T1, T2, T3, T4> CreateSecond<T1, T2, T3, T4>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull
     {
         return new Coproduct4<T1, T2, T3, T4>(value);
     }
@@ -490,7 +490,7 @@ public static class Coproduct4
     /// <summary>
     /// Creates a new 4-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct4<T1, T2, T3, T4> CreateThird<T1, T2, T3, T4>(T3 value)
+    public static Coproduct4<T1, T2, T3, T4> CreateThird<T1, T2, T3, T4>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull
     {
         return new Coproduct4<T1, T2, T3, T4>(value);
     }
@@ -498,7 +498,7 @@ public static class Coproduct4
     /// <summary>
     /// Creates a new 4-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct4<T1, T2, T3, T4> CreateFourth<T1, T2, T3, T4>(T4 value)
+    public static Coproduct4<T1, T2, T3, T4> CreateFourth<T1, T2, T3, T4>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull
     {
         return new Coproduct4<T1, T2, T3, T4>(value);
     }
@@ -508,7 +508,7 @@ public static class Coproduct4
 /// <summary>
 /// A 4-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct4<T1, T2, T3, T4> : CoproductBase, ICoproduct4<T1, T2, T3, T4>
+public class Coproduct4<T1, T2, T3, T4> : CoproductBase, ICoproduct4<T1, T2, T3, T4> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull
 {
     /// <summary>
     /// Creates a new 4-dimensional coproduct with the specified value on the first position.
@@ -577,28 +577,28 @@ public class Coproduct4<T1, T2, T3, T4> : CoproductBase, ICoproduct4<T1, T2, T3,
         get { return CoproductDiscriminator == 4; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
 
     public Coproduct4<R1, R2, R3, R4> Map<R1, R2, R3, R4>(
         Func<T1, R1> ifFirst,
         Func<T2, R2> ifSecond,
         Func<T3, R3> ifThird,
-        Func<T4, R4> ifFourth)
+        Func<T4, R4> ifFourth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -682,7 +682,7 @@ public static class Coproduct5
     /// <summary>
     /// Creates a new 5-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct5<T1, T2, T3, T4, T5> CreateFirst<T1, T2, T3, T4, T5>(T1 value)
+    public static Coproduct5<T1, T2, T3, T4, T5> CreateFirst<T1, T2, T3, T4, T5>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull
     {
         return new Coproduct5<T1, T2, T3, T4, T5>(value);
     }
@@ -690,7 +690,7 @@ public static class Coproduct5
     /// <summary>
     /// Creates a new 5-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct5<T1, T2, T3, T4, T5> CreateSecond<T1, T2, T3, T4, T5>(T2 value)
+    public static Coproduct5<T1, T2, T3, T4, T5> CreateSecond<T1, T2, T3, T4, T5>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull
     {
         return new Coproduct5<T1, T2, T3, T4, T5>(value);
     }
@@ -698,7 +698,7 @@ public static class Coproduct5
     /// <summary>
     /// Creates a new 5-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct5<T1, T2, T3, T4, T5> CreateThird<T1, T2, T3, T4, T5>(T3 value)
+    public static Coproduct5<T1, T2, T3, T4, T5> CreateThird<T1, T2, T3, T4, T5>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull
     {
         return new Coproduct5<T1, T2, T3, T4, T5>(value);
     }
@@ -706,7 +706,7 @@ public static class Coproduct5
     /// <summary>
     /// Creates a new 5-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct5<T1, T2, T3, T4, T5> CreateFourth<T1, T2, T3, T4, T5>(T4 value)
+    public static Coproduct5<T1, T2, T3, T4, T5> CreateFourth<T1, T2, T3, T4, T5>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull
     {
         return new Coproduct5<T1, T2, T3, T4, T5>(value);
     }
@@ -714,7 +714,7 @@ public static class Coproduct5
     /// <summary>
     /// Creates a new 5-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct5<T1, T2, T3, T4, T5> CreateFifth<T1, T2, T3, T4, T5>(T5 value)
+    public static Coproduct5<T1, T2, T3, T4, T5> CreateFifth<T1, T2, T3, T4, T5>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull
     {
         return new Coproduct5<T1, T2, T3, T4, T5>(value);
     }
@@ -724,7 +724,7 @@ public static class Coproduct5
 /// <summary>
 /// A 5-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct5<T1, T2, T3, T4, T5> : CoproductBase, ICoproduct5<T1, T2, T3, T4, T5>
+public class Coproduct5<T1, T2, T3, T4, T5> : CoproductBase, ICoproduct5<T1, T2, T3, T4, T5> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull
 {
     /// <summary>
     /// Creates a new 5-dimensional coproduct with the specified value on the first position.
@@ -805,25 +805,25 @@ public class Coproduct5<T1, T2, T3, T4, T5> : CoproductBase, ICoproduct5<T1, T2,
         get { return CoproductDiscriminator == 5; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
 
     public Coproduct5<R1, R2, R3, R4, R5> Map<R1, R2, R3, R4, R5>(
@@ -831,7 +831,7 @@ public class Coproduct5<T1, T2, T3, T4, T5> : CoproductBase, ICoproduct5<T1, T2,
         Func<T2, R2> ifSecond,
         Func<T3, R3> ifThird,
         Func<T4, R4> ifFourth,
-        Func<T5, R5> ifFifth)
+        Func<T5, R5> ifFifth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -924,7 +924,7 @@ public static class Coproduct6
     /// <summary>
     /// Creates a new 6-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct6<T1, T2, T3, T4, T5, T6> CreateFirst<T1, T2, T3, T4, T5, T6>(T1 value)
+    public static Coproduct6<T1, T2, T3, T4, T5, T6> CreateFirst<T1, T2, T3, T4, T5, T6>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull
     {
         return new Coproduct6<T1, T2, T3, T4, T5, T6>(value);
     }
@@ -932,7 +932,7 @@ public static class Coproduct6
     /// <summary>
     /// Creates a new 6-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct6<T1, T2, T3, T4, T5, T6> CreateSecond<T1, T2, T3, T4, T5, T6>(T2 value)
+    public static Coproduct6<T1, T2, T3, T4, T5, T6> CreateSecond<T1, T2, T3, T4, T5, T6>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull
     {
         return new Coproduct6<T1, T2, T3, T4, T5, T6>(value);
     }
@@ -940,7 +940,7 @@ public static class Coproduct6
     /// <summary>
     /// Creates a new 6-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct6<T1, T2, T3, T4, T5, T6> CreateThird<T1, T2, T3, T4, T5, T6>(T3 value)
+    public static Coproduct6<T1, T2, T3, T4, T5, T6> CreateThird<T1, T2, T3, T4, T5, T6>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull
     {
         return new Coproduct6<T1, T2, T3, T4, T5, T6>(value);
     }
@@ -948,7 +948,7 @@ public static class Coproduct6
     /// <summary>
     /// Creates a new 6-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct6<T1, T2, T3, T4, T5, T6> CreateFourth<T1, T2, T3, T4, T5, T6>(T4 value)
+    public static Coproduct6<T1, T2, T3, T4, T5, T6> CreateFourth<T1, T2, T3, T4, T5, T6>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull
     {
         return new Coproduct6<T1, T2, T3, T4, T5, T6>(value);
     }
@@ -956,7 +956,7 @@ public static class Coproduct6
     /// <summary>
     /// Creates a new 6-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct6<T1, T2, T3, T4, T5, T6> CreateFifth<T1, T2, T3, T4, T5, T6>(T5 value)
+    public static Coproduct6<T1, T2, T3, T4, T5, T6> CreateFifth<T1, T2, T3, T4, T5, T6>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull
     {
         return new Coproduct6<T1, T2, T3, T4, T5, T6>(value);
     }
@@ -964,7 +964,7 @@ public static class Coproduct6
     /// <summary>
     /// Creates a new 6-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct6<T1, T2, T3, T4, T5, T6> CreateSixth<T1, T2, T3, T4, T5, T6>(T6 value)
+    public static Coproduct6<T1, T2, T3, T4, T5, T6> CreateSixth<T1, T2, T3, T4, T5, T6>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull
     {
         return new Coproduct6<T1, T2, T3, T4, T5, T6>(value);
     }
@@ -974,7 +974,7 @@ public static class Coproduct6
 /// <summary>
 /// A 6-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct6<T1, T2, T3, T4, T5, T6> : CoproductBase, ICoproduct6<T1, T2, T3, T4, T5, T6>
+public class Coproduct6<T1, T2, T3, T4, T5, T6> : CoproductBase, ICoproduct6<T1, T2, T3, T4, T5, T6> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull
 {
     /// <summary>
     /// Creates a new 6-dimensional coproduct with the specified value on the first position.
@@ -1067,29 +1067,29 @@ public class Coproduct6<T1, T2, T3, T4, T5, T6> : CoproductBase, ICoproduct6<T1,
         get { return CoproductDiscriminator == 6; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
 
     public Coproduct6<R1, R2, R3, R4, R5, R6> Map<R1, R2, R3, R4, R5, R6>(
@@ -1098,7 +1098,7 @@ public class Coproduct6<T1, T2, T3, T4, T5, T6> : CoproductBase, ICoproduct6<T1,
         Func<T3, R3> ifThird,
         Func<T4, R4> ifFourth,
         Func<T5, R5> ifFifth,
-        Func<T6, R6> ifSixth)
+        Func<T6, R6> ifSixth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -1200,7 +1200,7 @@ public static class Coproduct7
     /// <summary>
     /// Creates a new 7-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateFirst<T1, T2, T3, T4, T5, T6, T7>(T1 value)
+    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateFirst<T1, T2, T3, T4, T5, T6, T7>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull
     {
         return new Coproduct7<T1, T2, T3, T4, T5, T6, T7>(value);
     }
@@ -1208,7 +1208,7 @@ public static class Coproduct7
     /// <summary>
     /// Creates a new 7-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateSecond<T1, T2, T3, T4, T5, T6, T7>(T2 value)
+    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateSecond<T1, T2, T3, T4, T5, T6, T7>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull
     {
         return new Coproduct7<T1, T2, T3, T4, T5, T6, T7>(value);
     }
@@ -1216,7 +1216,7 @@ public static class Coproduct7
     /// <summary>
     /// Creates a new 7-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateThird<T1, T2, T3, T4, T5, T6, T7>(T3 value)
+    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateThird<T1, T2, T3, T4, T5, T6, T7>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull
     {
         return new Coproduct7<T1, T2, T3, T4, T5, T6, T7>(value);
     }
@@ -1224,7 +1224,7 @@ public static class Coproduct7
     /// <summary>
     /// Creates a new 7-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateFourth<T1, T2, T3, T4, T5, T6, T7>(T4 value)
+    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateFourth<T1, T2, T3, T4, T5, T6, T7>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull
     {
         return new Coproduct7<T1, T2, T3, T4, T5, T6, T7>(value);
     }
@@ -1232,7 +1232,7 @@ public static class Coproduct7
     /// <summary>
     /// Creates a new 7-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateFifth<T1, T2, T3, T4, T5, T6, T7>(T5 value)
+    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateFifth<T1, T2, T3, T4, T5, T6, T7>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull
     {
         return new Coproduct7<T1, T2, T3, T4, T5, T6, T7>(value);
     }
@@ -1240,7 +1240,7 @@ public static class Coproduct7
     /// <summary>
     /// Creates a new 7-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateSixth<T1, T2, T3, T4, T5, T6, T7>(T6 value)
+    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateSixth<T1, T2, T3, T4, T5, T6, T7>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull
     {
         return new Coproduct7<T1, T2, T3, T4, T5, T6, T7>(value);
     }
@@ -1248,7 +1248,7 @@ public static class Coproduct7
     /// <summary>
     /// Creates a new 7-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateSeventh<T1, T2, T3, T4, T5, T6, T7>(T7 value)
+    public static Coproduct7<T1, T2, T3, T4, T5, T6, T7> CreateSeventh<T1, T2, T3, T4, T5, T6, T7>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull
     {
         return new Coproduct7<T1, T2, T3, T4, T5, T6, T7>(value);
     }
@@ -1258,7 +1258,7 @@ public static class Coproduct7
 /// <summary>
 /// A 7-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct7<T1, T2, T3, T4, T5, T6, T7> : CoproductBase, ICoproduct7<T1, T2, T3, T4, T5, T6, T7>
+public class Coproduct7<T1, T2, T3, T4, T5, T6, T7> : CoproductBase, ICoproduct7<T1, T2, T3, T4, T5, T6, T7> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull
 {
     /// <summary>
     /// Creates a new 7-dimensional coproduct with the specified value on the first position.
@@ -1363,33 +1363,33 @@ public class Coproduct7<T1, T2, T3, T4, T5, T6, T7> : CoproductBase, ICoproduct7
         get { return CoproductDiscriminator == 7; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
 
     public Coproduct7<R1, R2, R3, R4, R5, R6, R7> Map<R1, R2, R3, R4, R5, R6, R7>(
@@ -1399,7 +1399,7 @@ public class Coproduct7<T1, T2, T3, T4, T5, T6, T7> : CoproductBase, ICoproduct7
         Func<T4, R4> ifFourth,
         Func<T5, R5> ifFifth,
         Func<T6, R6> ifSixth,
-        Func<T7, R7> ifSeventh)
+        Func<T7, R7> ifSeventh) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -1510,7 +1510,7 @@ public static class Coproduct8
     /// <summary>
     /// Creates a new 8-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8>(T1 value)
+    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull
     {
         return new Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8>(value);
     }
@@ -1518,7 +1518,7 @@ public static class Coproduct8
     /// <summary>
     /// Creates a new 8-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8>(T2 value)
+    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull
     {
         return new Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8>(value);
     }
@@ -1526,7 +1526,7 @@ public static class Coproduct8
     /// <summary>
     /// Creates a new 8-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8>(T3 value)
+    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull
     {
         return new Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8>(value);
     }
@@ -1534,7 +1534,7 @@ public static class Coproduct8
     /// <summary>
     /// Creates a new 8-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8>(T4 value)
+    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull
     {
         return new Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8>(value);
     }
@@ -1542,7 +1542,7 @@ public static class Coproduct8
     /// <summary>
     /// Creates a new 8-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8>(T5 value)
+    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull
     {
         return new Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8>(value);
     }
@@ -1550,7 +1550,7 @@ public static class Coproduct8
     /// <summary>
     /// Creates a new 8-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8>(T6 value)
+    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull
     {
         return new Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8>(value);
     }
@@ -1558,7 +1558,7 @@ public static class Coproduct8
     /// <summary>
     /// Creates a new 8-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8>(T7 value)
+    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull
     {
         return new Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8>(value);
     }
@@ -1566,7 +1566,7 @@ public static class Coproduct8
     /// <summary>
     /// Creates a new 8-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8>(T8 value)
+    public static Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull
     {
         return new Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8>(value);
     }
@@ -1576,7 +1576,7 @@ public static class Coproduct8
 /// <summary>
 /// A 8-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : CoproductBase, ICoproduct8<T1, T2, T3, T4, T5, T6, T7, T8>
+public class Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : CoproductBase, ICoproduct8<T1, T2, T3, T4, T5, T6, T7, T8> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull
 {
     /// <summary>
     /// Creates a new 8-dimensional coproduct with the specified value on the first position.
@@ -1693,37 +1693,37 @@ public class Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : CoproductBase, ICoprod
         get { return CoproductDiscriminator == 8; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
 
     public Coproduct8<R1, R2, R3, R4, R5, R6, R7, R8> Map<R1, R2, R3, R4, R5, R6, R7, R8>(
@@ -1734,7 +1734,7 @@ public class Coproduct8<T1, T2, T3, T4, T5, T6, T7, T8> : CoproductBase, ICoprod
         Func<T5, R5> ifFifth,
         Func<T6, R6> ifSixth,
         Func<T7, R7> ifSeventh,
-        Func<T8, R8> ifEighth)
+        Func<T8, R8> ifEighth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -1854,7 +1854,7 @@ public static class Coproduct9
     /// <summary>
     /// Creates a new 9-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T1 value)
+    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull
     {
         return new Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(value);
     }
@@ -1862,7 +1862,7 @@ public static class Coproduct9
     /// <summary>
     /// Creates a new 9-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T2 value)
+    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull
     {
         return new Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(value);
     }
@@ -1870,7 +1870,7 @@ public static class Coproduct9
     /// <summary>
     /// Creates a new 9-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T3 value)
+    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull
     {
         return new Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(value);
     }
@@ -1878,7 +1878,7 @@ public static class Coproduct9
     /// <summary>
     /// Creates a new 9-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T4 value)
+    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull
     {
         return new Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(value);
     }
@@ -1886,7 +1886,7 @@ public static class Coproduct9
     /// <summary>
     /// Creates a new 9-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T5 value)
+    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull
     {
         return new Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(value);
     }
@@ -1894,7 +1894,7 @@ public static class Coproduct9
     /// <summary>
     /// Creates a new 9-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T6 value)
+    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull
     {
         return new Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(value);
     }
@@ -1902,7 +1902,7 @@ public static class Coproduct9
     /// <summary>
     /// Creates a new 9-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T7 value)
+    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull
     {
         return new Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(value);
     }
@@ -1910,7 +1910,7 @@ public static class Coproduct9
     /// <summary>
     /// Creates a new 9-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T8 value)
+    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull
     {
         return new Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(value);
     }
@@ -1918,7 +1918,7 @@ public static class Coproduct9
     /// <summary>
     /// Creates a new 9-dimensional coproduct with the ninth value.
     /// </summary>
-    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T9 value)
+    public static Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T9 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull
     {
         return new Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(value);
     }
@@ -1928,7 +1928,7 @@ public static class Coproduct9
 /// <summary>
 /// A 9-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : CoproductBase, ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
+public class Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : CoproductBase, ICoproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull
 {
     /// <summary>
     /// Creates a new 9-dimensional coproduct with the specified value on the first position.
@@ -2057,41 +2057,41 @@ public class Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : CoproductBase, ICo
         get { return CoproductDiscriminator == 9; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
-    public Option<T9> Ninth
+    public Maybe<T9> Ninth
     {
-        get { return IsNinth ? Option.Valued((T9)CoproductValue) : Option.Empty<T9>(); }
+        get { return IsNinth ? Maybe<T9>.Some((T9)CoproductValue) : Maybe<T9>.None; }
     }
 
     public Coproduct9<R1, R2, R3, R4, R5, R6, R7, R8, R9> Map<R1, R2, R3, R4, R5, R6, R7, R8, R9>(
@@ -2103,7 +2103,7 @@ public class Coproduct9<T1, T2, T3, T4, T5, T6, T7, T8, T9> : CoproductBase, ICo
         Func<T6, R6> ifSixth,
         Func<T7, R7> ifSeventh,
         Func<T8, R8> ifEighth,
-        Func<T9, R9> ifNinth)
+        Func<T9, R9> ifNinth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull where R9 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -2232,7 +2232,7 @@ public static class Coproduct10
     /// <summary>
     /// Creates a new 10-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T1 value)
+    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull
     {
         return new Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(value);
     }
@@ -2240,7 +2240,7 @@ public static class Coproduct10
     /// <summary>
     /// Creates a new 10-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T2 value)
+    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull
     {
         return new Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(value);
     }
@@ -2248,7 +2248,7 @@ public static class Coproduct10
     /// <summary>
     /// Creates a new 10-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T3 value)
+    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull
     {
         return new Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(value);
     }
@@ -2256,7 +2256,7 @@ public static class Coproduct10
     /// <summary>
     /// Creates a new 10-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T4 value)
+    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull
     {
         return new Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(value);
     }
@@ -2264,7 +2264,7 @@ public static class Coproduct10
     /// <summary>
     /// Creates a new 10-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T5 value)
+    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull
     {
         return new Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(value);
     }
@@ -2272,7 +2272,7 @@ public static class Coproduct10
     /// <summary>
     /// Creates a new 10-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T6 value)
+    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull
     {
         return new Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(value);
     }
@@ -2280,7 +2280,7 @@ public static class Coproduct10
     /// <summary>
     /// Creates a new 10-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T7 value)
+    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull
     {
         return new Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(value);
     }
@@ -2288,7 +2288,7 @@ public static class Coproduct10
     /// <summary>
     /// Creates a new 10-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T8 value)
+    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull
     {
         return new Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(value);
     }
@@ -2296,7 +2296,7 @@ public static class Coproduct10
     /// <summary>
     /// Creates a new 10-dimensional coproduct with the ninth value.
     /// </summary>
-    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T9 value)
+    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T9 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull
     {
         return new Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(value);
     }
@@ -2304,7 +2304,7 @@ public static class Coproduct10
     /// <summary>
     /// Creates a new 10-dimensional coproduct with the tenth value.
     /// </summary>
-    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T10 value)
+    public static Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T10 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull
     {
         return new Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(value);
     }
@@ -2314,7 +2314,7 @@ public static class Coproduct10
 /// <summary>
 /// A 10-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : CoproductBase, ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
+public class Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : CoproductBase, ICoproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull
 {
     /// <summary>
     /// Creates a new 10-dimensional coproduct with the specified value on the first position.
@@ -2455,45 +2455,45 @@ public class Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : CoproductBas
         get { return CoproductDiscriminator == 10; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
-    public Option<T9> Ninth
+    public Maybe<T9> Ninth
     {
-        get { return IsNinth ? Option.Valued((T9)CoproductValue) : Option.Empty<T9>(); }
+        get { return IsNinth ? Maybe<T9>.Some((T9)CoproductValue) : Maybe<T9>.None; }
     }
-    public Option<T10> Tenth
+    public Maybe<T10> Tenth
     {
-        get { return IsTenth ? Option.Valued((T10)CoproductValue) : Option.Empty<T10>(); }
+        get { return IsTenth ? Maybe<T10>.Some((T10)CoproductValue) : Maybe<T10>.None; }
     }
 
     public Coproduct10<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10> Map<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>(
@@ -2506,7 +2506,7 @@ public class Coproduct10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : CoproductBas
         Func<T7, R7> ifSeventh,
         Func<T8, R8> ifEighth,
         Func<T9, R9> ifNinth,
-        Func<T10, R10> ifTenth)
+        Func<T10, R10> ifTenth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull where R9 : notnull where R10 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -2644,7 +2644,7 @@ public static class Coproduct11
     /// <summary>
     /// Creates a new 11-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T1 value)
+    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull
     {
         return new Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(value);
     }
@@ -2652,7 +2652,7 @@ public static class Coproduct11
     /// <summary>
     /// Creates a new 11-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T2 value)
+    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull
     {
         return new Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(value);
     }
@@ -2660,7 +2660,7 @@ public static class Coproduct11
     /// <summary>
     /// Creates a new 11-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T3 value)
+    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull
     {
         return new Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(value);
     }
@@ -2668,7 +2668,7 @@ public static class Coproduct11
     /// <summary>
     /// Creates a new 11-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T4 value)
+    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull
     {
         return new Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(value);
     }
@@ -2676,7 +2676,7 @@ public static class Coproduct11
     /// <summary>
     /// Creates a new 11-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T5 value)
+    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull
     {
         return new Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(value);
     }
@@ -2684,7 +2684,7 @@ public static class Coproduct11
     /// <summary>
     /// Creates a new 11-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T6 value)
+    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull
     {
         return new Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(value);
     }
@@ -2692,7 +2692,7 @@ public static class Coproduct11
     /// <summary>
     /// Creates a new 11-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T7 value)
+    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull
     {
         return new Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(value);
     }
@@ -2700,7 +2700,7 @@ public static class Coproduct11
     /// <summary>
     /// Creates a new 11-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T8 value)
+    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull
     {
         return new Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(value);
     }
@@ -2708,7 +2708,7 @@ public static class Coproduct11
     /// <summary>
     /// Creates a new 11-dimensional coproduct with the ninth value.
     /// </summary>
-    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T9 value)
+    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T9 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull
     {
         return new Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(value);
     }
@@ -2716,7 +2716,7 @@ public static class Coproduct11
     /// <summary>
     /// Creates a new 11-dimensional coproduct with the tenth value.
     /// </summary>
-    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T10 value)
+    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T10 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull
     {
         return new Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(value);
     }
@@ -2724,7 +2724,7 @@ public static class Coproduct11
     /// <summary>
     /// Creates a new 11-dimensional coproduct with the eleventh value.
     /// </summary>
-    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T11 value)
+    public static Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T11 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull
     {
         return new Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(value);
     }
@@ -2734,7 +2734,7 @@ public static class Coproduct11
 /// <summary>
 /// A 11-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : CoproductBase, ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
+public class Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : CoproductBase, ICoproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull
 {
     /// <summary>
     /// Creates a new 11-dimensional coproduct with the specified value on the first position.
@@ -2887,49 +2887,49 @@ public class Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : Coprodu
         get { return CoproductDiscriminator == 11; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
-    public Option<T9> Ninth
+    public Maybe<T9> Ninth
     {
-        get { return IsNinth ? Option.Valued((T9)CoproductValue) : Option.Empty<T9>(); }
+        get { return IsNinth ? Maybe<T9>.Some((T9)CoproductValue) : Maybe<T9>.None; }
     }
-    public Option<T10> Tenth
+    public Maybe<T10> Tenth
     {
-        get { return IsTenth ? Option.Valued((T10)CoproductValue) : Option.Empty<T10>(); }
+        get { return IsTenth ? Maybe<T10>.Some((T10)CoproductValue) : Maybe<T10>.None; }
     }
-    public Option<T11> Eleventh
+    public Maybe<T11> Eleventh
     {
-        get { return IsEleventh ? Option.Valued((T11)CoproductValue) : Option.Empty<T11>(); }
+        get { return IsEleventh ? Maybe<T11>.Some((T11)CoproductValue) : Maybe<T11>.None; }
     }
 
     public Coproduct11<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11> Map<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>(
@@ -2943,7 +2943,7 @@ public class Coproduct11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : Coprodu
         Func<T8, R8> ifEighth,
         Func<T9, R9> ifNinth,
         Func<T10, R10> ifTenth,
-        Func<T11, R11> ifEleventh)
+        Func<T11, R11> ifEleventh) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull where R9 : notnull where R10 : notnull where R11 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -3090,7 +3090,7 @@ public static class Coproduct12
     /// <summary>
     /// Creates a new 12-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T1 value)
+    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
     {
         return new Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(value);
     }
@@ -3098,7 +3098,7 @@ public static class Coproduct12
     /// <summary>
     /// Creates a new 12-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T2 value)
+    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
     {
         return new Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(value);
     }
@@ -3106,7 +3106,7 @@ public static class Coproduct12
     /// <summary>
     /// Creates a new 12-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T3 value)
+    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
     {
         return new Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(value);
     }
@@ -3114,7 +3114,7 @@ public static class Coproduct12
     /// <summary>
     /// Creates a new 12-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T4 value)
+    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
     {
         return new Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(value);
     }
@@ -3122,7 +3122,7 @@ public static class Coproduct12
     /// <summary>
     /// Creates a new 12-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T5 value)
+    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
     {
         return new Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(value);
     }
@@ -3130,7 +3130,7 @@ public static class Coproduct12
     /// <summary>
     /// Creates a new 12-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T6 value)
+    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
     {
         return new Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(value);
     }
@@ -3138,7 +3138,7 @@ public static class Coproduct12
     /// <summary>
     /// Creates a new 12-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T7 value)
+    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
     {
         return new Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(value);
     }
@@ -3146,7 +3146,7 @@ public static class Coproduct12
     /// <summary>
     /// Creates a new 12-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T8 value)
+    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
     {
         return new Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(value);
     }
@@ -3154,7 +3154,7 @@ public static class Coproduct12
     /// <summary>
     /// Creates a new 12-dimensional coproduct with the ninth value.
     /// </summary>
-    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T9 value)
+    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T9 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
     {
         return new Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(value);
     }
@@ -3162,7 +3162,7 @@ public static class Coproduct12
     /// <summary>
     /// Creates a new 12-dimensional coproduct with the tenth value.
     /// </summary>
-    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T10 value)
+    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T10 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
     {
         return new Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(value);
     }
@@ -3170,7 +3170,7 @@ public static class Coproduct12
     /// <summary>
     /// Creates a new 12-dimensional coproduct with the eleventh value.
     /// </summary>
-    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T11 value)
+    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T11 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
     {
         return new Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(value);
     }
@@ -3178,7 +3178,7 @@ public static class Coproduct12
     /// <summary>
     /// Creates a new 12-dimensional coproduct with the twelfth value.
     /// </summary>
-    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T12 value)
+    public static Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T12 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
     {
         return new Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(value);
     }
@@ -3188,7 +3188,7 @@ public static class Coproduct12
 /// <summary>
 /// A 12-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : CoproductBase, ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
+public class Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : CoproductBase, ICoproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull
 {
     /// <summary>
     /// Creates a new 12-dimensional coproduct with the specified value on the first position.
@@ -3353,53 +3353,53 @@ public class Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : Co
         get { return CoproductDiscriminator == 12; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
-    public Option<T9> Ninth
+    public Maybe<T9> Ninth
     {
-        get { return IsNinth ? Option.Valued((T9)CoproductValue) : Option.Empty<T9>(); }
+        get { return IsNinth ? Maybe<T9>.Some((T9)CoproductValue) : Maybe<T9>.None; }
     }
-    public Option<T10> Tenth
+    public Maybe<T10> Tenth
     {
-        get { return IsTenth ? Option.Valued((T10)CoproductValue) : Option.Empty<T10>(); }
+        get { return IsTenth ? Maybe<T10>.Some((T10)CoproductValue) : Maybe<T10>.None; }
     }
-    public Option<T11> Eleventh
+    public Maybe<T11> Eleventh
     {
-        get { return IsEleventh ? Option.Valued((T11)CoproductValue) : Option.Empty<T11>(); }
+        get { return IsEleventh ? Maybe<T11>.Some((T11)CoproductValue) : Maybe<T11>.None; }
     }
-    public Option<T12> Twelfth
+    public Maybe<T12> Twelfth
     {
-        get { return IsTwelfth ? Option.Valued((T12)CoproductValue) : Option.Empty<T12>(); }
+        get { return IsTwelfth ? Maybe<T12>.Some((T12)CoproductValue) : Maybe<T12>.None; }
     }
 
     public Coproduct12<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12> Map<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>(
@@ -3414,7 +3414,7 @@ public class Coproduct12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : Co
         Func<T9, R9> ifNinth,
         Func<T10, R10> ifTenth,
         Func<T11, R11> ifEleventh,
-        Func<T12, R12> ifTwelfth)
+        Func<T12, R12> ifTwelfth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull where R9 : notnull where R10 : notnull where R11 : notnull where R12 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -3570,7 +3570,7 @@ public static class Coproduct13
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T1 value)
+    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
     {
         return new Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(value);
     }
@@ -3578,7 +3578,7 @@ public static class Coproduct13
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T2 value)
+    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
     {
         return new Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(value);
     }
@@ -3586,7 +3586,7 @@ public static class Coproduct13
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T3 value)
+    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
     {
         return new Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(value);
     }
@@ -3594,7 +3594,7 @@ public static class Coproduct13
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T4 value)
+    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
     {
         return new Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(value);
     }
@@ -3602,7 +3602,7 @@ public static class Coproduct13
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T5 value)
+    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
     {
         return new Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(value);
     }
@@ -3610,7 +3610,7 @@ public static class Coproduct13
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T6 value)
+    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
     {
         return new Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(value);
     }
@@ -3618,7 +3618,7 @@ public static class Coproduct13
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T7 value)
+    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
     {
         return new Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(value);
     }
@@ -3626,7 +3626,7 @@ public static class Coproduct13
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T8 value)
+    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
     {
         return new Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(value);
     }
@@ -3634,7 +3634,7 @@ public static class Coproduct13
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the ninth value.
     /// </summary>
-    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T9 value)
+    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T9 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
     {
         return new Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(value);
     }
@@ -3642,7 +3642,7 @@ public static class Coproduct13
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the tenth value.
     /// </summary>
-    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T10 value)
+    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T10 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
     {
         return new Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(value);
     }
@@ -3650,7 +3650,7 @@ public static class Coproduct13
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the eleventh value.
     /// </summary>
-    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T11 value)
+    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T11 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
     {
         return new Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(value);
     }
@@ -3658,7 +3658,7 @@ public static class Coproduct13
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the twelfth value.
     /// </summary>
-    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T12 value)
+    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T12 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
     {
         return new Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(value);
     }
@@ -3666,7 +3666,7 @@ public static class Coproduct13
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the thirteenth value.
     /// </summary>
-    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T13 value)
+    public static Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T13 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
     {
         return new Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(value);
     }
@@ -3676,7 +3676,7 @@ public static class Coproduct13
 /// <summary>
 /// A 13-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : CoproductBase, ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>
+public class Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : CoproductBase, ICoproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull
 {
     /// <summary>
     /// Creates a new 13-dimensional coproduct with the specified value on the first position.
@@ -3853,57 +3853,57 @@ public class Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>
         get { return CoproductDiscriminator == 13; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
-    public Option<T9> Ninth
+    public Maybe<T9> Ninth
     {
-        get { return IsNinth ? Option.Valued((T9)CoproductValue) : Option.Empty<T9>(); }
+        get { return IsNinth ? Maybe<T9>.Some((T9)CoproductValue) : Maybe<T9>.None; }
     }
-    public Option<T10> Tenth
+    public Maybe<T10> Tenth
     {
-        get { return IsTenth ? Option.Valued((T10)CoproductValue) : Option.Empty<T10>(); }
+        get { return IsTenth ? Maybe<T10>.Some((T10)CoproductValue) : Maybe<T10>.None; }
     }
-    public Option<T11> Eleventh
+    public Maybe<T11> Eleventh
     {
-        get { return IsEleventh ? Option.Valued((T11)CoproductValue) : Option.Empty<T11>(); }
+        get { return IsEleventh ? Maybe<T11>.Some((T11)CoproductValue) : Maybe<T11>.None; }
     }
-    public Option<T12> Twelfth
+    public Maybe<T12> Twelfth
     {
-        get { return IsTwelfth ? Option.Valued((T12)CoproductValue) : Option.Empty<T12>(); }
+        get { return IsTwelfth ? Maybe<T12>.Some((T12)CoproductValue) : Maybe<T12>.None; }
     }
-    public Option<T13> Thirteenth
+    public Maybe<T13> Thirteenth
     {
-        get { return IsThirteenth ? Option.Valued((T13)CoproductValue) : Option.Empty<T13>(); }
+        get { return IsThirteenth ? Maybe<T13>.Some((T13)CoproductValue) : Maybe<T13>.None; }
     }
 
     public Coproduct13<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13> Map<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>(
@@ -3919,7 +3919,7 @@ public class Coproduct13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>
         Func<T10, R10> ifTenth,
         Func<T11, R11> ifEleventh,
         Func<T12, R12> ifTwelfth,
-        Func<T13, R13> ifThirteenth)
+        Func<T13, R13> ifThirteenth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull where R9 : notnull where R10 : notnull where R11 : notnull where R12 : notnull where R13 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -4084,7 +4084,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T1 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4092,7 +4092,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T2 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4100,7 +4100,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T3 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4108,7 +4108,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T4 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4116,7 +4116,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T5 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4124,7 +4124,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T6 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4132,7 +4132,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T7 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4140,7 +4140,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T8 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4148,7 +4148,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the ninth value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T9 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T9 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4156,7 +4156,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the tenth value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T10 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T10 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4164,7 +4164,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the eleventh value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T11 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T11 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4172,7 +4172,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the twelfth value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T12 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T12 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4180,7 +4180,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the thirteenth value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T13 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T13 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4188,7 +4188,7 @@ public static class Coproduct14
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the fourteenth value.
     /// </summary>
-    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T14 value)
+    public static Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T14 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
     {
         return new Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(value);
     }
@@ -4198,7 +4198,7 @@ public static class Coproduct14
 /// <summary>
 /// A 14-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : CoproductBase, ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>
+public class Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : CoproductBase, ICoproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull
 {
     /// <summary>
     /// Creates a new 14-dimensional coproduct with the specified value on the first position.
@@ -4387,61 +4387,61 @@ public class Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         get { return CoproductDiscriminator == 14; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
-    public Option<T9> Ninth
+    public Maybe<T9> Ninth
     {
-        get { return IsNinth ? Option.Valued((T9)CoproductValue) : Option.Empty<T9>(); }
+        get { return IsNinth ? Maybe<T9>.Some((T9)CoproductValue) : Maybe<T9>.None; }
     }
-    public Option<T10> Tenth
+    public Maybe<T10> Tenth
     {
-        get { return IsTenth ? Option.Valued((T10)CoproductValue) : Option.Empty<T10>(); }
+        get { return IsTenth ? Maybe<T10>.Some((T10)CoproductValue) : Maybe<T10>.None; }
     }
-    public Option<T11> Eleventh
+    public Maybe<T11> Eleventh
     {
-        get { return IsEleventh ? Option.Valued((T11)CoproductValue) : Option.Empty<T11>(); }
+        get { return IsEleventh ? Maybe<T11>.Some((T11)CoproductValue) : Maybe<T11>.None; }
     }
-    public Option<T12> Twelfth
+    public Maybe<T12> Twelfth
     {
-        get { return IsTwelfth ? Option.Valued((T12)CoproductValue) : Option.Empty<T12>(); }
+        get { return IsTwelfth ? Maybe<T12>.Some((T12)CoproductValue) : Maybe<T12>.None; }
     }
-    public Option<T13> Thirteenth
+    public Maybe<T13> Thirteenth
     {
-        get { return IsThirteenth ? Option.Valued((T13)CoproductValue) : Option.Empty<T13>(); }
+        get { return IsThirteenth ? Maybe<T13>.Some((T13)CoproductValue) : Maybe<T13>.None; }
     }
-    public Option<T14> Fourteenth
+    public Maybe<T14> Fourteenth
     {
-        get { return IsFourteenth ? Option.Valued((T14)CoproductValue) : Option.Empty<T14>(); }
+        get { return IsFourteenth ? Maybe<T14>.Some((T14)CoproductValue) : Maybe<T14>.None; }
     }
 
     public Coproduct14<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14> Map<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>(
@@ -4458,7 +4458,7 @@ public class Coproduct14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         Func<T11, R11> ifEleventh,
         Func<T12, R12> ifTwelfth,
         Func<T13, R13> ifThirteenth,
-        Func<T14, R14> ifFourteenth)
+        Func<T14, R14> ifFourteenth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull where R9 : notnull where R10 : notnull where R11 : notnull where R12 : notnull where R13 : notnull where R14 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -4632,7 +4632,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T1 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4640,7 +4640,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T2 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4648,7 +4648,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T3 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4656,7 +4656,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T4 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4664,7 +4664,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T5 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4672,7 +4672,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T6 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4680,7 +4680,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T7 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4688,7 +4688,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T8 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4696,7 +4696,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the ninth value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T9 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T9 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4704,7 +4704,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the tenth value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T10 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T10 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4712,7 +4712,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the eleventh value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T11 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T11 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4720,7 +4720,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the twelfth value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T12 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T12 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4728,7 +4728,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the thirteenth value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T13 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T13 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4736,7 +4736,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the fourteenth value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T14 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T14 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4744,7 +4744,7 @@ public static class Coproduct15
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the fifteenth value.
     /// </summary>
-    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T15 value)
+    public static Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T15 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
     {
         return new Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(value);
     }
@@ -4754,7 +4754,7 @@ public static class Coproduct15
 /// <summary>
 /// A 15-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : CoproductBase, ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>
+public class Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : CoproductBase, ICoproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull
 {
     /// <summary>
     /// Creates a new 15-dimensional coproduct with the specified value on the first position.
@@ -4955,65 +4955,65 @@ public class Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         get { return CoproductDiscriminator == 15; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
-    public Option<T9> Ninth
+    public Maybe<T9> Ninth
     {
-        get { return IsNinth ? Option.Valued((T9)CoproductValue) : Option.Empty<T9>(); }
+        get { return IsNinth ? Maybe<T9>.Some((T9)CoproductValue) : Maybe<T9>.None; }
     }
-    public Option<T10> Tenth
+    public Maybe<T10> Tenth
     {
-        get { return IsTenth ? Option.Valued((T10)CoproductValue) : Option.Empty<T10>(); }
+        get { return IsTenth ? Maybe<T10>.Some((T10)CoproductValue) : Maybe<T10>.None; }
     }
-    public Option<T11> Eleventh
+    public Maybe<T11> Eleventh
     {
-        get { return IsEleventh ? Option.Valued((T11)CoproductValue) : Option.Empty<T11>(); }
+        get { return IsEleventh ? Maybe<T11>.Some((T11)CoproductValue) : Maybe<T11>.None; }
     }
-    public Option<T12> Twelfth
+    public Maybe<T12> Twelfth
     {
-        get { return IsTwelfth ? Option.Valued((T12)CoproductValue) : Option.Empty<T12>(); }
+        get { return IsTwelfth ? Maybe<T12>.Some((T12)CoproductValue) : Maybe<T12>.None; }
     }
-    public Option<T13> Thirteenth
+    public Maybe<T13> Thirteenth
     {
-        get { return IsThirteenth ? Option.Valued((T13)CoproductValue) : Option.Empty<T13>(); }
+        get { return IsThirteenth ? Maybe<T13>.Some((T13)CoproductValue) : Maybe<T13>.None; }
     }
-    public Option<T14> Fourteenth
+    public Maybe<T14> Fourteenth
     {
-        get { return IsFourteenth ? Option.Valued((T14)CoproductValue) : Option.Empty<T14>(); }
+        get { return IsFourteenth ? Maybe<T14>.Some((T14)CoproductValue) : Maybe<T14>.None; }
     }
-    public Option<T15> Fifteenth
+    public Maybe<T15> Fifteenth
     {
-        get { return IsFifteenth ? Option.Valued((T15)CoproductValue) : Option.Empty<T15>(); }
+        get { return IsFifteenth ? Maybe<T15>.Some((T15)CoproductValue) : Maybe<T15>.None; }
     }
 
     public Coproduct15<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15> Map<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15>(
@@ -5031,7 +5031,7 @@ public class Coproduct15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         Func<T12, R12> ifTwelfth,
         Func<T13, R13> ifThirteenth,
         Func<T14, R14> ifFourteenth,
-        Func<T15, R15> ifFifteenth)
+        Func<T15, R15> ifFifteenth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull where R9 : notnull where R10 : notnull where R11 : notnull where R12 : notnull where R13 : notnull where R14 : notnull where R15 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -5214,7 +5214,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T1 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5222,7 +5222,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T2 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5230,7 +5230,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T3 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5238,7 +5238,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T4 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5246,7 +5246,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T5 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5254,7 +5254,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T6 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5262,7 +5262,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T7 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5270,7 +5270,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T8 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5278,7 +5278,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the ninth value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T9 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T9 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5286,7 +5286,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the tenth value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T10 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T10 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5294,7 +5294,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the eleventh value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T11 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T11 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5302,7 +5302,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the twelfth value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T12 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T12 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5310,7 +5310,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the thirteenth value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T13 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T13 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5318,7 +5318,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the fourteenth value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T14 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T14 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5326,7 +5326,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the fifteenth value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T15 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T15 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5334,7 +5334,7 @@ public static class Coproduct16
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the sixteenth value.
     /// </summary>
-    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateSixteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T16 value)
+    public static Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> CreateSixteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T16 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
     {
         return new Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(value);
     }
@@ -5344,7 +5344,7 @@ public static class Coproduct16
 /// <summary>
 /// A 16-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : CoproductBase, ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>
+public class Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : CoproductBase, ICoproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull
 {
     /// <summary>
     /// Creates a new 16-dimensional coproduct with the specified value on the first position.
@@ -5557,69 +5557,69 @@ public class Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         get { return CoproductDiscriminator == 16; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
-    public Option<T9> Ninth
+    public Maybe<T9> Ninth
     {
-        get { return IsNinth ? Option.Valued((T9)CoproductValue) : Option.Empty<T9>(); }
+        get { return IsNinth ? Maybe<T9>.Some((T9)CoproductValue) : Maybe<T9>.None; }
     }
-    public Option<T10> Tenth
+    public Maybe<T10> Tenth
     {
-        get { return IsTenth ? Option.Valued((T10)CoproductValue) : Option.Empty<T10>(); }
+        get { return IsTenth ? Maybe<T10>.Some((T10)CoproductValue) : Maybe<T10>.None; }
     }
-    public Option<T11> Eleventh
+    public Maybe<T11> Eleventh
     {
-        get { return IsEleventh ? Option.Valued((T11)CoproductValue) : Option.Empty<T11>(); }
+        get { return IsEleventh ? Maybe<T11>.Some((T11)CoproductValue) : Maybe<T11>.None; }
     }
-    public Option<T12> Twelfth
+    public Maybe<T12> Twelfth
     {
-        get { return IsTwelfth ? Option.Valued((T12)CoproductValue) : Option.Empty<T12>(); }
+        get { return IsTwelfth ? Maybe<T12>.Some((T12)CoproductValue) : Maybe<T12>.None; }
     }
-    public Option<T13> Thirteenth
+    public Maybe<T13> Thirteenth
     {
-        get { return IsThirteenth ? Option.Valued((T13)CoproductValue) : Option.Empty<T13>(); }
+        get { return IsThirteenth ? Maybe<T13>.Some((T13)CoproductValue) : Maybe<T13>.None; }
     }
-    public Option<T14> Fourteenth
+    public Maybe<T14> Fourteenth
     {
-        get { return IsFourteenth ? Option.Valued((T14)CoproductValue) : Option.Empty<T14>(); }
+        get { return IsFourteenth ? Maybe<T14>.Some((T14)CoproductValue) : Maybe<T14>.None; }
     }
-    public Option<T15> Fifteenth
+    public Maybe<T15> Fifteenth
     {
-        get { return IsFifteenth ? Option.Valued((T15)CoproductValue) : Option.Empty<T15>(); }
+        get { return IsFifteenth ? Maybe<T15>.Some((T15)CoproductValue) : Maybe<T15>.None; }
     }
-    public Option<T16> Sixteenth
+    public Maybe<T16> Sixteenth
     {
-        get { return IsSixteenth ? Option.Valued((T16)CoproductValue) : Option.Empty<T16>(); }
+        get { return IsSixteenth ? Maybe<T16>.Some((T16)CoproductValue) : Maybe<T16>.None; }
     }
 
     public Coproduct16<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16> Map<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16>(
@@ -5638,7 +5638,7 @@ public class Coproduct16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         Func<T13, R13> ifThirteenth,
         Func<T14, R14> ifFourteenth,
         Func<T15, R15> ifFifteenth,
-        Func<T16, R16> ifSixteenth)
+        Func<T16, R16> ifSixteenth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull where R9 : notnull where R10 : notnull where R11 : notnull where R12 : notnull where R13 : notnull where R14 : notnull where R15 : notnull where R16 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -5830,7 +5830,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T1 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5838,7 +5838,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T2 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5846,7 +5846,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T3 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5854,7 +5854,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T4 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5862,7 +5862,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T5 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5870,7 +5870,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T6 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5878,7 +5878,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T7 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5886,7 +5886,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T8 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5894,7 +5894,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the ninth value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T9 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T9 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5902,7 +5902,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the tenth value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T10 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T10 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5910,7 +5910,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the eleventh value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T11 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T11 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5918,7 +5918,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the twelfth value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T12 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T12 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5926,7 +5926,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the thirteenth value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T13 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T13 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5934,7 +5934,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the fourteenth value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T14 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T14 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5942,7 +5942,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the fifteenth value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T15 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T15 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5950,7 +5950,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the sixteenth value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateSixteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T16 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateSixteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T16 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5958,7 +5958,7 @@ public static class Coproduct17
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the seventeenth value.
     /// </summary>
-    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateSeventeenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T17 value)
+    public static Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> CreateSeventeenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(T17 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
     {
         return new Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(value);
     }
@@ -5968,7 +5968,7 @@ public static class Coproduct17
 /// <summary>
 /// A 17-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> : CoproductBase, ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>
+public class Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> : CoproductBase, ICoproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull
 {
     /// <summary>
     /// Creates a new 17-dimensional coproduct with the specified value on the first position.
@@ -6193,73 +6193,73 @@ public class Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         get { return CoproductDiscriminator == 17; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
-    public Option<T9> Ninth
+    public Maybe<T9> Ninth
     {
-        get { return IsNinth ? Option.Valued((T9)CoproductValue) : Option.Empty<T9>(); }
+        get { return IsNinth ? Maybe<T9>.Some((T9)CoproductValue) : Maybe<T9>.None; }
     }
-    public Option<T10> Tenth
+    public Maybe<T10> Tenth
     {
-        get { return IsTenth ? Option.Valued((T10)CoproductValue) : Option.Empty<T10>(); }
+        get { return IsTenth ? Maybe<T10>.Some((T10)CoproductValue) : Maybe<T10>.None; }
     }
-    public Option<T11> Eleventh
+    public Maybe<T11> Eleventh
     {
-        get { return IsEleventh ? Option.Valued((T11)CoproductValue) : Option.Empty<T11>(); }
+        get { return IsEleventh ? Maybe<T11>.Some((T11)CoproductValue) : Maybe<T11>.None; }
     }
-    public Option<T12> Twelfth
+    public Maybe<T12> Twelfth
     {
-        get { return IsTwelfth ? Option.Valued((T12)CoproductValue) : Option.Empty<T12>(); }
+        get { return IsTwelfth ? Maybe<T12>.Some((T12)CoproductValue) : Maybe<T12>.None; }
     }
-    public Option<T13> Thirteenth
+    public Maybe<T13> Thirteenth
     {
-        get { return IsThirteenth ? Option.Valued((T13)CoproductValue) : Option.Empty<T13>(); }
+        get { return IsThirteenth ? Maybe<T13>.Some((T13)CoproductValue) : Maybe<T13>.None; }
     }
-    public Option<T14> Fourteenth
+    public Maybe<T14> Fourteenth
     {
-        get { return IsFourteenth ? Option.Valued((T14)CoproductValue) : Option.Empty<T14>(); }
+        get { return IsFourteenth ? Maybe<T14>.Some((T14)CoproductValue) : Maybe<T14>.None; }
     }
-    public Option<T15> Fifteenth
+    public Maybe<T15> Fifteenth
     {
-        get { return IsFifteenth ? Option.Valued((T15)CoproductValue) : Option.Empty<T15>(); }
+        get { return IsFifteenth ? Maybe<T15>.Some((T15)CoproductValue) : Maybe<T15>.None; }
     }
-    public Option<T16> Sixteenth
+    public Maybe<T16> Sixteenth
     {
-        get { return IsSixteenth ? Option.Valued((T16)CoproductValue) : Option.Empty<T16>(); }
+        get { return IsSixteenth ? Maybe<T16>.Some((T16)CoproductValue) : Maybe<T16>.None; }
     }
-    public Option<T17> Seventeenth
+    public Maybe<T17> Seventeenth
     {
-        get { return IsSeventeenth ? Option.Valued((T17)CoproductValue) : Option.Empty<T17>(); }
+        get { return IsSeventeenth ? Maybe<T17>.Some((T17)CoproductValue) : Maybe<T17>.None; }
     }
 
     public Coproduct17<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17> Map<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17>(
@@ -6279,7 +6279,7 @@ public class Coproduct17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         Func<T14, R14> ifFourteenth,
         Func<T15, R15> ifFifteenth,
         Func<T16, R16> ifSixteenth,
-        Func<T17, R17> ifSeventeenth)
+        Func<T17, R17> ifSeventeenth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull where R9 : notnull where R10 : notnull where R11 : notnull where R12 : notnull where R13 : notnull where R14 : notnull where R15 : notnull where R16 : notnull where R17 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -6480,7 +6480,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T1 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6488,7 +6488,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T2 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6496,7 +6496,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T3 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6504,7 +6504,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T4 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6512,7 +6512,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T5 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6520,7 +6520,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T6 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6528,7 +6528,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T7 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6536,7 +6536,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T8 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6544,7 +6544,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the ninth value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T9 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T9 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6552,7 +6552,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the tenth value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T10 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T10 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6560,7 +6560,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the eleventh value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T11 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T11 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6568,7 +6568,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the twelfth value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T12 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T12 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6576,7 +6576,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the thirteenth value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T13 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T13 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6584,7 +6584,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the fourteenth value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T14 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T14 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6592,7 +6592,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the fifteenth value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T15 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T15 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6600,7 +6600,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the sixteenth value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateSixteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T16 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateSixteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T16 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6608,7 +6608,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the seventeenth value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateSeventeenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T17 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateSeventeenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T17 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6616,7 +6616,7 @@ public static class Coproduct18
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the eighteenth value.
     /// </summary>
-    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateEighteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T18 value)
+    public static Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> CreateEighteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(T18 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
     {
         return new Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(value);
     }
@@ -6626,7 +6626,7 @@ public static class Coproduct18
 /// <summary>
 /// A 18-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> : CoproductBase, ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>
+public class Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> : CoproductBase, ICoproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull
 {
     /// <summary>
     /// Creates a new 18-dimensional coproduct with the specified value on the first position.
@@ -6863,77 +6863,77 @@ public class Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         get { return CoproductDiscriminator == 18; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
-    public Option<T9> Ninth
+    public Maybe<T9> Ninth
     {
-        get { return IsNinth ? Option.Valued((T9)CoproductValue) : Option.Empty<T9>(); }
+        get { return IsNinth ? Maybe<T9>.Some((T9)CoproductValue) : Maybe<T9>.None; }
     }
-    public Option<T10> Tenth
+    public Maybe<T10> Tenth
     {
-        get { return IsTenth ? Option.Valued((T10)CoproductValue) : Option.Empty<T10>(); }
+        get { return IsTenth ? Maybe<T10>.Some((T10)CoproductValue) : Maybe<T10>.None; }
     }
-    public Option<T11> Eleventh
+    public Maybe<T11> Eleventh
     {
-        get { return IsEleventh ? Option.Valued((T11)CoproductValue) : Option.Empty<T11>(); }
+        get { return IsEleventh ? Maybe<T11>.Some((T11)CoproductValue) : Maybe<T11>.None; }
     }
-    public Option<T12> Twelfth
+    public Maybe<T12> Twelfth
     {
-        get { return IsTwelfth ? Option.Valued((T12)CoproductValue) : Option.Empty<T12>(); }
+        get { return IsTwelfth ? Maybe<T12>.Some((T12)CoproductValue) : Maybe<T12>.None; }
     }
-    public Option<T13> Thirteenth
+    public Maybe<T13> Thirteenth
     {
-        get { return IsThirteenth ? Option.Valued((T13)CoproductValue) : Option.Empty<T13>(); }
+        get { return IsThirteenth ? Maybe<T13>.Some((T13)CoproductValue) : Maybe<T13>.None; }
     }
-    public Option<T14> Fourteenth
+    public Maybe<T14> Fourteenth
     {
-        get { return IsFourteenth ? Option.Valued((T14)CoproductValue) : Option.Empty<T14>(); }
+        get { return IsFourteenth ? Maybe<T14>.Some((T14)CoproductValue) : Maybe<T14>.None; }
     }
-    public Option<T15> Fifteenth
+    public Maybe<T15> Fifteenth
     {
-        get { return IsFifteenth ? Option.Valued((T15)CoproductValue) : Option.Empty<T15>(); }
+        get { return IsFifteenth ? Maybe<T15>.Some((T15)CoproductValue) : Maybe<T15>.None; }
     }
-    public Option<T16> Sixteenth
+    public Maybe<T16> Sixteenth
     {
-        get { return IsSixteenth ? Option.Valued((T16)CoproductValue) : Option.Empty<T16>(); }
+        get { return IsSixteenth ? Maybe<T16>.Some((T16)CoproductValue) : Maybe<T16>.None; }
     }
-    public Option<T17> Seventeenth
+    public Maybe<T17> Seventeenth
     {
-        get { return IsSeventeenth ? Option.Valued((T17)CoproductValue) : Option.Empty<T17>(); }
+        get { return IsSeventeenth ? Maybe<T17>.Some((T17)CoproductValue) : Maybe<T17>.None; }
     }
-    public Option<T18> Eighteenth
+    public Maybe<T18> Eighteenth
     {
-        get { return IsEighteenth ? Option.Valued((T18)CoproductValue) : Option.Empty<T18>(); }
+        get { return IsEighteenth ? Maybe<T18>.Some((T18)CoproductValue) : Maybe<T18>.None; }
     }
 
     public Coproduct18<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18> Map<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18>(
@@ -6954,7 +6954,7 @@ public class Coproduct18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         Func<T15, R15> ifFifteenth,
         Func<T16, R16> ifSixteenth,
         Func<T17, R17> ifSeventeenth,
-        Func<T18, R18> ifEighteenth)
+        Func<T18, R18> ifEighteenth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull where R9 : notnull where R10 : notnull where R11 : notnull where R12 : notnull where R13 : notnull where R14 : notnull where R15 : notnull where R16 : notnull where R17 : notnull where R18 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -7164,7 +7164,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T1 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7172,7 +7172,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T2 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7180,7 +7180,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T3 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7188,7 +7188,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T4 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7196,7 +7196,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T5 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7204,7 +7204,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T6 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7212,7 +7212,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T7 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7220,7 +7220,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T8 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7228,7 +7228,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the ninth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T9 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T9 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7236,7 +7236,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the tenth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T10 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T10 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7244,7 +7244,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the eleventh value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T11 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T11 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7252,7 +7252,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the twelfth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T12 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T12 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7260,7 +7260,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the thirteenth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T13 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T13 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7268,7 +7268,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the fourteenth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T14 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T14 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7276,7 +7276,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the fifteenth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T15 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T15 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7284,7 +7284,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the sixteenth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateSixteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T16 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateSixteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T16 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7292,7 +7292,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the seventeenth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateSeventeenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T17 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateSeventeenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T17 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7300,7 +7300,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the eighteenth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateEighteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T18 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateEighteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T18 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7308,7 +7308,7 @@ public static class Coproduct19
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the nineteenth value.
     /// </summary>
-    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateNineteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T19 value)
+    public static Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> CreateNineteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(T19 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
     {
         return new Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(value);
     }
@@ -7318,7 +7318,7 @@ public static class Coproduct19
 /// <summary>
 /// A 19-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> : CoproductBase, ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>
+public class Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> : CoproductBase, ICoproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull
 {
     /// <summary>
     /// Creates a new 19-dimensional coproduct with the specified value on the first position.
@@ -7567,81 +7567,81 @@ public class Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         get { return CoproductDiscriminator == 19; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
-    public Option<T9> Ninth
+    public Maybe<T9> Ninth
     {
-        get { return IsNinth ? Option.Valued((T9)CoproductValue) : Option.Empty<T9>(); }
+        get { return IsNinth ? Maybe<T9>.Some((T9)CoproductValue) : Maybe<T9>.None; }
     }
-    public Option<T10> Tenth
+    public Maybe<T10> Tenth
     {
-        get { return IsTenth ? Option.Valued((T10)CoproductValue) : Option.Empty<T10>(); }
+        get { return IsTenth ? Maybe<T10>.Some((T10)CoproductValue) : Maybe<T10>.None; }
     }
-    public Option<T11> Eleventh
+    public Maybe<T11> Eleventh
     {
-        get { return IsEleventh ? Option.Valued((T11)CoproductValue) : Option.Empty<T11>(); }
+        get { return IsEleventh ? Maybe<T11>.Some((T11)CoproductValue) : Maybe<T11>.None; }
     }
-    public Option<T12> Twelfth
+    public Maybe<T12> Twelfth
     {
-        get { return IsTwelfth ? Option.Valued((T12)CoproductValue) : Option.Empty<T12>(); }
+        get { return IsTwelfth ? Maybe<T12>.Some((T12)CoproductValue) : Maybe<T12>.None; }
     }
-    public Option<T13> Thirteenth
+    public Maybe<T13> Thirteenth
     {
-        get { return IsThirteenth ? Option.Valued((T13)CoproductValue) : Option.Empty<T13>(); }
+        get { return IsThirteenth ? Maybe<T13>.Some((T13)CoproductValue) : Maybe<T13>.None; }
     }
-    public Option<T14> Fourteenth
+    public Maybe<T14> Fourteenth
     {
-        get { return IsFourteenth ? Option.Valued((T14)CoproductValue) : Option.Empty<T14>(); }
+        get { return IsFourteenth ? Maybe<T14>.Some((T14)CoproductValue) : Maybe<T14>.None; }
     }
-    public Option<T15> Fifteenth
+    public Maybe<T15> Fifteenth
     {
-        get { return IsFifteenth ? Option.Valued((T15)CoproductValue) : Option.Empty<T15>(); }
+        get { return IsFifteenth ? Maybe<T15>.Some((T15)CoproductValue) : Maybe<T15>.None; }
     }
-    public Option<T16> Sixteenth
+    public Maybe<T16> Sixteenth
     {
-        get { return IsSixteenth ? Option.Valued((T16)CoproductValue) : Option.Empty<T16>(); }
+        get { return IsSixteenth ? Maybe<T16>.Some((T16)CoproductValue) : Maybe<T16>.None; }
     }
-    public Option<T17> Seventeenth
+    public Maybe<T17> Seventeenth
     {
-        get { return IsSeventeenth ? Option.Valued((T17)CoproductValue) : Option.Empty<T17>(); }
+        get { return IsSeventeenth ? Maybe<T17>.Some((T17)CoproductValue) : Maybe<T17>.None; }
     }
-    public Option<T18> Eighteenth
+    public Maybe<T18> Eighteenth
     {
-        get { return IsEighteenth ? Option.Valued((T18)CoproductValue) : Option.Empty<T18>(); }
+        get { return IsEighteenth ? Maybe<T18>.Some((T18)CoproductValue) : Maybe<T18>.None; }
     }
-    public Option<T19> Nineteenth
+    public Maybe<T19> Nineteenth
     {
-        get { return IsNineteenth ? Option.Valued((T19)CoproductValue) : Option.Empty<T19>(); }
+        get { return IsNineteenth ? Maybe<T19>.Some((T19)CoproductValue) : Maybe<T19>.None; }
     }
 
     public Coproduct19<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19> Map<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19>(
@@ -7663,7 +7663,7 @@ public class Coproduct19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         Func<T16, R16> ifSixteenth,
         Func<T17, R17> ifSeventeenth,
         Func<T18, R18> ifEighteenth,
-        Func<T19, R19> ifNineteenth)
+        Func<T19, R19> ifNineteenth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull where R9 : notnull where R10 : notnull where R11 : notnull where R12 : notnull where R13 : notnull where R14 : notnull where R15 : notnull where R16 : notnull where R17 : notnull where R18 : notnull where R19 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -7882,7 +7882,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T1 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7890,7 +7890,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T2 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7898,7 +7898,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T3 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7906,7 +7906,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T4 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7914,7 +7914,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T5 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7922,7 +7922,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T6 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7930,7 +7930,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T7 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7938,7 +7938,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T8 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7946,7 +7946,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the ninth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T9 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T9 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7954,7 +7954,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the tenth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T10 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T10 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7962,7 +7962,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the eleventh value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T11 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T11 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7970,7 +7970,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the twelfth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T12 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T12 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7978,7 +7978,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the thirteenth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T13 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T13 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7986,7 +7986,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the fourteenth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T14 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T14 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -7994,7 +7994,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the fifteenth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T15 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T15 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -8002,7 +8002,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the sixteenth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateSixteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T16 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateSixteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T16 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -8010,7 +8010,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the seventeenth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateSeventeenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T17 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateSeventeenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T17 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -8018,7 +8018,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the eighteenth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateEighteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T18 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateEighteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T18 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -8026,7 +8026,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the nineteenth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateNineteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T19 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateNineteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T19 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -8034,7 +8034,7 @@ public static class Coproduct20
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the twentieth value.
     /// </summary>
-    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateTwentieth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T20 value)
+    public static Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> CreateTwentieth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(T20 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
     {
         return new Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(value);
     }
@@ -8044,7 +8044,7 @@ public static class Coproduct20
 /// <summary>
 /// A 20-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> : CoproductBase, ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>
+public class Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> : CoproductBase, ICoproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull
 {
     /// <summary>
     /// Creates a new 20-dimensional coproduct with the specified value on the first position.
@@ -8305,85 +8305,85 @@ public class Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         get { return CoproductDiscriminator == 20; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
-    public Option<T9> Ninth
+    public Maybe<T9> Ninth
     {
-        get { return IsNinth ? Option.Valued((T9)CoproductValue) : Option.Empty<T9>(); }
+        get { return IsNinth ? Maybe<T9>.Some((T9)CoproductValue) : Maybe<T9>.None; }
     }
-    public Option<T10> Tenth
+    public Maybe<T10> Tenth
     {
-        get { return IsTenth ? Option.Valued((T10)CoproductValue) : Option.Empty<T10>(); }
+        get { return IsTenth ? Maybe<T10>.Some((T10)CoproductValue) : Maybe<T10>.None; }
     }
-    public Option<T11> Eleventh
+    public Maybe<T11> Eleventh
     {
-        get { return IsEleventh ? Option.Valued((T11)CoproductValue) : Option.Empty<T11>(); }
+        get { return IsEleventh ? Maybe<T11>.Some((T11)CoproductValue) : Maybe<T11>.None; }
     }
-    public Option<T12> Twelfth
+    public Maybe<T12> Twelfth
     {
-        get { return IsTwelfth ? Option.Valued((T12)CoproductValue) : Option.Empty<T12>(); }
+        get { return IsTwelfth ? Maybe<T12>.Some((T12)CoproductValue) : Maybe<T12>.None; }
     }
-    public Option<T13> Thirteenth
+    public Maybe<T13> Thirteenth
     {
-        get { return IsThirteenth ? Option.Valued((T13)CoproductValue) : Option.Empty<T13>(); }
+        get { return IsThirteenth ? Maybe<T13>.Some((T13)CoproductValue) : Maybe<T13>.None; }
     }
-    public Option<T14> Fourteenth
+    public Maybe<T14> Fourteenth
     {
-        get { return IsFourteenth ? Option.Valued((T14)CoproductValue) : Option.Empty<T14>(); }
+        get { return IsFourteenth ? Maybe<T14>.Some((T14)CoproductValue) : Maybe<T14>.None; }
     }
-    public Option<T15> Fifteenth
+    public Maybe<T15> Fifteenth
     {
-        get { return IsFifteenth ? Option.Valued((T15)CoproductValue) : Option.Empty<T15>(); }
+        get { return IsFifteenth ? Maybe<T15>.Some((T15)CoproductValue) : Maybe<T15>.None; }
     }
-    public Option<T16> Sixteenth
+    public Maybe<T16> Sixteenth
     {
-        get { return IsSixteenth ? Option.Valued((T16)CoproductValue) : Option.Empty<T16>(); }
+        get { return IsSixteenth ? Maybe<T16>.Some((T16)CoproductValue) : Maybe<T16>.None; }
     }
-    public Option<T17> Seventeenth
+    public Maybe<T17> Seventeenth
     {
-        get { return IsSeventeenth ? Option.Valued((T17)CoproductValue) : Option.Empty<T17>(); }
+        get { return IsSeventeenth ? Maybe<T17>.Some((T17)CoproductValue) : Maybe<T17>.None; }
     }
-    public Option<T18> Eighteenth
+    public Maybe<T18> Eighteenth
     {
-        get { return IsEighteenth ? Option.Valued((T18)CoproductValue) : Option.Empty<T18>(); }
+        get { return IsEighteenth ? Maybe<T18>.Some((T18)CoproductValue) : Maybe<T18>.None; }
     }
-    public Option<T19> Nineteenth
+    public Maybe<T19> Nineteenth
     {
-        get { return IsNineteenth ? Option.Valued((T19)CoproductValue) : Option.Empty<T19>(); }
+        get { return IsNineteenth ? Maybe<T19>.Some((T19)CoproductValue) : Maybe<T19>.None; }
     }
-    public Option<T20> Twentieth
+    public Maybe<T20> Twentieth
     {
-        get { return IsTwentieth ? Option.Valued((T20)CoproductValue) : Option.Empty<T20>(); }
+        get { return IsTwentieth ? Maybe<T20>.Some((T20)CoproductValue) : Maybe<T20>.None; }
     }
 
     public Coproduct20<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20> Map<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20>(
@@ -8406,7 +8406,7 @@ public class Coproduct20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         Func<T17, R17> ifSeventeenth,
         Func<T18, R18> ifEighteenth,
         Func<T19, R19> ifNineteenth,
-        Func<T20, R20> ifTwentieth)
+        Func<T20, R20> ifTwentieth) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull where R9 : notnull where R10 : notnull where R11 : notnull where R12 : notnull where R13 : notnull where R14 : notnull where R15 : notnull where R16 : notnull where R17 : notnull where R18 : notnull where R19 : notnull where R20 : notnull
     {
         switch (CoproductDiscriminator)
         {
@@ -8634,7 +8634,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the first value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T1 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T1 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8642,7 +8642,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the second value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T2 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateSecond<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T2 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8650,7 +8650,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the third value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T3 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateThird<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T3 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8658,7 +8658,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the fourth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T4 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateFourth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T4 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8666,7 +8666,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the fifth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T5 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateFifth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T5 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8674,7 +8674,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the sixth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T6 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateSixth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T6 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8682,7 +8682,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the seventh value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T7 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateSeventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T7 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8690,7 +8690,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the eighth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T8 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateEighth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T8 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8698,7 +8698,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the ninth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T9 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateNinth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T9 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8706,7 +8706,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the tenth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T10 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateTenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T10 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8714,7 +8714,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the eleventh value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T11 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateEleventh<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T11 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8722,7 +8722,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the twelfth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T12 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateTwelfth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T12 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8730,7 +8730,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the thirteenth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T13 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateThirteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T13 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8738,7 +8738,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the fourteenth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T14 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateFourteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T14 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8746,7 +8746,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the fifteenth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T15 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateFifteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T15 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8754,7 +8754,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the sixteenth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateSixteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T16 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateSixteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T16 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8762,7 +8762,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the seventeenth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateSeventeenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T17 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateSeventeenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T17 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8770,7 +8770,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the eighteenth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateEighteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T18 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateEighteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T18 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8778,7 +8778,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the nineteenth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateNineteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T19 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateNineteenth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T19 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8786,7 +8786,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the twentieth value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateTwentieth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T20 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateTwentieth<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T20 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8794,7 +8794,7 @@ public static class Coproduct21
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the twentyfirst value.
     /// </summary>
-    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateTwentyFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T21 value)
+    public static Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> CreateTwentyFirst<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(T21 value) where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
     {
         return new Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>(value);
     }
@@ -8804,7 +8804,7 @@ public static class Coproduct21
 /// <summary>
 /// A 21-dimensional immutable coproduct.
 /// </summary>
-public class Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> : CoproductBase, ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21>
+public class Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> : CoproductBase, ICoproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21> where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where T9 : notnull where T10 : notnull where T11 : notnull where T12 : notnull where T13 : notnull where T14 : notnull where T15 : notnull where T16 : notnull where T17 : notnull where T18 : notnull where T19 : notnull where T20 : notnull where T21 : notnull
 {
     /// <summary>
     /// Creates a new 21-dimensional coproduct with the specified value on the first position.
@@ -9077,89 +9077,89 @@ public class Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         get { return CoproductDiscriminator == 21; }
     }
 
-    public Option<T1> First
+    public Maybe<T1> First
     {
-        get { return IsFirst ? Option.Valued((T1)CoproductValue) : Option.Empty<T1>(); }
+        get { return IsFirst ? Maybe<T1>.Some((T1)CoproductValue) : Maybe<T1>.None; }
     }
-    public Option<T2> Second
+    public Maybe<T2> Second
     {
-        get { return IsSecond ? Option.Valued((T2)CoproductValue) : Option.Empty<T2>(); }
+        get { return IsSecond ? Maybe<T2>.Some((T2)CoproductValue) : Maybe<T2>.None; }
     }
-    public Option<T3> Third
+    public Maybe<T3> Third
     {
-        get { return IsThird ? Option.Valued((T3)CoproductValue) : Option.Empty<T3>(); }
+        get { return IsThird ? Maybe<T3>.Some((T3)CoproductValue) : Maybe<T3>.None; }
     }
-    public Option<T4> Fourth
+    public Maybe<T4> Fourth
     {
-        get { return IsFourth ? Option.Valued((T4)CoproductValue) : Option.Empty<T4>(); }
+        get { return IsFourth ? Maybe<T4>.Some((T4)CoproductValue) : Maybe<T4>.None; }
     }
-    public Option<T5> Fifth
+    public Maybe<T5> Fifth
     {
-        get { return IsFifth ? Option.Valued((T5)CoproductValue) : Option.Empty<T5>(); }
+        get { return IsFifth ? Maybe<T5>.Some((T5)CoproductValue) : Maybe<T5>.None; }
     }
-    public Option<T6> Sixth
+    public Maybe<T6> Sixth
     {
-        get { return IsSixth ? Option.Valued((T6)CoproductValue) : Option.Empty<T6>(); }
+        get { return IsSixth ? Maybe<T6>.Some((T6)CoproductValue) : Maybe<T6>.None; }
     }
-    public Option<T7> Seventh
+    public Maybe<T7> Seventh
     {
-        get { return IsSeventh ? Option.Valued((T7)CoproductValue) : Option.Empty<T7>(); }
+        get { return IsSeventh ? Maybe<T7>.Some((T7)CoproductValue) : Maybe<T7>.None; }
     }
-    public Option<T8> Eighth
+    public Maybe<T8> Eighth
     {
-        get { return IsEighth ? Option.Valued((T8)CoproductValue) : Option.Empty<T8>(); }
+        get { return IsEighth ? Maybe<T8>.Some((T8)CoproductValue) : Maybe<T8>.None; }
     }
-    public Option<T9> Ninth
+    public Maybe<T9> Ninth
     {
-        get { return IsNinth ? Option.Valued((T9)CoproductValue) : Option.Empty<T9>(); }
+        get { return IsNinth ? Maybe<T9>.Some((T9)CoproductValue) : Maybe<T9>.None; }
     }
-    public Option<T10> Tenth
+    public Maybe<T10> Tenth
     {
-        get { return IsTenth ? Option.Valued((T10)CoproductValue) : Option.Empty<T10>(); }
+        get { return IsTenth ? Maybe<T10>.Some((T10)CoproductValue) : Maybe<T10>.None; }
     }
-    public Option<T11> Eleventh
+    public Maybe<T11> Eleventh
     {
-        get { return IsEleventh ? Option.Valued((T11)CoproductValue) : Option.Empty<T11>(); }
+        get { return IsEleventh ? Maybe<T11>.Some((T11)CoproductValue) : Maybe<T11>.None; }
     }
-    public Option<T12> Twelfth
+    public Maybe<T12> Twelfth
     {
-        get { return IsTwelfth ? Option.Valued((T12)CoproductValue) : Option.Empty<T12>(); }
+        get { return IsTwelfth ? Maybe<T12>.Some((T12)CoproductValue) : Maybe<T12>.None; }
     }
-    public Option<T13> Thirteenth
+    public Maybe<T13> Thirteenth
     {
-        get { return IsThirteenth ? Option.Valued((T13)CoproductValue) : Option.Empty<T13>(); }
+        get { return IsThirteenth ? Maybe<T13>.Some((T13)CoproductValue) : Maybe<T13>.None; }
     }
-    public Option<T14> Fourteenth
+    public Maybe<T14> Fourteenth
     {
-        get { return IsFourteenth ? Option.Valued((T14)CoproductValue) : Option.Empty<T14>(); }
+        get { return IsFourteenth ? Maybe<T14>.Some((T14)CoproductValue) : Maybe<T14>.None; }
     }
-    public Option<T15> Fifteenth
+    public Maybe<T15> Fifteenth
     {
-        get { return IsFifteenth ? Option.Valued((T15)CoproductValue) : Option.Empty<T15>(); }
+        get { return IsFifteenth ? Maybe<T15>.Some((T15)CoproductValue) : Maybe<T15>.None; }
     }
-    public Option<T16> Sixteenth
+    public Maybe<T16> Sixteenth
     {
-        get { return IsSixteenth ? Option.Valued((T16)CoproductValue) : Option.Empty<T16>(); }
+        get { return IsSixteenth ? Maybe<T16>.Some((T16)CoproductValue) : Maybe<T16>.None; }
     }
-    public Option<T17> Seventeenth
+    public Maybe<T17> Seventeenth
     {
-        get { return IsSeventeenth ? Option.Valued((T17)CoproductValue) : Option.Empty<T17>(); }
+        get { return IsSeventeenth ? Maybe<T17>.Some((T17)CoproductValue) : Maybe<T17>.None; }
     }
-    public Option<T18> Eighteenth
+    public Maybe<T18> Eighteenth
     {
-        get { return IsEighteenth ? Option.Valued((T18)CoproductValue) : Option.Empty<T18>(); }
+        get { return IsEighteenth ? Maybe<T18>.Some((T18)CoproductValue) : Maybe<T18>.None; }
     }
-    public Option<T19> Nineteenth
+    public Maybe<T19> Nineteenth
     {
-        get { return IsNineteenth ? Option.Valued((T19)CoproductValue) : Option.Empty<T19>(); }
+        get { return IsNineteenth ? Maybe<T19>.Some((T19)CoproductValue) : Maybe<T19>.None; }
     }
-    public Option<T20> Twentieth
+    public Maybe<T20> Twentieth
     {
-        get { return IsTwentieth ? Option.Valued((T20)CoproductValue) : Option.Empty<T20>(); }
+        get { return IsTwentieth ? Maybe<T20>.Some((T20)CoproductValue) : Maybe<T20>.None; }
     }
-    public Option<T21> TwentyFirst
+    public Maybe<T21> TwentyFirst
     {
-        get { return IsTwentyFirst ? Option.Valued((T21)CoproductValue) : Option.Empty<T21>(); }
+        get { return IsTwentyFirst ? Maybe<T21>.Some((T21)CoproductValue) : Maybe<T21>.None; }
     }
 
     public Coproduct21<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20, R21> Map<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20, R21>(
@@ -9183,7 +9183,7 @@ public class Coproduct21<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
         Func<T18, R18> ifEighteenth,
         Func<T19, R19> ifNineteenth,
         Func<T20, R20> ifTwentieth,
-        Func<T21, R21> ifTwentyFirst)
+        Func<T21, R21> ifTwentyFirst) where R1 : notnull where R2 : notnull where R3 : notnull where R4 : notnull where R5 : notnull where R6 : notnull where R7 : notnull where R8 : notnull where R9 : notnull where R10 : notnull where R11 : notnull where R12 : notnull where R13 : notnull where R14 : notnull where R15 : notnull where R16 : notnull where R17 : notnull where R18 : notnull where R19 : notnull where R20 : notnull where R21 : notnull
     {
         switch (CoproductDiscriminator)
         {

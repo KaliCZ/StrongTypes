@@ -18,6 +18,8 @@ public static class Try
     /// Creates a new try with a successful result.
     /// </summary>
     public static Try<TSuccess, TError> Success<TSuccess, TError>(TSuccess success)
+        where TSuccess : notnull
+        where TError : notnull
     {
         return new Try<TSuccess, TError>(success);
     }
@@ -26,6 +28,8 @@ public static class Try
     /// Creates a new try with an error result.
     /// </summary>
     public static Try<TSuccess, TError> Error<TSuccess, TError>(TError error)
+        where TSuccess : notnull
+        where TError : notnull
     {
         return new Try<TSuccess, TError>(error);
     }
@@ -52,6 +56,7 @@ public static class Try
     /// returns an erroneous try.
     /// </summary>
     public static Try<TSuccess, TException> Catch<TSuccess, TException>(Func<Unit, TSuccess> f)
+        where TSuccess : notnull
         where TException : Exception
     {
         try
@@ -73,6 +78,7 @@ public static class Try
     /// The <paramref name="action"/> delegate has been canceled.
     /// </exception>
     public static async Task<Try<TResult, TException>> CatchAsync<TResult, TException>(Func<Unit, Task<TResult>> action)
+        where TResult : notnull
         where TException : Exception
     {
         try
@@ -110,20 +116,24 @@ public static class Try
     /// Aggregates the tries using the specified function if all of them are successful. Otherwise aggregates the errors using the specified function.
     /// </summary>
     public static TResult Aggregate<TSuccess, TError, TResult>(IEnumerable<Try<TSuccess, TError>> tries, Func<IReadOnlyList<TSuccess>, TResult> success, Func<IReadOnlyList<TError>, TResult> error)
+        where TSuccess : notnull
+        where TError : notnull
     {
         var enumeratedTries = tries.ToList();
         if (enumeratedTries.All(t => t.IsSuccess))
         {
-            return success(enumeratedTries.Select(t => t.Success).Flatten().ToList());
+            return success(enumeratedTries.Select(t => t.Success).Values().ToList());
         }
 
-        return error(enumeratedTries.Select(t => t.Error).Flatten().ToList());
+        return error(enumeratedTries.Select(t => t.Error).Values().ToList());
     }
 
     /// <summary>
     /// Aggregates a collection of tries into a try of collection.
     /// </summary>
     public static Try<IReadOnlyList<TSuccess>, IReadOnlyList<TError>> Aggregate<TSuccess, TError>(IEnumerable<Try<TSuccess, TError>> tries)
+        where TSuccess : notnull
+        where TError : notnull
     {
         return Aggregate(
             tries,
@@ -136,6 +146,8 @@ public static class Try
     /// Aggregates a collection of tries into a try of collection.
     /// </summary>
     public static Try<IReadOnlyList<TSuccess>, IReadOnlyList<TError>> Aggregate<TSuccess, TError>(IEnumerable<Try<TSuccess, IReadOnlyList<TError>>> tries)
+        where TSuccess : notnull
+        where TError : notnull
     {
         return Aggregate(
             tries,
@@ -148,21 +160,25 @@ public static class Try
     /// <summary>
     /// Aggregates the tries using the specified function if all of them are successful. Otherwise aggregates the errors by the specified function.
     /// </summary>
-    public static TResult Aggregate<<#= Types(i, name: "TSuccess") #>, TError, TResult>(<#= List(i, x => $"Try<{Type(x, name: "TSuccess")}, TError> t{x}") #>, Func<<#= Types(i, name: "TSuccess") #>, TResult> success, Func<IReadOnlyList<TError>, TResult> error)
+    public static TResult Aggregate<<#= Types(i, name: "TSuccess") #>, TError, TResult>(<#= List(i, x => $"Try<{Type(x, name: "TSuccess")}, TError> t{x}") #>, Func<<#= Types(i, name: "TSuccess") #>, TResult> success, Func<IReadOnlyList<TError>, TResult> error)<#= NotNullConstraints(i, "TSuccess") #>
+        where TError : notnull
+        where TResult : notnull
     {
         if (<#= List(i, x => $"t{x}.IsSuccess", separator: " && ") #>)
         {
-            return success(<#= List(i, x => $"t{x}.Success.Get()") #>);
+            return success(<#= List(i, x => $"t{x}.Success.InternalValue") #>);
         }
 
         var errors = new[] { <#= List(i, x => $"t{x}.Error") #> };
-        return error(errors.Flatten().ToList());
+        return error(errors.Values().ToList());
     }
 
     /// <summary>
     /// Aggregates the tries using the specified function if all of them are successful. Otherwise aggregates all errors into error result by concatenation.
     /// </summary>
-    public static Try<TResult, IReadOnlyList<TError>> Aggregate<<#= Types(i, name: "TSuccess") #>, TResult, TError>(<#= List(i, x => $"Try<TSuccess{x}, TError> t{x}") #>, Func<<#= Types(i, name: "TSuccess") #>, TResult> success)
+    public static Try<TResult, IReadOnlyList<TError>> Aggregate<<#= Types(i, name: "TSuccess") #>, TResult, TError>(<#= List(i, x => $"Try<TSuccess{x}, TError> t{x}") #>, Func<<#= Types(i, name: "TSuccess") #>, TResult> success)<#= NotNullConstraints(i, "TSuccess") #>
+        where TResult : notnull
+        where TError : notnull
     {
         return Aggregate(
             <#= List(i, x => $"t{x}") #>,
@@ -174,7 +190,9 @@ public static class Try
     /// <summary>
     /// Aggregates the tries using the specified function if all of them are successful. Otherwise aggregates all errors into error result by concatenation.
     /// </summary>
-    public static Try<TResult, IReadOnlyList<TError>> Aggregate<<#= Types(i, name: "TSuccess") #>, TResult, TError>(<#= List(i, x => $"Try<TSuccess{x}, IReadOnlyList<TError>> t{x}") #>, Func<<#= Types(i, name: "TSuccess") #>, TResult> success)
+    public static Try<TResult, IReadOnlyList<TError>> Aggregate<<#= Types(i, name: "TSuccess") #>, TResult, TError>(<#= List(i, x => $"Try<TSuccess{x}, IReadOnlyList<TError>> t{x}") #>, Func<<#= Types(i, name: "TSuccess") #>, TResult> success)<#= NotNullConstraints(i, "TSuccess") #>
+        where TResult : notnull
+        where TError : notnull
     {
         return Aggregate(
             <#= List(i, x => $"t{x}") #>,
@@ -202,37 +220,40 @@ public static class Try
 
 [System.Text.Json.Serialization.JsonConverterAttribute(typeof(TryConverterFactory))]
 public struct Try<TSuccess, TError> : IEquatable<Try<TSuccess, TError>>
+    where TSuccess : notnull
+    where TError : notnull
 {
     public Try(TSuccess success)
     {
         IsSuccess = true;
-        Success = Option.Valued(success);
+        Success = Maybe<TSuccess>.Some(success);
         IsError = false;
-        Error = Option.Empty<TError>();
+        Error = Maybe<TError>.None;
     }
 
     public Try(TError error)
     {
         IsSuccess = false;
-        Success = Option.Empty<TSuccess>();
+        Success = Maybe<TSuccess>.None;
         IsError = true;
-        Error = Option.Valued(error);
+        Error = Maybe<TError>.Some(error);
     }
 
     public bool IsSuccess { get; }
     public bool IsError { get; }
-    public Option<TSuccess> Success { get; }
-    public Option<TError> Error { get; }
+    public Maybe<TSuccess> Success { get; }
+    public Maybe<TError> Error { get; }
 
     /// <summary>
     /// Maps the success into another type if the try succeeded.
     /// </summary>
     [Pure]
     public Try<TSuccessTarget, TError> Map<TSuccessTarget>(Func<TSuccess, TSuccessTarget> f)
+        where TSuccessTarget : notnull
     {
         return IsSuccess
-            ? new Try<TSuccessTarget, TError>(f(Success.Value))
-            : new Try<TSuccessTarget, TError>(Error.Value);
+            ? new Try<TSuccessTarget, TError>(f(Success.InternalValue))
+            : new Try<TSuccessTarget, TError>(Error.InternalValue);
     }
 
     /// <summary>
@@ -240,10 +261,12 @@ public struct Try<TSuccess, TError> : IEquatable<Try<TSuccess, TError>>
     /// </summary>
     [Pure]
     public Try<TSuccessTarget, TErrorTarget> Map<TSuccessTarget, TErrorTarget>(Func<TSuccess, TSuccessTarget> success, Func<TError, TErrorTarget> error)
+        where TSuccessTarget : notnull
+        where TErrorTarget : notnull
     {
         return IsSuccess
-            ? new Try<TSuccessTarget, TErrorTarget>(success(Success.Value))
-            : new Try<TSuccessTarget, TErrorTarget>(error(Error.Value));
+            ? new Try<TSuccessTarget, TErrorTarget>(success(Success.InternalValue))
+            : new Try<TSuccessTarget, TErrorTarget>(error(Error.InternalValue));
     }
 
     /// <summary>
@@ -251,10 +274,11 @@ public struct Try<TSuccess, TError> : IEquatable<Try<TSuccess, TError>>
     /// </summary>
     [Pure]
     public Try<TSuccess, TErrorTarget> MapError<TErrorTarget>(Func<TError, TErrorTarget> f)
+        where TErrorTarget : notnull
     {
         return IsSuccess
-            ? new Try<TSuccess, TErrorTarget>(Success.Value)
-            : new Try<TSuccess, TErrorTarget>(f(Error.Value));
+            ? new Try<TSuccess, TErrorTarget>(Success.InternalValue)
+            : new Try<TSuccess, TErrorTarget>(f(Error.InternalValue));
     }
 
     /// <summary>
@@ -264,8 +288,8 @@ public struct Try<TSuccess, TError> : IEquatable<Try<TSuccess, TError>>
     public TResult Match<TResult>(Func<TSuccess, TResult> ifSuccess, Func<TError, TResult> ifError)
     {
         return IsSuccess
-            ? ifSuccess(Success.Value)
-            : ifError(Error.Value);
+            ? ifSuccess(Success.InternalValue)
+            : ifError(Error.InternalValue);
     }
 
     /// <summary>
@@ -275,9 +299,9 @@ public struct Try<TSuccess, TError> : IEquatable<Try<TSuccess, TError>>
     public void Match(Action<TSuccess> ifSuccess = null, Action<TError> ifError = null)
     {
         if (IsSuccess)
-            ifSuccess?.Invoke(Success.Value);
+            ifSuccess?.Invoke(Success.InternalValue);
         else
-            ifError?.Invoke(Error.Value);
+            ifError?.Invoke(Error.InternalValue);
     }
 
     [Pure]

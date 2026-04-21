@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
@@ -8,11 +8,15 @@ namespace StrongTypes;
 public static class TryExtensions_Old
 {
     public static Try<T, E> Flatten<T, E>(this Try<Try<T, E>, E> value)
+        where T : notnull
+        where E : notnull
     {
         return value.FlatMap(v => v);
     }
 
     public static Try<IReadOnlyList<T>, IReadOnlyList<E>> Flatten<T, E>(this IEnumerable<Try<T, E>> values)
+        where T : notnull
+        where E : notnull
     {
         return Try.Aggregate(values);
     }
@@ -21,6 +25,8 @@ public static class TryExtensions_Old
     /// If the successful result passes the predicate, returns the original try. Otherwise returns erroneous try with the specified result.
     /// </summary>
     public static Try<A, E> Where<A, E>(this Try<A, E> t, Func<A, bool> predicate, Func<Unit, E> otherwise)
+        where A : notnull
+        where E : notnull
     {
         return t.FlatMap(a => predicate(a).Match(
             _ => t,
@@ -32,6 +38,8 @@ public static class TryExtensions_Old
     /// If the successful result passes the predicate, returns the original try. Otherwise returns erroneous try with the specified result.
     /// </summary>
     public static Try<A, IEnumerable<E>> Where<A, E>(this Try<A, IEnumerable<E>> t, Func<A, bool> predicate, Func<Unit, E> otherwise)
+        where A : notnull
+        where E : notnull
     {
         return t.FlatMap(a => predicate(a).Match(
             _ => t,
@@ -40,6 +48,7 @@ public static class TryExtensions_Old
     }
 
     public static Try<A, Exception> Where<A>(this Try<A, Exception> t, Func<A, bool> predicate, Func<Unit, Exception> error)
+        where A : notnull
     {
         return t.FlatMap(a => predicate(a).Match(
             _ => t,
@@ -51,6 +60,9 @@ public static class TryExtensions_Old
     /// Maps the successful result to a new try.
     /// </summary>
     public static Try<B, E> FlatMap<A, E, B>(this Try<A, E> t, Func<A, Try<B, E>> f)
+        where A : notnull
+        where E : notnull
+        where B : notnull
     {
         return t.Match(
             s => f(s),
@@ -59,6 +71,9 @@ public static class TryExtensions_Old
     }
 
     public static async Task<Try<TResult, E>> FlatMapAsync<A, TResult, E>(this Try<A, E> self, Func<A, Task<Try<TResult, E>>> f)
+        where A : notnull
+        where TResult : notnull
+        where E : notnull
     {
         return await self.Match(
             f,
@@ -72,6 +87,8 @@ public static class TryExtensions_Old
     public static Try<B, F> FlatMapError<A, E, B, F>(this Try<A, E> t, Func<E, Try<B, F>> f)
         where A : B
         where E : F
+        where B : notnull
+        where F : notnull
     {
         return t.Match(
             s => Try.Success<B, F>(s),
@@ -83,6 +100,8 @@ public static class TryExtensions_Old
     /// If the result is success, returns it. Otherwise throws the result of the otherwise function.
     /// </summary>
     public static A Get<A, E>(this Try<A, E> t, Func<E, Exception> otherwise)
+        where A : notnull
+        where E : notnull
     {
         return t.Match(
             s => s,
@@ -98,6 +117,7 @@ public static class TryExtensions_Old
     /// If the result is success, returns it. Otherwise throws the exception.
     /// </summary>
     public static A Get<A, E>(this Try<A, E> t)
+        where A : notnull
         where E : Exception
     {
         return t.Match(
@@ -111,12 +131,13 @@ public static class TryExtensions_Old
     }
 
     public static T Get<T, E>(this Try<T, IReadOnlyList<E>> value)
+        where T : notnull
         where E : Exception
     {
         if (value.IsSuccess)
-            return value.Success.Value;
+            return value.Success.InternalValue;
 
-        var exceptions = value.Error.Value;
+        var exceptions = value.Error.InternalValue;
         if (exceptions.Count == 1)
         {
             ExceptionDispatchInfo.Capture(exceptions[0]).Throw();

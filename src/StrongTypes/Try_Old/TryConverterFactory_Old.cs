@@ -39,6 +39,8 @@ public sealed class TryConverterFactory : JsonConverterFactory
     }
 
     private class TryConverter<TSuccess, TError>(JsonSerializerOptions options) : JsonConverter<Try<TSuccess, TError>>
+        where TSuccess : notnull
+        where TError : notnull
     {
         private const string IsSuccessPropertyName = "IsSuccess";
         private const string ValuePropertyName = "Value";
@@ -107,11 +109,11 @@ public sealed class TryConverterFactory : JsonConverterFactory
 
             if (tryMe.IsSuccess)
             {
-                _successConverter.Write(writer, tryMe.Success.Get(), options);
+                _successConverter.Write(writer, tryMe.Success.InternalValue, options);
             }
             else
             {
-                _errorConverter.Write(writer, tryMe.Error.Get(), options);
+                _errorConverter.Write(writer, tryMe.Error.InternalValue, options);
             }
 
             writer.WriteEndObject();

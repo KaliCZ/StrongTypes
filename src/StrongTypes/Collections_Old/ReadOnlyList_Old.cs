@@ -26,43 +26,43 @@ public static class ReadOnlyList
     }
 
     [Pure]
-    public static IReadOnlyList<T> CreateFlat<T>(params Option<T>[] values)
+    public static IReadOnlyList<T> CreateFlat<T>(params Maybe<T>[] values) where T : notnull
     {
-        return values.Flatten().ToArray();
+        return values.Values().ToArray();
     }
 
-    public static IReadOnlyList<T> CreateFlat<T>(params IEnumerable<Option<T>>[] values)
+    public static IReadOnlyList<T> CreateFlat<T>(params IEnumerable<Maybe<T>>[] values) where T : notnull
     {
-        return values.Flatten().Flatten().ToArray();
+        return values.Flatten().Values().ToArray();
     }
 
-    public static IReadOnlyList<T> CreateFlat<T>(params Option<IEnumerable<T>>[] values)
+    public static IReadOnlyList<T> CreateFlat<T>(params Maybe<IEnumerable<T>>[] values)
     {
-        return values.Flatten().Flatten().ToArray();
-    }
-
-    [Pure]
-    public static IReadOnlyList<T> CreateFlat<T>(params Option<IReadOnlyList<T>>[] values)
-    {
-        return values.Flatten().Flatten().ToArray();
+        return values.Values().Flatten().ToArray();
     }
 
     [Pure]
-    public static IReadOnlyList<T> CreateFlat<T>(params Option<List<T>>[] values)
+    public static IReadOnlyList<T> CreateFlat<T>(params Maybe<IReadOnlyList<T>>[] values)
     {
-        return values.Flatten().Flatten().ToArray();
+        return values.Values().Flatten().ToArray();
     }
 
     [Pure]
-    public static IReadOnlyList<T> CreateFlat<T>(params Option<T[]>[] values)
+    public static IReadOnlyList<T> CreateFlat<T>(params Maybe<List<T>>[] values)
     {
-        return values.Flatten().Flatten().ToArray();
+        return values.Values().Flatten().ToArray();
     }
 
     [Pure]
-    public static IReadOnlyList<T> CreateFlat<T>(params Option<INonEmptyEnumerable<T>>[] values)
+    public static IReadOnlyList<T> CreateFlat<T>(params Maybe<T[]>[] values)
     {
-        return values.Flatten().Flatten().ToArray();
+        return values.Values().Flatten().ToArray();
+    }
+
+    [Pure]
+    public static IReadOnlyList<T> CreateFlat<T>(params Maybe<INonEmptyEnumerable<T>>[] values)
+    {
+        return values.Values().Flatten().ToArray();
     }
 
     [Pure]

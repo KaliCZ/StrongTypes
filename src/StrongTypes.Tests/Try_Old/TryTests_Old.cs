@@ -70,17 +70,21 @@ public class TryTests
     public void Aggregate()
     {
         var r1 = Try.Aggregate(Success, Success, success: (a, b) => (a, b));
-        Assert.Equal(42, r1.Success.Get().a);
-        Assert.Equal(42, r1.Success.Get().b);
+        Assert.True(r1.Success.IsSome);
+        Assert.Equal(42, r1.Success.Value?.a);
+        Assert.Equal(42, r1.Success.Value?.b);
 
         var r2 = Try.Aggregate(Success, Error, (int a, int b) => (a, b));
-        Assert.Equal(Exception, r2.Error.Get().First());
+        Assert.True(r2.Error.IsSome);
+        Assert.Equal(new[] { Exception }, r2.Error.Value);
 
         var r3 = Try.Aggregate(Error, Error, (int a, int b) => (a, b));
-        Assert.True(r3.Error.Get().SequenceEqual(new[] { Exception, Exception }));
+        Assert.True(r3.Error.IsSome);
+        Assert.Equal(new[] { Exception, Exception }, r3.Error.Value);
 
         var r4 = Try.Aggregate(new[] { Success, Success, Success });
-        Assert.True(r4.Success.Get().SequenceEqual(new[] { 42, 42, 42 }));
+        Assert.True(r4.Success.IsSome);
+        Assert.Equal(new[] { 42, 42, 42 }, r4.Success.Value);
 
         var r5 = Try.Aggregate(new[] { Success, Success, Success }, i => i.Sum(), e => e.Count);
         Assert.Equal(126, r5);
@@ -89,6 +93,7 @@ public class TryTests
         Assert.Equal(2, r6);
 
         var r7 = Try.Aggregate(new[] { Success, Error, Success, Error });
-        Assert.True(r7.Error.Get().SequenceEqual(new[] { Exception, Exception }));
+        Assert.True(r7.Error.IsSome);
+        Assert.Equal(new[] { Exception, Exception }, r7.Error.Value);
     }
 }

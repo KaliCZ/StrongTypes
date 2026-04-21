@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace StrongTypes;
@@ -9,6 +9,8 @@ public static partial class IEnumerableExtensions
     /// Splits a collection of tries into a collection of success results and a collection of errors.
     /// </summary>
     public static (IReadOnlyList<TSuccess>, IReadOnlyList<TError>) Partition<TSuccess, TError>(this IEnumerable<Try<TSuccess, TError>> values)
+        where TSuccess : notnull
+        where TError : notnull
     {
         var successes = new List<TSuccess>();
         var errors = new List<TError>();
@@ -16,11 +18,11 @@ public static partial class IEnumerableExtensions
         {
             if (value.IsSuccess)
             {
-                successes.Add(value.Success.Value);
+                successes.Add(value.Success.InternalValue);
             }
             else
             {
-                errors.Add(value.Error.Value);
+                errors.Add(value.Error.InternalValue);
             }
         }
         return (successes, errors);
@@ -30,6 +32,8 @@ public static partial class IEnumerableExtensions
     /// Splits a collection of tries into a collection of success results and a collection of errors and executes an action for those.
     /// </summary>
     public static void PartitionMatch<TSuccess, TError>(this IEnumerable<Try<TSuccess, TError>> values, Action<IReadOnlyList<TSuccess>> success, Action<IReadOnlyList<TError>> error)
+        where TSuccess : notnull
+        where TError : notnull
     {
         var successes = new List<TSuccess>();
         var errors = new List<TError>();
@@ -37,11 +41,11 @@ public static partial class IEnumerableExtensions
         {
             if (item.IsSuccess)
             {
-                successes.Add(item.Success.Value);
+                successes.Add(item.Success.InternalValue);
             }
             else
             {
-                errors.Add(item.Error.Value);
+                errors.Add(item.Error.InternalValue);
             }
         }
 
@@ -53,6 +57,8 @@ public static partial class IEnumerableExtensions
         this IEnumerable<Try<TSuccess, TError>> values,
         Func<IReadOnlyList<TSuccess>, IEnumerable<TResult>> success,
         Func<IReadOnlyList<TError>, IEnumerable<TResult>> error)
+        where TSuccess : notnull
+        where TError : notnull
     {
         var successes = new List<TSuccess>();
         var errors = new List<TError>();
@@ -60,11 +66,11 @@ public static partial class IEnumerableExtensions
         {
             if (item.IsSuccess)
             {
-                successes.Add(item.Success.Value);
+                successes.Add(item.Success.InternalValue);
             }
             else
             {
-                errors.Add(item.Error.Value);
+                errors.Add(item.Error.InternalValue);
             }
         }
 
