@@ -20,20 +20,6 @@ public static partial class IEnumerableExtensions
     }
 
     [Pure]
-    public static T Single<T>(this IReadOnlyList<T> list)
-    {
-        return list.Count == 1
-            ? list[0]
-            : throw new ArgumentException("Source is not a single element.");
-    }
-
-    [Pure]
-    public static T First<T>(this IReadOnlyList<T> list)
-    {
-        return list.ElementAt(0);
-    }
-
-    [Pure]
     public static T Second<T>(this IReadOnlyList<T> list)
     {
         return list[1];
