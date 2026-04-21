@@ -1,0 +1,32 @@
+component_management:
+  individual_components:
+    - component_id: strongtypes
+      name: StrongTypes
+      paths: ["src/StrongTypes/**"]
+    - component_id: analyzers
+      name: StrongTypes.Analyzers
+      paths: ["src/StrongTypes.Analyzers/**"]
+    - component_id: efcore
+      name: StrongTypes.EfCore
+      paths: ["src/StrongTypes.EfCore/**"]
+    - component_id: api
+      name: StrongTypes.Api
+      paths: ["src/StrongTypes.Api/**"]
+    - component_id: fscheck
+      name: StrongTypes.FsCheck
+      paths: ["src/StrongTypes.FsCheck/**"]
+
+comment:
+  layout: "header, diff, components, tree"
+  require_changes: false
+
+coverage:
+  status:
+    # `informational: true` posts a status but never fails the PR. Keeps
+    # codecov in evaluation mode alongside our custom sticky comment.
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
