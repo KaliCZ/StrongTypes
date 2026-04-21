@@ -1,16 +1,12 @@
-#nullable enable
-
-using System.Collections.Generic;
 using FsCheck;
 using FsCheck.Fluent;
 
-namespace StrongTypes.Tests;
+namespace StrongTypes.FsCheck;
 
 /// <summary>
-/// Shared FsCheck arbitraries for the test project. Reference via
+/// Shared FsCheck arbitraries for Kalicz.StrongTypes. Reference via
 /// <c>[Properties(Arbitrary = new[] { typeof(Generators) })]</c>
-/// on a test class. Add new arbitraries here rather than creating
-/// per-feature generator classes.
+/// on a test class.
 /// </summary>
 public static class Generators
 {
@@ -80,7 +76,7 @@ public static class Generators
     /// <summary>
     /// <see cref="Maybe{String}"/> with ~20% chance of <see cref="Maybe{T}.None"/>.
     /// FsCheck's default <c>string</c> generator never produces <c>null</c>, so
-    /// the None branch has to be injected explicitly via <see cref="Gen.Frequency"/>.
+    /// the None branch has to be injected explicitly via <c>Gen.Frequency</c>.
     /// Empty and whitespace strings are kept as valid <c>Some</c> values — use
     /// <see cref="MaybeNonEmptyString"/> when you want the non-empty invariant.
     /// </summary>
