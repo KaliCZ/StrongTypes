@@ -83,7 +83,9 @@ public static class NonEmptyEnumerable
 public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<T>, IEquatable<NonEmptyEnumerable<T>>
 {
     // Owned buffer — factories copy inputs, callers can never mutate us from outside.
-    private readonly T[] _values;
+    // Internal so the debug view can render it under RootHidden without a fresh copy;
+    // external callers still go through the read-only surface.
+    internal readonly T[] _values;
 
     private NonEmptyEnumerable(T[] values)
     {
@@ -103,11 +105,6 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
         ArgumentOutOfRangeException.ThrowIfZero(values.Length);
         return new NonEmptyEnumerable<T>(values);
     }
-
-    // Exposed for the debug view — the debugger wants a real T[] to render under
-    // RootHidden, and we already own a non-empty one. Internal so callers still have
-    // to go through the read-only surface.
-    internal T[] DebugArray => _values;
 
     public T Head => _values[0];
 
