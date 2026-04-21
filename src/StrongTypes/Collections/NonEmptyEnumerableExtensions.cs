@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace StrongTypes;
 
@@ -174,66 +173,6 @@ public static class NonEmptyEnumerableExtensions
     public static NonEmptyEnumerable<T> Concat<T>(this T head, params IEnumerable<T>[] tails)
     {
         ArgumentNullException.ThrowIfNull(tails);
-
-        // Fast path: if every non-null tail can report its count cheaply, allocate the
-        // output buffer exactly once and copy each tail in place.
-        var total = 1;
-        var allKnown = true;
-        foreach (var tail in tails)
-        {
-            if (tail is null) continue;
-            if (tail.TryGetNonEnumeratedCount(out var c)) total += c;
-            else { allKnown = false; break; }
-        }
-
-        if (allKnown)
-        {
-            var buffer = new T[total];
-            buffer[0] = head;
-            var offset = 1;
-            foreach (var tail in tails)
-            {
-                if (tail is null) continue;
-                offset += CopyInto(tail, buffer, offset);
-            }
-            return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
-        }
-
-        // Fallback: List<T> growth. AddRange reaches Buffer.Memmove for ICollection<T>
-        // tails; the final ToArray produces the owned buffer the invariant requires.
-        var list = new List<T> { head };
-        foreach (var tail in tails)
-            if (tail is not null) list.AddRange(tail);
-        return NonEmptyEnumerable<T>.FromValidatedArray(list.ToArray());
-    }
-
-    // Copies source into buffer starting at offset and returns the number of elements
-    // written. Dispatches to the fastest available path for the source's runtime type —
-    // span copy for array/NonEmptyEnumerable/List, ICollection.CopyTo for everything else
-    // shape-aware, foreach as a last resort.
-    private static int CopyInto<T>(IEnumerable<T> source, T[] buffer, int offset)
-    {
-        switch (source)
-        {
-            case T[] array:
-                array.AsSpan().CopyTo(buffer.AsSpan(offset));
-                return array.Length;
-            case NonEmptyEnumerable<T> ne:
-                ne.AsSpan().CopyTo(buffer.AsSpan(offset));
-                return ne.Count;
-            case List<T> list:
-                CollectionsMarshal.AsSpan(list).CopyTo(buffer.AsSpan(offset));
-                return list.Count;
-            case ICollection<T> coll:
-                coll.CopyTo(buffer, offset);
-                return coll.Count;
-            default:
-                // Only reachable from the List<T> fallback path — TryGetNonEnumeratedCount
-                // can succeed for IReadOnlyCollection<T>-without-ICollection<T>, but those
-                // shapes are vanishingly rare and the enumerator path is correct either way.
-                var i = 0;
-                foreach (var item in source) { buffer[offset + i] = item; i++; }
-                return i;
-        }
+        return [head, ..tails.SelectMany(items => items ?? [])];
     }
 }

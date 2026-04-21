@@ -197,26 +197,26 @@ public class NonEmptyEnumerableExtensionsTests
     }
 
     [Fact]
-    public void Concat_MixedTailTypes_AllDispatchCorrectly()
+    public void Concat_MixedTailTypes_AllWork()
     {
-        // Each tail here lands in a different CopyInto branch — validates the
-        // polymorphic dispatch end-to-end.
+        // Arrays, lists, NonEmptyEnumerable, and other ICollection<T>-shaped sources
+        // are all valid tails — verify the common combinations end-to-end.
         IEnumerable<int> array = new[] { 2, 3 };
         IEnumerable<int> list = new List<int> { 4, 5 };
         IEnumerable<int> nonEmpty = NonEmptyEnumerable.Create(6, 7);
-        IEnumerable<int> readOnlyColl = new HashSet<int> { 8, 9 }; // ICollection<T> but not List<T>/array
+        IEnumerable<int> hashSet = new HashSet<int> { 8, 9 };
 
-        var result = 1.Concat(array, list, nonEmpty, readOnlyColl);
+        var result = 1.Concat(array, list, nonEmpty, hashSet);
         // HashSet ordering isn't guaranteed — sort the last-two slice for a stable assert.
         Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7 }, result.Take(7));
         Assert.Equal(new[] { 8, 9 }, result.Skip(7).OrderBy(x => x));
     }
 
     [Fact]
-    public void Concat_LazyIteratorTail_ForcesListFallback()
+    public void Concat_LazyIteratorTail_Works()
     {
-        // Enumerable.Where doesn't implement TryGetNonEnumeratedCount, so the fast path
-        // bails and we fall through to the List<T> growth path.
+        // Enumerable.Where is a LINQ iterator with no pre-computable count —
+        // still expands correctly into the output.
         IEnumerable<int> lazy = new[] { 10, 20, 30 }.Where(_ => true);
         var result = 1.Concat(lazy);
         Assert.Equal(new[] { 1, 10, 20, 30 }, result);
