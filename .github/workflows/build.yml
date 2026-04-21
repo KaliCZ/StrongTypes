@@ -92,13 +92,13 @@ jobs:
     # packages are picked up automatically by setting the same two properties.
     - name: Build and pack
       env:
-        NOTES: ${{ github.event.release.body }}
+        RELEASE_URL: ${{ github.event.release.html_url }}
         VERSION: ${{ steps.version.outputs.version }}
       run: |
         dotnet build StrongTypes.slnx \
           -c $config \
           -p:Version="$VERSION" \
-          -p:PackageReleaseNotes="$NOTES" \
+          -p:PackageReleaseNotes="See $RELEASE_URL" \
           -p:PackageOutputPath="$PWD/out"
 
     - name: Publish packages
