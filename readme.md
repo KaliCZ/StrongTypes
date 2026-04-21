@@ -256,9 +256,6 @@ StrongTypes is not an attempt to build a full algebraic type system. The purpose
 
 These types enable quite a few simplifications when it comes to parsing and validations. But I wouldn't recommend building the whole app by composing them. They're meant to bridge small local pieces of the application. Let's start by introducing some functionality so we don't need the algebraic types in the first place.
 
-> [!NOTE]
-> **No discriminated union / `OneOf` type is included.** I didn't see a reason to reinvent one — [`mcintyre321/OneOf`](https://github.com/mcintyre321/OneOf) already covers this space well, and .NET 11 is expected to introduce native discriminated unions at the language level. If you have a concrete use case where neither option works for you, please [open a GitHub issue](https://github.com/KaliCZ/StrongTypes/issues) and let me know.
-
 ### Prefer nullables: `Map`, `MapTrue`, `MapFalse`
 
 C# already lets you read through a null — `user?.Name?.Trim()` short-circuits without a single `if`. What was missing was *passing* a nullable into a function that expects the non-null form (e.g. a constructor). Historically that meant a ternary at every call, which is hard to chain and clutters up any expression it appears in:
@@ -425,6 +422,9 @@ var missing =
 
 > [!WARNING]
 > `Try<A, E>` will be replaced by a modern `Result<T, E>` implementation that supports pattern matching.
+
+> [!NOTE]
+> **No discriminated union / `OneOf` type is included.** I didn't see a reason to reinvent one — [`mcintyre321/OneOf`](https://github.com/mcintyre321/OneOf) already covers this space well, and .NET 11 is expected to introduce native discriminated unions at the language level. If you have a concrete use case where neither option works for you, please [open a GitHub issue](https://github.com/KaliCZ/StrongTypes/issues) and let me know.
 
 ## Acknowledgments
 
