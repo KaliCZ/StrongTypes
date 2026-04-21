@@ -22,6 +22,7 @@ StrongTypes is not an attempt to build a full algebraic type system on top of C#
   - [Enums](#enums)
   - [Strings](#strings)
 - [Algebraic types](#algebraic-types)
+  - [Prefer nullables: `Map`, `MapTrue`, `MapFalse`](#prefer-nullables-map-maptrue-mapfalse)
   - [`Maybe<T>`](#maybet)
 - [Legacy types (to be replaced)](#legacy-types-to-be-replaced)
   - [`Try<A, E>`](#trya-e)
@@ -251,6 +252,43 @@ Roles          role = header.ToEnum<Roles>();   // throws ArgumentException
 StrongTypes is not an attempt to build a full algebraic type system. The purpose of these types is just to help where C# functionality is lacking, not to invent a framework and work fully in the algebraic types.
 
 However these types enable quite a few simplifications when it comes to parsing and validations.
+
+### Prefer nullables: `Map`, `MapTrue`, `MapFalse`
+
+C# already lets you read through a null — `user?.Name?.Trim()` short-circuits without a single `if`. What was missing was the symmetric move: *passing* a nullable into a function that expects the non-null form. Historically that meant a ternary at every call, which is hard to chain and clutters up any expression it appears in:
+
+```csharp
+// Before — one ternary for every step
+int?    length = name is null ? null : ComputeLength(name);
+string? header = isEnabled    ? BuildHeader() : null;
+```
+
+`Map` on `T?` and `MapTrue` / `MapFalse` on `bool` close those gaps with a single method call. The mapper only runs when the input is present (or the bool matches), and the `null` short-circuit is implicit:
+
+```csharp
+int?    length  = name.Map(ComputeLength);               // string? -> int?
+string? upper   = name.Map(n => n.ToUpperInvariant());   // string? -> string?
+int?    doubled = maybeInt.Map(x => x * 2);              // int?    -> int?
+string? header  = isEnabled.MapTrue(BuildHeader);        // bool    -> string?
+```
+
+All four combinations of struct/class for the input and result types are covered, and the mapper may itself return a nullable — so chaining through an operation that's internally nullable doesn't force you to reach for `Maybe<T>`:
+
+```csharp
+static int? ParseIfDigitsOnly(string s) =>
+    s.All(char.IsDigit) ? int.Parse(s) : null;
+
+int? parsed = query.Map(ParseIfDigitsOnly);   // string? -> int? (nullable all the way through)
+```
+
+The point of all this is that *you don't need `Maybe<T>` just to compose a nullable computation*. With `Map` in the toolbox, plain `T?` covers the common cases that used to be the reason for reaching into algebraic types at all. Save `Maybe<T>` for the cases where nullability can't express what you need — see the PATCH example below.
+
+And when you already have a `Maybe<T>` or some other wrapper, you can step back out into nullable-land by mapping the inner value — `Maybe<T>.Value` is itself a `T?`, so the same `Map` works:
+
+```csharp
+Maybe<string> maybeName  = LookupName(id);
+string?       normalized = maybeName.Value.Map(n => n.Trim().ToUpperInvariant());
+```
 
 ### `Maybe<T>`
 
