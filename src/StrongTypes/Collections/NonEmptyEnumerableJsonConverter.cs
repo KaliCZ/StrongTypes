@@ -10,19 +10,11 @@ using System.Text.Json.Serialization;
 namespace StrongTypes;
 
 /// <summary>
-/// <see cref="JsonConverterFactory"/> for <see cref="NonEmptyEnumerable{T}"/> and its
-/// <see cref="INonEmptyEnumerable{T}"/> interface. Reads a JSON array and fails with a
+/// <see cref="JsonConverterFactory"/> for <see cref="NonEmptyEnumerable{T}"/> and
+/// <see cref="INonEmptyEnumerable{T}"/>. Reads a JSON array and fails with a
 /// <see cref="JsonException"/> when the array is empty or the JSON token is not an array;
 /// JSON null round-trips to C# null. Writes as a JSON array.
 /// </summary>
-/// <remarks>
-/// Both the concrete class and the interface match: the class converter returns
-/// <c>NonEmptyEnumerable&lt;T&gt;?</c>, the interface converter returns
-/// <c>INonEmptyEnumerable&lt;T&gt;?</c> (still built from a <see cref="NonEmptyEnumerable{T}"/>
-/// instance). Two converters are needed because <c>System.Text.Json</c> matches by exact
-/// declared type — one <c>JsonConverter&lt;X&gt;</c> can't serve both <c>X</c> and an interface
-/// that <c>X</c> implements.
-/// </remarks>
 public sealed class NonEmptyEnumerableJsonConverterFactory : JsonConverterFactory
 {
     private static readonly ConcurrentDictionary<Type, JsonConverter> s_converterCache = new();

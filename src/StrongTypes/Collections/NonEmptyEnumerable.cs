@@ -13,22 +13,13 @@ namespace StrongTypes;
 
 /// <summary>
 /// Factory helpers for <see cref="NonEmptyEnumerable{T}"/>.
-/// <para>
-/// Use <see cref="Create{T}(ReadOnlySpan{T})"/> for variadic construction
-/// (<c>Create(1, 2, 3)</c>) or the collection-expression form
-/// (<c>NonEmptyEnumerable&lt;int&gt; list = [1, 2, 3];</c>).
-/// Use <see cref="TryCreateRange{T}(IEnumerable{T})"/> (nullable) or
-/// <see cref="CreateRange{T}(IEnumerable{T})"/> (throwing) when wrapping a runtime sequence
-/// (<see cref="List{T}"/>, a LINQ query, etc.) whose emptiness must be checked.
-/// </para>
 /// </summary>
 public static class NonEmptyEnumerable
 {
     /// <summary>
     /// Returns a <see cref="NonEmptyEnumerable{T}"/> wrapping <paramref name="values"/>, or
-    /// <c>null</c> if <paramref name="values"/> is null or empty. When <paramref name="values"/>
-    /// is already a <see cref="NonEmptyEnumerable{T}"/>, it is returned as-is — callers may
-    /// rely on this for idempotent wrapping.
+    /// <c>null</c> if <paramref name="values"/> is null or empty. Wrapping is idempotent —
+    /// passing an existing <see cref="NonEmptyEnumerable{T}"/> returns it as-is.
     /// </summary>
     public static NonEmptyEnumerable<T>? TryCreateRange<T>(IEnumerable<T>? values) =>
         values switch
@@ -55,21 +46,10 @@ public static class NonEmptyEnumerable
 
     /// <summary>
     /// Returns a <see cref="NonEmptyEnumerable{T}"/> wrapping <paramref name="values"/>.
-    /// Throws <see cref="ArgumentException"/> if <paramref name="values"/> is empty.
+    /// Throws <see cref="ArgumentException"/> if <paramref name="values"/> is empty. Also
+    /// backs the collection-expression syntax (<c>NonEmptyEnumerable&lt;int&gt; list = [1, 2, 3];</c>);
+    /// an empty collection expression throws at runtime.
     /// </summary>
-    /// <remarks>
-    /// This overload is the <see cref="System.Runtime.CompilerServices.CollectionBuilderAttribute"/>
-    /// target for <see cref="NonEmptyEnumerable{T}"/>, enabling collection-expression syntax
-    /// (<c>NonEmptyEnumerable&lt;int&gt; list = [1, 2, 3];</c>). An empty collection expression
-    /// (<c>[]</c>) throws at runtime — the compiler has no way to reject it statically.
-    /// <para>
-    /// Named differently from <see cref="CreateRange{T}(IEnumerable{T})"/> so array arguments
-    /// resolve unambiguously: <c>new int[] {1,2,3}</c> is implicitly convertible to both
-    /// <see cref="ReadOnlySpan{T}"/> and <see cref="IEnumerable{T}"/>, and the pair would
-    /// otherwise be indistinguishable at the call site. Follows the BCL precedent of
-    /// <c>ImmutableArray.Create(params ROS&lt;T&gt;)</c> + <c>ImmutableArray.CreateRange(IEnumerable&lt;T&gt;)</c>.
-    /// </para>
-    /// </remarks>
     public static NonEmptyEnumerable<T> Create<T>(params ReadOnlySpan<T> values)
     {
         if (values.IsEmpty)
@@ -123,9 +103,7 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
     public T this[int index] => _values[index];
 
     /// <summary>
-    /// Returns a struct enumerator so <c>foreach (var x in nonEmpty)</c> on the concrete type
-    /// is allocation-free. Calls via <see cref="IEnumerable{T}"/> still box through the
-    /// explicit interface impls — unavoidable for the interface contract.
+    /// Returns an allocation-free struct enumerator for <c>foreach</c> on the concrete type.
     /// </summary>
     public Enumerator GetEnumerator() => new(_values);
 
@@ -134,8 +112,8 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     /// <summary>
-    /// Returns the underlying buffer as a <see cref="ReadOnlySpan{T}"/>. Useful for
-    /// allocation-free iteration; the span must not outlive the enumerable.
+    /// Returns the underlying buffer as a <see cref="ReadOnlySpan{T}"/>. The span must not
+    /// outlive the enumerable.
     /// </summary>
     public ReadOnlySpan<T> AsSpan() => _values;
 

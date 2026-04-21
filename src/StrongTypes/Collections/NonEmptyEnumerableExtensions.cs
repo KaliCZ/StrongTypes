@@ -8,15 +8,12 @@ namespace StrongTypes;
 
 /// <summary>
 /// Extension methods that produce or consume <see cref="NonEmptyEnumerable{T}"/>.
-/// Kept deliberately small — anything that does not require the non-empty invariant
-/// (projection, filtering, aggregation) is available via LINQ.
 /// </summary>
 public static class NonEmptyEnumerableExtensions
 {
     /// <summary>
     /// Wraps <paramref name="source"/> as a <see cref="NonEmptyEnumerable{T}"/>, or returns
-    /// <c>null</c> when the sequence is null or empty. The <c>As</c> prefix follows the
-    /// codebase convention — <c>AsX</c> is the nullable form, <c>ToX</c> throws on failure.
+    /// <c>null</c> when the sequence is null or empty.
     /// </summary>
     public static NonEmptyEnumerable<T>? AsNonEmpty<T>(this IEnumerable<T>? source)
         => NonEmptyEnumerable.TryCreateRange(source);
@@ -29,8 +26,7 @@ public static class NonEmptyEnumerableExtensions
         => NonEmptyEnumerable.CreateRange(source);
 
     /// <summary>
-    /// Maps every element and returns a <see cref="NonEmptyEnumerable{TResult}"/> — the
-    /// non-empty invariant carries through the projection.
+    /// Maps every element and returns a <see cref="NonEmptyEnumerable{TResult}"/>.
     /// </summary>
     public static NonEmptyEnumerable<TResult> Select<T, TResult>(
         this INonEmptyEnumerable<T> source,
@@ -77,8 +73,8 @@ public static class NonEmptyEnumerableExtensions
     }
 
     /// <summary>
-    /// Projects each element to a non-empty sequence and concatenates them. The result is
-    /// itself non-empty because the first projected sequence contributes at least one element.
+    /// Projects each element to a non-empty sequence and concatenates them into a single
+    /// <see cref="NonEmptyEnumerable{TResult}"/>.
     /// </summary>
     public static NonEmptyEnumerable<TResult> SelectMany<T, TResult>(
         this INonEmptyEnumerable<T> source,
@@ -92,7 +88,7 @@ public static class NonEmptyEnumerableExtensions
     }
 
     /// <summary>
-    /// Returns the distinct elements. The head is always present, so the result is non-empty.
+    /// Returns the distinct elements of <paramref name="source"/>.
     /// </summary>
     public static NonEmptyEnumerable<T> Distinct<T>(this INonEmptyEnumerable<T> source)
     {
@@ -122,11 +118,6 @@ public static class NonEmptyEnumerableExtensions
     /// <summary>
     /// Concatenates an additional sequence onto a non-empty sequence.
     /// </summary>
-    /// <remarks>
-    /// Delegates to <see cref="Enumerable.Concat{TSource}"/> — now that
-    /// <see cref="NonEmptyEnumerable{T}"/> implements <see cref="ICollection{T}"/>, LINQ's
-    /// <c>Concat2Iterator.ToArray</c> pre-sizes and runs a Memmove-backed copy for both halves.
-    /// </remarks>
     public static NonEmptyEnumerable<T> Concat<T>(this INonEmptyEnumerable<T> source, IEnumerable<T> items)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -136,17 +127,9 @@ public static class NonEmptyEnumerableExtensions
     }
 
     /// <summary>
-    /// Flattens a non-empty sequence of non-empty sequences into a single non-empty sequence.
-    /// The first inner sequence has at least one element, so the result is non-empty.
+    /// Flattens a non-empty sequence of non-empty sequences into a single
+    /// <see cref="NonEmptyEnumerable{T}"/>.
     /// </summary>
-    /// <remarks>
-    /// Delegates to <see cref="SelectMany{T, TResult}(INonEmptyEnumerable{T}, Func{T, INonEmptyEnumerable{TResult}})"/>
-    /// with an identity selector. LINQ's <c>SelectManyIterator.ToArray</c> pre-sizes via
-    /// <c>IIListProvider</c> and copies each inner <see cref="ICollection{T}"/> through its
-    /// <c>CopyTo</c> — which on <see cref="NonEmptyEnumerable{T}"/> is a single
-    /// <c>Buffer.Memmove</c> — so the BCL path is fast enough that a hand-rolled loop
-    /// wouldn't pay for the extra code.
-    /// </remarks>
     public static NonEmptyEnumerable<T> Flatten<T>(this INonEmptyEnumerable<INonEmptyEnumerable<T>> source)
         => source.SelectMany(inner => inner);
 }
