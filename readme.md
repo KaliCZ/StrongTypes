@@ -225,7 +225,9 @@ Roles          role = header.ToEnum<Roles>();   // throws ArgumentException
 
 ## Algebraic types
 
-Types that model *one of several possibilities* at the value level — present or absent, success or failure, this variant or that one — with exhaustive pattern matching and monadic composition. Currently just `Maybe<T>`; planned additions include a modern `Result<T, E>` (replacing the legacy `Try<A, E>`) and a `OneOf`-style sum type (replacing `Coproduct`).
+As stated above, StrongTypes is not an attempt to build a full algebraic type system. The purpose of these types is just to help where C# functionality is lacking, not to invent a framework and work fully in the algebraic types.
+
+However these types enable quite a few simplifications when it comes to parsing and validations.
 
 ### `Maybe<T>`
 
