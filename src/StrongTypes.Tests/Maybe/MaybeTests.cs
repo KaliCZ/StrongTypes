@@ -262,39 +262,21 @@ public class MaybeTests
         Assert.Equal(Maybe<int>.None.GetHashCode(), Maybe<int>.None.GetHashCode());
     }
 
-    // ── Cross-type equality: Maybe<string> <-> Maybe<NonEmptyString> ────
-
+    // Cross-closed-generic pairs (e.g. Maybe<string> vs Maybe<NonEmptyString>)
+    // always compare unequal through Equals(object). Keeping Equals(object) strict
+    // preserves its symmetry contract — we can't teach bare `string` or bare `int`
+    // to see a Maybe<T> on the other side, so we don't pretend the relationship
+    // exists in one direction. Typed IEquatable<T> and operator == remain available
+    // for ergonomic same-T comparisons.
     [Fact]
-    public void CrossTypeEquality_StringEqualsNonEmptyString_WhenValuesMatch()
+    public void Equality_DifferentClosedGenerics_AlwaysUnequal()
     {
         var str = Maybe<string>.Some("abc");
         var nes = Maybe<NonEmptyString>.Some(NonEmptyString.Create("abc"));
-        Assert.True(str.Equals((object)nes));
-        Assert.True(nes.Equals((object)str));
-    }
-
-    [Fact]
-    public void CrossTypeEquality_StringDiffersFromNonEmptyString_WhenValuesDiffer()
-    {
-        var str = Maybe<string>.Some("abc");
-        var nes = Maybe<NonEmptyString>.Some(NonEmptyString.Create("xyz"));
         Assert.False(str.Equals((object)nes));
         Assert.False(nes.Equals((object)str));
-    }
-
-    [Fact]
-    public void CrossTypeEquality_BothEmpty_Equal()
-    {
-        Assert.True(Maybe<string>.None.Equals((object)Maybe<NonEmptyString>.None));
-        Assert.True(Maybe<NonEmptyString>.None.Equals((object)Maybe<string>.None));
-    }
-
-    [Fact]
-    public void CrossTypeEquality_HashCodesMatch()
-    {
-        var str = Maybe<string>.Some("abc");
-        var nes = Maybe<NonEmptyString>.Some(NonEmptyString.Create("abc"));
-        Assert.Equal(str.GetHashCode(), nes.GetHashCode());
+        Assert.False(Maybe<string>.None.Equals((object)Maybe<NonEmptyString>.None));
+        Assert.False(Maybe<NonEmptyString>.None.Equals((object)Maybe<string>.None));
     }
 
     // ── Comparison ──────────────────────────────────────────────────────
