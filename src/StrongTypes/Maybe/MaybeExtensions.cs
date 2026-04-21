@@ -36,16 +36,6 @@ public static class MaybeExtensions
         where T : class
         => value is not null ? Maybe<T>.Some(value) : default;
 
-    /// <summary>
-    /// Turns a <see cref="Maybe{T}"/> into a <see cref="Try{T, E}"/>: a populated
-    /// Maybe becomes a success; an empty Maybe becomes the error produced by
-    /// <paramref name="error"/>.
-    /// </summary>
-    public static Try<T, E> ToTry<T, E>(this Maybe<T> m, Func<E> error)
-        where T : notnull
-        where E : notnull
-        => m.HasValue ? Try.Success<T, E>(m.InternalValue) : Try.Error<T, E>(error());
-
     public static async Task<Maybe<B>> MapAsync<A, B>(this Maybe<A> m, Func<A, Task<B>> f)
         where A : notnull
         where B : notnull

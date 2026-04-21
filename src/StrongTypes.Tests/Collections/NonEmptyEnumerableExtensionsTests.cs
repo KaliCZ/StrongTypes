@@ -121,6 +121,7 @@ public class NonEmptyEnumerableExtensionsTests
     public void Concat_Enumerable_AppendsItems(NonEmptyEnumerable<int> list)
     {
         var extra = Enumerable.Range(100, 3);
+        // ReSharper disable PossibleMultipleEnumeration
         var extended = list.Concat(extra);
         Assert.Equal(list.Count + 3, extended.Count);
         Assert.Equal(extra, extended.Skip(list.Count));

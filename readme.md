@@ -1,9 +1,5 @@
-# StrongTypes - Stronger Typing for C#
+# StrongTypes for C# [![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build.yml?branch=main&label=build)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build.yml) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
-> **Work in Progress** - StrongTypes is the continuation of [FuncSharp](https://github.com/MewsSystems/FuncSharp), originally written by [Honza Siroky](https://github.com/siroky), bringing the concepts into modern C#. It targets .NET 10 with nullable reference types enabled and leans on modern language features to deliver extra types that enable a better developer experience.
-
-[![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build.yml?branch=main&label=build)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build.yml)
-[![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)<br>
 [![Kalicz.StrongTypes on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
 [![Kalicz.StrongTypes downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)<br>
 [![Kalicz.StrongTypes.EfCore on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes.EfCore?label=nuget%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)
