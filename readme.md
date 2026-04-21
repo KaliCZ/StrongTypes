@@ -101,7 +101,7 @@ Every strong type in this library implements the full set of equality and compar
 
 ### JSON serialization
 
-All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]`. The wire format is the underlying primitive (`"hello"`, `42`, …), not an object with a `Value` property, and invalid input surfaces as a `JsonException` at the boundary.
+All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]` — no converter registration and no custom `JsonSerializerOptions` required. The wire format is the underlying primitive (`"hello"`, `42`, …), not an object with a `Value` property, and invalid input surfaces as a `JsonException` at the boundary.
 
 ### EF Core persistence
 
@@ -149,7 +149,7 @@ Operations whose result can be empty (`Where`, `Skip`, `GroupBy`, …) fall thro
 
 ### JSON
 
-Serializes as a JSON array; an empty JSON array is rejected with `JsonException`. `NonEmptyEnumerable<T?>` accepts JSON nulls as legitimate elements — `[1, null, 3]` round-trips faithfully into `NonEmptyEnumerable<int?>`.
+Serializes as a JSON array; an empty JSON array is rejected with `JsonException`. The converter is attached via `[JsonConverter]`, so no registration or custom `JsonSerializerOptions` is needed. `NonEmptyEnumerable<T?>` accepts JSON nulls as legitimate elements — `[1, null, 3]` round-trips faithfully into `NonEmptyEnumerable<int?>`.
 
 > ⚠ **Null elements in reference-typed collections** — a JSON array like `[null]` deserializes successfully into `NonEmptyEnumerable<string>` or `NonEmptyEnumerable<NonEmptyString>` even though the element type isn't annotated nullable. The same would happen with a plain `List<string>`.
 
@@ -309,7 +309,7 @@ var missing =
 
 #### JSON
 
-`Maybe<T>` serializes via `System.Text.Json` as `{ "Value": x }` for `Some` and `{ "Value": null }` for `None`. Deserialization also accepts `{}` for `None`, so callers can omit the property entirely.
+`Maybe<T>` serializes via `System.Text.Json` as `{ "Value": x }` for `Some` and `{ "Value": null }` for `None` — no converter registration or custom `JsonSerializerOptions` needed. Deserialization also accepts `{}` for `None`, so callers can omit the property entirely.
 
 #### Idiomatic usage: HTTP PATCH with optional properties
 
