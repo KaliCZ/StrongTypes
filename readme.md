@@ -113,13 +113,9 @@ A read-only sequence guaranteed to contain at least one element. The non-empty i
 
 ```csharp
 var list = NonEmptyEnumerable.Create(1, 2, 3);
-```
 
-```csharp
 NonEmptyEnumerable<int> list = [1, 2, 3];
-```
 
-```csharp
 // CreateRange for runtime sequences (List<T>, LINQ queries, …).
 NonEmptyEnumerable<int>  throws   = NonEmptyEnumerable.CreateRange(source);      // throws on empty/null
 NonEmptyEnumerable<int>? nullable = NonEmptyEnumerable.TryCreateRange(source);   // null on empty/null
