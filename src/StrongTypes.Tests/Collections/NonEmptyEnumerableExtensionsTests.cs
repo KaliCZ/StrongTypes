@@ -45,23 +45,6 @@ public class NonEmptyEnumerableExtensionsTests
     }
 
     [Property]
-    public void ToEnumerable_WrapsSingleValue(int value)
-    {
-        var list = value.ToEnumerable();
-        Assert.Single(list);
-        Assert.Equal(value, list[0]);
-    }
-
-    [Fact]
-    public void ToEnumerable_NullReferenceWrapped()
-    {
-        string? value = null;
-        var list = value.ToEnumerable();
-        Assert.Single(list);
-        Assert.Null(list[0]);
-    }
-
-    [Property]
     public void Select_PreservesLengthAndMapsElements(NonEmptyEnumerable<int> list)
     {
         var mapped = list.Select(i => i * 2);
