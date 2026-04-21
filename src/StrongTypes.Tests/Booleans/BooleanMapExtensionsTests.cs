@@ -28,6 +28,13 @@ public class BooleanMapExtensionsTests
         Assert.False(invoked);
     }
 
+    [Fact]
+    public void MapTrue_Struct_MapperMayReturnNull()
+    {
+        int? result = true.MapTrue(() => (int?)null);
+        Assert.Null(result);
+    }
+
     // ── MapTrue — class ───────────────────────────────────────────────
 
     [Property]
@@ -69,6 +76,13 @@ public class BooleanMapExtensionsTests
         int? result = true.MapFalse(() => { invoked = true; return 1; });
         Assert.Null(result);
         Assert.False(invoked);
+    }
+
+    [Fact]
+    public void MapFalse_Struct_MapperMayReturnNull()
+    {
+        int? result = false.MapFalse(() => (int?)null);
+        Assert.Null(result);
     }
 
     // ── MapFalse — class ──────────────────────────────────────────────
@@ -117,6 +131,17 @@ public class BooleanMapExtensionsTests
         });
         Assert.Null(result);
         Assert.False(invoked);
+    }
+
+    [Fact]
+    public async Task MapTrueAsync_Struct_MapperMayReturnNull()
+    {
+        int? result = await true.MapTrueAsync(async () =>
+        {
+            await Task.Yield();
+            return (int?)null;
+        });
+        Assert.Null(result);
     }
 
     // ── MapTrueAsync — class ──────────────────────────────────────────
@@ -174,6 +199,17 @@ public class BooleanMapExtensionsTests
         });
         Assert.Null(result);
         Assert.False(invoked);
+    }
+
+    [Fact]
+    public async Task MapFalseAsync_Struct_MapperMayReturnNull()
+    {
+        int? result = await false.MapFalseAsync(async () =>
+        {
+            await Task.Yield();
+            return (int?)null;
+        });
+        Assert.Null(result);
     }
 
     // ── MapFalseAsync — class ─────────────────────────────────────────

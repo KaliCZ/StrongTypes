@@ -29,6 +29,23 @@ public class NullableMapExtensionsTests
         Assert.False(invoked);
     }
 
+    [Fact]
+    public void Map_StructToStruct_MapperMayReturnNull()
+    {
+        int? value = 5;
+        int? result = value.Map(x => (int?)null);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void Map_StructToStruct_NullableReturningMapperPropagates()
+    {
+        static int? Parse(string s) => int.TryParse(s, out var n) ? n : null;
+        int? len = 3;
+        int? result = len.Map(n => Parse(new string('1', n)));
+        Assert.Equal(111, result);
+    }
+
     // ── struct → class ────────────────────────────────────────────────
 
     [Property]
@@ -75,6 +92,23 @@ public class NullableMapExtensionsTests
         int? result = value.Map(x => { invoked = true; return x.Length; });
         Assert.Null(result);
         Assert.False(invoked);
+    }
+
+    [Fact]
+    public void Map_ClassToStruct_MapperMayReturnNull()
+    {
+        string? value = "hi";
+        int? result = value.Map(x => (int?)null);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void Map_ClassToStruct_NullableReturningMapperPropagates()
+    {
+        static int? Parse(string s) => int.TryParse(s, out var n) ? n : null;
+        string? s = "42";
+        int? result = s.Map(Parse);
+        Assert.Equal(42, result);
     }
 
     // ── class → class ────────────────────────────────────────────────
