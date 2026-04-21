@@ -188,12 +188,10 @@ public class NonEmptyEnumerableExtensionsTests
     }
 
     [Fact]
-    public void Concat_NullTails_AreSkipped()
+    public void Concat_NullTail_Throws()
     {
-        // Null tails are treated as empty — useful when callers assemble tails from
-        // optional sources (e.g. `maybeExtras?.ToArray()` that may be null).
-        var result = 1.Concat(null!, new[] { 2, 3 }, null!, new[] { 4 });
-        Assert.Equal(new[] { 1, 2, 3, 4 }, result);
+        Assert.Throws<ArgumentNullException>(() => 1.Concat(null!, new[] { 2, 3 }));
+        Assert.Throws<ArgumentNullException>(() => 1.Concat(new[] { 2, 3 }, null!));
     }
 
     [Fact]
@@ -243,6 +241,181 @@ public class NonEmptyEnumerableExtensionsTests
         var result = head.Concat(tail1, tail2, tail3);
         Assert.Equal(1 + tail1.Length + tail2.Length + tail3.Length, result.Count);
         Assert.Equal(head, result.Head);
+    }
+
+    // ── Concat(IEnumerable<T>) concrete overload ────────────────────────
+
+    [Property]
+    public void Concat_Enumerable_Concrete_AppendsItems(NonEmptyEnumerable<int> list)
+    {
+        IEnumerable<int> extra = new[] { 100, 200, 300 };
+        var extended = list.Concat(extra);
+        Assert.Equal(list.Count + 3, extended.Count);
+        Assert.Equal(list, extended.Take(list.Count));
+        Assert.Equal(extra, extended.Skip(list.Count));
+    }
+
+    [Property]
+    public void Concat_Enumerable_InterfaceAndConcrete_Agree(NonEmptyEnumerable<int> list, int[] items)
+    {
+        INonEmptyEnumerable<int> asInterface = list;
+        Assert.Equal(list.Concat((IEnumerable<int>)items), asInterface.Concat((IEnumerable<int>)items));
+    }
+
+    [Fact]
+    public void Concat_Enumerable_LazyIterator_Works()
+    {
+        var list = NonEmptyEnumerable.Create(1, 2, 3);
+        IEnumerable<int> lazy = new[] { 10, 20, 30 }.Where(_ => true);
+        Assert.Equal(new[] { 1, 2, 3, 10, 20, 30 }, list.Concat(lazy));
+    }
+
+    // ── Reverse ─────────────────────────────────────────────────────────
+
+    [Property]
+    public void Reverse_ReversesOrder(NonEmptyEnumerable<int> list)
+    {
+        var reversed = list.Reverse();
+        Assert.Equal(list.Count, reversed.Count);
+        Assert.Equal(list.AsEnumerable().Reverse(), reversed);
+    }
+
+    [Property]
+    public void Reverse_Twice_RoundTrips(NonEmptyEnumerable<int> list)
+    {
+        Assert.Equal(list, list.Reverse().Reverse());
+    }
+
+    [Fact]
+    public void Reverse_InterfaceOverload_HandlesNonConcreteImplementation()
+    {
+        INonEmptyEnumerable<int> custom = new CustomNonEmpty<int>([1, 2, 3]);
+        Assert.Equal(new[] { 3, 2, 1 }, custom.Reverse());
+    }
+
+    // ── Prepend / Append ────────────────────────────────────────────────
+
+    [Property]
+    public void Prepend_AddsItemAtFront(NonEmptyEnumerable<int> list, int item)
+    {
+        var result = list.Prepend(item);
+        Assert.Equal(list.Count + 1, result.Count);
+        Assert.Equal(item, result.Head);
+        Assert.Equal(list, result.Skip(1));
+    }
+
+    [Property]
+    public void Append_AddsItemAtBack(NonEmptyEnumerable<int> list, int item)
+    {
+        var result = list.Append(item);
+        Assert.Equal(list.Count + 1, result.Count);
+        Assert.Equal(item, result.Last());
+        Assert.Equal(list, result.Take(list.Count));
+    }
+
+    [Fact]
+    public void Append_InterfaceOverload_HandlesNonConcreteImplementation()
+    {
+        INonEmptyEnumerable<int> custom = new CustomNonEmpty<int>([1, 2, 3]);
+        Assert.Equal(new[] { 1, 2, 3, 99 }, custom.Append(99));
+    }
+
+    // ── Take ────────────────────────────────────────────────────────────
+
+    [Property]
+    public void Take_Positive_TakesFirstN(NonEmptyEnumerable<int> list)
+    {
+        var n = Math.Min(2, list.Count);
+        var taken = list.Take(Positive<int>.Create(n));
+        Assert.Equal(n, taken.Count);
+        Assert.Equal(list.AsEnumerable().Take(n), taken);
+    }
+
+    [Fact]
+    public void Take_ExceedingCount_ReturnsWholeSource()
+    {
+        var list = NonEmptyEnumerable.Create(1, 2, 3);
+        Assert.Equal(list, list.Take(99));
+    }
+
+    [Fact]
+    public void Take_IntOverload_ValidCount_Works()
+    {
+        var list = NonEmptyEnumerable.Create(1, 2, 3, 4, 5);
+        Assert.Equal(new[] { 1, 2, 3 }, list.Take(3));
+    }
+
+    [Fact]
+    public void Take_IntOverload_ZeroOrNegative_Throws()
+    {
+        var list = NonEmptyEnumerable.Create(1, 2, 3);
+        Assert.Throws<ArgumentException>(() => list.Take(0));
+        Assert.Throws<ArgumentException>(() => list.Take(-1));
+    }
+
+    [Fact]
+    public void Take_InterfaceOverload_HandlesNonConcreteImplementation()
+    {
+        INonEmptyEnumerable<int> custom = new CustomNonEmpty<int>([1, 2, 3, 4, 5]);
+        Assert.Equal(new[] { 1, 2 }, custom.Take(2));
+    }
+
+    // ── Aggregation (total functions) ───────────────────────────────────
+
+    [Property]
+    public void Max_MatchesLinq(NonEmptyEnumerable<int> list)
+    {
+        Assert.Equal(Enumerable.Max(list), list.Max());
+    }
+
+    [Property]
+    public void Min_MatchesLinq(NonEmptyEnumerable<int> list)
+    {
+        Assert.Equal(Enumerable.Min(list), list.Min());
+    }
+
+    [Property]
+    public void MaxBy_MatchesLinq(NonEmptyEnumerable<int> list)
+    {
+        Assert.Equal(Enumerable.MaxBy(list, x => -x), list.MaxBy(x => -x));
+    }
+
+    [Property]
+    public void MinBy_MatchesLinq(NonEmptyEnumerable<int> list)
+    {
+        Assert.Equal(Enumerable.MinBy(list, x => -x), list.MinBy(x => -x));
+    }
+
+    [Property]
+    public void Last_ReturnsLastElement(NonEmptyEnumerable<int> list)
+    {
+        Assert.Equal(list[list.Count - 1], list.Last());
+    }
+
+    [Property]
+    public void Aggregate_MatchesLinq(NonEmptyEnumerable<int> list)
+    {
+        Assert.Equal(Enumerable.Aggregate(list, (a, b) => a + b), list.Aggregate((a, b) => a + b));
+    }
+
+    [Property]
+    public void Average_MatchesLinq(NonEmptyEnumerable<int> list)
+    {
+        // Non-empty guarantees Average is defined — implementation uses INumber<T>
+        // which does integer division for int, so compare against the same arithmetic.
+        var expected = list.AsEnumerable().Sum() / list.Count;
+        Assert.Equal(expected, list.Average());
+    }
+
+    [Fact]
+    public void Aggregation_InterfaceOverload_HandlesNonConcreteImplementation()
+    {
+        INonEmptyEnumerable<int> custom = new CustomNonEmpty<int>([3, 1, 4, 1, 5, 9, 2, 6]);
+        Assert.Equal(9, custom.Max());
+        Assert.Equal(1, custom.Min());
+        Assert.Equal(6, custom.Last());
+        Assert.Equal(31, custom.Aggregate((a, b) => a + b));
+        Assert.Equal(3, custom.Average());
     }
 
     /// <summary>

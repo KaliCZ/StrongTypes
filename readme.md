@@ -141,11 +141,35 @@ LINQ operations that preserve the invariant return `NonEmptyEnumerable<TResult>`
 ```csharp
 NonEmptyEnumerable<int>    doubled  = list.Select(x => x * 2);
 NonEmptyEnumerable<int>    distinct = list.Distinct();
-NonEmptyEnumerable<string> flat     = list.SelectMany(x => NonEmptyEnumerable.Create(x.ToString(), "|"));
+NonEmptyEnumerable<string> allTags  = pages.SelectMany(p => p.Tags);   // p.Tags is itself non-empty
 NonEmptyEnumerable<int>    extended = list.Concat(10, 20);
+NonEmptyEnumerable<int>    reversed = list.Reverse();
+NonEmptyEnumerable<int>    withEnds = list.Prepend(0).Append(99);
+NonEmptyEnumerable<int>    combined = 1.Concat(existing, more);        // head + N tails → guaranteed non-empty
 ```
 
 Operations whose result can be empty (`Where`, `Skip`, `GroupBy`, …) fall through to plain LINQ and return `IEnumerable<T>`. Re-wrap with `AsNonEmpty()` / `ToNonEmpty()` at the point where you need the guarantee again.
+
+Non-emptiness is also exactly the precondition LINQ's aggregate helpers need. The overloads on `NonEmptyEnumerable<T>` are total — they never throw `InvalidOperationException` on empty input and, for value types, return `T` directly instead of `T?`:
+
+```csharp
+int max  = list.Max();                 // never throws, returns int (not int?)
+int min  = list.Min();
+int last = list.Last();
+int sum  = list.Aggregate((a, b) => a + b);
+int avg  = list.Average();
+```
+
+### `INonEmptyEnumerable<T>` (covariant interface)
+
+`NonEmptyEnumerable<T>` implements `INonEmptyEnumerable<out T>`, a covariant interface — use it when you need to assign a more-derived collection to a less-derived reference:
+
+```csharp
+NonEmptyEnumerable<Dog>      dogs    = [new Dog()];
+INonEmptyEnumerable<Animal>  animals = dogs;  // allowed thanks to `out T`
+```
+
+All extensions (`Select`, `Concat`, `Max`, `Last`, …) have overloads on both the concrete type and the interface, so either receiver type works in a chain.
 
 ### JSON
 
