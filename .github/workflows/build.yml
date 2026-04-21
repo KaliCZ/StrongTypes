@@ -16,10 +16,15 @@ permissions:
 
 jobs:
   build:
+    # Release events publish via the `publish` job below, which does its
+    # own Release build + tests before shipping. PRs and pushes to main
+    # use Debug here so coverage sequence points line up 1:1 with source
+    # (Release merges sequence points and folds constant branches).
+    if: github.event_name != 'release'
     runs-on: ubuntu-latest
 
     env:
-      config: 'Release'
+      config: 'Debug'
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: true
 
@@ -122,9 +127,11 @@ jobs:
         retention-days: 5
 
   publish:
-    needs: build
     # Gate on main: a Release drafted through the UI carries the selected
     # branch in target_commitish. Only releases targeted at main publish.
+    # No `needs: build` — the PR/push `build` job doesn't run on release
+    # events, so this job validates Release binaries itself via the Test
+    # step below before pushing to nuget.org.
     if: github.event_name == 'release' && github.event.release.target_commitish == 'main'
     runs-on: ubuntu-latest
     environment: Nuget.org
@@ -171,6 +178,23 @@ jobs:
           -p:Version="$VERSION" \
           -p:PackageReleaseNotes="See $RELEASE_URL" \
           -p:PackageOutputPath="$PWD/out"
+
+    # Validate the Release binaries we're about to publish. PRs already
+    # ran the full suite in Debug; this step catches config-specific
+    # regressions (compiler optimizations, trimming, etc.) before nupkgs
+    # leave the runner.
+    - name: Test
+      run: dotnet test --no-restore --no-build --configuration $config
+
+    - name: Upload test logs
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-logs-release
+        path: |
+          **/TestResults/**/*.log
+          **/TestResults/**/*.trx
+        retention-days: 5
 
     - name: Publish packages
       run: dotnet nuget push ./out/*.nupkg --source nuget.org --api-key ${{ secrets.NUGET_TOKEN }}
