@@ -81,21 +81,27 @@ jobs:
     # needed. -p:Version cascades into referenced projects (EfCore's
     # ProjectReference to core), so EfCore's nuspec pins its core
     # dependency to the same version.
+    # Loop: skip projects that don't exist yet (e.g. FsCheck until #40 lands).
+    # When a new publishable package is added, just add its csproj to the list.
     - name: Build and pack
       env:
         NOTES: ${{ github.event.release.body }}
         VERSION: ${{ steps.version.outputs.version }}
       run: |
-        dotnet build ./src/StrongTypes/StrongTypes.csproj \
-          -c $config \
-          -p:Version="$VERSION" \
-          -p:PackageReleaseNotes="$NOTES" \
-          -p:PackageOutputPath="$PWD/out"
-        dotnet build ./src/StrongTypes.EfCore/StrongTypes.EfCore.csproj \
-          -c $config \
-          -p:Version="$VERSION" \
-          -p:PackageReleaseNotes="$NOTES" \
-          -p:PackageOutputPath="$PWD/out"
+        for PROJECT in \
+          ./src/StrongTypes/StrongTypes.csproj \
+          ./src/StrongTypes.EfCore/StrongTypes.EfCore.csproj \
+          ./src/StrongTypes.FsCheck/StrongTypes.FsCheck.csproj; do
+          if [ -f "$PROJECT" ]; then
+            dotnet build "$PROJECT" \
+              -c $config \
+              -p:Version="$VERSION" \
+              -p:PackageReleaseNotes="$NOTES" \
+              -p:PackageOutputPath="$PWD/out"
+          else
+            echo "Skipping $PROJECT (not present in repo)"
+          fi
+        done
 
     - name: Publish packages
       run: dotnet nuget push ./out/*.nupkg --source nuget.org --api-key ${{ secrets.NUGET_TOKEN }}
