@@ -1,7 +1,4 @@
-# Kalicz.StrongTypes.FsCheck
-
-[![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build.yml?branch=main&label=build)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build.yml)
-[![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)<br>
+# Kalicz.StrongTypes.FsCheck [![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build.yml?branch=main&label=build)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build.yml) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 [![Kalicz.StrongTypes on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
 [![Kalicz.StrongTypes downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)<br>
 [![Kalicz.StrongTypes.EfCore on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes.EfCore?label=nuget%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)
