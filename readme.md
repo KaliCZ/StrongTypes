@@ -287,6 +287,9 @@ string? normalized = maybeName.Value is {} n
     : null;
 ```
 
+> [!WARNING]
+> `Map` / `MapTrue` / `MapFalse` are slower than the equivalent ternary. The mapper is passed as a delegate, so the JIT has to go through a function-pointer invocation instead of the direct branch it gets from a `?:` — inlining and further optimizations stop at the delegate boundary, and a non-static lambda also allocates. Prefer the ternary on hot paths; reach for `Map` where readability matters more than the nanoseconds.
+
 ### `Maybe<T>`
 
 A value type that holds either a value of `T` (`Some`) or no value (`None`). Works for both reference and value types and integrates with collection expressions, LINQ, pattern matching, and `System.Text.Json`.
