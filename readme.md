@@ -11,137 +11,22 @@ StrongTypes is not an attempt to build a full algebraic type system on top of C#
 
 ## Contents
 
-- [`Maybe<T>`](#maybet)
 - [Helpful Types](#helpful-types)
   - [`NonEmptyString`](#nonemptystring)
   - [Numeric wrappers: `Positive<T>`, `NonNegative<T>`, `Negative<T>`, `NonPositive<T>`](#numeric-wrappers)
   - [What you get for free](#what-you-get-for-free)
   - [JSON serialization](#json-serialization)
   - [EF Core persistence](#ef-core-persistence)
+- [`NonEmptyEnumerable<T>`](#nonemptyenumerablet)
 - [Parsing helpers](#parsing-helpers)
   - [Enums](#enums)
   - [Strings](#strings)
+- [Algebraic types](#algebraic-types)
+  - [`Maybe<T>`](#maybet)
 - [Legacy types (to be replaced)](#legacy-types-to-be-replaced)
   - [`Option<A>`](#optiona)
   - [`Try<A, E>`](#trya-e)
   - [`Coproduct`](#coproduct)
-
-## `Maybe<T>`
-
-A value type that holds either a value of `T` (`Some`) or no value (`None`). It works for both reference and value types, plays well with collection expressions, LINQ, pattern matching, and `System.Text.Json`, and avoids the double-wrap awkwardness that `Nullable<T>` has when `T` is itself nullable.
-
-`Maybe<int?>` and `Maybe<string?>` are deliberately not allowed — the generic constraint is `where T : notnull`. Permitting a nullable `T` would collapse the `None` and `Some(null)` cases and break the `is { } v` pattern that powers idiomatic unwrapping (see more below).
-
-```csharp
-Maybe<int>    some   = Maybe.Some(42);   // T inferred from the argument
-Maybe<int>    direct = 42;               // implicit conversion from T
-Maybe<string> none   = Maybe.None;       // binds to whatever Maybe<T> the context expects
-Maybe<int>    a      = nullableInt.ToMaybe();      // Some(x) when HasValue, None otherwise
-Maybe<string> b      = nullableString.ToMaybe();   // Some(x) when not null, None otherwise
-```
-
-The implicit conversions from `T` and from the untyped `Maybe.None` make collection expressions read naturally — no need to spell out `Maybe<int>.Some(...)` for every element, and the `..` spread operator splices existing sequences in alongside literal `Maybe.None` markers:
-
-```csharp
-int[] middle = [4, 2, 3];
-Maybe<int>[] xs = [..middle, Maybe.None, 4];
-IEnumerable<int> values = xs.Values();   // [4, 2, 3, 4]
-```
-
-### Unwrapping
-
-The idiomatic "has value" check uses the `is { } v` pattern on the `Value` extension property. `Value` is provided through C# 14 extension members split between struct- and class-constrained branches, so it returns `Nullable<T>` for value types and `T?` for reference types — and the pattern unwraps to the underlying `T` directly:
-
-```csharp
-if (maybe.Value is { } v)
-{
-    // v is the underlying T — int (not int?), string (not string?)
-}
-```
-
-For exhaustive handling, `Match` takes both branches:
-
-```csharp
-var label = maybe.Match(
-    ifSome: x => $"got {x}",
-    ifNone: () => "nothing"
-);
-```
-
-### Composition
-
-`Maybe<T>` composes monadically through `Map`, `FlatMap`, and `Where`. Each operation is a no-op on `None`, so chains short-circuit cleanly without explicit null checks:
-
-```csharp
-// Map — transform the inner value when present.
-Maybe<int> doubled = Maybe.Some(3).Map(x => x * 2);          // Some(6)
-Maybe<int> stillNone = Maybe<int>.None.Map(x => x * 2);      // None
-
-// FlatMap — chain an operation that itself returns a Maybe, without nesting.
-Maybe<int> Parse(string s) =>
-    int.TryParse(s, out var n) ? Maybe.Some(n) : Maybe<int>.None;
-
-Maybe<int> good = Maybe.Some("42").FlatMap(Parse);           // Some(42)
-Maybe<int> bad  = Maybe.Some("nope").FlatMap(Parse);         // None
-
-// Where — keep the value only if it satisfies the predicate.
-Maybe<int> even = Maybe.Some(4).Where(x => x % 2 == 0);      // Some(4)
-Maybe<int> dropped = Maybe.Some(5).Where(x => x % 2 == 0);   // None
-```
-
-LINQ query syntax is supported through `Select` / `SelectMany`, and a single `None` anywhere in the chain empties the whole expression:
-
-```csharp
-var sum =
-    from a in Maybe<int>.Some(2)
-    from b in Maybe<int>.Some(3)
-    select a + b;                                            // Some(5)
-
-var missing =
-    from a in Maybe<int>.Some(2)
-    from b in Maybe<int>.None        // short-circuits here
-    from c in Maybe<int>.Some(10)    // never evaluated
-    select a + b + c;                                        // None
-```
-
-### JSON
-
-`Maybe<T>` serializes via `System.Text.Json` as `{ "Value": x }` for `Some` and `{ "Value": null }` for `None`. Deserialization also accepts `{}` for `None`, so callers can omit the property entirely.
-
-### Idiomatic usage: tri-state PATCH
-
-HTTP `PATCH` has a long-standing modelling problem for nullable fields: a request needs to distinguish three intents — *don't touch this field*, *clear this field to null*, and *set it to a new value*. A plain `T?` collapses the first two cases. `Maybe<T>?` keeps them apart, because `Maybe<T>` itself is a value, so wrapping it in `T?` adds a real third state:
-
-| JSON                     | Property value      | Intent                |
-| ------------------------ | ------------------- | --------------------- |
-| field omitted, or `null` | `null`              | leave field untouched |
-| `{}` or `{"Value":null}` | `Maybe<T>.None`     | clear field to `null` |
-| `{"Value":x}`            | `Maybe<T>.Some(x)`  | set field to `x`      |
-
-The request DTO and PATCH handler then read straight off pattern matching, with no out-of-band sentinel values:
-
-```csharp
-public record PatchRequest(Maybe<string>? NullableValue);
-
-[HttpPatch("{id:guid}")]
-public async Task<IActionResult> Patch(Guid id, PatchRequest request)
-{
-    var entity = await Db.FindAsync<MyEntity>(id);
-    if (entity is null) return NotFound();
-
-    // request.NullableValue is null     → caller didn't send the field, skip.
-    // request.NullableValue is { } nv   → caller sent it; nv.Value is the new
-    //                                     string? (None unwraps to null, Some
-    //                                     unwraps to the inner string).
-    if (request.NullableValue is { } nv)
-        entity.NullableValue = nv.Value;
-
-    await Db.SaveChangesAsync();
-    return Ok();
-}
-```
-
-The `StrongTypes.Api` project in this repo uses exactly this pattern — see [`StructTypeEntityControllerBase.Patch`](src/StrongTypes.Api/Controllers/StructTypeEntityControllerBase.cs) and [`StructEntityPatchRequest`](src/StrongTypes.Api/Models/EntityModels.cs) for the production version that round-trips through both SQL Server and PostgreSQL.
 
 ## Helpful Types
 
@@ -163,7 +48,7 @@ Or via the `AsNonEmpty()` extension on any `string?`:
 NonEmptyString? name = userInput.AsNonEmpty();
 ```
 
-`NonEmptyString` exposes the common `string` surface (`Length`, `Contains`, `StartsWith`, `Substring`, `ToUpper`, etc.) and implicitly converts to `string`, so it drops into existing APIs without friction.
+`NonEmptyString` exposes the common `string` surface (`Length`, `Contains`, `StartsWith`, `Substring`, `ToUpper`, …) and implicitly converts to `string`.
 
 ### Numeric wrappers
 
@@ -203,7 +88,7 @@ Negative<int>    debt = balance.ToNegative();
 NonPositive<decimal> loss = pnl.ToNonPositive();
 ```
 
-The structs are laid out so that `default(Positive<T>)` still satisfies the invariant (e.g. `default(Positive<int>)` is `1`, not an invalid `0`), which means they survive zero-initialization without breaking their guarantee.
+`default(Positive<T>)` still satisfies the invariant (e.g. `default(Positive<int>)` is `1`, not an invalid `0`), so the structs survive zero-initialization without breaking their guarantee.
 
 ### What you get for free
 
@@ -216,17 +101,89 @@ Every strong type in this library implements the full set of equality and compar
 
 ### JSON serialization
 
-All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]`, so `JsonSerializer.Serialize(value)` and `JsonSerializer.Deserialize<T>(...)` just work — the wire format is the underlying primitive (`"hello"`, `42`, etc.), not an object with a `Value` property. Invalid input during deserialization surfaces as a `JsonException` at the boundary, which is where you want it.
+All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]` — no converter registration and no custom `JsonSerializerOptions` required. The wire format is the underlying primitive (`"hello"`, `42`, …), not an object with a `Value` property, and invalid input surfaces as a `JsonException` at the boundary.
 
 ### EF Core persistence
 
 If you want to store strong types directly on your EF Core entities, add the companion package [`Kalicz.StrongTypes.EfCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/). It provides the value converters needed to map `NonEmptyString`, `Positive<T>`, and friends to their underlying column types. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md) for setup details.
 
+## `NonEmptyEnumerable<T>`
+
+A read-only sequence guaranteed to contain at least one element. The non-empty invariant is enforced at construction and travels through operations that preserve it (`Select`, `SelectMany`, `Distinct`, `Concat`), so `.Head` is always defined — no empty-collection check needed (the value itself can still be `null` when `T` is nullable).
+
+```csharp
+var list = NonEmptyEnumerable.Create(1, 2, 3);
+
+NonEmptyEnumerable<int> list = [1, 2, 3];
+
+// CreateRange for runtime sequences (List<T>, LINQ queries, …).
+NonEmptyEnumerable<int>  throws   = NonEmptyEnumerable.CreateRange(source);      // throws on empty/null
+NonEmptyEnumerable<int>? nullable = NonEmptyEnumerable.TryCreateRange(source);   // null on empty/null
+```
+
+Or via extensions on any `IEnumerable<T>?`:
+
+```csharp
+NonEmptyEnumerable<int>? maybe = values.AsNonEmpty();   // null on empty/null
+NonEmptyEnumerable<int>  must  = values.ToNonEmpty();   // throws on empty/null
+```
+
+Access the non-emptiness directly:
+
+```csharp
+int                head  = list.Head;    // always defined (may itself be null if T is nullable)
+IReadOnlyList<int> tail  = list.Tail;    // everything after Head
+int                count = list.Count;   // always >= 1
+```
+
+LINQ operations that preserve the invariant return `NonEmptyEnumerable<TResult>`, so the guarantee doesn't decay through a chain:
+
+```csharp
+NonEmptyEnumerable<int>    doubled  = list.Select(x => x * 2);
+NonEmptyEnumerable<int>    distinct = list.Distinct();
+NonEmptyEnumerable<string> allTags  = pages.SelectMany(p => p.Tags);   // p.Tags is itself non-empty
+NonEmptyEnumerable<int>    extended = list.Concat(10, 20);
+NonEmptyEnumerable<int>    reversed = list.Reverse();
+NonEmptyEnumerable<int>    withEnds = list.Prepend(0).Append(99);
+NonEmptyEnumerable<int>    combined = 1.Concat(existing, more);        // head + N tails → guaranteed non-empty
+```
+
+Operations whose result can be empty (`Where`, `Skip`, `GroupBy`, …) fall through to plain LINQ and return `IEnumerable<T>`. Re-wrap with `AsNonEmpty()` / `ToNonEmpty()` at the point where you need the guarantee again.
+
+Non-emptiness is also exactly the precondition LINQ's aggregate helpers need. The overloads on `NonEmptyEnumerable<T>` are total — they never throw `InvalidOperationException` on empty input and, for value types, return `T` directly instead of `T?`:
+
+```csharp
+int max  = list.Max();                 // never throws, returns int (not int?)
+int min  = list.Min();
+int last = list.Last();
+int sum  = list.Aggregate((a, b) => a + b);
+int avg  = list.Average();
+```
+
+### `INonEmptyEnumerable<T>` (covariant interface)
+
+`NonEmptyEnumerable<T>` implements `INonEmptyEnumerable<out T>`, a covariant interface — use it when you need to assign a more-derived collection to a less-derived reference:
+
+```csharp
+NonEmptyEnumerable<Dog>      dogs    = [new Dog()];
+INonEmptyEnumerable<Animal>  animals = dogs;  // allowed thanks to `out T`
+```
+
+All extensions (`Select`, `Concat`, `Max`, `Last`, …) have overloads on both the concrete type and the interface, so either receiver type works in a chain.
+
+### JSON
+
+Serializes as a JSON array; an empty JSON array is rejected with `JsonException`. The converter is attached via `[JsonConverter]`, so no registration or custom `JsonSerializerOptions` is needed. `NonEmptyEnumerable<T?>` accepts JSON nulls as legitimate elements — `[1, null, 3]` round-trips faithfully into `NonEmptyEnumerable<int?>`.
+
+> ⚠ **Null elements in reference-typed collections** — a JSON array like `[null]` deserializes successfully into `NonEmptyEnumerable<string>` or `NonEmptyEnumerable<NonEmptyString>` even though the element type isn't annotated nullable. The same would happen with a plain `List<string>`.
+
+The same converter also serves `INonEmptyEnumerable<T>`, so properties typed as the interface round-trip the same way — deserialization still produces a concrete `NonEmptyEnumerable<T>` behind the interface reference.
+
 ## Parsing helpers
 
 ### Enums
 
-Extension members on any `enum` type give you cached metadata, factories, and flag helpers without the ceremony of calling `Enum.Parse`, `Enum.GetValues`, or writing your own caches. Everything hangs off the enum type itself, so you call `Roles.Parse(...)` rather than `EnumExtensions.Parse<Roles>(...)`.
+Extension members on any `enum` type give you cached metadata, factories, and flag helpers. Everything hangs off the enum type itself, so you call `Roles.Parse(...)` rather than `EnumExtensions.Parse<Roles>(...)`.
 
 ```csharp
 [Flags]
@@ -252,7 +209,7 @@ Roles? r5 = Roles.TryCreate(userInput);
 IReadOnlyList<Roles> every = Roles.AllValues;  // [None, Reader, Writer, Admin]
 ```
 
-For `[Flags]` enums you also get bit-level helpers. `AllFlagValues` gives you just the single-bit members (so `None = 0` and composite values are excluded), and `AllFlagsCombined` OR-s them together — perfect for seeding an "everything on" value at runtime without having to remember to update a `SuperAdmin = Reader | Writer | Admin` literal every time you add a flag.
+For `[Flags]` enums you also get bit-level helpers. `AllFlagValues` lists just the single-bit members (excluding `None = 0` and composites), `AllFlagsCombined` OR-s them into an "everything on" value so you don't have to maintain a `SuperAdmin = Reader | Writer | Admin` literal.
 
 ```csharp
 IReadOnlyList<Roles> flags = Roles.AllFlagValues;     // [Reader, Writer, Admin]
@@ -288,7 +245,129 @@ int            id   = queryParam.ToInt();       // throws FormatException / Over
 Roles          role = header.ToEnum<Roles>();   // throws ArgumentException
 ```
 
-`AsEnum<TEnum>` / `ToEnum<TEnum>` are plain extensions on `string?` that sidestep a C# limitation: because `Roles.TryParse(...)` is an extension member on the enum type, it can't be called through an open generic `TEnum` parameter. These close the gap so you can parse an enum whose type you only know generically.
+`AsEnum<TEnum>` / `ToEnum<TEnum>` work through an open generic `TEnum` parameter, which the `Roles.TryParse(...)` extension member can't — use them when you only know the enum type generically.
+
+## Algebraic types
+
+As stated above, StrongTypes is not an attempt to build a full algebraic type system. The purpose of these types is just to help where C# functionality is lacking, not to invent a framework and work fully in the algebraic types.
+
+However these types enable quite a few simplifications when it comes to parsing and validations.
+
+### `Maybe<T>`
+
+A value type that holds either a value of `T` (`Some`) or no value (`None`). Works for both reference and value types and integrates with collection expressions, LINQ, pattern matching, and `System.Text.Json`.
+
+The generic constraint is `where T : notnull` — `Maybe<int?>` and `Maybe<string?>` are deliberately disallowed, because permitting a nullable `T` would collapse the `None` and `Some(null)` cases and break the `is { } v` unwrap pattern. (see more below)
+
+```csharp
+Maybe<int>    some   = Maybe.Some(42);   // T inferred from the argument
+Maybe<int>    direct = 42;               // implicit conversion from T
+Maybe<string> none   = Maybe.None;       // binds to whatever Maybe<T> the context expects
+Maybe<int>    a      = nullableInt.ToMaybe();      // Some(x) when HasValue, None otherwise
+Maybe<string> b      = nullableString.ToMaybe();   // Some(x) when not null, None otherwise
+```
+
+The implicit conversions from `T` and from the untyped `Maybe.None` let collection expressions mix plain values, `None` markers, and spread sequences without spelling out `Maybe<int>.Some(...)` on every element:
+
+```csharp
+int[] middle = [4, 2, 3];
+Maybe<int>[] xs = [..middle, Maybe.None, 4];
+IEnumerable<int> values = xs.Values();   // [4, 2, 3, 4]
+```
+
+#### Unwrapping
+
+The idiomatic "has value" check uses the `is { } v` pattern on the `Value` extension property — `Value` returns `Nullable<T>` for value types and `T?` for reference types, and the pattern unwraps to the underlying `T` directly:
+
+```csharp
+if (maybe.Value is { } v)
+{
+    // v is the underlying T — int (not int?), string (not string?)
+}
+```
+
+For exhaustive handling, `Match` takes both branches:
+
+```csharp
+var label = maybe.Match(
+    ifSome: x => $"got {x}",
+    ifNone: () => "nothing"
+);
+```
+
+#### Composition
+
+`Maybe<T>` composes monadically through `Map`, `FlatMap`, and `Where`. Each operation is a no-op on `None`, so chains short-circuit cleanly without explicit null checks:
+
+```csharp
+// Map — transform the inner value when present.
+Maybe<int> doubled = Maybe.Some(3).Map(x => x * 2);          // Some(6)
+Maybe<int> stillNone = Maybe<int>.None.Map(x => x * 2);      // None
+
+// FlatMap — chain an operation that itself returns a Maybe, without nesting.
+Maybe<int> Parse(string s) =>
+    int.TryParse(s, out var n) ? Maybe.Some(n) : Maybe<int>.None;
+
+Maybe<int> good = Maybe.Some("42").FlatMap(Parse);           // Some(42)
+Maybe<int> bad  = Maybe.Some("nope").FlatMap(Parse);         // None
+
+// Where — keep the value only if it satisfies the predicate.
+Maybe<int> even = Maybe.Some(4).Where(x => x % 2 == 0);      // Some(4)
+Maybe<int> dropped = Maybe.Some(5).Where(x => x % 2 == 0);   // None
+```
+
+LINQ query syntax is supported through `Select` / `SelectMany`, and a single `None` anywhere in the chain empties the whole expression:
+
+```csharp
+var sum =
+    from a in Maybe<int>.Some(2)
+    from b in Maybe<int>.Some(3)
+    select a + b;                                            // Some(5)
+
+var missing =
+    from a in Maybe<int>.Some(2)
+    from b in Maybe<int>.None        // short-circuits here
+    from c in Maybe<int>.Some(10)    // never evaluated
+    select a + b + c;                                        // None
+```
+
+#### JSON
+
+`Maybe<T>` serializes via `System.Text.Json` as `{ "Value": x }` for `Some` and `{ "Value": null }` for `None` — no converter registration or custom `JsonSerializerOptions` needed. Deserialization also accepts `{}` for `None`, so callers can omit the property entirely.
+
+#### Idiomatic usage: HTTP PATCH with optional properties
+
+HTTP `PATCH` has a long-standing modelling problem for nullable fields: a request needs to distinguish three intents — *don't touch this field*, *clear this field to null*, and *set it to a new value*. A plain `T?` collapses the first two cases. `Maybe<T>?` keeps them apart, because `Maybe<T>` itself is a value, so wrapping it in `T?` adds a real third state:
+
+| JSON                     | Property value     | Intent                |
+| ------------------------ |--------------------| --------------------- |
+| field omitted, or `null` | `(Maybe<T>?)null`  | leave field untouched |
+| `{}` or `{"Value":null}` | `Maybe<T>.None`    | clear field to `null` |
+| `{"Value":x}`            | `Maybe<T>.Some(x)` | set field to `x`      |
+
+The request DTO and PATCH handler then read straight off pattern matching, with no out-of-band sentinel values:
+
+```csharp
+public record PatchRequest(
+    Maybe<string>? NullableValue
+);
+
+[HttpPatch("{id:guid}")]
+public async Task<IActionResult> Patch(Guid id, PatchRequest request)
+{
+    var entity = await Db.FindAsync<MyEntity>(id);
+    if (entity is null) return NotFound();
+
+    // null means the property was skipped. Empty means it's deliberaly set to null.
+    if (request.NullableValue is { } nv)
+        entity.NullableValue = nv.Value;
+
+    await Db.SaveChangesAsync();
+    return Ok();
+}
+```
+
+The `StrongTypes.Api` project in this repo uses exactly this pattern — see [`StructTypeEntityControllerBase.Patch`](src/StrongTypes.Api/Controllers/StructTypeEntityControllerBase.cs) and [`StructEntityPatchRequest`](src/StrongTypes.Api/Models/EntityModels.cs) for the production version that round-trips through both SQL Server and PostgreSQL.
 
 ## Legacy types (to be replaced)
 

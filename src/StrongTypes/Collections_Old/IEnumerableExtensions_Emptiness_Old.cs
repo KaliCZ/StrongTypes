@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
@@ -10,29 +8,10 @@ namespace StrongTypes;
 
 public static partial class IEnumerableExtensions
 {
-    /// <summary>
-    /// Returns an <see cref="INonEmptyEnumerable{T}"/> when the source has at least one element,
-    /// otherwise <c>null</c>.
-    /// </summary>
-    [DebuggerStepThrough]
-    public static INonEmptyEnumerable<T>? AsNonEmpty<T>(this IEnumerable<T>? source)
-    {
-        return source switch
-        {
-            null => null,
-            INonEmptyEnumerable<T> list => list,
-            _ => NonEmptyEnumerable.Create(source)
-        };
-    }
-
-    /// <summary>
-    /// The source is already non-empty; callers shouldn't need to re-assert that.
-    /// </summary>
-    [Obsolete("This is already a NonEmptyEnumerable.", error: true)]
-    public static INonEmptyEnumerable<T> AsNonEmpty<T>(this INonEmptyEnumerable<T> source)
-    {
-        return source;
-    }
+    // The Option<T>-returning AsNonEmpty overloads that used to live here have been
+    // superseded by NonEmptyEnumerableExtensions.AsNonEmpty / ToNonEmpty in the new
+    // Collections/ slice. The remaining NonEmpty / IsEmpty checks are unrelated to
+    // NonEmptyEnumerable<T> and stay here until their own migration pass.
 
     /// <summary>
     /// Returns true if the collection contains at least one element.

@@ -35,19 +35,6 @@ public static partial class IEnumerableExtensions
             : Enumerable.Concat(first, othersResult);
     }
 
-    public static INonEmptyEnumerable<T> Concat<T>(this T e, params IEnumerable<T>[] others)
-    {
-        return NonEmptyEnumerable.Create(e, others.Flatten().ToArray());
-    }
-
-    [Pure]
-    public static INonEmptyEnumerable<T> Concat<T>(this INonEmptyEnumerable<T> source, params T[] items)
-    {
-        return NonEmptyEnumerable.Create(source.Head, source.Tail.Concat(items).ToArray());
-    }
-
-    public static INonEmptyEnumerable<T> Concat<T>(this INonEmptyEnumerable<T> source, params IEnumerable<T>[] items)
-    {
-        return NonEmptyEnumerable.Create(source.Head, source.Tail.Concat(items).ToArray());
-    }
+    // The T.Concat(params IEnumerable<T>[]) → NonEmptyEnumerable<T> overload has been
+    // migrated to StrongTypes.NonEmptyEnumerableExtensions.Concat.
 }

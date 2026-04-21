@@ -103,28 +103,8 @@ public readonly struct Maybe<T> :
     public bool Equals(T? other) =>
         IsSome && other is not null && EqualityComparer<T>.Default.Equals(InternalValue, other);
 
-    // Cross-type equality between Maybe<string> and Maybe<NonEmptyString> mirrors the
-    // legacy Option_Old behaviour. A broader scheme covering numeric strong types is
-    // tracked separately; see the follow-up GitHub issue referenced in the PR.
-    public override bool Equals(object? obj)
-    {
-        if (obj is Maybe<T> same) return Equals(same);
-
-        if (typeof(T) == typeof(string) && obj is Maybe<NonEmptyString> nesOther)
-        {
-            if (IsSome != nesOther.IsSome) return false;
-            if (IsNone) return true;
-            return string.Equals((string)(object)InternalValue!, nesOther.InternalValue.Value);
-        }
-        if (typeof(T) == typeof(NonEmptyString) && obj is Maybe<string> strOther)
-        {
-            if (IsSome != strOther.IsSome) return false;
-            if (IsNone) return true;
-            return string.Equals(((NonEmptyString)(object)InternalValue!).Value, strOther.InternalValue);
-        }
-
-        return false;
-    }
+    public override bool Equals(object? obj) =>
+        obj is Maybe<T> same && Equals(same);
 
     public override int GetHashCode() =>
         IsSome ? EqualityComparer<T>.Default.GetHashCode(InternalValue) : 0;

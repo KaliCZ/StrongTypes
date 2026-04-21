@@ -159,6 +159,49 @@ Current state: uses plain `string` / `string?`. Strong-type converters
 (EF Core value converters, JSON converters) will be wired in once the
 parallel work on those lands.
 
+## Comments — XML and `//`
+
+**XML comments** (`/// <summary>`, `<param>`, `<remarks>`, …) are for
+the **caller**. Nothing else belongs in them.
+
+- **Describe caller-facing behavior only** — what the member does, what
+  it returns, what makes it throw, what invariants it upholds. That is
+  information the caller cannot get from the signature alone.
+- **No implementation commentary.** Do not explain that a method
+  delegates to LINQ, dispatches via a runtime type check, uses
+  `CollectionsMarshal.AsSpan`, reaches `Buffer.Memmove`, caches via the
+  `field` keyword, is structured that way for variance reasons, etc.
+  None of that helps the caller; it ages badly when the implementation
+  changes, and it pollutes IntelliSense.
+- **No rationale for why two overloads exist, why a converter is a
+  factory, why the type is sealed**, and similar "design notes."
+- **If the member name already says it, skip the XML.** A one-liner
+  summary that just restates the method name is noise. Only add a
+  summary when it tells the caller something non-obvious (edge cases,
+  null handling, thrown exceptions, ordering guarantees).
+- **`<remarks>` is for additional caller-facing contract**, not for
+  essays on internals. If the remark would read like a changelog entry
+  or a code review comment, delete it.
+
+**`//` comments are not a messaging channel for future contributors.**
+If you want to explain a design choice, leave a note about a workaround,
+justify why the code isn't "obviously simpler," or tell the next person
+why two overloads exist — that belongs in the commit message or the PR
+description, not in the source. Code comments should not read like
+letters to a programmer.
+
+Use `//` only for things the code itself cannot say:
+
+- A short `// TODO:` tied to a tracking issue.
+- A one-word marker flagging a non-obvious invariant the very next line
+  relies on (`// caller already validated`).
+- A pragma-style note pointing at an external cause (`// workaround
+  for dotnet/runtime#12345`).
+
+If you catch yourself writing an explanatory paragraph in `//`, stop.
+Either the code needs to be clearer, or the context belongs in the
+commit message where it's searchable via `git log` / `git blame`.
+
 ## Pull requests
 
 - **Always assign the person running the session** when opening a PR.
