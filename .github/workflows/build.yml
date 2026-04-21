@@ -57,6 +57,8 @@ jobs:
     if: github.event_name == 'release' && github.event.release.target_commitish == 'main'
     runs-on: ubuntu-latest
     environment: Nuget.org
+    permissions:
+      contents: write
 
     env:
       config: 'Release'
@@ -101,3 +103,8 @@ jobs:
 
     - name: Publish packages
       run: dotnet nuget push ./out/*.nupkg --source nuget.org --api-key ${{ secrets.NUGET_TOKEN }}
+
+    - name: Attach packages to release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh release upload "$GITHUB_REF_NAME" ./out/*.nupkg
