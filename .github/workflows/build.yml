@@ -64,12 +64,25 @@ jobs:
           "-reporttypes:HtmlInline;Cobertura" \
           "-title:StrongTypes"
 
+    # List the files this PR touches so the summary can highlight their coverage
+    # instead of drowning in a `below 50%` list dominated by unmigrated legacy code.
+    - name: List changed files
+      if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path' > changed-files.txt
+
     # ReportGenerator's markdown outputs group by class, which surfaces every
     # compiler-generated closure type as its own row (e.g. `MaybeExtensions<A, B>`,
     # `MaybeExtensions<A, R>`, …). Our own summary groups by source file instead.
     - name: Render file-grouped coverage summary
       if: ${{ !cancelled() && hashFiles('coverage-report/Cobertura.xml') != '' }}
-      run: python3 scripts/coverage-summary.py coverage-report/Cobertura.xml coverage-report/FileSummary.md
+      run: |
+        args=(coverage-report/Cobertura.xml coverage-report/FileSummary.md)
+        if [ -f changed-files.txt ]; then
+          args+=(--changed-files changed-files.txt)
+        fi
+        python3 scripts/coverage-summary.py "${args[@]}"
 
     - name: Append coverage summary to job summary
       if: ${{ !cancelled() }}
