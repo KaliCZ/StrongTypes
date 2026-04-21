@@ -104,6 +104,11 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
         return new NonEmptyEnumerable<T>(values);
     }
 
+    // Exposed for the debug view — the debugger wants a real T[] to render under
+    // RootHidden, and we already own a non-empty one. Internal so callers still have
+    // to go through the read-only surface.
+    internal T[] DebugArray => _values;
+
     public T Head => _values[0];
 
     // `field` caches the first materialization — prior implementation allocated a fresh
