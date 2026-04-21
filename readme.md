@@ -151,7 +151,7 @@ Operations whose result can be empty (`Where`, `Skip`, `GroupBy`, …) fall thro
 
 Serializes as a JSON array and round-trips naturally. An empty JSON array is rejected with `JsonException` — the non-empty invariant travels through the wire as it does everywhere else.
 
-Nullable element slots (`NonEmptyEnumerable<T?>`) accept JSON nulls as legitimate values — `NonEmptyEnumerable<int?>` with `[1, null, 3]` round-trips faithfully. For non-nullable element slots the behavior matches plain C#: `System.Text.Json` rejects `null` for value-type elements (`int`, `Positive<int>`) on its own, and for reference-type elements the nullable annotation erases at runtime so the converter can't tell `NonEmptyEnumerable<T>` apart from `NonEmptyEnumerable<T?>`. ASP.NET Core's property-level nullable validation (automatic in .NET 10) still catches nullness on the containing property.
+Nullable element slots (`NonEmptyEnumerable<T?>`) accept JSON nulls as legitimate values — `NonEmptyEnumerable<int?>` with `[1, null, 3]` round-trips faithfully. For non-nullable element slots the behavior matches plain C#: `System.Text.Json` rejects `null` for value-type elements (`int`, `Positive<int>`) on its own, but for reference-type elements (`string`, `NonEmptyString`) the nullable annotation erases at runtime, so the converter can't tell `NonEmptyEnumerable<T>` apart from `NonEmptyEnumerable<T?>` and `[null]` slips through. ASP.NET Core's nullable validation (automatic in .NET 10) catches a null *property* but doesn't recurse into a collection's element type, so this gap applies to ASP.NET Core payloads too — same as with a plain `List<string>`.
 
 ## Parsing helpers
 
