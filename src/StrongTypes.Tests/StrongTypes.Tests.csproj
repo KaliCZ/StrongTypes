@@ -15,5 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
+    <ProjectReference Include="..\StrongTypes.FsCheck\StrongTypes.FsCheck.csproj" />
   </ItemGroup>
 </Project>

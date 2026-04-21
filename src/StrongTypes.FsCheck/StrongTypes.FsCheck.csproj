@@ -8,11 +8,11 @@
     <NoWarn>CS1591</NoWarn>
 
     <Version>0.0.0-dev</Version>
-    <PackageId>Kalicz.StrongTypes.EfCore</PackageId>
+    <PackageId>Kalicz.StrongTypes.FsCheck</PackageId>
     <Authors>KaliCZ</Authors>
     <Copyright>Copyright © 2026 KaliCZ</Copyright>
-    <Description>EF Core value converters and LINQ translation plugins for Kalicz.StrongTypes. Enables persisting NonEmptyString, Positive&lt;T&gt;, NonNegative&lt;T&gt;, Negative&lt;T&gt;, NonPositive&lt;T&gt; via a single registration call.</Description>
-    <PackageTags>StrongTypes, EntityFrameworkCore, EFCore, ValueConverter, NonEmptyString, LINQ, DbFunction</PackageTags>
+    <Description>FsCheck arbitraries for Kalicz.StrongTypes. Drop-in property-test support for NonEmptyString, Positive&lt;T&gt;, NonNegative&lt;T&gt;, Negative&lt;T&gt;, NonPositive&lt;T&gt;, Maybe&lt;T&gt;, and NonEmptyEnumerable&lt;T&gt; via a single [Properties(Arbitrary = new[] { typeof(Generators) })] attribute.</Description>
+    <PackageTags>StrongTypes, FsCheck, PropertyTesting, Arbitrary, Generators</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/KaliCZ/StrongTypes</PackageProjectUrl>
@@ -23,7 +23,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.0" />
+    <PackageReference Include="FsCheck" Version="3.3.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />

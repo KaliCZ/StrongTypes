@@ -6,6 +6,9 @@
   <Folder Name="/EF Core package/">
     <Project Path="src/StrongTypes.EfCore/StrongTypes.EfCore.csproj" />
   </Folder>
+  <Folder Name="/FsCheck package/">
+    <Project Path="src/StrongTypes.FsCheck/StrongTypes.FsCheck.csproj" />
+  </Folder>
   <Folder Name="/Main Package/">
     <Project Path="src/StrongTypes.Analyzers/StrongTypes.Analyzers.csproj" />
     <Project Path="src/StrongTypes.Analyzers.Tests/StrongTypes.Analyzers.Tests.csproj" />
