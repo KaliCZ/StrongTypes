@@ -159,10 +159,10 @@ Current state: uses plain `string` / `string?`. Strong-type converters
 (EF Core value converters, JSON converters) will be wired in once the
 parallel work on those lands.
 
-## XML documentation comments
+## Comments — XML and `//`
 
-XML comments (`/// <summary>`, `<param>`, `<remarks>`, …) are for the
-**caller**. Nothing else belongs in them.
+**XML comments** (`/// <summary>`, `<param>`, `<remarks>`, …) are for
+the **caller**. Nothing else belongs in them.
 
 - **Describe caller-facing behavior only** — what the member does, what
   it returns, what makes it throw, what invariants it upholds. That is
@@ -174,10 +174,7 @@ XML comments (`/// <summary>`, `<param>`, `<remarks>`, …) are for the
   None of that helps the caller; it ages badly when the implementation
   changes, and it pollutes IntelliSense.
 - **No rationale for why two overloads exist, why a converter is a
-  factory, why the type is sealed**, and similar "design notes." If a
-  contributor needs that context, it goes in a regular `//` comment
-  next to the code or in a commit message — not in a public-facing
-  doc comment.
+  factory, why the type is sealed**, and similar "design notes."
 - **If the member name already says it, skip the XML.** A one-liner
   summary that just restates the method name is noise. Only add a
   summary when it tells the caller something non-obvious (edge cases,
@@ -186,8 +183,24 @@ XML comments (`/// <summary>`, `<param>`, `<remarks>`, …) are for the
   essays on internals. If the remark would read like a changelog entry
   or a code review comment, delete it.
 
-Implementation commentary belongs in regular `//` comments next to the
-relevant code, where it's invisible to consumers of the library.
+**`//` comments are not a messaging channel for future contributors.**
+If you want to explain a design choice, leave a note about a workaround,
+justify why the code isn't "obviously simpler," or tell the next person
+why two overloads exist — that belongs in the commit message or the PR
+description, not in the source. Code comments should not read like
+letters to a programmer.
+
+Use `//` only for things the code itself cannot say:
+
+- A short `// TODO:` tied to a tracking issue.
+- A one-word marker flagging a non-obvious invariant the very next line
+  relies on (`// caller already validated`).
+- A pragma-style note pointing at an external cause (`// workaround
+  for dotnet/runtime#12345`).
+
+If you catch yourself writing an explanatory paragraph in `//`, stop.
+Either the code needs to be clearer, or the context belongs in the
+commit message where it's searchable via `git log` / `git blame`.
 
 ## Pull requests
 

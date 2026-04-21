@@ -99,7 +99,6 @@ public static class NonEmptyEnumerableExtensions
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        // LINQ's Concat can't take a span; materializing one would cost an extra copy.
         var buffer = new T[source.Count + items.Length];
         source.AsSpan().CopyTo(buffer);
         items.CopyTo(buffer.AsSpan(source.Count));
