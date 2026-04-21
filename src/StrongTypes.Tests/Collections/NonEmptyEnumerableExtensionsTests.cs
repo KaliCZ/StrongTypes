@@ -60,6 +60,25 @@ public class NonEmptyEnumerableExtensionsTests
     }
 
     [Property]
+    public void Select_InterfaceAndConcreteOverloads_Agree(NonEmptyEnumerable<int> list)
+    {
+        // Concrete overload vs. interface overload with a concrete backing — same result.
+        INonEmptyEnumerable<int> asInterface = list;
+        Assert.Equal(list.Select(i => i * 2), asInterface.Select(i => i * 2));
+        Assert.Equal(list.Select((x, i) => x + i), asInterface.Select((x, i) => x + i));
+    }
+
+    [Fact]
+    public void Select_InterfaceOverload_HandlesNonConcreteImplementation()
+    {
+        // A hand-rolled INonEmptyEnumerable<T> forces the interface overload's fallback
+        // path (no NonEmptyEnumerable<T> to dispatch to).
+        INonEmptyEnumerable<int> custom = new CustomNonEmpty<int>([10, 20, 30]);
+        Assert.Equal(new[] { 11, 21, 31 }, custom.Select(i => i + 1));
+        Assert.Equal(new[] { 10, 21, 32 }, custom.Select((x, i) => x + i));
+    }
+
+    [Property]
     public void Distinct_MatchesLinqDistinct(NonEmptyEnumerable<int> list)
     {
         Assert.Equal(Enumerable.Distinct(list), list.Distinct());
@@ -81,6 +100,20 @@ public class NonEmptyEnumerableExtensionsTests
         Assert.Equal(list.Count + 2, extended.Count);
         Assert.Equal(list, extended.Take(list.Count));
         Assert.Equal(new[] { 99, 100 }, extended.Skip(list.Count));
+    }
+
+    [Property]
+    public void Concat_Params_InterfaceAndConcreteOverloads_Agree(NonEmptyEnumerable<int> list)
+    {
+        INonEmptyEnumerable<int> asInterface = list;
+        Assert.Equal(list.Concat(99, 100), asInterface.Concat(99, 100));
+    }
+
+    [Fact]
+    public void Concat_Params_InterfaceOverload_HandlesNonConcreteImplementation()
+    {
+        INonEmptyEnumerable<int> custom = new CustomNonEmpty<int>([1, 2, 3]);
+        Assert.Equal(new[] { 1, 2, 3, 99, 100 }, custom.Concat(99, 100));
     }
 
     [Property]
@@ -127,5 +160,21 @@ public class NonEmptyEnumerableExtensionsTests
         var nested = list.Select(x => NonEmptyEnumerable.Create(x, x));
         var flat = nested.Flatten();
         Assert.Equal(list.Count * 2, flat.Count);
+    }
+
+    /// <summary>
+    /// Minimal <see cref="INonEmptyEnumerable{T}"/> implementation backed by an array —
+    /// lets the interface-overload tests force the fallback path that doesn't dispatch to
+    /// <see cref="NonEmptyEnumerable{T}"/>.
+    /// </summary>
+    private sealed class CustomNonEmpty<T>(T[] items) : INonEmptyEnumerable<T>
+    {
+        public T this[int index] => items[index];
+        public int Count => items.Length;
+        public T Head => items[0];
+        public System.Collections.Generic.IReadOnlyList<T> Tail => new ArraySegment<T>(items, 1, items.Length - 1);
+        public System.Collections.Generic.IEnumerator<T> GetEnumerator()
+            => ((System.Collections.Generic.IEnumerable<T>)items).GetEnumerator();
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

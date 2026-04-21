@@ -29,23 +29,49 @@ public static class NonEmptyEnumerableExtensions
     /// Maps every element and returns a <see cref="NonEmptyEnumerable{TResult}"/>.
     /// </summary>
     public static NonEmptyEnumerable<TResult> Select<T, TResult>(
-        this INonEmptyEnumerable<T> source,
+        this NonEmptyEnumerable<T> source,
         Func<T, TResult> selector)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(selector);
 
+        // Span indexer elides the interface virtual-dispatch and repeated bounds checks.
         var buffer = new TResult[source.Count];
-        if (source is NonEmptyEnumerable<T> concrete)
-        {
-            // Span indexer elides the interface virtual-dispatch and repeated bounds checks.
-            var src = concrete.AsSpan();
-            for (var i = 0; i < src.Length; i++) buffer[i] = selector(src[i]);
-        }
-        else
-        {
-            for (var i = 0; i < source.Count; i++) buffer[i] = selector(source[i]);
-        }
+        var src = source.AsSpan();
+        for (var i = 0; i < src.Length; i++) buffer[i] = selector(src[i]);
+        return NonEmptyEnumerable<TResult>.FromValidatedArray(buffer);
+    }
+
+    /// <summary>
+    /// Maps every element and returns a <see cref="NonEmptyEnumerable{TResult}"/>.
+    /// </summary>
+    public static NonEmptyEnumerable<TResult> Select<T, TResult>(
+        this INonEmptyEnumerable<T> source,
+        Func<T, TResult> selector)
+    {
+        // Route interface-typed callers with a concrete backing to the span fast path.
+        if (source is NonEmptyEnumerable<T> concrete) return concrete.Select(selector);
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
+        var buffer = new TResult[source.Count];
+        for (var i = 0; i < source.Count; i++) buffer[i] = selector(source[i]);
+        return NonEmptyEnumerable<TResult>.FromValidatedArray(buffer);
+    }
+
+    /// <summary>
+    /// Maps every element with its index and returns a <see cref="NonEmptyEnumerable{TResult}"/>.
+    /// </summary>
+    public static NonEmptyEnumerable<TResult> Select<T, TResult>(
+        this NonEmptyEnumerable<T> source,
+        Func<T, int, TResult> selector)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
+        var buffer = new TResult[source.Count];
+        var src = source.AsSpan();
+        for (var i = 0; i < src.Length; i++) buffer[i] = selector(src[i], i);
         return NonEmptyEnumerable<TResult>.FromValidatedArray(buffer);
     }
 
@@ -56,19 +82,12 @@ public static class NonEmptyEnumerableExtensions
         this INonEmptyEnumerable<T> source,
         Func<T, int, TResult> selector)
     {
+        if (source is NonEmptyEnumerable<T> concrete) return concrete.Select(selector);
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(selector);
 
         var buffer = new TResult[source.Count];
-        if (source is NonEmptyEnumerable<T> concrete)
-        {
-            var src = concrete.AsSpan();
-            for (var i = 0; i < src.Length; i++) buffer[i] = selector(src[i], i);
-        }
-        else
-        {
-            for (var i = 0; i < source.Count; i++) buffer[i] = selector(source[i], i);
-        }
+        for (var i = 0; i < source.Count; i++) buffer[i] = selector(source[i], i);
         return NonEmptyEnumerable<TResult>.FromValidatedArray(buffer);
     }
 
@@ -100,17 +119,28 @@ public static class NonEmptyEnumerableExtensions
     /// <summary>
     /// Concatenates additional items onto a non-empty sequence.
     /// </summary>
-    public static NonEmptyEnumerable<T> Concat<T>(this INonEmptyEnumerable<T> source, params ReadOnlySpan<T> items)
+    public static NonEmptyEnumerable<T> Concat<T>(this NonEmptyEnumerable<T> source, params ReadOnlySpan<T> items)
     {
         ArgumentNullException.ThrowIfNull(source);
 
         // Hand-rolled because LINQ's Concat doesn't accept a span — converting would
         // cost an extra array allocation to save nothing.
         var buffer = new T[source.Count + items.Length];
-        if (source is NonEmptyEnumerable<T> concrete)
-            concrete.AsSpan().CopyTo(buffer);
-        else
-            for (var i = 0; i < source.Count; i++) buffer[i] = source[i];
+        source.AsSpan().CopyTo(buffer);
+        items.CopyTo(buffer.AsSpan(source.Count));
+        return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
+    }
+
+    /// <summary>
+    /// Concatenates additional items onto a non-empty sequence.
+    /// </summary>
+    public static NonEmptyEnumerable<T> Concat<T>(this INonEmptyEnumerable<T> source, params ReadOnlySpan<T> items)
+    {
+        if (source is NonEmptyEnumerable<T> concrete) return concrete.Concat(items);
+        ArgumentNullException.ThrowIfNull(source);
+
+        var buffer = new T[source.Count + items.Length];
+        for (var i = 0; i < source.Count; i++) buffer[i] = source[i];
         items.CopyTo(buffer.AsSpan(source.Count));
         return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
     }
