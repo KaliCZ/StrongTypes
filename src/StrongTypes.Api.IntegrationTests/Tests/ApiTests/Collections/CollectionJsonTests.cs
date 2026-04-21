@@ -9,11 +9,11 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Tests.ApiTests.Collections;
 
 /// <summary>
-/// End-to-end tests for collection-shaped request/response DTOs. Every test POSTs
-/// a JSON body to an echo endpoint and inspects the response — this exercises
-/// <em>both</em> halves of the JSON pipeline (STJ deserialization + ASP.NET Core
-/// validation on the way in, and STJ serialization on the way out) against a DTO
-/// wired with a deliberately broad matrix of property shapes:
+/// End-to-end tests for the JSON wire contract of collection-shaped request/response
+/// DTOs. Every test POSTs a JSON body to an echo endpoint and inspects the response
+/// — this exercises <em>both</em> halves of the JSON pipeline (STJ deserialization
+/// + ASP.NET Core validation on the way in, and STJ serialization on the way out)
+/// against a DTO wired with a deliberately broad matrix of property shapes:
 /// <list type="bullet">
 ///   <item><description><c>IEnumerable&lt;T&gt;</c> — vanilla collection, no invariant.</description></item>
 ///   <item><description><c>IEnumerable&lt;T?&gt;</c> — vanilla collection, element may be null.</description></item>
@@ -25,7 +25,7 @@ namespace StrongTypes.Api.IntegrationTests.Tests.ApiTests.Collections;
 /// (<c>NonEmptyString</c>).
 /// </summary>
 [Collection(IntegrationTestCollection.Name)]
-public sealed class CollectionEchoTests(TestWebApplicationFactory factory) : IDisposable
+public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDisposable
 {
     private readonly HttpClient _client = factory.CreateClient();
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
