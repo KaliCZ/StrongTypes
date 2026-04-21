@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Threading.Tasks;
 using FsCheck.Xunit;
 using Xunit;
 
@@ -136,6 +137,138 @@ public class NullableMapExtensionsTests
     {
         string? value = "hi";
         string? result = value.Map(_ => (string?)null);
+        Assert.Null(result);
+    }
+
+    // ── MapAsync — struct → struct ────────────────────────────────────
+
+    [Fact]
+    public async Task MapAsync_StructToStruct_SomeAwaitsAndMaps()
+    {
+        int? value = 3;
+        int? result = await value.MapAsync(async x => { await Task.Yield(); return x + 1; });
+        Assert.Equal(4, result);
+    }
+
+    [Fact]
+    public async Task MapAsync_StructToStruct_NullReturnsNullWithoutInvoking()
+    {
+        int? value = null;
+        var invoked = false;
+        int? result = await value.MapAsync(async x =>
+        {
+            invoked = true;
+            await Task.Yield();
+            return x + 1;
+        });
+        Assert.Null(result);
+        Assert.False(invoked);
+    }
+
+    [Fact]
+    public async Task MapAsync_StructToStruct_MapperMayReturnNull()
+    {
+        int? value = 3;
+        int? result = await value.MapAsync(async _ => { await Task.Yield(); return (int?)null; });
+        Assert.Null(result);
+    }
+
+    // ── MapAsync — struct → class ─────────────────────────────────────
+
+    [Fact]
+    public async Task MapAsync_StructToClass_SomeAwaitsAndMaps()
+    {
+        int? value = 3;
+        string? result = await value.MapAsync(async x => { await Task.Yield(); return x.ToString(); });
+        Assert.Equal("3", result);
+    }
+
+    [Fact]
+    public async Task MapAsync_StructToClass_NullReturnsNullWithoutInvoking()
+    {
+        int? value = null;
+        var invoked = false;
+        string? result = await value.MapAsync(async x =>
+        {
+            invoked = true;
+            await Task.Yield();
+            return x.ToString();
+        });
+        Assert.Null(result);
+        Assert.False(invoked);
+    }
+
+    [Fact]
+    public async Task MapAsync_StructToClass_MapperMayReturnNull()
+    {
+        int? value = 3;
+        string? result = await value.MapAsync(async _ => { await Task.Yield(); return (string?)null; });
+        Assert.Null(result);
+    }
+
+    // ── MapAsync — class → struct ─────────────────────────────────────
+
+    [Fact]
+    public async Task MapAsync_ClassToStruct_SomeAwaitsAndMaps()
+    {
+        string? value = "abc";
+        int? result = await value.MapAsync(async x => { await Task.Yield(); return x.Length; });
+        Assert.Equal(3, result);
+    }
+
+    [Fact]
+    public async Task MapAsync_ClassToStruct_NullReturnsNullWithoutInvoking()
+    {
+        string? value = null;
+        var invoked = false;
+        int? result = await value.MapAsync(async x =>
+        {
+            invoked = true;
+            await Task.Yield();
+            return x.Length;
+        });
+        Assert.Null(result);
+        Assert.False(invoked);
+    }
+
+    [Fact]
+    public async Task MapAsync_ClassToStruct_MapperMayReturnNull()
+    {
+        string? value = "abc";
+        int? result = await value.MapAsync(async _ => { await Task.Yield(); return (int?)null; });
+        Assert.Null(result);
+    }
+
+    // ── MapAsync — class → class ──────────────────────────────────────
+
+    [Fact]
+    public async Task MapAsync_ClassToClass_SomeAwaitsAndMaps()
+    {
+        string? value = "hi";
+        string? result = await value.MapAsync(async x => { await Task.Yield(); return x + "!"; });
+        Assert.Equal("hi!", result);
+    }
+
+    [Fact]
+    public async Task MapAsync_ClassToClass_NullReturnsNullWithoutInvoking()
+    {
+        string? value = null;
+        var invoked = false;
+        string? result = await value.MapAsync(async x =>
+        {
+            invoked = true;
+            await Task.Yield();
+            return x + "!";
+        });
+        Assert.Null(result);
+        Assert.False(invoked);
+    }
+
+    [Fact]
+    public async Task MapAsync_ClassToClass_MapperMayReturnNull()
+    {
+        string? value = "hi";
+        string? result = await value.MapAsync(async _ => { await Task.Yield(); return (string?)null; });
         Assert.Null(result);
     }
 }
