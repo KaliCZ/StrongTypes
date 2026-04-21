@@ -28,15 +28,16 @@ public class TryExtensionsTests
         {
             Assert.Equal(1, calls);
             Assert.True(result.IsError);
-            var error = result.Error.Get();
-            Assert.Equal(ParseError.Missing, error);
-            Assert.NotEqual(default(ParseError), error);
+            Assert.True(result.Error.IsSome);
+            Assert.Equal(ParseError.Missing, result.Error.Value);
+            Assert.NotEqual(default(ParseError), result.Error.Value);
         }
         else
         {
             Assert.Equal(0, calls);
             Assert.True(result.IsSuccess);
-            Assert.Equal(value, result.Success.Get());
+            Assert.True(result.Success.IsSome);
+            Assert.Equal(value, result.Success.Value);
         }
     }
 
@@ -50,15 +51,16 @@ public class TryExtensionsTests
         {
             Assert.Equal(1, calls);
             Assert.True(result.IsError);
-            var error = result.Error.Get();
-            Assert.Equal(ParseError.Missing, error);
-            Assert.NotEqual(default(ParseError), error);
+            Assert.True(result.Error.IsSome);
+            Assert.Equal(ParseError.Missing, result.Error.Value);
+            Assert.NotEqual(default(ParseError), result.Error.Value);
         }
         else
         {
             Assert.Equal(0, calls);
             Assert.True(result.IsSuccess);
-            Assert.Equal(value.Value, result.Success.Get());
+            Assert.True(result.Success.IsSome);
+            Assert.Equal(value.Value, result.Success.Value);
         }
     }
 

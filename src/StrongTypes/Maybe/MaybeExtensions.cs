@@ -51,6 +51,23 @@ public static class MaybeExtensions
         where B : notnull
         => m.HasValue ? Maybe<B>.Some(await f(m.InternalValue)) : default;
 
+    public static async Task MatchAsync<A>(
+        this Maybe<A> m,
+        Func<A, Task> ifSome,
+        Func<Task>? ifNone = null)
+        where A : notnull
+    {
+        if (m.HasValue) await ifSome(m.InternalValue);
+        else if (ifNone is not null) await ifNone();
+    }
+
+    public static async Task<R> MatchAsync<A, R>(
+        this Maybe<A> m,
+        Func<A, Task<R>> ifSome,
+        Func<Task<R>> ifNone)
+        where A : notnull
+        => m.HasValue ? await ifSome(m.InternalValue) : await ifNone();
+
     public static async Task<Maybe<B>> FlatMapAsync<A, B>(this Maybe<A> m, Func<A, Task<Maybe<B>>> f)
         where A : notnull
         where B : notnull
@@ -78,21 +95,4 @@ public static class MaybeExtensions
         => m.FlatMap(a => f(a).Map(x => compose(a, x)));
 
     #endregion
-
-    public static async Task MatchAsync<A>(
-        this Maybe<A> m,
-        Func<A, Task> ifSome,
-        Func<Task>? ifNone = null)
-        where A : notnull
-    {
-        if (m.HasValue) await ifSome(m.InternalValue);
-        else if (ifNone is not null) await ifNone();
-    }
-
-    public static async Task<R> MatchAsync<A, R>(
-        this Maybe<A> m,
-        Func<A, Task<R>> ifSome,
-        Func<Task<R>> ifNone)
-        where A : notnull
-        => m.HasValue ? await ifSome(m.InternalValue) : await ifNone();
 }
