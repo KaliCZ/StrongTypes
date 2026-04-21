@@ -114,7 +114,7 @@ public class <#= CoproductImplType(i) #> : CoproductBase, <#= CoproductType(i) #
 <#    for (var j = 1; j <= i; j++) { #>
     public Maybe<<#= Type(j) #>> <#= GetOrdinal(j) #>
     {
-        get { return Is<#= GetOrdinal(j) #> ? Maybe<<#= Type(j) #>>.Some((<#= Type(j) #>)CoproductValue) : Maybe<<#= Type(j) #>>.Empty; }
+        get { return Is<#= GetOrdinal(j) #> ? Maybe<<#= Type(j) #>>.Some((<#= Type(j) #>)CoproductValue) : Maybe<<#= Type(j) #>>.None; }
     }
 <#    } #>
 
