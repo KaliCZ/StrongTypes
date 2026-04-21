@@ -104,14 +104,14 @@ jobs:
         header: coverage
         path: coverage-report/FileSummary.md
 
-    # Evaluation mode alongside the custom sticky comment above. No token
-    # needed for public repos; codecov-action uses OIDC. Requires the repo
-    # to be enabled at https://app.codecov.io/ — sign in with GitHub and
-    # add KaliCZ/StrongTypes.
+    # Evaluation mode alongside the custom sticky comment above. The repo
+    # must be enabled at https://app.codecov.io/ with CODECOV_TOKEN stored
+    # as a repo secret.
     - name: Upload coverage to Codecov
       if: ${{ !cancelled() && hashFiles('coverage-report/Cobertura.xml') != '' }}
       uses: codecov/codecov-action@v5
       with:
+        token: ${{ secrets.CODECOV_TOKEN }}
         files: coverage-report/Cobertura.xml
         fail_ci_if_error: false
 
