@@ -184,4 +184,70 @@ public class NonEmptyEnumerableJsonConverterTests
             NonEmptyString.Create("b"));
         Assert.Equal("""["a","b"]""", JsonSerializer.Serialize(list));
     }
+
+    // ── Interface (INonEmptyEnumerable<T>) ──────────────────────────────
+    // STJ matches converters by exact declared type, so the factory has to register against
+    // both the concrete class and the interface. Before interface support, deserializing
+    // INonEmptyEnumerable<int> threw NotSupportedException ("collection type is abstract").
+
+    [Fact]
+    public void Interface_Read_Array_DeserializesToNonEmpty()
+    {
+        var list = JsonSerializer.Deserialize<INonEmptyEnumerable<int>>("[1,2,3]");
+        Assert.NotNull(list);
+        Assert.IsType<NonEmptyEnumerable<int>>(list);
+        Assert.Equal(new[] { 1, 2, 3 }, list);
+    }
+
+    [Fact]
+    public void Interface_Read_Null_ReturnsNull()
+    {
+        var list = JsonSerializer.Deserialize<INonEmptyEnumerable<int>>("null");
+        Assert.Null(list);
+    }
+
+    [Fact]
+    public void Interface_Read_EmptyArray_Throws()
+    {
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<INonEmptyEnumerable<int>>("[]"));
+    }
+
+    [Fact]
+    public void Interface_Read_NonArray_Throws()
+    {
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<INonEmptyEnumerable<int>>("42"));
+    }
+
+    [Fact]
+    public void Interface_Read_OfNonEmptyString_UsesInnerConverter()
+    {
+        var list = JsonSerializer.Deserialize<INonEmptyEnumerable<NonEmptyString>>("""["a","b"]""");
+        Assert.NotNull(list);
+        Assert.Equal(new[] { "a", "b" }, list.Select(n => n.Value));
+    }
+
+    [Fact]
+    public void Interface_Write_EmitsJsonArray()
+    {
+        INonEmptyEnumerable<int> list = NonEmptyEnumerable.Create(1, 2, 3);
+        Assert.Equal("[1,2,3]", JsonSerializer.Serialize(list));
+    }
+
+    [Fact]
+    public void Interface_Write_Null_EmitsJsonNull()
+    {
+        Assert.Equal("null", JsonSerializer.Serialize<INonEmptyEnumerable<int>?>(null));
+    }
+
+    [Fact]
+    public void Interface_Roundtrip_PreservesElements()
+    {
+        INonEmptyEnumerable<int> list = NonEmptyEnumerable.Create(10, 20, 30);
+        var json = JsonSerializer.Serialize(list);
+        var back = JsonSerializer.Deserialize<INonEmptyEnumerable<int>>(json);
+        Assert.NotNull(back);
+        Assert.Equal(new[] { 10, 20, 30 }, back);
+    }
 }
