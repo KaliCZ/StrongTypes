@@ -30,11 +30,23 @@ public static class NonEmptyEnumerable
             T[] array => NonEmptyEnumerable<T>.FromValidatedArray([.. array]),
             List<T> { Count: 0 } => null,
             List<T> list => NonEmptyEnumerable<T>.FromValidatedArray(CollectionsMarshal.AsSpan(list).ToArray()),
+            // IReadOnlyList<T> catches list-shaped sources that don't implement ICollection<T>
+            // (so LINQ's ToArray can't pre-size them via its fast path). Copy by indexer into
+            // a pre-sized buffer instead of letting ToArray dynamically grow one.
+            IReadOnlyList<T> { Count: 0 } => null,
+            IReadOnlyList<T> list => IndexerCopy(list),
             IReadOnlyCollection<T> { Count: 0 } => null,
             // Fallback: materialize once via ToArray — the resulting array is already a
             // private copy, so hand it straight to the constructor without a second copy.
             _ => values.ToArray() is { Length: > 0 } arr ? NonEmptyEnumerable<T>.FromValidatedArray(arr) : null
         };
+
+    private static NonEmptyEnumerable<T> IndexerCopy<T>(IReadOnlyList<T> list)
+    {
+        var buffer = new T[list.Count];
+        for (var i = 0; i < buffer.Length; i++) buffer[i] = list[i];
+        return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
+    }
 
     /// <summary>
     /// Returns a <see cref="NonEmptyEnumerable{T}"/> wrapping <paramref name="values"/>.

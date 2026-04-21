@@ -82,6 +82,37 @@ public class NonEmptyEnumerableTests
         Assert.Same(original, wrapped);
     }
 
+    [Fact]
+    public void TryCreate_ReadOnlyListOnly_UsesIndexerCopy()
+    {
+        // Exercises the IReadOnlyList<T> branch — a source that implements IReadOnlyList<T>
+        // but not ICollection<T>, so LINQ's ToArray fast path wouldn't catch it.
+        var source = new ReadOnlyListOnly<int>([10, 20, 30]);
+        var list = NonEmptyEnumerable.TryCreateRange(source);
+        Assert.NotNull(list);
+        Assert.Equal(new[] { 10, 20, 30 }, list);
+    }
+
+    [Fact]
+    public void TryCreate_EmptyReadOnlyListOnly_ReturnsNull()
+    {
+        var empty = new ReadOnlyListOnly<int>([]);
+        Assert.Null(NonEmptyEnumerable.TryCreateRange(empty));
+    }
+
+    /// <summary>
+    /// Minimal <see cref="IReadOnlyList{T}"/> that deliberately does not implement
+    /// <see cref="ICollection{T}"/>, so the TryCreateRange indexer-copy branch is
+    /// the only path that can handle it without falling back to LINQ's dynamic-growth loop.
+    /// </summary>
+    private sealed class ReadOnlyListOnly<T>(T[] items) : IReadOnlyList<T>
+    {
+        public T this[int index] => items[index];
+        public int Count => items.Length;
+        public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)items).GetEnumerator();
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
     // ── Read-only list surface ──────────────────────────────────────────
 
     [Property]
