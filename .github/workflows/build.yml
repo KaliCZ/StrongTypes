@@ -61,14 +61,21 @@ jobs:
         reportgenerator \
           "-reports:**/TestResults/**/*.cobertura.xml" \
           "-targetdir:coverage-report" \
-          "-reporttypes:MarkdownSummaryGithub;HtmlInline;Cobertura" \
+          "-reporttypes:HtmlInline;Cobertura" \
           "-title:StrongTypes"
+
+    # ReportGenerator's markdown outputs group by class, which surfaces every
+    # compiler-generated closure type as its own row (e.g. `MaybeExtensions<A, B>`,
+    # `MaybeExtensions<A, R>`, …). Our own summary groups by source file instead.
+    - name: Render file-grouped coverage summary
+      if: ${{ !cancelled() && hashFiles('coverage-report/Cobertura.xml') != '' }}
+      run: python3 scripts/coverage-summary.py coverage-report/Cobertura.xml coverage-report/FileSummary.md
 
     - name: Append coverage summary to job summary
       if: ${{ !cancelled() }}
       run: |
-        if [ -f coverage-report/SummaryGithub.md ]; then
-          cat coverage-report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+        if [ -f coverage-report/FileSummary.md ]; then
+          cat coverage-report/FileSummary.md >> "$GITHUB_STEP_SUMMARY"
         else
           echo "No coverage summary to append."
         fi
@@ -77,11 +84,11 @@ jobs:
     # rather than piling up new ones, so authors get a single up-to-date view
     # of coverage without inbox noise.
     - name: Post coverage summary as PR comment
-      if: ${{ !cancelled() && github.event_name == 'pull_request' && hashFiles('coverage-report/SummaryGithub.md') != '' }}
+      if: ${{ !cancelled() && github.event_name == 'pull_request' && hashFiles('coverage-report/FileSummary.md') != '' }}
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         header: coverage
-        path: coverage-report/SummaryGithub.md
+        path: coverage-report/FileSummary.md
 
     - name: Upload coverage report
       if: ${{ !cancelled() && hashFiles('coverage-report/**') != '' }}
