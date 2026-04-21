@@ -2,14 +2,14 @@
 
 > **Work in Progress** - StrongTypes is the continuation of [FuncSharp](https://github.com/MewsSystems/FuncSharp), originally written by [Honza Siroky](https://github.com/siroky), bringing the concepts into modern C#. It targets .NET 10 with nullable reference types enabled and leans on modern language features to deliver extra types that enable a better developer experience.
 
-[![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build.yml?branch=main&label=build)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build.yml)
-[![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
-[![Kalicz.StrongTypes on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
-[![Kalicz.StrongTypes downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
-[![Kalicz.StrongTypes.EfCore on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes.EfCore?label=nuget%20%28EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)
-[![Kalicz.StrongTypes.EfCore downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.EfCore?label=downloads%20%28EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)
-[![Kalicz.StrongTypes.FsCheck on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes.FsCheck?label=nuget%20%28FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
-[![Kalicz.StrongTypes.FsCheck downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.FsCheck?label=downloads%20%28FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
+[![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build.yml?branch=main&label=build)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build.yml)<br>
+[![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)<br>
+[![Kalicz.StrongTypes on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)<br>
+[![Kalicz.StrongTypes downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)<br>
+[![Kalicz.StrongTypes.EfCore on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes.EfCore?label=nuget%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)<br>
+[![Kalicz.StrongTypes.EfCore downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.EfCore?label=downloads%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)<br>
+[![Kalicz.StrongTypes.FsCheck on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes.FsCheck?label=nuget%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)<br>
+[![Kalicz.StrongTypes.FsCheck downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.FsCheck?label=downloads%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
 
 StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused value types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive". Every type ships with `System.Text.Json` converters wired up out of the box, so validation runs at the wire boundary during deserialization without any extra setup.
 
