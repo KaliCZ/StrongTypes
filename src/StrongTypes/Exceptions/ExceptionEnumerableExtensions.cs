@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Linq;
 
 namespace StrongTypes;
 
@@ -18,7 +19,14 @@ public static class ExceptionEnumerableExtensions
     /// or <c>null</c> when the sequence is empty.
     /// </summary>
     public static Exception? Aggregate(this IEnumerable<Exception> source)
-        => Aggregate(source.AsReadOnlyList());
+        => source switch
+        {
+            IReadOnlyList<Exception> list => Aggregate(list),
+            ICollection<Exception> { Count: 0 } => null,
+            ICollection<Exception> { Count: 1 } c => c.First(),
+            ICollection<Exception> c => new AggregateException(c),
+            _ => Aggregate((IReadOnlyList<Exception>)source.ToArray())
+        };
 
     /// <summary>
     /// Returns a single <see cref="Exception"/> aggregating <paramref name="source"/>,
