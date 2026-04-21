@@ -70,51 +70,32 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
-    - name: Parse tag
-      id: parse
+    - name: Parse version from tag
+      id: version
       run: |
         TAG="${GITHUB_REF_NAME}"
-        case "$TAG" in
-          core-v*)
-            PROJECT=src/StrongTypes/StrongTypes.csproj
-            PACKAGE=Kalicz.StrongTypes
-            VERSION="${TAG#core-v}"
-            ;;
-          efcore-v*)
-            PROJECT=src/StrongTypes.EfCore/StrongTypes.EfCore.csproj
-            PACKAGE=Kalicz.StrongTypes.EfCore
-            VERSION="${TAG#efcore-v}"
-            ;;
-          *)
-            echo "Unknown tag prefix: $TAG. Expected one of: core-v*, efcore-v*." >&2
-            exit 1
-            ;;
-        esac
-        echo "project=$PROJECT" >> "$GITHUB_OUTPUT"
-        echo "package=$PACKAGE" >> "$GITHUB_OUTPUT"
-        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
 
     # GeneratePackageOnBuild=true in the csproj files means `dotnet build`
     # produces the nupkg as a side-effect; no separate `dotnet pack` step
-    # needed. The -p:Version cascades into referenced projects (e.g., EfCore's
-    # ProjectReference to core), so the resulting nuspec pins its core
-    # dependency to the same version as the tag.
+    # needed. -p:Version cascades into referenced projects (EfCore's
+    # ProjectReference to core), so EfCore's nuspec pins its core
+    # dependency to the same version.
     - name: Build and pack
       env:
         NOTES: ${{ github.event.release.body }}
-        PROJECT: ${{ steps.parse.outputs.project }}
-        VERSION: ${{ steps.parse.outputs.version }}
+        VERSION: ${{ steps.version.outputs.version }}
       run: |
-        dotnet build "$PROJECT" \
+        dotnet build ./src/StrongTypes/StrongTypes.csproj \
+          -c $config \
+          -p:Version="$VERSION" \
+          -p:PackageReleaseNotes="$NOTES" \
+          -p:PackageOutputPath="$PWD/out"
+        dotnet build ./src/StrongTypes.EfCore/StrongTypes.EfCore.csproj \
           -c $config \
           -p:Version="$VERSION" \
           -p:PackageReleaseNotes="$NOTES" \
           -p:PackageOutputPath="$PWD/out"
 
-    # Push only the target package; building a dependent (e.g., EfCore) also
-    # emits the referenced core nupkg into out/, which we must not republish.
-    - name: Publish package
-      env:
-        PACKAGE: ${{ steps.parse.outputs.package }}
-        VERSION: ${{ steps.parse.outputs.version }}
-      run: dotnet nuget push "./out/${PACKAGE}.${VERSION}.nupkg" --source nuget.org --api-key ${{ secrets.NUGET_TOKEN }}
+    - name: Publish packages
+      run: dotnet nuget push ./out/*.nupkg --source nuget.org --api-key ${{ secrets.NUGET_TOKEN }}
