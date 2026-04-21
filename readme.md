@@ -24,7 +24,6 @@ StrongTypes is not an attempt to build a full algebraic type system on top of C#
 - [Algebraic types](#algebraic-types)
   - [`Maybe<T>`](#maybet)
 - [Legacy types (to be replaced)](#legacy-types-to-be-replaced)
-  - [`Option<A>`](#optiona)
   - [`Try<A, E>`](#trya-e)
   - [`Coproduct`](#coproduct)
 
@@ -373,13 +372,6 @@ The `StrongTypes.Api` project in this repo uses exactly this pattern — see [`S
 
 > [!WARNING]
 > The types in this section are inherited from FuncSharp and will be removed in a future release. They are kept for now so existing code keeps compiling, but new code should avoid them.
-
-### `Option<A>`
-
-An `Option<A>` represents a value that may or may not be available. In modern C# with nullable reference types enabled, `T?` already covers this case at the language level, so `Option<A>` has become redundant.
-
-> [!WARNING]
-> `Option<A>` is superseded by [`Maybe<T>`](#maybet). New code should use `Maybe<T>`; `Option<A>` will be removed in a future release.
 
 ### `Try<A, E>`
 
