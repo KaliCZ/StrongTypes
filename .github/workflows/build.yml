@@ -91,4 +91,4 @@ jobs:
           -p:PackageReleaseNotes="$NOTES"
 
     - name: Publish packages
-      run: dotnet nuget push ./out/*.nupkg --skip-duplicate --source nuget.org --api-key ${{ secrets.NUGET_TOKEN }}
+      run: dotnet nuget push ./out/*.nupkg --source nuget.org --api-key ${{ secrets.NUGET_TOKEN }}
