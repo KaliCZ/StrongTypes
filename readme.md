@@ -153,7 +153,7 @@ Serializes as a JSON array and round-trips naturally. An empty JSON array is rej
 
 Nullable element slots (`NonEmptyEnumerable<T?>`) accept JSON nulls as legitimate values — `NonEmptyEnumerable<int?>` with `[1, null, 3]` round-trips faithfully. For non-nullable element slots the behavior matches plain C#: `System.Text.Json` rejects `null` for value-type elements (`int`, `Positive<int>`) on its own, but for reference-type elements (`string`, `NonEmptyString`) the nullable annotation erases at runtime, so the converter can't tell `NonEmptyEnumerable<T>` apart from `NonEmptyEnumerable<T?>` and `[null]` slips through.
 
-> ⚠ **Null elements in reference-typed collections** — a JSON array like `[null]` deserializes successfully into `NonEmptyEnumerable<string>` or `NonEmptyEnumerable<NonEmptyString>` even though the element type isn't annotated nullable. ASP.NET Core's nullable validation (automatic in .NET 10) runs per-property — it catches a null *property*, but doesn't recurse into a collection's element type, so the gap applies to ASP.NET Core payloads too. This is the same gap you'd see with a plain `List<string>`, not a StrongTypes-specific defect. If your API contract forbids null elements, validate them explicitly at the boundary.
+> ⚠ **Null elements in reference-typed collections** — a JSON array like `[null]` deserializes successfully into `NonEmptyEnumerable<string>` or `NonEmptyEnumerable<NonEmptyString>` even though the element type isn't annotated nullable. The same would happen with a plain `List<string>`.
 
 ### Interface typing
 
