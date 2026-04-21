@@ -8,39 +8,6 @@ namespace StrongTypes;
 public static partial class IEnumerableExtensions
 {
     [Pure]
-    public static bool IsMultiple<T>(this IReadOnlyCollection<T> collection)
-    {
-        return collection.Count > 1;
-    }
-
-    [Pure]
-    public static bool IsSingle<T>(this IReadOnlyCollection<T> collection)
-    {
-        return collection.Count == 1;
-    }
-
-    [Pure]
-    public static T Second<T>(this IReadOnlyList<T> list)
-    {
-        return list[1];
-    }
-
-    public static T Third<T>(this IReadOnlyList<T> list)
-    {
-        return list[2];
-    }
-
-    public static T Fourth<T>(this IReadOnlyList<T> list)
-    {
-        return list[3];
-    }
-
-    public static T Fifth<T>(this IReadOnlyList<T> list)
-    {
-        return list[4];
-    }
-
-    [Pure]
     public static T Last<T>(this IReadOnlyList<T> list)
     {
         return list.Count == 0
