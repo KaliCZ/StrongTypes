@@ -26,6 +26,7 @@ StrongTypes is not an attempt to build a full algebraic type system on top of C#
   - [Enums](#enums)
   - [Strings](#strings)
 - [Algebraic types](#algebraic-types)
+  - [Prefer nullables: `Map`, `MapTrue`, `MapFalse`](#prefer-nullables-map-maptrue-mapfalse)
   - [`Maybe<T>`](#maybet)
 - [Legacy types (to be replaced)](#legacy-types-to-be-replaced)
   - [`Try<A, E>`](#trya-e)
@@ -254,7 +255,44 @@ Roles          role = header.ToEnum<Roles>();   // throws ArgumentException
 
 StrongTypes is not an attempt to build a full algebraic type system. The purpose of these types is just to help where C# functionality is lacking, not to invent a framework and work fully in the algebraic types.
 
-However these types enable quite a few simplifications when it comes to parsing and validations.
+These types enable quite a few simplifications when it comes to parsing and validations. But I wouldn't recommend building the whole app by composing them. They're meant to bridge small local pieces of the application. Let's start by introducing some functionality so we don't need the algebraic types in the first place.
+
+### Prefer nullables: `Map`, `MapTrue`, `MapFalse`
+
+C# already lets you read through a null — `user?.Name?.Trim()` short-circuits without a single `if`. What was missing was *passing* a nullable into a function that expects the non-null form (e.g. a constructor). Historically that meant a ternary at every call, which is hard to chain and clutters up any expression it appears in:
+
+```csharp
+// Before — one ternary for every step
+MailAddress? email = text is null ? null : new MailAddress(text);
+```
+
+`Map` on `T?` and `MapTrue` / `MapFalse` on `bool` close those gaps with a single method call. The mapper only runs when the input is present (or the bool matches), and the `null` short-circuit is implicit:
+
+```csharp
+MailAddress? email = text.Map(t => new MailAddress(t));
+int? doubled = maybeInt.Map(x => x * 2);
+someResult? something = featureFlagEnabled.MapTrue(CallSomeService);
+// instead of
+someResult? something = null;
+if (featureFlagEnabled)
+    someResult = CallSomeService();
+```
+
+So *you don't need `Maybe<T>` just to compose an optional logic*. With `Map` in the toolbox, plain `T?` covers most cases. Save `Maybe<T>` for the cases where nullability can't express what you need — see the HTTP PATCH example below.
+
+And when you already have a `Maybe<T>` or some other wrapper, you can step back out into nullable-land by just using the inner value — `Maybe<T>.Value` is itself a `T?`, so the same `Map` works:
+
+```csharp
+Maybe<string> maybeName  = LookupName(id);
+string?       normalized = maybeName.Value.Map(n => n.Trim().ToUpperInvariant());
+// Or alternatively with standard C#
+string? normalized = maybeName.Value is {} n
+    ? n.Trim().ToUpperInvariant()
+    : null;
+```
+
+> [!WARNING]
+> `Map` / `MapTrue` / `MapFalse` are slower than the equivalent ternary. The mapper is passed as a delegate, so the JIT has to go through a function-pointer invocation instead of the direct branch it gets from a `?:`. Prefer the ternary on hot paths; reach for `Map` where readability matters more than the nanoseconds.
 
 ### `Maybe<T>`
 
