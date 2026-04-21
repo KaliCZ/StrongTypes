@@ -233,7 +233,7 @@ However these types enable quite a few simplifications when it comes to parsing 
 
 A value type that holds either a value of `T` (`Some`) or no value (`None`). Works for both reference and value types and integrates with collection expressions, LINQ, pattern matching, and `System.Text.Json`.
 
-The generic constraint is `where T : notnull` — `Maybe<int?>` and `Maybe<string?>` are deliberately disallowed, because permitting a nullable `T` would collapse the `None` and `Some(null)` cases and break the `is { } v` unwrap pattern.
+The generic constraint is `where T : notnull` — `Maybe<int?>` and `Maybe<string?>` are deliberately disallowed, because permitting a nullable `T` would collapse the `None` and `Some(null)` cases and break the `is { } v` unwrap pattern. (see more below)
 
 ```csharp
 Maybe<int>    some   = Maybe.Some(42);   // T inferred from the argument
@@ -311,20 +311,22 @@ var missing =
 
 `Maybe<T>` serializes via `System.Text.Json` as `{ "Value": x }` for `Some` and `{ "Value": null }` for `None`. Deserialization also accepts `{}` for `None`, so callers can omit the property entirely.
 
-#### Idiomatic usage: tri-state PATCH
+#### Idiomatic usage: HTTP PATCH with optional properties
 
 HTTP `PATCH` has a long-standing modelling problem for nullable fields: a request needs to distinguish three intents — *don't touch this field*, *clear this field to null*, and *set it to a new value*. A plain `T?` collapses the first two cases. `Maybe<T>?` keeps them apart, because `Maybe<T>` itself is a value, so wrapping it in `T?` adds a real third state:
 
-| JSON                     | Property value      | Intent                |
-| ------------------------ | ------------------- | --------------------- |
-| field omitted, or `null` | `null`              | leave field untouched |
-| `{}` or `{"Value":null}` | `Maybe<T>.None`     | clear field to `null` |
-| `{"Value":x}`            | `Maybe<T>.Some(x)`  | set field to `x`      |
+| JSON                     | Property value     | Intent                |
+| ------------------------ |--------------------| --------------------- |
+| field omitted, or `null` | `(Maybe<T>?)null`  | leave field untouched |
+| `{}` or `{"Value":null}` | `Maybe<T>.None`    | clear field to `null` |
+| `{"Value":x}`            | `Maybe<T>.Some(x)` | set field to `x`      |
 
 The request DTO and PATCH handler then read straight off pattern matching, with no out-of-band sentinel values:
 
 ```csharp
-public record PatchRequest(Maybe<string>? NullableValue);
+public record PatchRequest(
+    Maybe<string>? NullableValue
+);
 
 [HttpPatch("{id:guid}")]
 public async Task<IActionResult> Patch(Guid id, PatchRequest request)
@@ -332,10 +334,7 @@ public async Task<IActionResult> Patch(Guid id, PatchRequest request)
     var entity = await Db.FindAsync<MyEntity>(id);
     if (entity is null) return NotFound();
 
-    // request.NullableValue is null     → caller didn't send the field, skip.
-    // request.NullableValue is { } nv   → caller sent it; nv.Value is the new
-    //                                     string? (None unwraps to null, Some
-    //                                     unwraps to the inner string).
+    // null means the property was skipped. Empty means it's deliberaly set to null.
     if (request.NullableValue is { } nv)
         entity.NullableValue = nv.Value;
 
