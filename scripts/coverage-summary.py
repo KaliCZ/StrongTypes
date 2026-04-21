@@ -211,6 +211,10 @@ def render(cobertura_path: str, output_path: str, changed_files: set[str] | None
             f"lines {pct(p_lc, p_lt)} ({p_lc}/{p_lt}), "
             f"branches {pct(p_bc, p_bt)} ({p_bc}/{p_bt})</summary>"
         )
+        # Blank line lets markdown re-parse inside <details>; the <br> gives
+        # the collapsed-header row breathing room above the first folder.
+        out.append("")
+        out.append("<br>")
         out.append("")
 
         folders: dict[str, list[Row]] = defaultdict(list)
@@ -224,14 +228,17 @@ def render(cobertura_path: str, output_path: str, changed_files: set[str] | None
             f_bc = sum(r.branches_cov for r in f_rows)
             f_bt = sum(r.branches_total for r in f_rows)
             out.append(
-                f"**{folder}** — "
-                f"lines {pct(f_lc, f_lt)}, branches {pct(f_bc, f_bt)}"
+                f"<details open><summary><b>{folder}</b> — "
+                f"lines {pct(f_lc, f_lt)} ({f_lc}/{f_lt}), "
+                f"branches {pct(f_bc, f_bt)} ({f_bc}/{f_bt})</summary>"
             )
             out.append("")
             out.append("| File | Lines | Branches |")
             out.append("|---|---:|---:|")
             for r in f_rows:
                 out.append(_row_cells(r))
+            out.append("")
+            out.append("</details>")
             out.append("")
 
         out.append("</details>")
