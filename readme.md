@@ -109,19 +109,18 @@ If you want to store strong types directly on your EF Core entities, add the com
 
 ## `NonEmptyEnumerable<T>`
 
-A read-only list guaranteed to contain at least one element. The non-empty invariant is enforced at construction and travels through operations that preserve it (`Select`, `SelectMany`, `Distinct`, `Concat`), so `.Head` is always safe to dereference without a null or empty check.
+A read-only sequence guaranteed to contain at least one element. The non-empty invariant is enforced at construction and travels through operations that preserve it (`Select`, `SelectMany`, `Distinct`, `Concat`), so `.Head` is always defined — no empty-collection check needed (the value itself can still be `null` when `T` is nullable).
 
 ```csharp
-// Variadic — the params ReadOnlySpan<T> overload backs both this and collection expressions.
 var list = NonEmptyEnumerable.Create(1, 2, 3);
+```
 
-// Collection expression — [CollectionBuilder] targets the same method. Empty [] throws
-// at runtime, because the compiler can't reject it statically for a non-empty type.
+```csharp
 NonEmptyEnumerable<int> list = [1, 2, 3];
+```
 
-// Runtime sequence (List<T>, LINQ query, etc.) — named CreateRange, matching
-// ImmutableArray's convention, so it doesn't collide with Create(params ROS<T>) when
-// the argument is a T[] (which is implicitly convertible to both).
+```csharp
+// CreateRange for runtime sequences (List<T>, LINQ queries, …).
 NonEmptyEnumerable<int>  throws   = NonEmptyEnumerable.CreateRange(source);      // throws on empty/null
 NonEmptyEnumerable<int>? nullable = NonEmptyEnumerable.TryCreateRange(source);   // null on empty/null
 ```
@@ -136,7 +135,7 @@ NonEmptyEnumerable<int>  must  = values.ToNonEmpty();   // throws on empty/null
 Access the non-emptiness directly:
 
 ```csharp
-int                head  = list.Head;    // always safe, no null check
+int                head  = list.Head;    // always defined (may itself be null if T is nullable)
 IReadOnlyList<int> tail  = list.Tail;    // everything after Head
 int                count = list.Count;   // always >= 1
 ```
