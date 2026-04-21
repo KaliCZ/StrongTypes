@@ -63,10 +63,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ObjectExtensions_ValueMatch.cs</LastGenOutput>
     </None>
-    <None Update="Collections\IEnumerableExtensions_Tuples.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>IEnumerableExtensions_Tuples.cs</LastGenOutput>
-    </None>
     <None Update="Extensions\ActionExtensions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ActionExtensions.cs</LastGenOutput>
@@ -91,11 +87,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>ObjectExtensions_ValueMatch.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Collections\IEnumerableExtensions_Tuples.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>IEnumerableExtensions_Tuples.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>

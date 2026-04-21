@@ -7,7 +7,7 @@ namespace StrongTypes;
 /// <summary>
 /// Extensions that produce <see cref="Try{A, E}"/> values from other shapes.
 /// </summary>
-public static class TryExtensions
+public static partial class TryExtensions
 {
     /// <summary>
     /// Turns a nullable reference into a <see cref="Try{A, E}"/>: a non-null
