@@ -5,14 +5,13 @@ using System.Collections.Generic;
 namespace StrongTypes.Api.Models;
 
 /// <summary>
-/// Echo-endpoint request DTOs exercising every combination of
+/// Request DTOs for the JSON-contract integration tests, exercising every combination of
 /// {<see cref="IEnumerable{T}"/>, <see cref="NonEmptyEnumerable{T}"/>} ×
-/// {non-nullable element, nullable element}, for four representative
-/// element types (plain value, strong value, plain reference, strong
-/// reference). The integration-test suite posts JSON, the controller echoes
-/// the DTO back, and the tests assert both the deserialize and serialize
-/// halves of the round trip — plus how ASP.NET Core + STJ handle each kind
-/// of malformed input.
+/// {non-nullable element, nullable element}, for four representative element types
+/// (plain value, strong value, plain reference, strong reference). The integration-test
+/// suite posts JSON, the controller returns the DTO back, and the tests assert both
+/// the deserialize and serialize halves of the round trip — plus how ASP.NET Core +
+/// STJ handle each kind of malformed input.
 /// </summary>
 public sealed record IntCollectionsRequest(
     IEnumerable<int> Enumerable,

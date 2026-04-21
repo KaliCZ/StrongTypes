@@ -135,26 +135,52 @@ public class NonEmptyEnumerableJsonConverterTests
     }
 
     // ── Roundtrip ───────────────────────────────────────────────────────
+    //
+    // Round-trip tests are string-anchored: we start from a canonical JSON string,
+    // deserialize it, re-serialize, and assert the bytes are identical. That proves
+    // the wire contract survives a pass through the converter in both directions and
+    // that serialization is idempotent. Specific hand-written examples document the
+    // canonical form; the property tests derive the canonical form from a generated
+    // value and then assert the same string-stability property.
+
+    [Theory]
+    [InlineData("[1]")]
+    [InlineData("[1,2,3]")]
+    [InlineData("[-5,0,5]")]
+    public void Roundtrip_Int_FromCanonicalJson(string json)
+    {
+        var list = JsonSerializer.Deserialize<NonEmptyEnumerable<int>>(json);
+        Assert.Equal(json, JsonSerializer.Serialize(list));
+    }
+
+    [Theory]
+    [InlineData("""["a"]""")]
+    [InlineData("""["a","b","c"]""")]
+    public void Roundtrip_NonEmptyString_FromCanonicalJson(string json)
+    {
+        var list = JsonSerializer.Deserialize<NonEmptyEnumerable<NonEmptyString>>(json);
+        Assert.Equal(json, JsonSerializer.Serialize(list));
+    }
 
     [Property]
     public void Roundtrip_Int(NonEmptyEnumerable<int> list)
     {
-        var json = JsonSerializer.Serialize(list);
-        var back = JsonSerializer.Deserialize<NonEmptyEnumerable<int>>(json);
-        Assert.Equal(list, back);
+        // The generated value supplies a canonical JSON string via the first serialize;
+        // deserializing and re-serializing must reproduce that string unchanged.
+        var canonical = JsonSerializer.Serialize(list);
+        var back = JsonSerializer.Deserialize<NonEmptyEnumerable<int>>(canonical);
+        Assert.Equal(canonical, JsonSerializer.Serialize(back));
     }
 
     [Property]
     public void Roundtrip_NonEmptyString(NonEmptyString[] values)
     {
-        // Property generator may hand us an empty array — short-circuit since the
-        // property is only about the wire-level round-trip of a non-empty list.
         if (values.Length == 0) return;
 
         var list = NonEmptyEnumerable.Create(values);
-        var json = JsonSerializer.Serialize(list);
-        var back = JsonSerializer.Deserialize<NonEmptyEnumerable<NonEmptyString>>(json);
-        Assert.Equal(list, back);
+        var canonical = JsonSerializer.Serialize(list);
+        var back = JsonSerializer.Deserialize<NonEmptyEnumerable<NonEmptyString>>(canonical);
+        Assert.Equal(canonical, JsonSerializer.Serialize(back));
     }
 
     // ── Interop with strong-type converters ─────────────────────────────
@@ -242,12 +268,10 @@ public class NonEmptyEnumerableJsonConverterTests
     }
 
     [Fact]
-    public void Interface_Roundtrip_PreservesElements()
+    public void Interface_Roundtrip_FromCanonicalJson()
     {
-        INonEmptyEnumerable<int> list = NonEmptyEnumerable.Create(10, 20, 30);
-        var json = JsonSerializer.Serialize(list);
-        var back = JsonSerializer.Deserialize<INonEmptyEnumerable<int>>(json);
-        Assert.NotNull(back);
-        Assert.Equal(new[] { 10, 20, 30 }, back);
+        const string json = "[10,20,30]";
+        var list = JsonSerializer.Deserialize<INonEmptyEnumerable<int>>(json);
+        Assert.Equal(json, JsonSerializer.Serialize(list));
     }
 }
