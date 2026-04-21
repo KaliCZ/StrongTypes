@@ -1,4 +1,12 @@
 component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: auto
+        informational: true
+      - type: patch
+        target: auto
+        informational: true
   individual_components:
     - component_id: strongtypes
       name: StrongTypes
