@@ -48,7 +48,7 @@ Or via the `AsNonEmpty()` extension on any `string?`:
 NonEmptyString? name = userInput.AsNonEmpty();
 ```
 
-`NonEmptyString` exposes the common `string` surface (`Length`, `Contains`, `StartsWith`, `Substring`, `ToUpper`, etc.) and implicitly converts to `string`, so it drops into existing APIs without friction.
+`NonEmptyString` exposes the common `string` surface (`Length`, `Contains`, `StartsWith`, `Substring`, `ToUpper`, …) and implicitly converts to `string`.
 
 ### Numeric wrappers
 
@@ -88,7 +88,7 @@ Negative<int>    debt = balance.ToNegative();
 NonPositive<decimal> loss = pnl.ToNonPositive();
 ```
 
-The structs are laid out so that `default(Positive<T>)` still satisfies the invariant (e.g. `default(Positive<int>)` is `1`, not an invalid `0`), which means they survive zero-initialization without breaking their guarantee.
+`default(Positive<T>)` still satisfies the invariant (e.g. `default(Positive<int>)` is `1`, not an invalid `0`), so the structs survive zero-initialization without breaking their guarantee.
 
 ### What you get for free
 
@@ -101,7 +101,7 @@ Every strong type in this library implements the full set of equality and compar
 
 ### JSON serialization
 
-All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]`, so `JsonSerializer.Serialize(value)` and `JsonSerializer.Deserialize<T>(...)` just work — the wire format is the underlying primitive (`"hello"`, `42`, etc.), not an object with a `Value` property. Invalid input during deserialization surfaces as a `JsonException` at the boundary, which is where you want it.
+All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]`. The wire format is the underlying primitive (`"hello"`, `42`, …), not an object with a `Value` property, and invalid input surfaces as a `JsonException` at the boundary.
 
 ### EF Core persistence
 
@@ -121,7 +121,7 @@ NonEmptyEnumerable<int>  throws   = NonEmptyEnumerable.CreateRange(source);     
 NonEmptyEnumerable<int>? nullable = NonEmptyEnumerable.TryCreateRange(source);   // null on empty/null
 ```
 
-Or via extensions on any `IEnumerable<T>?`, matching the `AsX` / `ToX` convention used elsewhere in the library:
+Or via extensions on any `IEnumerable<T>?`:
 
 ```csharp
 NonEmptyEnumerable<int>? maybe = values.AsNonEmpty();   // null on empty/null
@@ -149,21 +149,17 @@ Operations whose result can be empty (`Where`, `Skip`, `GroupBy`, …) fall thro
 
 ### JSON
 
-Serializes as a JSON array and round-trips naturally. An empty JSON array is rejected with `JsonException` — the non-empty invariant travels through the wire as it does everywhere else.
-
-Nullable element slots (`NonEmptyEnumerable<T?>`) accept JSON nulls as legitimate values — `NonEmptyEnumerable<int?>` with `[1, null, 3]` round-trips faithfully. For non-nullable element slots the behavior matches plain C#: `System.Text.Json` rejects `null` for value-type elements (`int`, `Positive<int>`) on its own, but for reference-type elements (`string`, `NonEmptyString`) the nullable annotation erases at runtime, so the converter can't tell `NonEmptyEnumerable<T>` apart from `NonEmptyEnumerable<T?>` and `[null]` slips through.
+Serializes as a JSON array; an empty JSON array is rejected with `JsonException`. `NonEmptyEnumerable<T?>` accepts JSON nulls as legitimate elements — `[1, null, 3]` round-trips faithfully into `NonEmptyEnumerable<int?>`.
 
 > ⚠ **Null elements in reference-typed collections** — a JSON array like `[null]` deserializes successfully into `NonEmptyEnumerable<string>` or `NonEmptyEnumerable<NonEmptyString>` even though the element type isn't annotated nullable. The same would happen with a plain `List<string>`.
 
-### Interface typing
-
-`INonEmptyEnumerable<T>` (the covariant interface implemented by `NonEmptyEnumerable<T>`) round-trips through `System.Text.Json` the same way the concrete class does — the shared converter factory matches both. You can type properties, request DTOs, or fields as the interface when you want to accept other conforming implementations, and deserialization will still produce a concrete `NonEmptyEnumerable<T>` behind the interface reference.
+The same converter also serves `INonEmptyEnumerable<T>`, so properties typed as the interface round-trip the same way — deserialization still produces a concrete `NonEmptyEnumerable<T>` behind the interface reference.
 
 ## Parsing helpers
 
 ### Enums
 
-Extension members on any `enum` type give you cached metadata, factories, and flag helpers without the ceremony of calling `Enum.Parse`, `Enum.GetValues`, or writing your own caches. Everything hangs off the enum type itself, so you call `Roles.Parse(...)` rather than `EnumExtensions.Parse<Roles>(...)`.
+Extension members on any `enum` type give you cached metadata, factories, and flag helpers. Everything hangs off the enum type itself, so you call `Roles.Parse(...)` rather than `EnumExtensions.Parse<Roles>(...)`.
 
 ```csharp
 [Flags]
@@ -189,7 +185,7 @@ Roles? r5 = Roles.TryCreate(userInput);
 IReadOnlyList<Roles> every = Roles.AllValues;  // [None, Reader, Writer, Admin]
 ```
 
-For `[Flags]` enums you also get bit-level helpers. `AllFlagValues` gives you just the single-bit members (so `None = 0` and composite values are excluded), and `AllFlagsCombined` OR-s them together — perfect for seeding an "everything on" value at runtime without having to remember to update a `SuperAdmin = Reader | Writer | Admin` literal every time you add a flag.
+For `[Flags]` enums you also get bit-level helpers. `AllFlagValues` lists just the single-bit members (excluding `None = 0` and composites), `AllFlagsCombined` OR-s them into an "everything on" value so you don't have to maintain a `SuperAdmin = Reader | Writer | Admin` literal.
 
 ```csharp
 IReadOnlyList<Roles> flags = Roles.AllFlagValues;     // [Reader, Writer, Admin]
@@ -225,7 +221,7 @@ int            id   = queryParam.ToInt();       // throws FormatException / Over
 Roles          role = header.ToEnum<Roles>();   // throws ArgumentException
 ```
 
-`AsEnum<TEnum>` / `ToEnum<TEnum>` are plain extensions on `string?` that sidestep a C# limitation: because `Roles.TryParse(...)` is an extension member on the enum type, it can't be called through an open generic `TEnum` parameter. These close the gap so you can parse an enum whose type you only know generically.
+`AsEnum<TEnum>` / `ToEnum<TEnum>` work through an open generic `TEnum` parameter, which the `Roles.TryParse(...)` extension member can't — use them when you only know the enum type generically.
 
 ## Algebraic types
 
@@ -233,9 +229,9 @@ Types that model *one of several possibilities* at the value level — present o
 
 ### `Maybe<T>`
 
-A value type that holds either a value of `T` (`Some`) or no value (`None`). It works for both reference and value types, plays well with collection expressions, LINQ, pattern matching, and `System.Text.Json`, and avoids the double-wrap awkwardness that `Nullable<T>` has when `T` is itself nullable.
+A value type that holds either a value of `T` (`Some`) or no value (`None`). Works for both reference and value types and integrates with collection expressions, LINQ, pattern matching, and `System.Text.Json`.
 
-`Maybe<int?>` and `Maybe<string?>` are deliberately not allowed — the generic constraint is `where T : notnull`. Permitting a nullable `T` would collapse the `None` and `Some(null)` cases and break the `is { } v` pattern that powers idiomatic unwrapping (see more below).
+The generic constraint is `where T : notnull` — `Maybe<int?>` and `Maybe<string?>` are deliberately disallowed, because permitting a nullable `T` would collapse the `None` and `Some(null)` cases and break the `is { } v` unwrap pattern.
 
 ```csharp
 Maybe<int>    some   = Maybe.Some(42);   // T inferred from the argument
@@ -245,7 +241,7 @@ Maybe<int>    a      = nullableInt.ToMaybe();      // Some(x) when HasValue, Non
 Maybe<string> b      = nullableString.ToMaybe();   // Some(x) when not null, None otherwise
 ```
 
-The implicit conversions from `T` and from the untyped `Maybe.None` make collection expressions read naturally — no need to spell out `Maybe<int>.Some(...)` for every element, and the `..` spread operator splices existing sequences in alongside literal `Maybe.None` markers:
+The implicit conversions from `T` and from the untyped `Maybe.None` let collection expressions mix plain values, `None` markers, and spread sequences without spelling out `Maybe<int>.Some(...)` on every element:
 
 ```csharp
 int[] middle = [4, 2, 3];
@@ -255,7 +251,7 @@ IEnumerable<int> values = xs.Values();   // [4, 2, 3, 4]
 
 #### Unwrapping
 
-The idiomatic "has value" check uses the `is { } v` pattern on the `Value` extension property. `Value` is provided through C# 14 extension members split between struct- and class-constrained branches, so it returns `Nullable<T>` for value types and `T?` for reference types — and the pattern unwraps to the underlying `T` directly:
+The idiomatic "has value" check uses the `is { } v` pattern on the `Value` extension property — `Value` returns `Nullable<T>` for value types and `T?` for reference types, and the pattern unwraps to the underlying `T` directly:
 
 ```csharp
 if (maybe.Value is { } v)
