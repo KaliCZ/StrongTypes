@@ -30,7 +30,7 @@ public class ExceptionEnumerableExtensionsTests
         var nonEmpty = array.AsNonEmpty()!;
 
         Assert.Same(singleException, enumerable.Aggregate());
-        Assert.Same(singleException, array.Cast<Exception>().Aggregate());
+        Assert.Same(singleException, array.Aggregate());
         Assert.IsType<CustomException>(nonEmpty.Aggregate());
     }
 
@@ -42,7 +42,7 @@ public class ExceptionEnumerableExtensionsTests
         INonEmptyEnumerable<Exception> nonEmpty = array.AsNonEmpty()!;
 
         Assert.Equal(array, ((AggregateException)enumerable.Aggregate()!).InnerExceptions);
-        Assert.Equal(array, ((AggregateException)array.Cast<Exception>().Aggregate()!).InnerExceptions);
+        Assert.Equal(array, ((AggregateException)array.Aggregate()!).InnerExceptions);
         Assert.Equal(array, ((AggregateException)nonEmpty.Aggregate()).InnerExceptions);
     }
 }
