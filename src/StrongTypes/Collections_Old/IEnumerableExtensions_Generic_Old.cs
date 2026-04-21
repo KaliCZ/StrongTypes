@@ -83,10 +83,4 @@ public static partial class IEnumerableExtensions
     {
         return Enumerable.Except(e, excludedItems);
     }
-
-    public static IEnumerable<T> Except<T>(this IEnumerable<T> e, params IEnumerable<T>[] others)
-    {
-        return Enumerable.Except(e, others.Flatten());
-    }
-
 }
