@@ -36,9 +36,6 @@ public sealed class NonEmptyEnumerableJsonConverterFactory : JsonConverterFactor
             return (JsonConverter)Activator.CreateInstance(converterType)!;
         });
 
-    // Shared read/write logic — both converters deserialize into the concrete type and
-    // serialize by iterating a non-empty sequence. Kept here so Inner/InterfaceInner
-    // stay tiny type-only adapters.
     private static NonEmptyEnumerable<T>? ReadCore<T>(ref Utf8JsonReader reader, JsonSerializerOptions options)
     {
         if (reader.TokenType == JsonTokenType.Null) return null;
@@ -56,12 +53,6 @@ public sealed class NonEmptyEnumerableJsonConverterFactory : JsonConverterFactor
                 return NonEmptyEnumerable<T>.FromValidatedArray(CollectionsMarshal.AsSpan(buffer).ToArray());
             }
 
-            // The non-empty invariant is about Count, not element content — mirrors the
-            // factories, which also let nulls through. If T itself forbids null (e.g. a
-            // struct, or a strong type whose own converter rejects null) that check lives
-            // on T's converter and will raise before we see it here. For reference T and
-            // Nullable<T>, the caller asked for a collection whose element type admits
-            // null, so admitting it is the correct behavior.
             var element = JsonSerializer.Deserialize<T>(ref reader, options);
             buffer.Add(element!);
         }
@@ -78,7 +69,6 @@ public sealed class NonEmptyEnumerableJsonConverterFactory : JsonConverterFactor
         }
 
         writer.WriteStartArray();
-        // Prefer the concrete type's span when we have it — avoids interface dispatch per element.
         if (value is NonEmptyEnumerable<T> concrete)
             foreach (var element in concrete.AsSpan())
                 JsonSerializer.Serialize(writer, element, options);
@@ -90,8 +80,6 @@ public sealed class NonEmptyEnumerableJsonConverterFactory : JsonConverterFactor
 
     private sealed class Inner<T> : JsonConverter<NonEmptyEnumerable<T>?>
     {
-        // HandleNull so STJ hands us the JSON null token instead of short-circuiting
-        // to default(NonEmptyEnumerable<T>?) — we want "null in, null out" semantics.
         public override bool HandleNull => true;
 
         public override NonEmptyEnumerable<T>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

@@ -30,14 +30,9 @@ public static class NonEmptyEnumerable
             T[] array => NonEmptyEnumerable<T>.FromValidatedArray([.. array]),
             List<T> { Count: 0 } => null,
             List<T> list => NonEmptyEnumerable<T>.FromValidatedArray(CollectionsMarshal.AsSpan(list).ToArray()),
-            // IReadOnlyList<T> catches list-shaped sources that don't implement ICollection<T>
-            // (so LINQ's ToArray can't pre-size them via its fast path). Copy by indexer into
-            // a pre-sized buffer instead of letting ToArray dynamically grow one.
             IReadOnlyList<T> { Count: 0 } => null,
             IReadOnlyList<T> list => IndexerCopy(list),
             IReadOnlyCollection<T> { Count: 0 } => null,
-            // Fallback: materialize once via ToArray — the resulting array is already a
-            // private copy, so hand it straight to the constructor without a second copy.
             _ => values.ToArray() is { Length: > 0 } arr ? NonEmptyEnumerable<T>.FromValidatedArray(arr) : null
         };
 
@@ -82,9 +77,6 @@ public static class NonEmptyEnumerable
 [DebuggerDisplay("Count = {Count}")]
 public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<T>, IEquatable<NonEmptyEnumerable<T>>
 {
-    // Owned buffer — factories copy inputs, callers can never mutate us from outside.
-    // Internal so the debug view can render it under RootHidden without a fresh copy;
-    // external callers still go through the read-only surface.
     internal readonly T[] _values;
 
     private NonEmptyEnumerable(T[] values)
@@ -92,24 +84,15 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
         _values = values;
     }
 
-    /// <summary>
-    /// Wraps a caller-owned array that is already known to be non-empty and safe from
-    /// outside mutation. Internal so every public entry point goes through a validated
-    /// factory that does its own copy.
-    /// </summary>
     internal static NonEmptyEnumerable<T> FromValidatedArray(T[] values)
     {
         ArgumentNullException.ThrowIfNull(values);
-        // Release-safe — the non-empty invariant is load-bearing and all callers live in
-        // this assembly; a silent bug would surface as IndexOutOfRangeException on Head.
         ArgumentOutOfRangeException.ThrowIfZero(values.Length);
         return new NonEmptyEnumerable<T>(values);
     }
 
     public T Head => _values[0];
 
-    // `field` caches the first materialization — prior implementation allocated a fresh
-    // ArraySegment (boxed via IReadOnlyList) on every access.
     public IReadOnlyList<T> Tail => field ??= new ArraySegment<T>(_values, 1, _values.Length - 1);
 
     public int Count => _values.Length;
@@ -117,7 +100,7 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
     public T this[int index] => _values[index];
 
     /// <summary>
-    /// Returns an allocation-free struct enumerator for <c>foreach</c> on the concrete type.
+    /// Returns an allocation-free struct enumerator for <c>foreach</c>.
     /// </summary>
     public Enumerator GetEnumerator() => new(_values);
 
@@ -132,11 +115,6 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
     public ReadOnlySpan<T> AsSpan() => _values;
 
     #region ICollection<T> — read-only implementation
-
-    // ICollection<T> is implemented primarily so LINQ and System.Text.Json recognize this
-    // type for their fast paths (ToArray pre-sizing, Concat count-aware copying, etc.).
-    // The mutator methods are standard read-only throws — same pattern ReadOnlyCollection<T>,
-    // ImmutableArray<T>, and Array use for this purpose.
 
     bool ICollection<T>.IsReadOnly => true;
 
@@ -175,9 +153,6 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
     #region Equality
 
     public bool Equals(NonEmptyEnumerable<T>? other)
-        // No explicit comparer — the parameterless SequenceEqual takes the SIMD-vectorized path
-        // for bitwise-equatable T (primitives, enums, Guid, unmanaged structs) and still falls
-        // back to EqualityComparer<T>.Default.Equals for everything else.
         => other is not null && _values.AsSpan().SequenceEqual(other._values);
 
     public override bool Equals(object? obj) => obj is NonEmptyEnumerable<T> other && Equals(other);
