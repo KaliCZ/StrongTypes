@@ -91,4 +91,41 @@ public class NonEmptyEnumerableExtensionsTests
         Assert.Equal(list.Count + 3, extended.Count);
         Assert.Equal(extra, extended.Skip(list.Count));
     }
+
+    [Fact]
+    public void Flatten_SingleInner_ReturnsInner()
+    {
+        var nested = NonEmptyEnumerable.Create(NonEmptyEnumerable.Create(1, 2, 3));
+        var flat = nested.Flatten();
+        Assert.Equal(new[] { 1, 2, 3 }, flat);
+    }
+
+    [Fact]
+    public void Flatten_MultipleInners_ConcatsInOrder()
+    {
+        var nested = NonEmptyEnumerable.Create(
+            NonEmptyEnumerable.Create(1, 2),
+            NonEmptyEnumerable.Create(3),
+            NonEmptyEnumerable.Create(4, 5, 6));
+        var flat = nested.Flatten();
+        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6 }, flat);
+    }
+
+    [Property]
+    public void Flatten_MatchesLinqSelectMany(NonEmptyEnumerable<int> list)
+    {
+        // Wrap every element in a singleton non-empty list and flatten back —
+        // should round-trip the original elements exactly.
+        var nested = list.Select(x => NonEmptyEnumerable.Create(x));
+        Assert.Equal(list, nested.Flatten());
+    }
+
+    [Property]
+    public void Flatten_LengthEqualsSumOfInnerCounts(NonEmptyEnumerable<int> list)
+    {
+        // Duplicate each element into a pair — flat length is exactly 2x input length.
+        var nested = list.Select(x => NonEmptyEnumerable.Create(x, x));
+        var flat = nested.Flatten();
+        Assert.Equal(list.Count * 2, flat.Count);
+    }
 }

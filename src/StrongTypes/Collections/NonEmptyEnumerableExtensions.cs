@@ -134,4 +134,19 @@ public static class NonEmptyEnumerableExtensions
 
         return NonEmptyEnumerable<T>.FromValidatedArray(Enumerable.Concat(source, items).ToArray());
     }
+
+    /// <summary>
+    /// Flattens a non-empty sequence of non-empty sequences into a single non-empty sequence.
+    /// The first inner sequence has at least one element, so the result is non-empty.
+    /// </summary>
+    /// <remarks>
+    /// Delegates to <see cref="SelectMany{T, TResult}(INonEmptyEnumerable{T}, Func{T, INonEmptyEnumerable{TResult}})"/>
+    /// with an identity selector. LINQ's <c>SelectManyIterator.ToArray</c> pre-sizes via
+    /// <c>IIListProvider</c> and copies each inner <see cref="ICollection{T}"/> through its
+    /// <c>CopyTo</c> — which on <see cref="NonEmptyEnumerable{T}"/> is a single
+    /// <c>Buffer.Memmove</c> — so the BCL path is fast enough that a hand-rolled loop
+    /// wouldn't pay for the extra code.
+    /// </remarks>
+    public static NonEmptyEnumerable<T> Flatten<T>(this INonEmptyEnumerable<INonEmptyEnumerable<T>> source)
+        => source.SelectMany(inner => inner);
 }
