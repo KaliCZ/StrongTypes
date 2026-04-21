@@ -59,35 +59,13 @@
   </Target>
   <ItemGroup>
     <None Include="..\..\readme.md" Pack="true" PackagePath="\" />
-    <None Update="Collections\IEnumerableExtensions_Coproducts.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>IEnumerableExtensions_Coproducts.cs</LastGenOutput>
-    </None>
     <None Update="Extensions\ObjectExtensions_ValueMatch.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ObjectExtensions_ValueMatch.cs</LastGenOutput>
     </None>
-    <None Update="Extensions\ObjectExtensions_Coproduct.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ObjectExtensions_Coproduct.cs</LastGenOutput>
-    </None>
     <None Update="Collections\IEnumerableExtensions_Tuples.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>IEnumerableExtensions_Tuples.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Coproduct\Coproduct.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Coproduct.cs</LastGenOutput>
-    </None>
-    <None Update="Coproduct\ICoproduct.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ICoproduct.cs</LastGenOutput>
-    </None>
-    <None Update="Coproduct\ICoproductExtensions.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ICoproductExtensions.cs</LastGenOutput>
     </None>
     <None Update="Extensions\ActionExtensions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -99,21 +77,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Coproduct\Coproduct.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Coproduct.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Coproduct\ICoproduct.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ICoproduct.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Coproduct\ICoproductExtensions.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ICoproductExtensions.tt</DependentUpon>
-    </Compile>
     <Compile Update="Extensions\ActionExtensions.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -124,20 +87,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Try.tt</DependentUpon>
     </Compile>
-    <Compile Update="Collections\IEnumerableExtensions_Coproducts.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>IEnumerableExtensions_Coproducts.tt</DependentUpon>
-    </Compile>
     <Compile Update="Extensions\ObjectExtensions_ValueMatch.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>ObjectExtensions_ValueMatch.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Extensions\ObjectExtensions_Coproduct.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ObjectExtensions_Coproduct.tt</DependentUpon>
     </Compile>
     <Compile Update="Collections\IEnumerableExtensions_Tuples.cs">
       <DesignTime>True</DesignTime>

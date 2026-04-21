@@ -30,7 +30,6 @@ StrongTypes is not an attempt to build a full algebraic type system on top of C#
   - [`Maybe<T>`](#maybet)
 - [Legacy types (to be replaced)](#legacy-types-to-be-replaced)
   - [`Try<A, E>`](#trya-e)
-  - [`Coproduct`](#coproduct)
 
 ## Helpful Types
 
@@ -424,12 +423,8 @@ var missing =
 > [!WARNING]
 > `Try<A, E>` will be replaced by a modern `Result<T, E>` implementation that supports pattern matching.
 
-### `Coproduct`
-
-`Coproduct[N]<T1, …, TN>` is a sum type (tagged union) representing exactly one of N alternatives. Useful for modelling "either-or" outcomes where an abstract class hierarchy would be too loose.
-
-> [!WARNING]
-> `Coproduct` will be replaced by a more modern `OneOf` implementation with first-class pattern matching support.
+> [!NOTE]
+> **No discriminated union / `OneOf` type is included.** I didn't see a reason to reinvent one — [`mcintyre321/OneOf`](https://github.com/mcintyre321/OneOf) or [`domn1995/dunet`](https://github.com/domn1995/dunet) already cover this space well, and .NET 11 is expected to introduce native discriminated unions at the language level. If you have a concrete use case where neither option works for you, please [open a GitHub issue](https://github.com/KaliCZ/StrongTypes/issues) and let me know.
 
 ## Acknowledgments
 

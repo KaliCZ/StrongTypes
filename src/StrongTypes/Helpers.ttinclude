@@ -94,16 +94,6 @@
         return NaryType("Product", i, name, except);
     }
 
-    public string CoproductType(int i, string name = "T")
-    {
-        return NaryType("ICoproduct", i, name);
-    }
-
-    public string CoproductImplType(int i, string name = "T")
-    {
-        return NaryType("Coproduct", i, name);
-    }
-
     public string DataCubeType(int i, int? except = null, string positionType = "P", string valueType = "TValue")
     {
         return "DataCube" + (i - (except.HasValue ? 1 : 0)) + "<" + Types(i, name: positionType, except: except, appendSeparator: true) + valueType + ">";
