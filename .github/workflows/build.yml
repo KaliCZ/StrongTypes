@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   build:
@@ -37,8 +38,58 @@ jobs:
     - name: Build
       run: dotnet build --configuration $config --no-restore
 
+    # `-- --coverage ...` forwards flags to Microsoft.Testing.Platform's code
+    # coverage extension; each test project emits a Cobertura XML under its
+    # own TestResults/ folder, which ReportGenerator merges in the next step.
     - name: Test
-      run: dotnet test --no-restore --no-build --configuration $config
+      run: >-
+        dotnet test --no-restore --no-build --configuration $config
+        --
+        --coverage
+        --coverage-output-format cobertura
+
+    - name: Generate coverage report
+      if: ${{ !cancelled() }}
+      run: |
+        shopt -s globstar nullglob
+        files=(**/TestResults/**/*.cobertura.xml)
+        if [ ${#files[@]} -eq 0 ]; then
+          echo "No coverage files found; skipping report generation."
+          exit 0
+        fi
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator \
+          "-reports:**/TestResults/**/*.cobertura.xml" \
+          "-targetdir:coverage-report" \
+          "-reporttypes:MarkdownSummaryGithub;HtmlInline;Cobertura" \
+          "-title:StrongTypes"
+
+    - name: Append coverage summary to job summary
+      if: ${{ !cancelled() }}
+      run: |
+        if [ -f coverage-report/SummaryGithub.md ]; then
+          cat coverage-report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+        else
+          echo "No coverage summary to append."
+        fi
+
+    # Sticky comment: subsequent runs on the same PR edit the existing comment
+    # rather than piling up new ones, so authors get a single up-to-date view
+    # of coverage without inbox noise.
+    - name: Post coverage summary as PR comment
+      if: ${{ !cancelled() && github.event_name == 'pull_request' && hashFiles('coverage-report/SummaryGithub.md') != '' }}
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: coverage
+        path: coverage-report/SummaryGithub.md
+
+    - name: Upload coverage report
+      if: ${{ !cancelled() && hashFiles('coverage-report/**') != '' }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage-report
+        path: coverage-report
+        retention-days: 14
 
     - name: Upload test logs
       if: always()
