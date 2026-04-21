@@ -11,16 +11,35 @@ namespace StrongTypes.Tests;
 public class NonEmptyEnumerableExtensionsTests
 {
     [Fact]
-    public void TryAsNonEmpty_EmptyReturnsNull()
+    public void AsNonEmpty_EmptyReturnsNull()
     {
-        Assert.Null(Array.Empty<int>().TryAsNonEmpty());
+        Assert.Null(Array.Empty<int>().AsNonEmpty());
     }
 
     [Fact]
-    public void TryAsNonEmpty_PopulatedReturnsWrapped()
+    public void AsNonEmpty_PopulatedReturnsWrapped()
     {
-        var list = new[] { 1, 2, 3 }.TryAsNonEmpty();
+        var list = new[] { 1, 2, 3 }.AsNonEmpty();
         Assert.NotNull(list);
+        Assert.Equal(new[] { 1, 2, 3 }, list);
+    }
+
+    [Fact]
+    public void ToNonEmpty_EmptyThrows()
+    {
+        Assert.Throws<ArgumentException>(() => Array.Empty<int>().ToNonEmpty());
+    }
+
+    [Fact]
+    public void ToNonEmpty_NullThrows()
+    {
+        Assert.Throws<ArgumentException>(() => ((int[]?)null).ToNonEmpty());
+    }
+
+    [Fact]
+    public void ToNonEmpty_PopulatedReturnsWrapped()
+    {
+        var list = new[] { 1, 2, 3 }.ToNonEmpty();
         Assert.Equal(new[] { 1, 2, 3 }, list);
     }
 
@@ -51,7 +70,7 @@ public class NonEmptyEnumerableExtensionsTests
     {
         // Each input element produces a 2-element non-empty sequence — the
         // flattened length is therefore exactly 2 * input length.
-        var flattened = list.SelectMany(i => NonEmptyEnumerable.Of(i, i));
+        var flattened = list.SelectMany(i => NonEmptyEnumerable.Create(i, i));
         Assert.Equal(list.Count * 2, flattened.Count);
     }
 

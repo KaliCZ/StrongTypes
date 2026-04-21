@@ -15,10 +15,18 @@ public static class NonEmptyEnumerableExtensions
 {
     /// <summary>
     /// Wraps <paramref name="source"/> as a <see cref="NonEmptyEnumerable{T}"/>, or returns
-    /// <c>null</c> when the sequence is null or empty.
+    /// <c>null</c> when the sequence is null or empty. The <c>As</c> prefix follows the
+    /// codebase convention — <c>AsX</c> is the nullable form, <c>ToX</c> throws on failure.
     /// </summary>
-    public static NonEmptyEnumerable<T>? TryAsNonEmpty<T>(this IEnumerable<T>? source)
+    public static NonEmptyEnumerable<T>? AsNonEmpty<T>(this IEnumerable<T>? source)
         => NonEmptyEnumerable.TryCreateRange(source);
+
+    /// <summary>
+    /// Wraps <paramref name="source"/> as a <see cref="NonEmptyEnumerable{T}"/>, throwing
+    /// <see cref="ArgumentException"/> when the sequence is null or empty.
+    /// </summary>
+    public static NonEmptyEnumerable<T> ToNonEmpty<T>(this IEnumerable<T>? source)
+        => NonEmptyEnumerable.CreateRange(source);
 
     /// <summary>
     /// Maps every element and returns a <see cref="NonEmptyEnumerable{TResult}"/> — the

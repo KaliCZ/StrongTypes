@@ -12,28 +12,30 @@ namespace StrongTypes.Tests;
 [Properties(Arbitrary = new[] { typeof(Generators) })]
 public class NonEmptyEnumerableTests
 {
-    // ── Factory: head-plus-tail shapes ──────────────────────────────────
+    // ── Factory: variadic / collection-expression shape ─────────────────
 
     [Fact]
-    public void Of_HeadOnly()
+    public void Create_SingleElement()
     {
-        var list = NonEmptyEnumerable.Of("solo");
+        var list = NonEmptyEnumerable.Create("solo");
         Assert.Single(list);
         Assert.Equal("solo", list.Head);
     }
 
     [Fact]
-    public void Of_HeadPlusParamsTail()
+    public void Create_MultipleElements()
     {
-        var list = NonEmptyEnumerable.Of(1, 2, 3, 4);
+        var list = NonEmptyEnumerable.Create(1, 2, 3, 4);
         Assert.Equal(new[] { 1, 2, 3, 4 }, list);
     }
 
     [Fact]
-    public void Of_HeadPlusIEnumerableTail()
+    public void CreateRange_HeadPrependedToTailSequence()
     {
+        // Covers the former Of(T head, IEnumerable<T> tail) shape. Collection expressions
+        // also express this naturally: `NonEmptyEnumerable<int> list = [1, .. tail];`.
         IEnumerable<int> tail = Enumerable.Range(2, 3);
-        var list = NonEmptyEnumerable.Of(1, tail);
+        var list = NonEmptyEnumerable.CreateRange(tail.Prepend(1));
         Assert.Equal(new[] { 1, 2, 3, 4 }, list);
     }
 
@@ -75,7 +77,7 @@ public class NonEmptyEnumerableTests
     public void TryCreate_ReturnsSameInstance_ForExistingNonEmpty()
     {
         // Idempotent wrap: re-wrapping an already non-empty enumerable doesn't allocate.
-        var original = NonEmptyEnumerable.Of(1, 2, 3);
+        var original = NonEmptyEnumerable.Create(1, 2, 3);
         var wrapped = NonEmptyEnumerable.TryCreateRange((IEnumerable<int>)original);
         Assert.Same(original, wrapped);
     }
@@ -123,8 +125,8 @@ public class NonEmptyEnumerableTests
     [Fact]
     public void Equality_DifferentContent()
     {
-        Assert.NotEqual(NonEmptyEnumerable.Of(1, 2), NonEmptyEnumerable.Of(1, 3));
-        Assert.NotEqual(NonEmptyEnumerable.Of(1, 2), NonEmptyEnumerable.Of(1, 2, 3));
+        Assert.NotEqual(NonEmptyEnumerable.Create(1, 2), NonEmptyEnumerable.Create(1, 3));
+        Assert.NotEqual(NonEmptyEnumerable.Create(1, 2), NonEmptyEnumerable.Create(1, 2, 3));
     }
 
     // ── Collection expression syntax ────────────────────────────────────
@@ -182,14 +184,14 @@ public class NonEmptyEnumerableTests
     [Fact]
     public void ICollection_IsReadOnly()
     {
-        var list = NonEmptyEnumerable.Of(1, 2, 3);
+        var list = NonEmptyEnumerable.Create(1, 2, 3);
         Assert.True(((ICollection<int>)list).IsReadOnly);
     }
 
     [Fact]
     public void ICollection_Mutators_Throw()
     {
-        var list = (ICollection<int>)NonEmptyEnumerable.Of(1, 2, 3);
+        var list = (ICollection<int>)NonEmptyEnumerable.Create(1, 2, 3);
         Assert.Throws<NotSupportedException>(() => list.Add(4));
         Assert.Throws<NotSupportedException>(() => list.Clear());
         Assert.Throws<NotSupportedException>(() => list.Remove(1));
@@ -198,7 +200,7 @@ public class NonEmptyEnumerableTests
     [Fact]
     public void ICollection_Contains()
     {
-        var list = NonEmptyEnumerable.Of(1, 2, 3);
+        var list = NonEmptyEnumerable.Create(1, 2, 3);
         Assert.Contains(2, list);
         Assert.DoesNotContain(99, list);
     }
@@ -206,7 +208,7 @@ public class NonEmptyEnumerableTests
     [Fact]
     public void ICollection_CopyTo_WritesAtOffset()
     {
-        var list = NonEmptyEnumerable.Of(1, 2, 3);
+        var list = NonEmptyEnumerable.Create(1, 2, 3);
         var target = new int[5];
         list.CopyTo(target, 1);
         Assert.Equal(new[] { 0, 1, 2, 3, 0 }, target);

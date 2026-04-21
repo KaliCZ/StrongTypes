@@ -37,6 +37,6 @@ public static partial class IEnumerableExtensions
 
     public static INonEmptyEnumerable<T> Concat<T>(this T e, params IEnumerable<T>[] others)
     {
-        return NonEmptyEnumerable.Of(e, others.Flatten().ToArray());
+        return NonEmptyEnumerable.CreateRange(others.Flatten().Prepend(e));
     }
 }

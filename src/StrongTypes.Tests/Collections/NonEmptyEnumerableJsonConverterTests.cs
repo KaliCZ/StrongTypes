@@ -124,7 +124,7 @@ public class NonEmptyEnumerableJsonConverterTests
     [Fact]
     public void Write_EmitsJsonArray()
     {
-        var list = NonEmptyEnumerable.Of(1, 2, 3);
+        var list = NonEmptyEnumerable.Create(1, 2, 3);
         Assert.Equal("[1,2,3]", JsonSerializer.Serialize(list));
     }
 
@@ -179,7 +179,7 @@ public class NonEmptyEnumerableJsonConverterTests
     [Fact]
     public void Write_OfNonEmptyString_UsesInnerConverter()
     {
-        var list = NonEmptyEnumerable.Of(
+        var list = NonEmptyEnumerable.Create(
             NonEmptyString.Create("a"),
             NonEmptyString.Create("b"));
         Assert.Equal("""["a","b"]""", JsonSerializer.Serialize(list));
