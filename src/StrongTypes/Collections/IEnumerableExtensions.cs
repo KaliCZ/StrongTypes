@@ -25,4 +25,7 @@ public static partial class IEnumerableExtensions
     {
         return source.Where(item => item is not null)!;
     }
+
+    public static IEnumerable<T> Except<T>(this IEnumerable<T> source, params T[] excludedItems)
+        => Enumerable.Except(source, excludedItems);
 }
