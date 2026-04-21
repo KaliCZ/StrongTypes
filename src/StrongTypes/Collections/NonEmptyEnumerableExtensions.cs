@@ -117,34 +117,8 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
     }
 
-    public static NonEmptyEnumerable<T> Concat<T>(this NonEmptyEnumerable<T> source, IEnumerable<T> items)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(items);
-
-        if (items.TryGetNonEnumeratedCount(out var itemsCount))
-        {
-            var buffer = new T[source.Count + itemsCount];
-            source.AsSpan().CopyTo(buffer);
-            if (items is ICollection<T> coll)
-                coll.CopyTo(buffer, source.Count);
-            else
-            {
-                var i = source.Count;
-                foreach (var item in items) buffer[i++] = item;
-            }
-            return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
-        }
-
-        var list = new List<T>(source.Count);
-        list.AddRange(source.AsSpan());
-        list.AddRange(items);
-        return NonEmptyEnumerable<T>.FromValidatedArray([.. list]);
-    }
-
     public static NonEmptyEnumerable<T> Concat<T>(this INonEmptyEnumerable<T> source, IEnumerable<T> items)
     {
-        if (source is NonEmptyEnumerable<T> concrete) return concrete.Concat(items);
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(items);
 
@@ -271,11 +245,17 @@ public static class NonEmptyEnumerableExtensions
         return Enumerable.Aggregate(source, func);
     }
 
+    /// <summary>
+    /// Returns the arithmetic mean of the sequence. Throws <see cref="OverflowException"/>
+    /// when the running sum overflows <typeparamref name="T"/> (e.g. a
+    /// <c>NonEmptyEnumerable&lt;int&gt;</c> whose values sum past <see cref="int.MaxValue"/>) —
+    /// widen <typeparamref name="T"/> or project to a wider type first.
+    /// </summary>
     public static T Average<T>(this INonEmptyEnumerable<T> source) where T : INumber<T>
     {
         ArgumentNullException.ThrowIfNull(source);
         var sum = T.Zero;
-        foreach (var value in source) sum += value;
+        foreach (var value in source) sum = checked(sum + value);
         return sum / T.CreateChecked(source.Count);
     }
 }

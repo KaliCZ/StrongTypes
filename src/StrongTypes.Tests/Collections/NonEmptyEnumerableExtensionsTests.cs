@@ -243,24 +243,7 @@ public class NonEmptyEnumerableExtensionsTests
         Assert.Equal(head, result.Head);
     }
 
-    // ── Concat(IEnumerable<T>) concrete overload ────────────────────────
-
-    [Property]
-    public void Concat_Enumerable_Concrete_AppendsItems(NonEmptyEnumerable<int> list)
-    {
-        IEnumerable<int> extra = new[] { 100, 200, 300 };
-        var extended = list.Concat(extra);
-        Assert.Equal(list.Count + 3, extended.Count);
-        Assert.Equal(list, extended.Take(list.Count));
-        Assert.Equal(extra, extended.Skip(list.Count));
-    }
-
-    [Property]
-    public void Concat_Enumerable_InterfaceAndConcrete_Agree(NonEmptyEnumerable<int> list, int[] items)
-    {
-        INonEmptyEnumerable<int> asInterface = list;
-        Assert.Equal(list.Concat((IEnumerable<int>)items), asInterface.Concat((IEnumerable<int>)items));
-    }
+    // ── Concat(IEnumerable<T>) ──────────────────────────────────────────
 
     [Fact]
     public void Concat_Enumerable_LazyIterator_Works()
@@ -403,8 +386,29 @@ public class NonEmptyEnumerableExtensionsTests
     {
         // Non-empty guarantees Average is defined — implementation uses INumber<T>
         // which does integer division for int, so compare against the same arithmetic.
-        var expected = list.AsEnumerable().Sum() / list.Count;
-        Assert.Equal(expected, list.Average());
+        // Skip inputs whose sum would overflow int: Average throws checked, but the
+        // comparison baseline `Sum()` also throws, so the generator already shrinks
+        // around that. Use long for the expected to sidestep it cleanly.
+        long expected = 0;
+        foreach (var v in list) expected += v;
+        if (expected > int.MaxValue || expected < int.MinValue) return;
+        Assert.Equal((int)(expected / list.Count), list.Average());
+    }
+
+    [Fact]
+    public void Average_Overflow_Throws()
+    {
+        var list = NonEmptyEnumerable.Create(int.MaxValue, int.MaxValue);
+        Assert.Throws<OverflowException>(() => list.Average());
+    }
+
+    [Fact]
+    public void Average_Double_DoesNotThrow()
+    {
+        // Floating-point has no overflow concept — `checked` is a no-op, Infinity
+        // is the defined answer. Guard the behavior so nobody "fixes" this later.
+        var list = NonEmptyEnumerable.Create(double.MaxValue, double.MaxValue);
+        Assert.Equal(double.PositiveInfinity, list.Average());
     }
 
     [Fact]
