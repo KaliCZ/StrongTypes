@@ -1,4 +1,4 @@
-name: ci
+name: build
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     # Debug keeps per-statement sequence points so coverage lines up 1:1
