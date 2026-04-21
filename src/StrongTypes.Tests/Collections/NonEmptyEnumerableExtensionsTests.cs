@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FsCheck.Xunit;
 using Xunit;
@@ -160,6 +161,88 @@ public class NonEmptyEnumerableExtensionsTests
         var nested = list.Select(x => NonEmptyEnumerable.Create(x, x));
         var flat = nested.Flatten();
         Assert.Equal(list.Count * 2, flat.Count);
+    }
+
+    // ── Concat(this T head, params IEnumerable<T>[] tails) ──────────────
+
+    [Fact]
+    public void Concat_HeadOnly_ReturnsSingleton()
+    {
+        var result = 42.Concat();
+        Assert.Single(result);
+        Assert.Equal(42, result.Head);
+    }
+
+    [Fact]
+    public void Concat_SingleArrayTail_PrependsHead()
+    {
+        var result = 1.Concat(new[] { 2, 3, 4 });
+        Assert.Equal(new[] { 1, 2, 3, 4 }, result);
+    }
+
+    [Fact]
+    public void Concat_MultipleTails_ConcatsInOrder()
+    {
+        var result = 1.Concat(new[] { 2, 3 }, new[] { 4, 5, 6 }, new[] { 7 });
+        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7 }, result);
+    }
+
+    [Fact]
+    public void Concat_NullTails_AreSkipped()
+    {
+        // Null tails are treated as empty — useful when callers assemble tails from
+        // optional sources (e.g. `maybeExtras?.ToArray()` that may be null).
+        var result = 1.Concat(null!, new[] { 2, 3 }, null!, new[] { 4 });
+        Assert.Equal(new[] { 1, 2, 3, 4 }, result);
+    }
+
+    [Fact]
+    public void Concat_MixedTailTypes_AllDispatchCorrectly()
+    {
+        // Each tail here lands in a different CopyInto branch — validates the
+        // polymorphic dispatch end-to-end.
+        IEnumerable<int> array = new[] { 2, 3 };
+        IEnumerable<int> list = new List<int> { 4, 5 };
+        IEnumerable<int> nonEmpty = NonEmptyEnumerable.Create(6, 7);
+        IEnumerable<int> readOnlyColl = new HashSet<int> { 8, 9 }; // ICollection<T> but not List<T>/array
+
+        var result = 1.Concat(array, list, nonEmpty, readOnlyColl);
+        // HashSet ordering isn't guaranteed — sort the last-two slice for a stable assert.
+        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7 }, result.Take(7));
+        Assert.Equal(new[] { 8, 9 }, result.Skip(7).OrderBy(x => x));
+    }
+
+    [Fact]
+    public void Concat_LazyIteratorTail_ForcesListFallback()
+    {
+        // Enumerable.Where doesn't implement TryGetNonEnumeratedCount, so the fast path
+        // bails and we fall through to the List<T> growth path.
+        IEnumerable<int> lazy = new[] { 10, 20, 30 }.Where(_ => true);
+        var result = 1.Concat(lazy);
+        Assert.Equal(new[] { 1, 10, 20, 30 }, result);
+    }
+
+    [Fact]
+    public void Concat_NullTailsArray_Throws()
+    {
+        IEnumerable<int>[] tails = null!;
+        Assert.Throws<ArgumentNullException>(() => 1.Concat(tails));
+    }
+
+    [Property]
+    public void Concat_MatchesPrependFollowedByLinqConcat(int head, int[] tail1, int[] tail2)
+    {
+        var expected = new[] { head }.Concat(tail1).Concat(tail2);
+        var actual = head.Concat(tail1, tail2);
+        Assert.Equal(expected, actual);
+    }
+
+    [Property]
+    public void Concat_ResultCountEqualsOnePlusSumOfTails(int head, int[] tail1, int[] tail2, int[] tail3)
+    {
+        var result = head.Concat(tail1, tail2, tail3);
+        Assert.Equal(1 + tail1.Length + tail2.Length + tail3.Length, result.Count);
+        Assert.Equal(head, result.Head);
     }
 
     /// <summary>
