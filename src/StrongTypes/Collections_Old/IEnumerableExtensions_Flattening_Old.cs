@@ -14,9 +14,6 @@ public static partial class IEnumerableExtensions
         return e.SelectMany(i => i);
     }
 
-    [Pure]
-    public static INonEmptyEnumerable<T> Flatten<T>(this INonEmptyEnumerable<INonEmptyEnumerable<T>> source)
-    {
-        return NonEmptyEnumerable<T>.Create(source.Head.Head, source.Head.Tail.Concat(source.Tail.Flatten()).ToArray());
-    }
+    // The INonEmptyEnumerable<INonEmptyEnumerable<T>> overload has been migrated to
+    // StrongTypes.NonEmptyEnumerableExtensions.Flatten.
 }

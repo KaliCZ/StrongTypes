@@ -32,7 +32,7 @@ public class ExceptionsAggregateTests
 
         IEnumerable<Exception> enumerable = Enumerable.Repeat(singleException, 1);
         CustomException[] array = new []{singleException};
-        var nonEmpty = array.AsNonEmpty().Get();
+        var nonEmpty = array.ToNonEmpty();
 
         OptionAssert.NonEmptyWithValue(singleException, enumerable.Aggregate());
         OptionAssert.NonEmptyWithValue(singleException, array.Aggregate());
@@ -44,7 +44,7 @@ public class ExceptionsAggregateTests
     {
         IEnumerable<Exception> enumerable = Enumerable.Range(0, 10).Select(i => new CustomException($"{i} potatoes"));
         CustomException[] array = Enumerable.Range(0, 10).Select(i => new CustomException($"{i} potatoes")).ToArray();
-        INonEmptyEnumerable<Exception> nonEmpty = array.AsNonEmpty().Get();
+        var nonEmpty = array.ToNonEmpty();
 
         // ReSharper disable PossibleMultipleEnumeration
         OptionAssert.NonEmpty(enumerable.Aggregate());

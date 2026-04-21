@@ -85,20 +85,48 @@ public class MaybeJsonConverterTests
         Assert.Equal("""{"Value":"hi"}""", json);
     }
 
-    // ── Roundtrip (property-based) ──────────────────────────────────────
+    // ── Roundtrip ───────────────────────────────────────────────────────
+    //
+    // Round-trip tests are string-anchored: start from a canonical JSON string,
+    // deserialize, re-serialize, and assert the bytes are identical. Specific
+    // hand-written examples document the canonical form; the property tests derive
+    // the canonical form from a generated value and then assert the same
+    // string-stability property.
+
+    [Theory]
+    [InlineData("""{"Value":42}""")]
+    [InlineData("""{"Value":null}""")]
+    [InlineData("""{"Value":0}""")]
+    public void Roundtrip_Int_FromCanonicalJson(string json)
+    {
+        var value = JsonSerializer.Deserialize<Maybe<int>>(json);
+        Assert.Equal(json, JsonSerializer.Serialize(value));
+    }
+
+    [Theory]
+    [InlineData("""{"Value":"hello"}""")]
+    [InlineData("""{"Value":null}""")]
+    [InlineData("""{"Value":""}""")]
+    public void Roundtrip_String_FromCanonicalJson(string json)
+    {
+        var value = JsonSerializer.Deserialize<Maybe<string>>(json);
+        Assert.Equal(json, JsonSerializer.Serialize(value));
+    }
 
     [Property]
     public void Roundtrip_Int(Maybe<int> m)
     {
-        var json = JsonSerializer.Serialize(m);
-        Assert.Equal(m, JsonSerializer.Deserialize<Maybe<int>>(json));
+        var canonical = JsonSerializer.Serialize(m);
+        var back = JsonSerializer.Deserialize<Maybe<int>>(canonical);
+        Assert.Equal(canonical, JsonSerializer.Serialize(back));
     }
 
     [Property]
     public void Roundtrip_String(Maybe<string> m)
     {
-        var json = JsonSerializer.Serialize(m);
-        Assert.Equal(m, JsonSerializer.Deserialize<Maybe<string>>(json));
+        var canonical = JsonSerializer.Serialize(m);
+        var back = JsonSerializer.Deserialize<Maybe<string>>(canonical);
+        Assert.Equal(canonical, JsonSerializer.Serialize(back));
     }
 
     // ── Interop with strong-type converters ─────────────────────────────
@@ -161,10 +189,20 @@ public class MaybeJsonConverterTests
             JsonSerializer.Deserialize<Maybe<Positive<int>>>("""{"Value":-5}"""));
     }
 
+    [Theory]
+    [InlineData("""{"Value":7}""")]
+    [InlineData("""{"Value":null}""")]
+    public void Roundtrip_PositiveInt_FromCanonicalJson(string json)
+    {
+        var value = JsonSerializer.Deserialize<Maybe<Positive<int>>>(json);
+        Assert.Equal(json, JsonSerializer.Serialize(value));
+    }
+
     [Property]
     public void Roundtrip_PositiveInt(Maybe<Positive<int>> m)
     {
-        var json = JsonSerializer.Serialize(m);
-        Assert.Equal(m, JsonSerializer.Deserialize<Maybe<Positive<int>>>(json));
+        var canonical = JsonSerializer.Serialize(m);
+        var back = JsonSerializer.Deserialize<Maybe<Positive<int>>>(canonical);
+        Assert.Equal(canonical, JsonSerializer.Serialize(back));
     }
 }

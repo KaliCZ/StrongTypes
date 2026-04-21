@@ -8,29 +8,10 @@ namespace StrongTypes;
 
 public static partial class IEnumerableExtensions
 {
-    /// <summary>
-    /// Returns a nonEmptyEnumerable in case the collection is nonempty. Otherwise returns empty option.
-    /// </summary>
-    [DebuggerStepThrough]
-    public static Option<INonEmptyEnumerable<T>> AsNonEmpty<T>(this IEnumerable<T> source)
-    {
-        return source switch
-        {
-            null => Option.Empty<INonEmptyEnumerable<T>>(),
-            INonEmptyEnumerable<T> list => Option.Valued(list),
-            _ => NonEmptyEnumerable.Create(source)
-        };
-    }
-
-    /// <summary>
-    /// Returns the same enumerable that was provided because it's already not empty. It's just wrapped in an option.
-    /// </summary>
-    /// <exception cref="System.ArgumentNullException">The <paramref name="source"/> parameter is null.</exception>
-    [Obsolete("This is already a NonEmptyEnumerable.", error: true)]
-    public static Option<INonEmptyEnumerable<T>> AsNonEmpty<T>(this INonEmptyEnumerable<T> source)
-    {
-        return Option.Valued(source);
-    }
+    // The Option<T>-returning AsNonEmpty overloads that used to live here have been
+    // superseded by NonEmptyEnumerableExtensions.AsNonEmpty / ToNonEmpty in the new
+    // Collections/ slice. The remaining NonEmpty / IsEmpty checks are unrelated to
+    // NonEmptyEnumerable<T> and stay here until their own migration pass.
 
     /// <summary>
     /// Returns true if the collection contains at least one element.
