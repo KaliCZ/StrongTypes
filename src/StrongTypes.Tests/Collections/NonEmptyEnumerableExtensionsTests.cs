@@ -45,6 +45,23 @@ public class NonEmptyEnumerableExtensionsTests
     }
 
     [Property]
+    public void ToEnumerable_WrapsSingleValue(int value)
+    {
+        var list = value.ToEnumerable();
+        Assert.Single(list);
+        Assert.Equal(value, list[0]);
+    }
+
+    [Fact]
+    public void ToEnumerable_NullReferenceWrapped()
+    {
+        string? value = null;
+        var list = value.ToEnumerable();
+        Assert.Single(list);
+        Assert.Null(list[0]);
+    }
+
+    [Property]
     public void Select_PreservesLengthAndMapsElements(NonEmptyEnumerable<int> list)
     {
         var mapped = list.Select(i => i * 2);
@@ -121,6 +138,7 @@ public class NonEmptyEnumerableExtensionsTests
     public void Concat_Enumerable_AppendsItems(NonEmptyEnumerable<int> list)
     {
         var extra = Enumerable.Range(100, 3);
+        // ReSharper disable PossibleMultipleEnumeration
         var extended = list.Concat(extra);
         Assert.Equal(list.Count + 3, extended.Count);
         Assert.Equal(extra, extended.Skip(list.Count));

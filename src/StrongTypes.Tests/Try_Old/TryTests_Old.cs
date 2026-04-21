@@ -15,11 +15,11 @@ public class TryTests
     [Fact]
     public void Catch()
     {
-        var s = Try.Catch<int, Exception>(_ => 42);
+        var s = Try.Catch<int, Exception>(() => 42);
         Assert.True(s.IsSuccess);
         Assert.Equal(42, s.Get());
 
-        var e = Try.Catch<int, Exception>(_ => throw Exception);
+        var e = Try.Catch<int, Exception>(() => throw Exception);
         Assert.True(e.IsError);
         Assert.Throws<NotImplementedException>(() => e.Get());
     }
@@ -53,17 +53,17 @@ public class TryTests
     [Fact]
     public void Where()
     {
-        Assert.Equal(42, Success.Where(i => i > 40, _ => Exception).Get());
-        Assert.Throws<NotImplementedException>(() => Success.Where(i => i > 50, _ => Exception).Get());
-        Assert.Throws<NotImplementedException>(() => Error.Where(i => i > 40, _ => Exception).Get());
-        Assert.Throws<NotImplementedException>(() => Error.Where(i => i > 50, _ => Exception).Get());
+        Assert.Equal(42, Success.Where(i => i > 40, () => Exception).Get());
+        Assert.Throws<NotImplementedException>(() => Success.Where(i => i > 50, () => Exception).Get());
+        Assert.Throws<NotImplementedException>(() => Error.Where(i => i > 40, () => Exception).Get());
+        Assert.Throws<NotImplementedException>(() => Error.Where(i => i > 50, () => Exception).Get());
 
         var success = Try.Success<int, IEnumerable<NotImplementedException>>(42);
         var error = Try.Error<int, IEnumerable<NotImplementedException>>(new[] { Exception });
-        Assert.Equal(42, success.Where(i => i > 40, _ => Exception).Get(e => e.First()));
-        Assert.Throws<NotImplementedException>(() => success.Where(i => i > 50, _ => Exception).Get(e => e.First()));
-        Assert.Throws<NotImplementedException>(() => error.Where(i => i > 40, _ => Exception).Get(e => e.First()));
-        Assert.Throws<NotImplementedException>(() => error.Where(i => i > 50, _ => Exception).Get(e => e.First()));
+        Assert.Equal(42, success.Where(i => i > 40, () => Exception).Get(e => e.First()));
+        Assert.Throws<NotImplementedException>(() => success.Where(i => i > 50, () => Exception).Get(e => e.First()));
+        Assert.Throws<NotImplementedException>(() => error.Where(i => i > 40, () => Exception).Get(e => e.First()));
+        Assert.Throws<NotImplementedException>(() => error.Where(i => i > 50, () => Exception).Get(e => e.First()));
     }
 
     [Fact]

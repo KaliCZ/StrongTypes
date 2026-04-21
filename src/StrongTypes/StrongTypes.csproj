@@ -59,34 +59,16 @@
   </Target>
   <ItemGroup>
     <None Include="..\..\readme.md" Pack="true" PackagePath="\" />
-    <None Update="Extensions\ObjectExtensions_ValueMatch.tt">
+    <None Update="Try_Old\Try_Old.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ObjectExtensions_ValueMatch.cs</LastGenOutput>
-    </None>
-    <None Update="Extensions\ActionExtensions.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ActionExtensions.cs</LastGenOutput>
-    </None>
-    <None Update="Try\Try.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Try.cs</LastGenOutput>
+      <LastGenOutput>Try_Old.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Extensions\ActionExtensions.cs">
+    <Compile Update="Try_Old\Try_Old.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>ActionExtensions.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Try\Try.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Try.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Extensions\ObjectExtensions_ValueMatch.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ObjectExtensions_ValueMatch.tt</DependentUpon>
+      <DependentUpon>Try_Old.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>

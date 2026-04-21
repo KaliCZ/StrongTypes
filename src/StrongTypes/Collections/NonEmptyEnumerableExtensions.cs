@@ -26,6 +26,11 @@ public static class NonEmptyEnumerableExtensions
     public static NonEmptyEnumerable<T> ToNonEmpty<T>(this IEnumerable<T>? source)
         => NonEmptyEnumerable.CreateRange(source);
 
+    /// <summary>
+    /// Wraps a single value in a <see cref="NonEmptyEnumerable{T}"/> of length one.
+    /// </summary>
+    public static NonEmptyEnumerable<T> ToEnumerable<T>(this T value) => NonEmptyEnumerable.Create(value);
+
     public static NonEmptyEnumerable<TResult> Select<T, TResult>(
         this NonEmptyEnumerable<T> source,
         Func<T, TResult> selector)

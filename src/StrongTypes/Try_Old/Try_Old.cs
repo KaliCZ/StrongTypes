@@ -32,12 +32,12 @@ public static class Try
     /// Tries the specified action and returns its result if it succeeds. Otherwise in case of the specified exception,
     /// returns result of the recovery function.
     /// </summary>
-    public static TResult Catch<TResult, TException>(Func<Unit, TResult> action, Func<TException, TResult> recover)
+    public static TResult Catch<TResult, TException>(Func<TResult> action, Func<TException, TResult> recover)
         where TException : Exception
     {
         try
         {
-            return action(Unit.Value);
+            return action();
         }
         catch (TException e)
         {
@@ -49,13 +49,13 @@ public static class Try
     /// Tries the specified action and returns a successful try if it succeeds. Otherwise in case of the specified exception,
     /// returns an erroneous try.
     /// </summary>
-    public static Try<TSuccess, TException> Catch<TSuccess, TException>(Func<Unit, TSuccess> f)
+    public static Try<TSuccess, TException> Catch<TSuccess, TException>(Func<TSuccess> f)
         where TSuccess : notnull
         where TException : Exception
     {
         try
         {
-            return Success<TSuccess, TException>(f(Unit.Value));
+            return Success<TSuccess, TException>(f());
         }
         catch (TException e)
         {
@@ -71,13 +71,13 @@ public static class Try
     /// <exception cref="System.OperationCanceledException">
     /// The <paramref name="action"/> delegate has been canceled.
     /// </exception>
-    public static async Task<Try<TResult, TException>> CatchAsync<TResult, TException>(Func<Unit, Task<TResult>> action)
+    public static async Task<Try<TResult, TException>> CatchAsync<TResult, TException>(Func<Task<TResult>> action)
         where TResult : notnull
         where TException : Exception
     {
         try
         {
-            return Try.Success<TResult, TException>(await action(Unit.Value));
+            return Try.Success<TResult, TException>(await action());
         }
         catch (TException e) when (!e.IsOrContainsOperationCanceledException())
         {
@@ -93,12 +93,12 @@ public static class Try
     /// <exception cref="System.OperationCanceledException">
     /// The <paramref name="action"/> delegate has been canceled.
     /// </exception>
-    public static async Task<TResult> CatchAsync<TResult, TException>(Func<Unit, Task<TResult>> action, Func<TException, Task<TResult>> recover)
+    public static async Task<TResult> CatchAsync<TResult, TException>(Func<Task<TResult>> action, Func<TException, Task<TResult>> recover)
         where TException : Exception
     {
         try
         {
-            return await action(Unit.Value);
+            return await action();
         }
         catch (TException e) when (!e.IsOrContainsOperationCanceledException())
         {

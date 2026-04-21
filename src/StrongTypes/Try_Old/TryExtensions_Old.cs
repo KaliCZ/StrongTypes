@@ -24,36 +24,27 @@ public static class TryExtensions_Old
     /// <summary>
     /// If the successful result passes the predicate, returns the original try. Otherwise returns erroneous try with the specified result.
     /// </summary>
-    public static Try<A, E> Where<A, E>(this Try<A, E> t, Func<A, bool> predicate, Func<Unit, E> otherwise)
+    public static Try<A, E> Where<A, E>(this Try<A, E> t, Func<A, bool> predicate, Func<E> otherwise)
         where A : notnull
         where E : notnull
     {
-        return t.FlatMap(a => predicate(a).Match(
-            _ => t,
-            _ => Try.Error<A, E>(otherwise(Unit.Value))
-        ));
+        return t.FlatMap(a => predicate(a) ? t : Try.Error<A, E>(otherwise()));
     }
 
     /// <summary>
     /// If the successful result passes the predicate, returns the original try. Otherwise returns erroneous try with the specified result.
     /// </summary>
-    public static Try<A, IEnumerable<E>> Where<A, E>(this Try<A, IEnumerable<E>> t, Func<A, bool> predicate, Func<Unit, E> otherwise)
+    public static Try<A, IEnumerable<E>> Where<A, E>(this Try<A, IEnumerable<E>> t, Func<A, bool> predicate, Func<E> otherwise)
         where A : notnull
         where E : notnull
     {
-        return t.FlatMap(a => predicate(a).Match(
-            _ => t,
-            _ => Try.Error<A, IEnumerable<E>>(new[] { otherwise(Unit.Value) })
-        ));
+        return t.FlatMap(a => predicate(a) ? t : Try.Error<A, IEnumerable<E>>(new[] { otherwise() }));
     }
 
-    public static Try<A, Exception> Where<A>(this Try<A, Exception> t, Func<A, bool> predicate, Func<Unit, Exception> error)
+    public static Try<A, Exception> Where<A>(this Try<A, Exception> t, Func<A, bool> predicate, Func<Exception> error)
         where A : notnull
     {
-        return t.FlatMap(a => predicate(a).Match(
-            _ => t,
-            _ => Try.Error<A, Exception>(error(Unit.Value))
-        ));
+        return t.FlatMap(a => predicate(a) ? t : Try.Error<A, Exception>(error()));
     }
 
     /// <summary>
