@@ -117,11 +117,17 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
     }
 
+    public static NonEmptyEnumerable<T> Concat<T>(this NonEmptyEnumerable<T> source, IEnumerable<T> items)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(items);
+        return NonEmptyEnumerable<T>.FromValidatedArray(Enumerable.Concat(source, items).ToArray());
+    }
+
     public static NonEmptyEnumerable<T> Concat<T>(this INonEmptyEnumerable<T> source, IEnumerable<T> items)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(items);
-
         return NonEmptyEnumerable<T>.FromValidatedArray(Enumerable.Concat(source, items).ToArray());
     }
 
