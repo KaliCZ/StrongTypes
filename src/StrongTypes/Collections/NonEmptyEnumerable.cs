@@ -68,7 +68,7 @@ public static class NonEmptyEnumerable
 [CollectionBuilder(typeof(NonEmptyEnumerable), nameof(NonEmptyEnumerable.Create))]
 [DebuggerTypeProxy(typeof(NonEmptyEnumerableDebugView<>))]
 [DebuggerDisplay("Count = {Count}")]
-public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<T>, IEquatable<NonEmptyEnumerable<T>>
+public sealed partial class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<T>, IEquatable<NonEmptyEnumerable<T>>
 {
     // Owned buffer — factories copy inputs, callers can never mutate us from outside.
     private readonly T[] _values;
@@ -137,27 +137,6 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
 
     #endregion
 
-    public struct Enumerator : IEnumerator<T>
-    {
-        private readonly T[] _values;
-        private int _index;
-
-        internal Enumerator(T[] values)
-        {
-            _values = values;
-            _index = -1;
-        }
-
-        public readonly T Current => _values[_index];
-        readonly object? IEnumerator.Current => Current;
-
-        public bool MoveNext() => ++_index < _values.Length;
-
-        public void Reset() => _index = -1;
-
-        public readonly void Dispose() { }
-    }
-
     #region Equality
 
     public bool Equals(NonEmptyEnumerable<T>? other)
@@ -178,10 +157,4 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
     #endregion
 
     public override string ToString() => $"[{string.Join(", ", _values)}]";
-}
-
-internal sealed class NonEmptyEnumerableDebugView<T>(NonEmptyEnumerable<T> source)
-{
-    [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public T[] Items => [.. source];
 }
