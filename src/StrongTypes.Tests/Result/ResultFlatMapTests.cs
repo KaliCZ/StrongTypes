@@ -16,7 +16,7 @@ public class ResultFlatMapTests
     public void FlatMap_Success_AppliesContinuation(int value)
     {
         Result<int, string> r = value;
-        var bound = r.FlatMap(x => Result.Success<int, string>(x + 1));
+        var bound = r.FlatMap<int>(x => x + 1);
         Assert.True(bound.IsSuccess);
         Assert.Equal(value + 1, bound.Success);
     }
@@ -25,7 +25,7 @@ public class ResultFlatMapTests
     public void FlatMap_Success_ContinuationCanReturnError(int value)
     {
         Result<int, string> r = value;
-        var bound = r.FlatMap(_ => Result.Error<int, string>("rejected"));
+        var bound = r.FlatMap<int>(_ => "rejected");
         Assert.True(bound.IsError);
         Assert.Equal("rejected", bound.Error);
     }
@@ -45,7 +45,7 @@ public class ResultFlatMapTests
     public void FlatMap_OnResultOfT_Success_ReturnsResultOfT(int value)
     {
         Result<int> r = value;
-        var bound = r.FlatMap(x => Result.Success(x + 1));
+        var bound = r.FlatMap<int>(x => x + 1);
         Assert.IsType<Result<int>>(bound);
         Assert.Equal(value + 1, bound.Success);
     }
@@ -55,7 +55,7 @@ public class ResultFlatMapTests
     {
         var ex = new InvalidOperationException("boom");
         Result<int> r = ex;
-        var bound = r.FlatMap(_ => Result.Success(99));
+        var bound = r.FlatMap<int>(_ => 99);
         Assert.IsType<Result<int>>(bound);
         Assert.Same(ex, bound.Error);
     }
@@ -65,8 +65,8 @@ public class ResultFlatMapTests
     {
         Result<int> r = 2;
         Result<int> chained = r
-            .FlatMap(x => Result.Success(x + 1))
-            .FlatMap(x => Result.Success(x * 10));
+            .FlatMap<int>(x => x + 1)
+            .FlatMap<int>(x => x * 10);
         Assert.IsType<Result<int>>(chained);
         Assert.Equal(30, chained.Success);
     }

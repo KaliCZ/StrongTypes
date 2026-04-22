@@ -14,6 +14,8 @@ public class ResultFlatMapErrorTests
     public void FlatMapError_Error_AppliesContinuation(string error)
     {
         Result<int, string> r = error;
+        // Factory used here because T (int) and UError (int) share the same
+        // type — implicit int→Result<int,int> would be ambiguous.
         var bound = r.FlatMapError(e => Result.Success<int, int>(e.Length));
         Assert.True(bound.IsSuccess);
         Assert.Equal(error.Length, bound.Success);

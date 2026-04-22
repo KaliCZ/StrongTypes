@@ -92,8 +92,8 @@ public class ResultTests
     [Property]
     public void Equality_SameSuccess_AreEqual(int value)
     {
-        var a = Result.Success<int, string>(value);
-        var b = Result.Success<int, string>(value);
+        Result<int, string> a = value;
+        Result<int, string> b = value;
         Assert.Equal(a, b);
         Assert.Equal(a.GetHashCode(), b.GetHashCode());
     }
@@ -101,8 +101,8 @@ public class ResultTests
     [Property]
     public void Equality_SameError_AreEqual(string error)
     {
-        var a = Result.Error<int, string>(error);
-        var b = Result.Error<int, string>(error);
+        Result<int, string> a = error;
+        Result<int, string> b = error;
         Assert.Equal(a, b);
         Assert.Equal(a.GetHashCode(), b.GetHashCode());
     }
@@ -110,8 +110,8 @@ public class ResultTests
     [Property]
     public void Equality_DifferentBranches_AreNotEqual(int value, string error)
     {
-        var success = Result.Success<int, string>(value);
-        var failure = Result.Error<int, string>(error);
+        Result<int, string> success = value;
+        Result<int, string> failure = error;
         Assert.NotEqual(success, failure);
     }
 

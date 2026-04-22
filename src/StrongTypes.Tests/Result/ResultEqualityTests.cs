@@ -13,8 +13,8 @@ public class ResultEqualityTests
     [Property]
     public void OperatorEquals_SameSuccess_IsTrue(int value)
     {
-        var a = Result.Success<int, string>(value);
-        var b = Result.Success<int, string>(value);
+        Result<int, string> a = value;
+        Result<int, string> b = value;
         Assert.True(a == b);
         Assert.False(a != b);
     }
@@ -22,8 +22,8 @@ public class ResultEqualityTests
     [Property]
     public void OperatorEquals_SameError_IsTrue(string error)
     {
-        var a = Result.Error<int, string>(error);
-        var b = Result.Error<int, string>(error);
+        Result<int, string> a = error;
+        Result<int, string> b = error;
         Assert.True(a == b);
         Assert.False(a != b);
     }
@@ -31,8 +31,8 @@ public class ResultEqualityTests
     [Property]
     public void OperatorEquals_DifferentBranches_IsFalse(int value, string error)
     {
-        var success = Result.Success<int, string>(value);
-        var failure = Result.Error<int, string>(error);
+        Result<int, string> success = value;
+        Result<int, string> failure = error;
         Assert.False(success == failure);
         Assert.True(success != failure);
     }
@@ -48,7 +48,7 @@ public class ResultEqualityTests
     [Fact]
     public void OperatorEquals_OneNull_IsFalse()
     {
-        Result<int, string>? a = Result.Success<int, string>(1);
+        Result<int, string>? a = 1;
         Result<int, string>? b = null;
         Assert.False(a == b);
         Assert.False(b == a);
@@ -57,7 +57,7 @@ public class ResultEqualityTests
     [Fact]
     public void OperatorEquals_ReferenceEqualInstance_IsTrue()
     {
-        var r = Result.Success<int, string>(1);
+        Result<int, string> r = 1;
         var alias = r;
         Assert.True(r == alias);
     }

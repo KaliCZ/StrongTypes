@@ -455,8 +455,8 @@ string message = r.Match(
     error:   e => $"oops: {e}");
 
 // FlatMap — chain an operation that itself returns a Result.
-Result<int, string> positive = r.FlatMap(x =>
-    x > 0 ? Result.Success<int, string>(x) : "must be positive");
+Result<int, string> positive = r.FlatMap<int>(x =>
+    x > 0 ? x : "must be positive");
 ```
 
 Every sync method has an async counterpart (`MapAsync`, `FlatMapAsync`, `MatchAsync`, …).

@@ -115,8 +115,8 @@ public static class Generators
     /// </summary>
     public static Arbitrary<Result<int, string>> ResultIntString { get; } =
         Arb.From(Gen.Frequency(
-            (1, ArbMap.Default.ArbFor<int>().Generator.Select(i => Result.Success<int, string>(i))),
-            (1, ArbMap.Default.ArbFor<string>().Generator.Select(s => Result.Error<int, string>(s)))));
+            (1, ArbMap.Default.ArbFor<int>().Generator.Select(i => (Result<int, string>)i)),
+            (1, ArbMap.Default.ArbFor<string>().Generator.Select(s => (Result<int, string>)s))));
 
     /// <summary>
     /// <see cref="Result{T}"/> of <c>int</c> (error type <see cref="System.Exception"/>)
@@ -126,7 +126,7 @@ public static class Generators
     /// </summary>
     public static Arbitrary<Result<int>> ResultInt { get; } =
         Arb.From(Gen.Frequency(
-            (1, ArbMap.Default.ArbFor<int>().Generator.Select(i => Result.Success(i))),
+            (1, ArbMap.Default.ArbFor<int>().Generator.Select(i => (Result<int>)i)),
             (1, ArbMap.Default.ArbFor<string>().Generator
-                .Select(s => Result.Error<int>(new System.InvalidOperationException(s))))));
+                .Select(s => (Result<int>)new System.InvalidOperationException(s)))));
 }

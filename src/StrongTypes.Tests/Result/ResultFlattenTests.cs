@@ -14,8 +14,8 @@ public class ResultFlattenTests
     [Property]
     public void Flatten_OuterSuccess_InnerSuccess_ReturnsInnerValue(int value)
     {
-        var inner = Result.Success<int, string>(value);
-        var outer = Result.Success<Result<int, string>, string>(inner);
+        Result<int, string> inner = value;
+        Result<Result<int, string>, string> outer = inner;
         var flat = outer.Flatten();
         Assert.True(flat.IsSuccess);
         Assert.Equal(value, flat.Success);
@@ -24,8 +24,8 @@ public class ResultFlattenTests
     [Property]
     public void Flatten_OuterSuccess_InnerError_ReturnsInnerError(string innerError)
     {
-        var inner = Result.Error<int, string>(innerError);
-        var outer = Result.Success<Result<int, string>, string>(inner);
+        Result<int, string> inner = innerError;
+        Result<Result<int, string>, string> outer = inner;
         var flat = outer.Flatten();
         Assert.True(flat.IsError);
         Assert.Equal(innerError, flat.Error);
@@ -34,7 +34,7 @@ public class ResultFlattenTests
     [Property]
     public void Flatten_OuterError_ReturnsOuterError(string outerError)
     {
-        var outer = Result.Error<Result<int, string>, string>(outerError);
+        Result<Result<int, string>, string> outer = outerError;
         var flat = outer.Flatten();
         Assert.True(flat.IsError);
         Assert.Equal(outerError, flat.Error);
@@ -45,7 +45,8 @@ public class ResultFlattenTests
     [Property]
     public void Flatten_SingleParam_OuterSuccess_InnerSuccess(int value)
     {
-        Result<Result<int>> outer = Result.Success(Result.Success(value));
+        Result<int> inner = value;
+        Result<Result<int>> outer = inner;
         var flat = outer.Flatten();
         Assert.IsType<Result<int>>(flat);
         Assert.Equal(value, flat.Success);
@@ -55,7 +56,8 @@ public class ResultFlattenTests
     public void Flatten_SingleParam_OuterSuccess_InnerError_PreservesException()
     {
         var innerEx = new InvalidOperationException("inner");
-        Result<Result<int>> outer = Result.Success<Result<int>>(innerEx);
+        Result<int> inner = innerEx;
+        Result<Result<int>> outer = inner;
         var flat = outer.Flatten();
         Assert.IsType<Result<int>>(flat);
         Assert.Same(innerEx, flat.Error);
