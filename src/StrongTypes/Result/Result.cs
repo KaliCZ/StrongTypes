@@ -109,9 +109,7 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
 
     public override bool Equals(object? obj) => obj is Result<T, TError> r && Equals(r);
 
-    public override int GetHashCode() => IsSuccess
-        ? HashCode.Combine(true, InternalValue)
-        : HashCode.Combine(false, InternalError);
+    public override int GetHashCode() => HashCode.Combine(IsSuccess, InternalValue, InternalError);
 
     public override string ToString() => IsSuccess
         ? $"Success({InternalValue})"
