@@ -119,6 +119,58 @@ public class ResultAccessTests
         Assert.Equal(errorValue.Value, asError.Error);
     }
 
+    // ── Invariants over an arbitrary Result<int, string> ──────────────
+    //
+    // These exercise the generator directly: the test takes whatever
+    // Result the arbitrary produces and asserts the invariants that
+    // hold on every instance regardless of which branch it landed on.
+
+    [Property]
+    public void BranchesAreMutuallyExclusive(Result<int, string> r)
+    {
+        Assert.NotEqual(r.IsSuccess, r.IsError);
+    }
+
+    [Property]
+    public void SuccessIsNonNull_IffIsSuccess(Result<int, string> r)
+    {
+        Assert.Equal(r.IsSuccess, r.Success.HasValue);
+    }
+
+    [Property]
+    public void ErrorIsNonNull_IffIsError(Result<int, string> r)
+    {
+        Assert.Equal(r.IsError, r.Error is not null);
+    }
+
+    [Property]
+    public void SuccessAccess_PatternMatchesActiveBranch(Result<int, string> r)
+    {
+        if (r.Success is { } s)
+        {
+            Assert.True(r.IsSuccess);
+            Assert.Equal(s, r.Success);
+        }
+        else
+        {
+            Assert.True(r.IsError);
+        }
+    }
+
+    [Property]
+    public void ErrorAccess_PatternMatchesActiveBranch(Result<int, string> r)
+    {
+        if (r.Error is { } e)
+        {
+            Assert.True(r.IsError);
+            Assert.Equal(e, r.Error);
+        }
+        else
+        {
+            Assert.True(r.IsSuccess);
+        }
+    }
+
     // ── Subclass Result<T> inherits the same extension members ─────────
 
     [Fact]
