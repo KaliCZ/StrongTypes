@@ -108,4 +108,25 @@ public static class Generators
     public static Arbitrary<NonEmptyEnumerable<int>> NonEmptyEnumerableInt { get; } =
         Arb.From(Gen.NonEmptyListOf(ArbMap.Default.ArbFor<int>().Generator)
             .Select(list => NonEmptyEnumerable.CreateRange(list)));
+
+    /// <summary>
+    /// <see cref="Result{T, TError}"/> of <c>int</c>/<c>string</c> with a roughly even
+    /// split between successes and errors, so property tests exercise both branches.
+    /// </summary>
+    public static Arbitrary<Result<int, string>> ResultIntString { get; } =
+        Arb.From(Gen.Frequency(
+            (1, ArbMap.Default.ArbFor<int>().Generator.Select(i => Result.Success<int, string>(i))),
+            (1, ArbMap.Default.ArbFor<string>().Generator.Select(s => Result.Error<int, string>(s)))));
+
+    /// <summary>
+    /// <see cref="Result{T}"/> of <c>int</c> (error type <see cref="System.Exception"/>)
+    /// with a roughly even split between successes and errors. Errors use a fixed
+    /// <see cref="System.InvalidOperationException"/> message pulled from FsCheck's
+    /// string generator.
+    /// </summary>
+    public static Arbitrary<Result<int>> ResultInt { get; } =
+        Arb.From(Gen.Frequency(
+            (1, ArbMap.Default.ArbFor<int>().Generator.Select(i => Result.Success(i))),
+            (1, ArbMap.Default.ArbFor<string>().Generator
+                .Select(s => Result.Error<int>(new System.InvalidOperationException(s))))));
 }
