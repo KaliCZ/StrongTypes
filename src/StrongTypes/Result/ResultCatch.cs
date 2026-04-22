@@ -8,45 +8,53 @@ namespace StrongTypes;
 public static partial class Result
 {
     /// <summary>
-    /// Runs <paramref name="f"/> and returns its value as a success; any exception
-    /// other than <see cref="OperationCanceledException"/> (and its inheritors) is
-    /// captured as an error. Cancellation exceptions propagate.
+    /// Runs <paramref name="f"/> and returns its value as a success; any thrown
+    /// <see cref="Exception"/> (including <see cref="OperationCanceledException"/>)
+    /// is captured as an error. Use <see cref="Catch{T, TException}(Func{T})"/>
+    /// when you need to restrict which exceptions are captured.
     /// </summary>
     public static Result<T> Catch<T>(Func<T> f) where T : notnull
     {
-        try
-        {
-            return f();
-        }
-        catch (Exception e) when (!IsCancellation(e))
-        {
-            return e;
-        }
+        try { return f(); }
+        catch (Exception e) { return e; }
     }
 
     /// <summary>
-    /// Awaits <paramref name="f"/> and returns its value as a success; any exception
-    /// other than <see cref="OperationCanceledException"/> (and its inheritors) is
-    /// captured as an error. Cancellation exceptions propagate.
+    /// Runs <paramref name="f"/> and returns its value as a success; only
+    /// exceptions assignable to <typeparamref name="TException"/> are captured
+    /// as errors, others propagate. This is the opt-in for cancellation-aware
+    /// pipelines: pick a non-cancellation exception type and
+    /// <see cref="OperationCanceledException"/> will flow past.
+    /// </summary>
+    public static Result<T> Catch<T, TException>(Func<T> f)
+        where T : notnull
+        where TException : Exception
+    {
+        try { return f(); }
+        catch (TException e) { return e; }
+    }
+
+    /// <summary>
+    /// Awaits <paramref name="f"/> and returns its value as a success; any
+    /// thrown exception (including <see cref="OperationCanceledException"/>) is
+    /// captured as an error.
     /// </summary>
     public static async Task<Result<T>> CatchAsync<T>(Func<Task<T>> f) where T : notnull
     {
-        try
-        {
-            return await f();
-        }
-        catch (Exception e) when (!IsCancellation(e))
-        {
-            return e;
-        }
+        try { return await f(); }
+        catch (Exception e) { return e; }
     }
 
-    private static bool IsCancellation(Exception e)
+    /// <summary>
+    /// Awaits <paramref name="f"/> and returns its value as a success; only
+    /// exceptions assignable to <typeparamref name="TException"/> are captured
+    /// as errors, others propagate.
+    /// </summary>
+    public static async Task<Result<T>> CatchAsync<T, TException>(Func<Task<T>> f)
+        where T : notnull
+        where TException : Exception
     {
-        for (var current = e; current is not null; current = current.InnerException)
-        {
-            if (current is OperationCanceledException) return true;
-        }
-        return false;
+        try { return await f(); }
+        catch (TException e) { return e; }
     }
 }

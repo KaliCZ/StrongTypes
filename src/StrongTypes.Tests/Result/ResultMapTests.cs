@@ -114,4 +114,42 @@ public class ResultMapTests
         var mapped = await r.MapErrorAsync(async e => { await Task.Yield(); return e.Length; });
         Assert.Equal(error.Length, mapped.Error);
     }
+
+    // ── Bimap: Map<U, UError>(success, error) ──────────────────────────
+
+    [Property]
+    public void Bimap_Success_InvokesOnlySuccessBranch(int value)
+    {
+        Result<int, string> r = value;
+        var mapped = r.Map(
+            success: x => x + 1,
+            error: e => e.Length);
+        Assert.True(mapped.IsSuccess);
+        Assert.Equal(value + 1, mapped.Success);
+    }
+
+    [Property]
+    public void Bimap_Error_InvokesOnlyErrorBranch(string error)
+    {
+        Result<int, string> r = error;
+        var mapped = r.Map(
+            success: x => x + 1,
+            error: e => e.Length);
+        Assert.True(mapped.IsError);
+        Assert.Equal(error.Length, mapped.Error);
+    }
+
+    [Property]
+    public void Bimap_EquivalentToMapThenMapError(int value, string error)
+    {
+        Result<int, string> success = value;
+        Result<int, string> failure = error;
+
+        Assert.Equal(
+            success.Map(x => x + 1).MapError(e => e.Length),
+            success.Map(x => x + 1, e => e.Length));
+        Assert.Equal(
+            failure.Map(x => x + 1).MapError(e => e.Length),
+            failure.Map(x => x + 1, e => e.Length));
+    }
 }

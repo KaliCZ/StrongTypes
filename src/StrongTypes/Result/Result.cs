@@ -17,6 +17,11 @@ namespace StrongTypes;
 /// <see cref="Nullable{T}"/> for value types and <c>T?</c> for reference types.
 /// </para>
 /// </summary>
+// Note: we can't also declare IEquatable<T> and IEquatable<TError> — the C#
+// compiler rejects that combination (CS0695) because the two interfaces unify
+// when T equals TError at a closed type. The Equals(T) / Equals(TError)
+// methods below still provide the same call-site ergonomic without the
+// interface implementations.
 public class Result<T, TError> : IEquatable<Result<T, TError>>
     where T : notnull
     where TError : notnull
@@ -74,6 +79,15 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
     public async Task<Result<U, TError>> MapAsync<U>(Func<T, Task<U>> f) where U : notnull =>
         IsSuccess ? await f(InternalValue) : InternalError;
 
+    /// <summary>
+    /// Bimap: transforms both branches in one call. Equivalent to
+    /// <c>r.Map(success).MapError(error)</c> but traverses the value once.
+    /// </summary>
+    public Result<U, UError> Map<U, UError>(Func<T, U> success, Func<TError, UError> error)
+        where U : notnull
+        where UError : notnull =>
+        IsSuccess ? success(InternalValue) : error(InternalError);
+
     #endregion
 
     #region MapError (error branch)
@@ -96,6 +110,16 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
 
     #endregion
 
+    #region FlatMapError
+
+    public Result<T, UError> FlatMapError<UError>(Func<TError, Result<T, UError>> f) where UError : notnull =>
+        IsError ? f(InternalError) : InternalValue;
+
+    public async Task<Result<T, UError>> FlatMapErrorAsync<UError>(Func<TError, Task<Result<T, UError>>> f) where UError : notnull =>
+        IsError ? await f(InternalError) : InternalValue;
+
+    #endregion
+
     #region Equality / ToString
 
     public bool Equals(Result<T, TError>? other)
@@ -107,9 +131,28 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
             : EqualityComparer<TError>.Default.Equals(InternalError, other.InternalError);
     }
 
+    /// <summary>
+    /// Returns <see langword="true"/> when this Result is a success whose value
+    /// equals <paramref name="other"/>.
+    /// </summary>
+    public bool Equals(T? other) =>
+        IsSuccess && other is not null && EqualityComparer<T>.Default.Equals(InternalValue, other);
+
+    /// <summary>
+    /// Returns <see langword="true"/> when this Result is an error whose value
+    /// equals <paramref name="other"/>.
+    /// </summary>
+    public bool Equals(TError? other) =>
+        IsError && other is not null && EqualityComparer<TError>.Default.Equals(InternalError, other);
+
     public override bool Equals(object? obj) => obj is Result<T, TError> r && Equals(r);
 
     public override int GetHashCode() => HashCode.Combine(IsSuccess, InternalValue, InternalError);
+
+    public static bool operator ==(Result<T, TError>? left, Result<T, TError>? right) =>
+        ReferenceEquals(left, right) || (left is not null && left.Equals(right));
+
+    public static bool operator !=(Result<T, TError>? left, Result<T, TError>? right) => !(left == right);
 
     public override string ToString() => IsSuccess
         ? $"Success({InternalValue})"
@@ -120,9 +163,9 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
 
 /// <summary>
 /// Shorthand for <c>Result&lt;T, Exception&gt;</c>. Method signatures can read as
-/// <c>Result&lt;T&gt;</c> without naming the error type. Shadows <see cref="Result{T, TError}.Map"/>,
-/// <see cref="Result{T, TError}.FlatMap"/>, and their async counterparts to narrow the return
-/// type — so chained expressions stay as <c>Result&lt;T&gt;</c> instead of decaying to the
+/// <c>Result&lt;T&gt;</c> without naming the error type. Shadows <c>Map</c>,
+/// <c>FlatMap</c>, and their async counterparts to narrow the return type — so
+/// chained expressions stay as <c>Result&lt;T&gt;</c> instead of decaying to the
 /// two-parameter form.
 /// </summary>
 public sealed class Result<T> : Result<T, Exception>
