@@ -73,36 +73,36 @@ public class ResultFlattenTests
         Assert.Same(outerEx, flat.Error);
     }
 
-    // ── FlattenErrors (chained-Aggregate unwrap) ───────────────────────
+    // ── Mismatched exception subtypes (TInner != TOuter) ───────────────
 
     [Fact]
-    public void FlattenErrors_Success_LeavesValueUnchanged()
+    public void Flatten_MismatchedExceptions_OuterError_UpcastsToException()
     {
-        Result<int, string[][]> r = 42;
-        var flat = r.FlattenErrors();
-        Assert.Equal(42, flat.Success);
+        var outerEx = new InvalidOperationException("outer");
+        Result<Result<int, FormatException>, InvalidOperationException> outer = outerEx;
+        var flat = outer.Flatten();
+        Assert.IsType<Result<int>>(flat);
+        Assert.Same(outerEx, flat.Error);
     }
 
     [Fact]
-    public void FlattenErrors_Error_ConcatsAllInnerArraysInOrder()
+    public void Flatten_MismatchedExceptions_InnerError_UpcastsToException()
     {
-        Result<int, string[][]> r = new[]
-        {
-            new[] { "a", "b" },
-            new[] { "c" },
-            new[] { "d", "e" },
-        };
-        var flat = r.FlattenErrors();
-        Assert.Equal(new[] { "a", "b", "c", "d", "e" }, flat.Error);
+        var innerEx = new FormatException("inner");
+        Result<int, FormatException> inner = innerEx;
+        Result<Result<int, FormatException>, InvalidOperationException> outer = inner;
+        var flat = outer.Flatten();
+        Assert.IsType<Result<int>>(flat);
+        Assert.Same(innerEx, flat.Error);
     }
 
-    [Fact]
-    public void FlattenErrors_ComposesWithChainedAggregate()
+    [Property]
+    public void Flatten_MismatchedExceptions_Success_ReturnsInnerValue(int value)
     {
-        Result<int, string> r1 = 1, r2 = 2, r3 = "e3", r4 = 4;
-        var group1 = Result.Aggregate(r1, r2);
-        var group2 = Result.Aggregate(r3, r4);
-        var chained = Result.Aggregate(group1, group2).FlattenErrors();
-        Assert.Equal(new[] { "e3" }, chained.Error);
+        Result<int, FormatException> inner = value;
+        Result<Result<int, FormatException>, InvalidOperationException> outer = inner;
+        var flat = outer.Flatten();
+        Assert.IsType<Result<int>>(flat);
+        Assert.Equal(value, flat.Success);
     }
 }

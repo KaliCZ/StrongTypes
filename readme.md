@@ -7,7 +7,7 @@
 [![Kalicz.StrongTypes.FsCheck on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes.FsCheck?label=nuget%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
 [![Kalicz.StrongTypes.FsCheck downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.FsCheck?label=downloads%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
 
-StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused value types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive". Every type ships with `System.Text.Json` converters wired up out of the box, so validation runs at the wire boundary during deserialization without any extra setup.
+StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused value types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive". Every value-carrying type ships with `System.Text.Json` converters wired up out of the box (the one exception is `Result`, which stays in-process), so validation runs at the wire boundary during deserialization without any extra setup.
 
 ## Contents
 
@@ -100,6 +100,8 @@ Every strong type in this library implements the full set of equality and compar
 ### JSON serialization
 
 All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]` — no converter registration and no custom `JsonSerializerOptions` required. The wire format is the underlying primitive (`"hello"`, `42`, …), not an object with a `Value` property, and invalid input surfaces as a `JsonException` at the boundary.
+
+`Result<T, TError>` is the one exception: it has no converter, because serializing a two-branch union over the wire doesn't have a single sensible shape and hasn't been a real-world need. Unwrap it (`.Match(...)`, `.ThrowIfError()`, `.Success`/`.Error`, …) before sending anything across a JSON boundary.
 
 ### EF Core persistence
 
@@ -410,6 +412,8 @@ var missing =
 
 `Result<T, TError>` is a value that is *either* a success carrying a `T` *or* an error carrying a `TError` — making the failure path explicit in the type signature instead of hiding it behind exceptions. `Result<T>` is shorthand for `Result<T, Exception>`, so signatures can read `public Result<User> Load(...)` without naming the error type.
 
+Unlike the other strong types, `Result` has no JSON converter — a two-branch union doesn't have a single natural on-the-wire shape, and no concrete use case has called for one yet. Treat `Result` as an in-process return type: unwrap it (`.Match(...)`, `.ThrowIfError()`, `.Success`/`.Error`, …) before serializing anything across an HTTP boundary.
+
 #### Construction
 
 Returning a `Result` is as simple as returning either branch — implicit operators handle the wrapping on both sides:
@@ -462,19 +466,12 @@ string message = r.Match(
     success: x => $"got {x}",
     error:   e => $"oops: {e}");
 
-// A plain C# switch expression works too, via the Success / Error accessors:
-string alt = r.Success switch
-{
-    { } x => $"got {x}",
-    null  => $"oops: {r.Error}",
-};
-
 // FlatMap — chain an operation that itself returns a Result.
 Result<int, string> positive = r.FlatMap<int>(x =>
     x > 0 ? x : "must be positive");
 ```
 
-`Match` is still the only form that gives a compile-time guarantee that both branches are handled — a `switch` over `.Success` becomes non-exhaustive the moment someone adds a new state. Until C# ships native discriminated unions, `Match` is the exhaustive option.
+`Match` exists because the natural-looking C# form — `r switch { T v => …, TError e => … }` — isn't possible without native discriminated unions. Type patterns dispatch on the *runtime* type of `r`, and a `Result<T, TError>` is never actually a `T` or a `TError` instance, so those arms never fire. Until the language ships DUs (proposed for .NET 11), `Match` is the only form that folds both branches with a compile-time guarantee that you've handled each one.
 
 Every sync method has an async counterpart (`MapAsync`, `FlatMapAsync`, `MatchAsync`, …).
 

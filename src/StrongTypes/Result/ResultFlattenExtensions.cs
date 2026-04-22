@@ -1,7 +1,6 @@
 #nullable enable
 
 using System;
-using System.Linq;
 
 namespace StrongTypes;
 
@@ -19,21 +18,26 @@ public static class ResultFlattenExtensions
 
     /// <summary>
     /// Collapses a <see cref="Result{T}"/> of <see cref="Result{T}"/> into a single
-    /// <see cref="Result{T}"/>. Exists so the flattened value stays on the single-parameter
-    /// form instead of decaying to <c>Result&lt;T, Exception&gt;</c>.
+    /// <see cref="Result{T}"/>. Preserves the single-parameter form instead of decaying
+    /// to <c>Result&lt;T, Exception&gt;</c>.
     /// </summary>
     public static Result<T> Flatten<T>(this Result<Result<T>, Exception> nested)
         where T : notnull
         => nested.IsSuccess ? nested.InternalValue : nested.InternalError;
 
     /// <summary>
-    /// Concatenates an array-of-arrays error into a single flat array. Useful when
-    /// chaining <see cref="Result.Aggregate{T1, T2, TError}"/> calls — the outer
-    /// aggregation produces an error of <c>TError[][]</c> which this collapses back
-    /// to <c>TError[]</c>.
+    /// Collapses a nested Result whose inner and outer error types are different
+    /// <see cref="Exception"/> subtypes. Both errors upcast to <see cref="Exception"/>,
+    /// so the flattened value takes the single-parameter <see cref="Result{T}"/> form.
     /// </summary>
-    public static Result<T, TError[]> FlattenErrors<T, TError>(this Result<T, TError[][]> r)
+    public static Result<T> Flatten<T, TInnerException, TOuterException>(
+        this Result<Result<T, TInnerException>, TOuterException> nested)
         where T : notnull
-        where TError : notnull
-        => r.MapError(nested => nested.SelectMany(x => x).ToArray());
+        where TInnerException : Exception
+        where TOuterException : Exception
+    {
+        if (nested.IsError) return nested.InternalError;
+        var inner = nested.InternalValue;
+        return inner.IsSuccess ? (Result<T>)inner.InternalValue : (Exception)inner.InternalError;
+    }
 }
