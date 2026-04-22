@@ -70,38 +70,25 @@ public class PositiveExtensionsTests
     // ── Unwrap ──────────────────────────────────────────────────────────
 
     [Property]
-    public void Unwrap_ReturnsUnderlyingValue(int value)
+    public void Unwrap_ReturnsUnderlyingValue(Positive<int> p)
     {
-        if (Positive<int>.TryCreate(value) is not { } p) return;
-        Assert.Equal(value, p.Unwrap());
+        Assert.Equal(p.Value, p.Unwrap());
     }
 
     // ── Min / Max ───────────────────────────────────────────────────────
 
-    [Fact]
-    public void Min_ReturnsSmallest()
+    [Property]
+    public void Min_MatchesUnderlyingMin(Positive<int>[] values)
     {
-        var values = new[] { Positive<int>.Create(7), Positive<int>.Create(2), Positive<int>.Create(5) };
-        Assert.Equal(2, values.Min().Value);
+        if (values.Length == 0) return;
+        Assert.Equal(values.Select(p => p.Value).Min(), values.Min().Value);
     }
 
-    [Fact]
-    public void Max_ReturnsLargest()
+    [Property]
+    public void Max_MatchesUnderlyingMax(Positive<int>[] values)
     {
-        var values = new[] { Positive<int>.Create(7), Positive<int>.Create(2), Positive<int>.Create(5) };
-        Assert.Equal(7, values.Max().Value);
-    }
-
-    [Fact]
-    public void Min_SingleElement_ReturnsThatElement()
-    {
-        Assert.Equal(4, new[] { Positive<int>.Create(4) }.Min().Value);
-    }
-
-    [Fact]
-    public void Max_SingleElement_ReturnsThatElement()
-    {
-        Assert.Equal(4, new[] { Positive<int>.Create(4) }.Max().Value);
+        if (values.Length == 0) return;
+        Assert.Equal(values.Select(p => p.Value).Max(), values.Max().Value);
     }
 
     [Fact]

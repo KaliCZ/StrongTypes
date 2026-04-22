@@ -56,38 +56,25 @@ public class NonPositiveExtensionsTests
     // ── Unwrap ──────────────────────────────────────────────────────────
 
     [Property]
-    public void Unwrap_ReturnsUnderlyingValue(int value)
+    public void Unwrap_ReturnsUnderlyingValue(NonPositive<int> n)
     {
-        if (NonPositive<int>.TryCreate(value) is not { } n) return;
-        Assert.Equal(value, n.Unwrap());
+        Assert.Equal(n.Value, n.Unwrap());
     }
 
     // ── Min / Max ───────────────────────────────────────────────────────
 
-    [Fact]
-    public void Min_ReturnsSmallest()
+    [Property]
+    public void Min_MatchesUnderlyingMin(NonPositive<int>[] values)
     {
-        var values = new[] { NonPositive<int>.Create(-7), NonPositive<int>.Create(0), NonPositive<int>.Create(-5) };
-        Assert.Equal(-7, values.Min().Value);
+        if (values.Length == 0) return;
+        Assert.Equal(values.Select(n => n.Value).Min(), values.Min().Value);
     }
 
-    [Fact]
-    public void Max_ReturnsLargest()
+    [Property]
+    public void Max_MatchesUnderlyingMax(NonPositive<int>[] values)
     {
-        var values = new[] { NonPositive<int>.Create(-7), NonPositive<int>.Create(0), NonPositive<int>.Create(-5) };
-        Assert.Equal(0, values.Max().Value);
-    }
-
-    [Fact]
-    public void Min_SingleElement_ReturnsThatElement()
-    {
-        Assert.Equal(-4, new[] { NonPositive<int>.Create(-4) }.Min().Value);
-    }
-
-    [Fact]
-    public void Max_SingleElement_ReturnsThatElement()
-    {
-        Assert.Equal(-4, new[] { NonPositive<int>.Create(-4) }.Max().Value);
+        if (values.Length == 0) return;
+        Assert.Equal(values.Select(n => n.Value).Max(), values.Max().Value);
     }
 
     [Fact]
