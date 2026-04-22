@@ -25,9 +25,9 @@ public class ResultFlatMapTests
     public void FlatMap_Success_ContinuationCanReturnError(int value)
     {
         Result<int, string> r = value;
-        var bound = r.FlatMap<int>(_ => "rejected");
+        var bound = r.FlatMap<int>(x => "rejected: " + x);
         Assert.True(bound.IsError);
-        Assert.Equal("rejected", bound.Error);
+        Assert.Equal("rejected: " + value, bound.Error);
     }
 
     [Property]

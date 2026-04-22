@@ -25,9 +25,9 @@ public class ResultFlatMapErrorTests
     public void FlatMapError_Error_ContinuationCanReturnError(string error)
     {
         Result<int, string> r = error;
-        var bound = r.FlatMapError(_ => Result.Error<int, int>(-1));
+        var bound = r.FlatMapError(e => Result.Error<int, int>(-e.Length));
         Assert.True(bound.IsError);
-        Assert.Equal(-1, bound.Error);
+        Assert.Equal(-error.Length, bound.Error);
     }
 
     [Property]
