@@ -9,66 +9,43 @@ namespace StrongTypes.Tests;
 [Properties(Arbitrary = new[] { typeof(Generators) })]
 public class ResultAccessTests
 {
-    // ── `is {} s` pattern — the motivating ergonomic ───────────────────
+    // ── Branch accessors across the struct/class matrix ────────────────
+    //
+    // Four tests cover each combination of struct/class in the T and
+    // TError slots, so every closed instantiation of the extension
+    // classes (ResultSuccess{Struct,Class}Extensions / ResultError…) is
+    // exercised.
 
     [Property]
-    public void SuccessAccess_ValueType_UnwrapsInIsPattern(int value)
+    public void SuccessAccess_ValueType_ReturnsValue(int value)
     {
         Result<int, string> r = value;
-        if (r.Success is { } s)
-        {
-            int unwrapped = s;
-            Assert.Equal(value, unwrapped);
-        }
-        else
-        {
-            Assert.Fail("Expected success branch to match.");
-        }
+        Assert.NotNull(r.Success);
+        Assert.Equal(value, r.Success!.Value);
     }
 
     [Property]
-    public void SuccessAccess_ReferenceType_UnwrapsInIsPattern(string value)
+    public void SuccessAccess_ReferenceType_ReturnsValue(string value)
     {
         Result<string, int> r = value;
-        if (r.Success is { } s)
-        {
-            string unwrapped = s;
-            Assert.Equal(value, unwrapped);
-        }
-        else
-        {
-            Assert.Fail("Expected success branch to match.");
-        }
+        Assert.NotNull(r.Success);
+        Assert.Equal(value, r.Success);
     }
 
     [Property]
-    public void ErrorAccess_ReferenceType_UnwrapsInIsPattern(string error)
+    public void ErrorAccess_ReferenceType_ReturnsValue(string error)
     {
         Result<int, string> r = error;
-        if (r.Error is { } e)
-        {
-            string unwrapped = e;
-            Assert.Equal(error, unwrapped);
-        }
-        else
-        {
-            Assert.Fail("Expected error branch to match.");
-        }
+        Assert.NotNull(r.Error);
+        Assert.Equal(error, r.Error);
     }
 
     [Property]
-    public void ErrorAccess_ValueType_UnwrapsInIsPattern(int error)
+    public void ErrorAccess_ValueType_ReturnsValue(int error)
     {
         Result<string, int> r = error;
-        if (r.Error is { } e)
-        {
-            int unwrapped = e;
-            Assert.Equal(error, unwrapped);
-        }
-        else
-        {
-            Assert.Fail("Expected error branch to match.");
-        }
+        Assert.NotNull(r.Error);
+        Assert.Equal(error, r.Error!.Value);
     }
 
     // ── Null-iff-opposite-branch invariants (one per extension class) ───
