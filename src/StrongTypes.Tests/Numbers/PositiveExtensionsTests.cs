@@ -8,24 +8,23 @@ using Xunit;
 
 namespace StrongTypes.Tests;
 
+[Properties(Arbitrary = new[] { typeof(Generators) })]
 public class PositiveExtensionsTests
 {
     [Property]
-    public void Sum_MatchesUnderlyingSum_WhenNoOverflow(int[] values)
+    public void Sum_MatchesUnderlyingSum_OrThrowsOnOverflow(Positive<int>[] values)
     {
-        // Filter to strictly-positive and cap magnitude so no overflow.
-        var positives = values
-            .Where(v => v > 0 && v < 1_000_000)
-            .Select(v => Positive<int>.Create(v))
-            .ToArray();
-        if (positives.Length == 0)
-        {
-            return;
-        }
+        if (values.Length == 0) return; // empty is covered by a dedicated fact
 
-        var expected = positives.Sum(p => p.Value);
-        var actual = positives.Sum();
-        Assert.Equal(expected, actual.Value);
+        long expected = values.Sum(p => (long)p.Value);
+        if (expected > int.MaxValue)
+        {
+            Assert.Throws<OverflowException>(() => values.Sum());
+        }
+        else
+        {
+            Assert.Equal((int)expected, values.Sum().Value);
+        }
     }
 
     [Fact]

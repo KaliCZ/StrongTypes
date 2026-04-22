@@ -8,21 +8,23 @@ using Xunit;
 
 namespace StrongTypes.Tests;
 
+[Properties(Arbitrary = new[] { typeof(Generators) })]
 public class NonPositiveExtensionsTests
 {
     // ── Sum ─────────────────────────────────────────────────────────────
 
     [Property]
-    public void Sum_MatchesUnderlyingSum_WhenNoOverflow(int[] values)
+    public void Sum_MatchesUnderlyingSum_OrThrowsOnOverflow(NonPositive<int>[] values)
     {
-        var nonPositives = values
-            .Where(v => v <= 0 && v > -1_000_000)
-            .Select(v => NonPositive<int>.Create(v))
-            .ToArray();
-
-        var expected = nonPositives.Sum(n => n.Value);
-        var actual = nonPositives.Sum();
-        Assert.Equal(expected, actual.Value);
+        long expected = values.Sum(n => (long)n.Value);
+        if (expected < int.MinValue)
+        {
+            Assert.Throws<OverflowException>(() => values.Sum());
+        }
+        else
+        {
+            Assert.Equal((int)expected, values.Sum().Value);
+        }
     }
 
     [Fact]
