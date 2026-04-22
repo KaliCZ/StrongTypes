@@ -59,16 +59,5 @@
   </Target>
   <ItemGroup>
     <None Include="..\..\readme.md" Pack="true" PackagePath="\" />
-    <None Update="Try_Old\Try_Old.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Try_Old.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Try_Old\Try_Old.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Try_Old.tt</DependentUpon>
-    </Compile>
   </ItemGroup>
 </Project>
