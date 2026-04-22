@@ -99,7 +99,7 @@ jobs:
     # of coverage without inbox noise.
     - name: Post coverage summary as PR comment
       if: ${{ !cancelled() && github.event_name == 'pull_request' && hashFiles('coverage-report/FileSummary.md') != '' }}
-      uses: marocchino/sticky-pull-request-comment@v2
+      uses: marocchino/sticky-pull-request-comment@v3
       with:
         header: coverage
         path: coverage-report/FileSummary.md
@@ -109,7 +109,7 @@ jobs:
     # as a repo secret.
     - name: Upload coverage to Codecov
       if: ${{ !cancelled() && hashFiles('coverage-report/Cobertura.xml') != '' }}
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: coverage-report/Cobertura.xml
