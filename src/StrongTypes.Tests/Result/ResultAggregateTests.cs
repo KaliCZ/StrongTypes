@@ -68,6 +68,53 @@ public class ResultAggregateTests
         Assert.Equal(new[] { e1 }, r.Error);
     }
 
+    // ── Arities 3–7 — smoke tests: tuple + combiner happy path + error collection ──
+
+    [Fact]
+    public void Aggregate3_TupleAndCombiner()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = "e";
+        Assert.Equal((1, 2, 3), Result.Aggregate(r1, r2, (Result<int, string>)3).Success);
+        Assert.Equal(6, Result.Aggregate(r1, r2, (Result<int, string>)3, (a, b, c) => a + b + c).Success);
+        Assert.Equal(new[] { "e" }, Result.Aggregate(r1, r2, r3).Error);
+    }
+
+    [Fact]
+    public void Aggregate4_TupleAndCombiner()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, err = "e";
+        Assert.Equal((1, 2, 3, 4), Result.Aggregate(r1, r2, r3, r4).Success);
+        Assert.Equal(10, Result.Aggregate(r1, r2, r3, r4, (a, b, c, d) => a + b + c + d).Success);
+        Assert.Equal(new[] { "e" }, Result.Aggregate(r1, r2, r3, err).Error);
+    }
+
+    [Fact]
+    public void Aggregate5_TupleAndCombiner()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, err = "e";
+        Assert.Equal((1, 2, 3, 4, 5), Result.Aggregate(r1, r2, r3, r4, r5).Success);
+        Assert.Equal(15, Result.Aggregate(r1, r2, r3, r4, r5, (a, b, c, d, e) => a + b + c + d + e).Success);
+        Assert.Equal(new[] { "e" }, Result.Aggregate(r1, r2, r3, r4, err).Error);
+    }
+
+    [Fact]
+    public void Aggregate6_TupleAndCombiner()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, err = "e";
+        Assert.Equal((1, 2, 3, 4, 5, 6), Result.Aggregate(r1, r2, r3, r4, r5, r6).Success);
+        Assert.Equal(21, Result.Aggregate(r1, r2, r3, r4, r5, r6, (a, b, c, d, e, f) => a + b + c + d + e + f).Success);
+        Assert.Equal(new[] { "e" }, Result.Aggregate(r1, r2, r3, r4, r5, err).Error);
+    }
+
+    [Fact]
+    public void Aggregate7_TupleAndCombiner()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7, err = "e";
+        Assert.Equal((1, 2, 3, 4, 5, 6, 7), Result.Aggregate(r1, r2, r3, r4, r5, r6, r7).Success);
+        Assert.Equal(28, Result.Aggregate(r1, r2, r3, r4, r5, r6, r7, (a, b, c, d, e, f, g) => a + b + c + d + e + f + g).Success);
+        Assert.Equal(new[] { "e" }, Result.Aggregate(r1, r2, r3, r4, r5, r6, err).Error);
+    }
+
     // ── Arity 8 — smoke tests covering the TRest-nested tuple path ─────
 
     [Fact]
