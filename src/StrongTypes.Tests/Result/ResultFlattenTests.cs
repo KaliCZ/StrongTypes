@@ -70,4 +70,37 @@ public class ResultFlattenTests
         Assert.IsType<Result<int>>(flat);
         Assert.Same(outerEx, flat.Error);
     }
+
+    // ── FlattenErrors (chained-Aggregate unwrap) ───────────────────────
+
+    [Fact]
+    public void FlattenErrors_Success_LeavesValueUnchanged()
+    {
+        Result<int, string[][]> r = 42;
+        var flat = r.FlattenErrors();
+        Assert.Equal(42, flat.Success);
+    }
+
+    [Fact]
+    public void FlattenErrors_Error_ConcatsAllInnerArraysInOrder()
+    {
+        Result<int, string[][]> r = new[]
+        {
+            new[] { "a", "b" },
+            new[] { "c" },
+            new[] { "d", "e" },
+        };
+        var flat = r.FlattenErrors();
+        Assert.Equal(new[] { "a", "b", "c", "d", "e" }, flat.Error);
+    }
+
+    [Fact]
+    public void FlattenErrors_ComposesWithChainedAggregate()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = "e3", r4 = 4;
+        var group1 = Result.Aggregate(r1, r2);
+        var group2 = Result.Aggregate(r3, r4);
+        var chained = Result.Aggregate(group1, group2).FlattenErrors();
+        Assert.Equal(new[] { "e3" }, chained.Error);
+    }
 }
