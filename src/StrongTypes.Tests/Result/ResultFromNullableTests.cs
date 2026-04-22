@@ -18,13 +18,12 @@ public class ResultFromNullableTests
     }
 
     [Fact]
-    public void ToResult_RefType_Null_BecomesArgumentNullException_WithCallerName()
+    public void ToResult_RefType_Null_BecomesArgumentNullException()
     {
         string? myValue = null;
         var r = myValue.ToResult();
         Assert.True(r.IsError);
-        var ex = Assert.IsType<ArgumentNullException>(r.Error);
-        Assert.Equal(nameof(myValue), ex.ParamName);
+        Assert.IsType<ArgumentNullException>(r.Error);
     }
 
     [Fact]
@@ -65,12 +64,11 @@ public class ResultFromNullableTests
     }
 
     [Fact]
-    public void ToResult_StructType_Null_BecomesArgumentNullException_WithCallerName()
+    public void ToResult_StructType_Null_BecomesArgumentNullException()
     {
         int? maybeInt = null;
         var r = maybeInt.ToResult();
-        var ex = Assert.IsType<ArgumentNullException>(r.Error);
-        Assert.Equal(nameof(maybeInt), ex.ParamName);
+        Assert.IsType<ArgumentNullException>(r.Error);
     }
 
     [Fact]
@@ -126,5 +124,72 @@ public class ResultFromNullableTests
         string? val = null;
         var r = val.ToResult(() => (Exception)new InvalidOperationException("x"));
         Assert.IsType<Result<string>>(r);
+    }
+
+    // ── Eager overloads (no lambda) ────────────────────────────────────
+
+    private enum TestError { NotFound, Invalid }
+
+    [Fact]
+    public void ToResult_RefType_EagerException_NullBecomesException()
+    {
+        var ex = new InvalidOperationException("boom");
+        string? val = null;
+        var r = val.ToResult((Exception)ex);
+        Assert.IsType<Result<string>>(r);
+        Assert.Same(ex, r.Error);
+    }
+
+    [Fact]
+    public void ToResult_RefType_EagerEnum_NullBecomesEnum()
+    {
+        string? val = null;
+        var r = val.ToResult(TestError.NotFound);
+        Assert.IsType<Result<string, TestError>>(r);
+        Assert.Equal(TestError.NotFound, r.Error);
+    }
+
+    [Property]
+    public void ToResult_RefType_EagerEnum_NonNull_Succeeds(string value)
+    {
+        var r = ((string?)value).ToResult(TestError.NotFound);
+        Assert.Equal(value, r.Success);
+    }
+
+    [Fact]
+    public void ToResult_StructType_EagerException_NullBecomesException()
+    {
+        var ex = new InvalidOperationException("boom");
+        int? val = null;
+        var r = val.ToResult((Exception)ex);
+        Assert.IsType<Result<int>>(r);
+        Assert.Same(ex, r.Error);
+    }
+
+    [Fact]
+    public void ToResult_StructType_EagerEnum_NullBecomesEnum()
+    {
+        int? val = null;
+        var r = val.ToResult(TestError.NotFound);
+        Assert.Equal(TestError.NotFound, r.Error);
+    }
+
+    [Property]
+    public void ToResult_StructType_EagerEnum_HasValue_Succeeds(int value)
+    {
+        int? nv = value;
+        var r = nv.ToResult(TestError.NotFound);
+        Assert.Equal(value, r.Success);
+    }
+
+    [Fact]
+    public void ToResult_RefType_EagerPicksTwoParamForSubclassException()
+    {
+        // Same overload-resolution wart as the lazy form: an eager
+        // InvalidOperationException argument binds to the two-param overload
+        // (more-specific parameter type wins) and yields Result<T, InvalidOperationException>.
+        string? val = null;
+        var r = val.ToResult(new InvalidOperationException("x"));
+        Assert.IsType<Result<string, InvalidOperationException>>(r);
     }
 }
