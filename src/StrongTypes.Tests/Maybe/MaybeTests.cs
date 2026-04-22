@@ -90,6 +90,27 @@ public class MaybeTests
         Assert.False(matched);
     }
 
+    // ── Value-null-iff-None invariant (one per extension class) ─────────
+    //
+    // These property tests pin down the single most important guarantee of
+    // the extension-property design: Value is null exactly when the Maybe
+    // is None, non-null exactly when it is Some. Covers both extension
+    // classes (struct T and class T).
+
+    [Property]
+    public void MaybeStruct_Value_NullIffNone(Maybe<int> m)
+    {
+        if (m.IsNone) Assert.Null(m.Value);
+        else Assert.NotNull(m.Value);
+    }
+
+    [Property]
+    public void MaybeClass_Value_NullIffNone(Maybe<NonEmptyString> m)
+    {
+        if (m.IsNone) Assert.Null(m.Value);
+        else Assert.NotNull(m.Value);
+    }
+
     // ── Map / FlatMap / Where algebra ───────────────────────────────────
 
     [Property]

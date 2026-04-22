@@ -71,18 +71,52 @@ public class ResultAccessTests
         }
     }
 
+    // ── Null-iff-opposite-branch invariants (one per extension class) ───
+    //
+    // Each property test covers one of the four extension classes —
+    // ResultSuccess{Struct,Class}Extensions and ResultError{Struct,Class}Extensions
+    // — and asserts Value is non-null exactly when its branch is active, null
+    // exactly when the other branch is. Done as property tests so branch
+    // coverage isn't hostage to one hand-picked value.
+
     [Property]
-    public void SuccessAccess_OnErrorResult_IsNull(string error)
+    public void SuccessAccess_StructT_NonNullOnSuccess_NullOnError(int successValue, string errorValue)
     {
-        Result<int, string> r = error;
-        Assert.Null(r.Success);
+        Result<int, string> asSuccess = successValue;
+        Result<int, string> asError = errorValue;
+
+        Assert.Equal(successValue, asSuccess.Success);
+        Assert.Null(asError.Success);
     }
 
     [Property]
-    public void ErrorAccess_OnSuccessResult_IsNull(int value)
+    public void SuccessAccess_ClassT_NonNullOnSuccess_NullOnError(NonEmptyString successValue, int errorValue)
     {
-        Result<int, string> r = value;
-        Assert.Null(r.Error);
+        Result<string, int> asSuccess = successValue.Value;
+        Result<string, int> asError = errorValue;
+
+        Assert.Equal(successValue.Value, asSuccess.Success);
+        Assert.Null(asError.Success);
+    }
+
+    [Property]
+    public void ErrorAccess_StructError_NonNullOnError_NullOnSuccess(NonEmptyString successValue, int errorValue)
+    {
+        Result<string, int> asSuccess = successValue.Value;
+        Result<string, int> asError = errorValue;
+
+        Assert.Null(asSuccess.Error);
+        Assert.Equal(errorValue, asError.Error);
+    }
+
+    [Property]
+    public void ErrorAccess_ClassError_NonNullOnError_NullOnSuccess(int successValue, NonEmptyString errorValue)
+    {
+        Result<int, string> asSuccess = successValue;
+        Result<int, string> asError = errorValue.Value;
+
+        Assert.Null(asSuccess.Error);
+        Assert.Equal(errorValue.Value, asError.Error);
     }
 
     // ── Subclass Result<T> inherits the same extension members ─────────
