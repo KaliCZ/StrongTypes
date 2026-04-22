@@ -88,6 +88,11 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
         where UError : notnull =>
         IsSuccess ? success(InternalValue) : error(InternalError);
 
+    public async Task<Result<U, UError>> MapAsync<U, UError>(Func<T, Task<U>> success, Func<TError, Task<UError>> error)
+        where U : notnull
+        where UError : notnull =>
+        IsSuccess ? await success(InternalValue) : await error(InternalError);
+
     #endregion
 
     #region MapError (error branch)

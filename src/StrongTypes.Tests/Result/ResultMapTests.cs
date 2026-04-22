@@ -152,4 +152,28 @@ public class ResultMapTests
             failure.Map(x => x + 1).MapError(e => e.Length),
             failure.Map(x => x + 1, e => e.Length));
     }
+
+    // ── Bimap async: MapAsync<U, UError>(success, error) ───────────────
+
+    [Property]
+    public async Task BimapAsync_Success_InvokesOnlySuccessBranch(int value)
+    {
+        Result<int, string> r = value;
+        var mapped = await r.MapAsync(
+            success: async x => { await Task.Yield(); return x + 1; },
+            error: async e => { await Task.Yield(); return e.Length; });
+        Assert.True(mapped.IsSuccess);
+        Assert.Equal(value + 1, mapped.Success);
+    }
+
+    [Property]
+    public async Task BimapAsync_Error_InvokesOnlyErrorBranch(string error)
+    {
+        Result<int, string> r = error;
+        var mapped = await r.MapAsync(
+            success: async x => { await Task.Yield(); return x + 1; },
+            error: async e => { await Task.Yield(); return e.Length; });
+        Assert.True(mapped.IsError);
+        Assert.Equal(error.Length, mapped.Error);
+    }
 }
