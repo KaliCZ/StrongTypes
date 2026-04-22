@@ -24,8 +24,7 @@ StrongTypes is not an attempt to build a full algebraic type system on top of C#
 - [Algebraic types](#algebraic-types)
   - [Prefer nullables: `Map`, `MapTrue`, `MapFalse`](#prefer-nullables-map-maptrue-mapfalse)
   - [`Maybe<T>`](#maybet)
-- [Legacy types (to be replaced)](#legacy-types-to-be-replaced)
-  - [`Try<A, E>`](#trya-e)
+  - [`Result<T, TError>`](#resultt-terror)
 
 ## Helpful Types
 
@@ -407,17 +406,102 @@ var missing =
 
 `Maybe<T>` serializes via `System.Text.Json` as `{ "Value": x }` for `Some` and `{ "Value": null }` for `None` — no converter registration or custom `JsonSerializerOptions` needed. Deserialization also accepts `{}` for `None`, so callers can omit the property entirely.
 
-## Legacy types (to be replaced)
+### `Result<T, TError>`
 
-> [!WARNING]
-> The types in this section are inherited from FuncSharp and will be removed in a future release. They are kept for now so existing code keeps compiling, but new code should avoid them.
+`Result<T, TError>` is a value that is *either* a success carrying a `T` *or* an error carrying a `TError` — making the failure path explicit in the type signature instead of hiding it behind exceptions. `Result<T>` is shorthand for `Result<T, Exception>`, so signatures can read `public Result<User> Load(...)` without naming the error type.
 
-### `Try<A, E>`
+#### Construction
 
-`Try<A, E>` represents the result of an operation that can end in either success (`A`) or error (`E`), making the failure path explicit in the type signature instead of hiding it behind exceptions.
+Returning a `Result` is as simple as returning either branch — implicit operators handle the wrapping on both sides:
 
-> [!WARNING]
-> `Try<A, E>` will be replaced by a modern `Result<T, E>` implementation that supports pattern matching.
+```csharp
+public Result<int, string> Parse(string s) =>
+    int.TryParse(s, out var n) ? n : "not a number";
+```
+
+Explicit factories are there when type inference needs a nudge:
+
+```csharp
+var ok  = Result.Success<int, string>(42);
+var err = Result.Error<int, string>("bad");
+```
+
+#### Inspection
+
+Pattern matching with `is { } v` unwraps the inner value in one expression:
+
+```csharp
+Result<int, string> r = Parse(input);
+
+if (r.Success is { } value) Console.WriteLine($"got {value}");
+if (r.Error   is { } msg)   Console.WriteLine($"failed: {msg}");
+```
+
+`IsSuccess` / `IsError` are there too when you don't need the payload.
+
+#### Transformation
+
+`Map`, `MapError`, `Match`, and `FlatMap` let you chain without explicit branching:
+
+```csharp
+Result<int, string> r = Parse("42");
+
+// Map — transform the success value; errors pass through unchanged.
+Result<int, string> doubled = r.Map(x => x * 2);
+
+// Match — fold both branches into a single value.
+string message = r.Match(
+    success: x => $"got {x}",
+    error:   e => $"oops: {e}");
+
+// FlatMap — chain an operation that itself returns a Result.
+Result<int, string> positive = r.FlatMap(x =>
+    x > 0 ? Result.Success<int, string>(x) : "must be positive");
+```
+
+Every sync method has an async counterpart (`MapAsync`, `FlatMapAsync`, `MatchAsync`, …).
+
+#### Wrapping exceptions
+
+`Result.Catch` captures a throwing call without writing `try/catch`:
+
+```csharp
+Result<string> contents = Result.Catch(() => File.ReadAllText(path));
+```
+
+`Catch<T, TException>` restricts which exception type is captured — picking a non-cancellation type lets `OperationCanceledException` flow past, which is the opt-in for cancellation-aware pipelines.
+
+#### Combining validations
+
+`Result.Aggregate` combines multiple results, collecting *every* error (not just the first) — which is what you want when validating an input:
+
+```csharp
+record User(NonEmptyString Name, Positive<int> Age);
+
+Result<User, string> ParseUser(string? nameInput, int ageInput)
+{
+    // Target-typed ternary on each line relies on two implicit operators:
+    //   T      → Result<T, TError>   (success branch)
+    //   TError → Result<T, TError>   (error branch)
+    // so both arms of the ternary flow into Result<T, string> without
+    // explicit wrapping.
+    Result<NonEmptyString, string> name =
+        NonEmptyString.TryCreate(nameInput) is { } n ? n : "name must not be empty";
+    Result<Positive<int>, string>  age  =
+        Positive<int>.TryCreate(ageInput)   is { } a ? a : "age must be positive";
+
+    return Result.Aggregate(name, age, (n, a) => new User(n, a))
+        .MapError(errors => string.Join("; ", errors));
+}
+```
+
+If both inputs are invalid, the aggregated error carries both messages:
+
+```csharp
+ParseUser("", -5);   // Error: "name must not be empty; age must be positive"
+```
+
+Fixed-arity overloads cover 2–8 inputs, plus an `IEnumerable` form for when the count is dynamic. The combiner overload (shown above) returns a built object directly; a tuple-returning form is also provided when there's no natural constructor to call.
 
 > [!NOTE]
 > **No discriminated union / `OneOf` type is included.** I didn't see a reason to reinvent one — [`mcintyre321/OneOf`](https://github.com/mcintyre321/OneOf) or [`domn1995/dunet`](https://github.com/domn1995/dunet) already cover this space well, and .NET 11 is expected to introduce native discriminated unions at the language level. If you have a concrete use case where neither option works for you, please [open a GitHub issue](https://github.com/KaliCZ/StrongTypes/issues) and let me know.
