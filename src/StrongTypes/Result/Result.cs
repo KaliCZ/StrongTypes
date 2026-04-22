@@ -115,16 +115,6 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
 
     #endregion
 
-    #region FlatMapError
-
-    public Result<T, UError> FlatMapError<UError>(Func<TError, Result<T, UError>> f) where UError : notnull =>
-        IsError ? f(InternalError) : InternalValue;
-
-    public async Task<Result<T, UError>> FlatMapErrorAsync<UError>(Func<TError, Task<Result<T, UError>>> f) where UError : notnull =>
-        IsError ? await f(InternalError) : InternalValue;
-
-    #endregion
-
     #region Equality / ToString
 
     public bool Equals(Result<T, TError>? other)
