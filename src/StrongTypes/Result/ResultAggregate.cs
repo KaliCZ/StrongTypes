@@ -8,10 +8,8 @@ namespace StrongTypes;
 public static partial class Result
 {
     /// <summary>
-    /// Combines results and returns every error collected, not just the first.
-    /// When all inputs are successes, the return is a success carrying a tuple
-    /// of the values (in input order). When any input is an error, the return
-    /// is an error carrying the array of all error values in input order.
+    /// Combines results into a tuple of values on all-success, or an array of
+    /// every collected error (not just the first) otherwise.
     /// </summary>
     public static Result<(T1, T2), TError[]> Aggregate<T1, T2, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2)
@@ -25,9 +23,8 @@ public static partial class Result
     }
 
     /// <summary>
-    /// Combiner form of <see cref="Aggregate{T1, T2, TError}(Result{T1, TError}, Result{T2, TError})"/>:
-    /// on all-success, invokes <paramref name="combine"/> with the values and wraps
-    /// the result as a success; otherwise collects all errors as in the tuple form.
+    /// Combiner form: on all-success invokes <paramref name="combine"/>; otherwise
+    /// returns all collected errors.
     /// </summary>
     public static Result<R, TError[]> Aggregate<T1, T2, R, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2,
@@ -234,10 +231,8 @@ public static partial class Result
     }
 
     /// <summary>
-    /// Aggregates an arbitrary number of results. When every input is a success,
-    /// the return carries the success values as an array in iteration order. When
-    /// any input is an error, the return carries all error values in iteration
-    /// order — the sequence is fully drained either way.
+    /// Aggregates any number of results, collecting every error. The sequence is
+    /// fully drained whether or not an error is seen.
     /// </summary>
     public static Result<T[], TError[]> Aggregate<T, TError>(
         IEnumerable<Result<T, TError>> results)
