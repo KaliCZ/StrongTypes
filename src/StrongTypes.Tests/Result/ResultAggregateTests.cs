@@ -50,6 +50,16 @@ public class ResultAggregateTests
         Assert.Equal(new[] { "e1" }, r.Error);
     }
 
+    [Fact]
+    public void Aggregate2_Combiner_AllErrors_CollectsEvery()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2";
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, (a, b) => { calls++; return a + b; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e1", "e2" }, r.Error);
+    }
+
     // ── Arity 3 ────────────────────────────────────────────────────────
 
     [Fact]
@@ -67,6 +77,14 @@ public class ResultAggregateTests
         Result<int, string> r1 = "e1", r2 = 2, r3 = "e3";
         var r = Result.Aggregate(r1, r2, r3);
         Assert.Equal(new[] { "e1", "e3" }, r.Error);
+    }
+
+    [Fact]
+    public void Aggregate3_Tuple_AllErrors_CollectsEvery()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = "e3";
+        var r = Result.Aggregate(r1, r2, r3);
+        Assert.Equal(new[] { "e1", "e2", "e3" }, r.Error);
     }
 
     [Fact]
@@ -89,6 +107,16 @@ public class ResultAggregateTests
         Assert.Equal(new[] { "e2" }, r.Error);
     }
 
+    [Fact]
+    public void Aggregate3_Combiner_AllErrors_CollectsEvery()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = "e3";
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, (a, b, c) => { calls++; return a + b + c; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e1", "e2", "e3" }, r.Error);
+    }
+
     // ── Arity 4 ────────────────────────────────────────────────────────
 
     [Fact]
@@ -106,6 +134,14 @@ public class ResultAggregateTests
         Result<int, string> r1 = "e1", r2 = 2, r3 = "e3", r4 = "e4";
         var r = Result.Aggregate(r1, r2, r3, r4);
         Assert.Equal(new[] { "e1", "e3", "e4" }, r.Error);
+    }
+
+    [Fact]
+    public void Aggregate4_Tuple_AllErrors_CollectsEvery()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = "e3", r4 = "e4";
+        var r = Result.Aggregate(r1, r2, r3, r4);
+        Assert.Equal(new[] { "e1", "e2", "e3", "e4" }, r.Error);
     }
 
     [Fact]
@@ -128,6 +164,16 @@ public class ResultAggregateTests
         Assert.Equal(new[] { "e3" }, r.Error);
     }
 
+    [Fact]
+    public void Aggregate4_Combiner_AllErrors_CollectsEvery()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = "e3", r4 = "e4";
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, (a, b, c, d) => { calls++; return a + b + c + d; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e1", "e2", "e3", "e4" }, r.Error);
+    }
+
     // ── Arity 5 ────────────────────────────────────────────────────────
 
     [Fact]
@@ -145,6 +191,14 @@ public class ResultAggregateTests
         Result<int, string> r1 = 1, r2 = "e2", r3 = 3, r4 = "e4", r5 = 5;
         var r = Result.Aggregate(r1, r2, r3, r4, r5);
         Assert.Equal(new[] { "e2", "e4" }, r.Error);
+    }
+
+    [Fact]
+    public void Aggregate5_Tuple_AllErrors_CollectsEvery()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = "e3", r4 = "e4", r5 = "e5";
+        var r = Result.Aggregate(r1, r2, r3, r4, r5);
+        Assert.Equal(new[] { "e1", "e2", "e3", "e4", "e5" }, r.Error);
     }
 
     [Fact]
@@ -169,6 +223,17 @@ public class ResultAggregateTests
         Assert.Equal(new[] { "e5" }, r.Error);
     }
 
+    [Fact]
+    public void Aggregate5_Combiner_AllErrors_CollectsEvery()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = "e3", r4 = "e4", r5 = "e5";
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5,
+            (a, b, c, d, e) => { calls++; return a + b + c + d + e; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e1", "e2", "e3", "e4", "e5" }, r.Error);
+    }
+
     // ── Arity 6 ────────────────────────────────────────────────────────
 
     [Fact]
@@ -186,6 +251,14 @@ public class ResultAggregateTests
         Result<int, string> r1 = "e1", r2 = 2, r3 = 3, r4 = "e4", r5 = 5, r6 = "e6";
         var r = Result.Aggregate(r1, r2, r3, r4, r5, r6);
         Assert.Equal(new[] { "e1", "e4", "e6" }, r.Error);
+    }
+
+    [Fact]
+    public void Aggregate6_Tuple_AllErrors_CollectsEvery()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = "e3", r4 = "e4", r5 = "e5", r6 = "e6";
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6);
+        Assert.Equal(new[] { "e1", "e2", "e3", "e4", "e5", "e6" }, r.Error);
     }
 
     [Fact]
@@ -210,6 +283,17 @@ public class ResultAggregateTests
         Assert.Equal(new[] { "e3" }, r.Error);
     }
 
+    [Fact]
+    public void Aggregate6_Combiner_AllErrors_CollectsEvery()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = "e3", r4 = "e4", r5 = "e5", r6 = "e6";
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6,
+            (a, b, c, d, e, f) => { calls++; return a + b + c + d + e + f; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e1", "e2", "e3", "e4", "e5", "e6" }, r.Error);
+    }
+
     // ── Arity 7 ────────────────────────────────────────────────────────
 
     [Fact]
@@ -227,6 +311,14 @@ public class ResultAggregateTests
         Result<int, string> r1 = 1, r2 = "e2", r3 = 3, r4 = "e4", r5 = 5, r6 = "e6", r7 = 7;
         var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7);
         Assert.Equal(new[] { "e2", "e4", "e6" }, r.Error);
+    }
+
+    [Fact]
+    public void Aggregate7_Tuple_AllErrors_CollectsEvery()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = "e3", r4 = "e4", r5 = "e5", r6 = "e6", r7 = "e7";
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7);
+        Assert.Equal(new[] { "e1", "e2", "e3", "e4", "e5", "e6", "e7" }, r.Error);
     }
 
     [Fact]
@@ -251,6 +343,17 @@ public class ResultAggregateTests
         Assert.Equal(new[] { "e7" }, r.Error);
     }
 
+    [Fact]
+    public void Aggregate7_Combiner_AllErrors_CollectsEvery()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = "e3", r4 = "e4", r5 = "e5", r6 = "e6", r7 = "e7";
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7,
+            (a, b, c, d, e, f, g) => { calls++; return a + b + c + d + e + f + g; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e1", "e2", "e3", "e4", "e5", "e6", "e7" }, r.Error);
+    }
+
     // ── Arity 8 — exercises the TRest-nested ValueTuple path ───────────
 
     [Fact]
@@ -268,6 +371,14 @@ public class ResultAggregateTests
         Result<int, string> r1 = 1, r2 = "e2", r3 = 3, r4 = "e4", r5 = 5, r6 = 6, r7 = "e7", r8 = 8;
         var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7, r8);
         Assert.Equal(new[] { "e2", "e4", "e7" }, r.Error);
+    }
+
+    [Fact]
+    public void Aggregate8_Tuple_AllErrors_CollectsEvery()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = "e3", r4 = "e4", r5 = "e5", r6 = "e6", r7 = "e7", r8 = "e8";
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7, r8);
+        Assert.Equal(new[] { "e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8" }, r.Error);
     }
 
     [Fact]
@@ -290,6 +401,17 @@ public class ResultAggregateTests
             (a, b, c, d, e, f, g, h) => { calls++; return a + b + c + d + e + f + g + h; });
         Assert.Equal(0, calls);
         Assert.Equal(new[] { "e8" }, r.Error);
+    }
+
+    [Fact]
+    public void Aggregate8_Combiner_AllErrors_CollectsEvery()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = "e3", r4 = "e4", r5 = "e5", r6 = "e6", r7 = "e7", r8 = "e8";
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7, r8,
+            (a, b, c, d, e, f, g, h) => { calls++; return a + b + c + d + e + f + g + h; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8" }, r.Error);
     }
 
     // ── IEnumerable form ───────────────────────────────────────────────

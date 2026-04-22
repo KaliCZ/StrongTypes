@@ -179,4 +179,59 @@ public class NegativeTests
         Assert.Equal(int.MinValue, Negative<int>.Create(int.MinValue).Value);
         Assert.Equal(long.MinValue, Negative<long>.Create(long.MinValue).Value);
     }
+
+    // ── Generated members: branch coverage ──────────────────────────────
+
+    [Fact]
+    public void ExplicitOperator_FromUnderlying_Wraps()
+    {
+        var negative = (Negative<int>)(-5);
+        Assert.Equal(-5, negative.Value);
+    }
+
+    [Fact]
+    public void ExplicitOperator_FromUnderlying_ThrowsOnInvariantViolation()
+    {
+        Assert.Throws<ArgumentException>(() => (Negative<int>)0);
+    }
+
+    [Fact]
+    public void Equals_BoxedUnderlying_MatchesValue()
+    {
+        var negative = Negative<int>.Create(-7);
+        Assert.True(negative.Equals((object)(-7)));
+        Assert.False(negative.Equals((object)(-8)));
+    }
+
+    [Fact]
+    public void IComparable_CompareTo_Null_Returns1()
+    {
+        System.IComparable negative = Negative<int>.Create(-7);
+        Assert.Equal(1, negative.CompareTo(null));
+    }
+
+    [Fact]
+    public void IComparable_CompareTo_BoxedSelf_MatchesUnderlying()
+    {
+        System.IComparable a = Negative<int>.Create(-3);
+        Assert.Equal(0, a.CompareTo(Negative<int>.Create(-3)));
+        Assert.True(a.CompareTo(Negative<int>.Create(-1)) < 0);
+        Assert.True(a.CompareTo(Negative<int>.Create(-5)) > 0);
+    }
+
+    [Fact]
+    public void IComparable_CompareTo_BoxedUnderlying_MatchesUnderlying()
+    {
+        System.IComparable a = Negative<int>.Create(-3);
+        Assert.Equal(0, a.CompareTo(-3));
+        Assert.True(a.CompareTo(-1) < 0);
+        Assert.True(a.CompareTo(-5) > 0);
+    }
+
+    [Fact]
+    public void IComparable_CompareTo_UnrelatedType_Throws()
+    {
+        System.IComparable negative = Negative<int>.Create(-3);
+        Assert.Throws<ArgumentException>(() => negative.CompareTo("not a number"));
+    }
 }

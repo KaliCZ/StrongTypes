@@ -156,4 +156,59 @@ public class NonPositiveTests
     {
         Assert.Throws<ArgumentException>(() => NonPositive<int>.Create(1));
     }
+
+    // ── Generated members: branch coverage ──────────────────────────────
+
+    [Fact]
+    public void ExplicitOperator_FromUnderlying_Wraps()
+    {
+        var n = (NonPositive<int>)(-5);
+        Assert.Equal(-5, n.Value);
+    }
+
+    [Fact]
+    public void ExplicitOperator_FromUnderlying_ThrowsOnInvariantViolation()
+    {
+        Assert.Throws<ArgumentException>(() => (NonPositive<int>)1);
+    }
+
+    [Fact]
+    public void Equals_BoxedUnderlying_MatchesValue()
+    {
+        var n = NonPositive<int>.Create(-7);
+        Assert.True(n.Equals((object)(-7)));
+        Assert.False(n.Equals((object)(-8)));
+    }
+
+    [Fact]
+    public void IComparable_CompareTo_Null_Returns1()
+    {
+        System.IComparable n = NonPositive<int>.Create(-7);
+        Assert.Equal(1, n.CompareTo(null));
+    }
+
+    [Fact]
+    public void IComparable_CompareTo_BoxedSelf_MatchesUnderlying()
+    {
+        System.IComparable a = NonPositive<int>.Create(-3);
+        Assert.Equal(0, a.CompareTo(NonPositive<int>.Create(-3)));
+        Assert.True(a.CompareTo(NonPositive<int>.Create(-1)) < 0);
+        Assert.True(a.CompareTo(NonPositive<int>.Create(-5)) > 0);
+    }
+
+    [Fact]
+    public void IComparable_CompareTo_BoxedUnderlying_MatchesUnderlying()
+    {
+        System.IComparable a = NonPositive<int>.Create(-3);
+        Assert.Equal(0, a.CompareTo(-3));
+        Assert.True(a.CompareTo(-1) < 0);
+        Assert.True(a.CompareTo(-5) > 0);
+    }
+
+    [Fact]
+    public void IComparable_CompareTo_UnrelatedType_Throws()
+    {
+        System.IComparable n = NonPositive<int>.Create(-3);
+        Assert.Throws<ArgumentException>(() => n.CompareTo("not a number"));
+    }
 }
