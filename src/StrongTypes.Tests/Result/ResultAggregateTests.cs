@@ -494,4 +494,106 @@ public class ResultAggregateTests
 
         Assert.Equal(combiner, viaTuple);
     }
+
+    // ── Combiner + errorMap overloads ──────────────────────────────────
+
+    [Fact]
+    public void Aggregate2_CombinerErrorMap_AllSuccess_InvokesCombinerSkipsErrorMap()
+    {
+        Result<int, string> r1 = 1, r2 = 2;
+        var errorMapCalls = 0;
+        var r = Result.Aggregate(r1, r2, (a, b) => a + b,
+            errors => { errorMapCalls++; return string.Join("; ", errors); });
+        Assert.Equal(0, errorMapCalls);
+        Assert.Equal(3, r.Success);
+    }
+
+    [Fact]
+    public void Aggregate2_CombinerErrorMap_AllErrors_FoldsViaErrorMap()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2";
+        var r = Result.Aggregate(r1, r2, (a, b) => a + b, errors => string.Join("; ", errors));
+        Assert.Equal("e1; e2", r.Error);
+    }
+
+    [Fact]
+    public void Aggregate3_CombinerErrorMap_FoldsViaErrorMap()
+    {
+        Result<int, string> r1 = "e1", r2 = 2, r3 = "e3";
+        var r = Result.Aggregate(r1, r2, r3, (a, b, c) => a + b + c, errors => errors.Length);
+        Assert.Equal(2, r.Error);
+    }
+
+    [Fact]
+    public void Aggregate4_CombinerErrorMap_FoldsViaErrorMap()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = 3, r4 = 4;
+        var r = Result.Aggregate(r1, r2, r3, r4, (a, b, c, d) => a + b + c + d, string.Concat);
+        Assert.Equal("e1e2", r.Error);
+    }
+
+    [Fact]
+    public void Aggregate5_CombinerErrorMap_FoldsViaErrorMap()
+    {
+        Result<int, string> r1 = 1, r2 = "e2", r3 = 3, r4 = "e4", r5 = 5;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5,
+            (a, b, c, d, e) => a + b + c + d + e, errors => string.Join(",", errors));
+        Assert.Equal("e2,e4", r.Error);
+    }
+
+    [Fact]
+    public void Aggregate6_CombinerErrorMap_FoldsViaErrorMap()
+    {
+        Result<int, string> r1 = "e1", r2 = "e2", r3 = "e3", r4 = 4, r5 = 5, r6 = 6;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6,
+            (a, b, c, d, e, f) => a + b + c + d + e + f, errors => errors.Length);
+        Assert.Equal(3, r.Error);
+    }
+
+    [Fact]
+    public void Aggregate7_CombinerErrorMap_FoldsViaErrorMap()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = "e7";
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7,
+            (a, b, c, d, e, f, g) => a + b + c + d + e + f + g, errors => string.Join(";", errors));
+        Assert.Equal("e7", r.Error);
+    }
+
+    [Fact]
+    public void Aggregate8_CombinerErrorMap_FoldsViaErrorMap()
+    {
+        Result<int, string> r1 = "e1", r2 = 2, r3 = "e3", r4 = 4, r5 = "e5", r6 = 6, r7 = "e7", r8 = 8;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7, r8,
+            (a, b, c, d, e, f, g, h) => a + b + c + d + e + f + g + h,
+            errors => string.Join("|", errors));
+        Assert.Equal("e1|e3|e5|e7", r.Error);
+    }
+
+    [Fact]
+    public void AggregateEnumerable_ErrorMap_AllSuccess_SkipsErrorMap()
+    {
+        var results = new[] { 1, 2, 3 }.Select(v => (Result<int, string>)v);
+        var errorMapCalls = 0;
+        var r = Result.Aggregate(results,
+            errors => { errorMapCalls++; return string.Join(",", errors); });
+        Assert.Equal(0, errorMapCalls);
+        Assert.Equal(new[] { 1, 2, 3 }, r.Success);
+    }
+
+    [Fact]
+    public void AggregateEnumerable_ErrorMap_MixedErrors_FoldsViaErrorMap()
+    {
+        var results = new List<Result<int, string>> { 1, "e1", 2, 3, "e2", 4 };
+        var r = Result.Aggregate(results, errors => string.Join("; ", errors));
+        Assert.Equal("e1; e2", r.Error);
+    }
+
+    [Fact]
+    public void AggregateEnumerable_ErrorMap_Empty_StaysSuccess()
+    {
+        var r = Result.Aggregate(new List<Result<int, string>>(),
+            errors => string.Join(",", errors));
+        Assert.True(r.IsSuccess);
+        Assert.Empty(r.Success!);
+    }
 }

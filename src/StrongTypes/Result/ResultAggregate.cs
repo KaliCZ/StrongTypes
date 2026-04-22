@@ -265,4 +265,73 @@ public static partial class Result
         if (errors is not null) return errors.ToArray();
         return successes.ToArray();
     }
+
+    /// <summary>
+    /// Combiner form that also folds the collected errors: on all-success
+    /// invokes <paramref name="combine"/>; otherwise passes the collected
+    /// <typeparamref name="TError"/> array through <paramref name="errorMap"/>
+    /// — typically used to join multiple validation messages into a single
+    /// <typeparamref name="UError"/>.
+    /// </summary>
+    public static Result<R, UError> Aggregate<T1, T2, R, TError, UError>(
+        Result<T1, TError> r1, Result<T2, TError> r2,
+        Func<T1, T2, R> combine,
+        Func<TError[], UError> errorMap)
+        where T1 : notnull where T2 : notnull where R : notnull
+        where TError : notnull where UError : notnull
+        => Aggregate(r1, r2, combine).MapError(errorMap);
+
+    public static Result<R, UError> Aggregate<T1, T2, T3, R, TError, UError>(
+        Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3,
+        Func<T1, T2, T3, R> combine,
+        Func<TError[], UError> errorMap)
+        where T1 : notnull where T2 : notnull where T3 : notnull where R : notnull
+        where TError : notnull where UError : notnull
+        => Aggregate(r1, r2, r3, combine).MapError(errorMap);
+
+    public static Result<R, UError> Aggregate<T1, T2, T3, T4, R, TError, UError>(
+        Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4,
+        Func<T1, T2, T3, T4, R> combine,
+        Func<TError[], UError> errorMap)
+        where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where R : notnull
+        where TError : notnull where UError : notnull
+        => Aggregate(r1, r2, r3, r4, combine).MapError(errorMap);
+
+    public static Result<R, UError> Aggregate<T1, T2, T3, T4, T5, R, TError, UError>(
+        Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5,
+        Func<T1, T2, T3, T4, T5, R> combine,
+        Func<TError[], UError> errorMap)
+        where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where R : notnull
+        where TError : notnull where UError : notnull
+        => Aggregate(r1, r2, r3, r4, r5, combine).MapError(errorMap);
+
+    public static Result<R, UError> Aggregate<T1, T2, T3, T4, T5, T6, R, TError, UError>(
+        Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5, Result<T6, TError> r6,
+        Func<T1, T2, T3, T4, T5, T6, R> combine,
+        Func<TError[], UError> errorMap)
+        where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where R : notnull
+        where TError : notnull where UError : notnull
+        => Aggregate(r1, r2, r3, r4, r5, r6, combine).MapError(errorMap);
+
+    public static Result<R, UError> Aggregate<T1, T2, T3, T4, T5, T6, T7, R, TError, UError>(
+        Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5, Result<T6, TError> r6, Result<T7, TError> r7,
+        Func<T1, T2, T3, T4, T5, T6, T7, R> combine,
+        Func<TError[], UError> errorMap)
+        where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where R : notnull
+        where TError : notnull where UError : notnull
+        => Aggregate(r1, r2, r3, r4, r5, r6, r7, combine).MapError(errorMap);
+
+    public static Result<R, UError> Aggregate<T1, T2, T3, T4, T5, T6, T7, T8, R, TError, UError>(
+        Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5, Result<T6, TError> r6, Result<T7, TError> r7, Result<T8, TError> r8,
+        Func<T1, T2, T3, T4, T5, T6, T7, T8, R> combine,
+        Func<TError[], UError> errorMap)
+        where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where R : notnull
+        where TError : notnull where UError : notnull
+        => Aggregate(r1, r2, r3, r4, r5, r6, r7, r8, combine).MapError(errorMap);
+
+    public static Result<T[], UError> Aggregate<T, TError, UError>(
+        IEnumerable<Result<T, TError>> results,
+        Func<TError[], UError> errorMap)
+        where T : notnull where TError : notnull where UError : notnull
+        => Aggregate(results).MapError(errorMap);
 }

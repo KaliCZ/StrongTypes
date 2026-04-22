@@ -439,6 +439,14 @@ if (r.Error   is { } msg)   Console.WriteLine($"failed: {msg}");
 
 `IsSuccess` / `IsError` are there too when you don't need the payload.
 
+When the error branch already carries an exception, `ThrowIfError` unwraps the success value and rethrows otherwise, preserving the original stack trace via `ExceptionDispatchInfo`:
+
+```csharp
+string contents = Result.Catch(() => File.ReadAllText(path)).ThrowIfError();
+```
+
+When `TError` is not an `Exception`, the two-parameter overload builds one from the error value — `r.ThrowIfError(e => new InvalidOperationException(e))`. For a `Result<T, IReadOnlyList<Exception>>` — the shape validation pipelines converge on after aggregating multiple failed steps — `ThrowIfError` rethrows a single exception directly and wraps multiples in an `AggregateException`.
+
 #### Transformation
 
 `Map`, `MapError`, `Match`, and `FlatMap` let you chain without explicit branching:
@@ -454,10 +462,19 @@ string message = r.Match(
     success: x => $"got {x}",
     error:   e => $"oops: {e}");
 
+// A plain C# switch expression works too, via the Success / Error accessors:
+string alt = r.Success switch
+{
+    { } x => $"got {x}",
+    null  => $"oops: {r.Error}",
+};
+
 // FlatMap — chain an operation that itself returns a Result.
 Result<int, string> positive = r.FlatMap<int>(x =>
     x > 0 ? x : "must be positive");
 ```
+
+`Match` is still the only form that gives a compile-time guarantee that both branches are handled — a `switch` over `.Success` becomes non-exhaustive the moment someone adds a new state. Until C# ships native discriminated unions, `Match` is the exhaustive option.
 
 Every sync method has an async counterpart (`MapAsync`, `FlatMapAsync`, `MatchAsync`, …).
 
@@ -480,20 +497,14 @@ record User(NonEmptyString Name, Positive<int> Age);
 
 Result<User, string> ParseUser(string? nameInput, int ageInput)
 {
-    // Target-typed ternary on each line relies on two implicit operators:
-    //   T      → Result<T, TError>   (success branch)
-    //   TError → Result<T, TError>   (error branch)
-    // so both arms of the ternary flow into Result<T, string> without
-    // explicit wrapping.
-    Result<NonEmptyString, string> name =
-        NonEmptyString.TryCreate(nameInput) is { } n ? n : "name must not be empty";
-    Result<Positive<int>, string>  age  =
-        Positive<int>.TryCreate(ageInput)   is { } a ? a : "age must be positive";
+    Result<NonEmptyString, string> name = nameInput.AsNonEmpty().ToResult("name must not be empty");
+    Result<Positive<int>, string>  age  = ageInput.AsPositive().ToResult("age must be positive");
 
-    return Result.Aggregate(name, age, (n, a) => new User(n, a))
-        .MapError(errors => string.Join("; ", errors));
+    return Result.Aggregate(name, age, (n, a) => new User(n, a), errors => string.Join("; ", errors));
 }
 ```
+
+`.AsNonEmpty()` / `.AsPositive()` return a nullable of the validated type; `.ToResult("…")` lifts that nullable into a `Result<T, string>` with the given error on null. The final `errorMap` parameter on `Aggregate` folds the collected `string[]` into a single message — the same thing you'd otherwise write as a chained `.MapError(...)`.
 
 If both inputs are invalid, the aggregated error carries both messages:
 
@@ -501,7 +512,17 @@ If both inputs are invalid, the aggregated error carries both messages:
 ParseUser("", -5);   // Error: "name must not be empty; age must be positive"
 ```
 
-Fixed-arity overloads cover 2–8 inputs, plus an `IEnumerable` form for when the count is dynamic. The combiner overload (shown above) returns a built object directly; a tuple-returning form is also provided when there's no natural constructor to call.
+You can aggregate up to 8 results directly, or pass an `IEnumerable` when the count is dynamic — useful for validating a list of inputs:
+
+```csharp
+Result<int, string> ParseQuantity(string raw) =>
+    int.TryParse(raw, out var n) && n > 0 ? n : $"'{raw}' is not a positive integer";
+
+Result<int[], string> ParseQuantities(IEnumerable<string> inputs) =>
+    Result.Aggregate(inputs.Select(ParseQuantity), errors => string.Join("; ", errors));
+```
+
+The combiner overload (shown in the `ParseUser` example) returns a built object directly; a tuple-returning form is also provided when there's no natural constructor to call.
 
 > [!NOTE]
 > **No discriminated union / `OneOf` type is included.** I didn't see a reason to reinvent one — [`mcintyre321/OneOf`](https://github.com/mcintyre321/OneOf) or [`domn1995/dunet`](https://github.com/domn1995/dunet) already cover this space well, and .NET 11 is expected to introduce native discriminated unions at the language level. If you have a concrete use case where neither option works for you, please [open a GitHub issue](https://github.com/KaliCZ/StrongTypes/issues) and let me know.
