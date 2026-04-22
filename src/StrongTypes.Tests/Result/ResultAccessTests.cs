@@ -20,23 +20,29 @@ public class ResultAccessTests
     public void SuccessAccess_ValueType_ReturnsValue(int value)
     {
         Result<int, string> r = value;
-        Assert.NotNull(r.Success);
+        Assert.True(r.IsSuccess);
+        Assert.False(r.IsError);
         Assert.Equal(value, r.Success!.Value);
+        Assert.Null(r.Error);
     }
 
     [Property]
     public void SuccessAccess_ReferenceType_ReturnsValue(string value)
     {
         Result<string, int> r = value;
-        Assert.NotNull(r.Success);
+        Assert.True(r.IsSuccess);
+        Assert.False(r.IsError);
         Assert.Equal(value, r.Success);
+        Assert.Null(r.Error);
     }
 
     [Property]
     public void ErrorAccess_ReferenceType_ReturnsValue(string error)
     {
         Result<int, string> r = error;
-        Assert.NotNull(r.Error);
+        Assert.False(r.IsSuccess);
+        Assert.True(r.IsError);
+        Assert.Null(r.Success);
         Assert.Equal(error, r.Error);
     }
 
@@ -44,7 +50,9 @@ public class ResultAccessTests
     public void ErrorAccess_ValueType_ReturnsValue(int error)
     {
         Result<string, int> r = error;
-        Assert.NotNull(r.Error);
+        Assert.False(r.IsSuccess);
+        Assert.True(r.IsError);
+        Assert.Null(r.Success);
         Assert.Equal(error, r.Error!.Value);
     }
 
@@ -62,8 +70,15 @@ public class ResultAccessTests
         Result<int, string> asSuccess = successValue;
         Result<int, string> asError = errorValue;
 
+        Assert.True(asSuccess.IsSuccess);
+        Assert.False(asSuccess.IsError);
         Assert.Equal(successValue, asSuccess.Success);
+        Assert.Null(asSuccess.Error);
+
+        Assert.False(asError.IsSuccess);
+        Assert.True(asError.IsError);
         Assert.Null(asError.Success);
+        Assert.Equal(errorValue, asError.Error);
     }
 
     [Property]
@@ -72,8 +87,15 @@ public class ResultAccessTests
         Result<string, int> asSuccess = successValue.Value;
         Result<string, int> asError = errorValue;
 
+        Assert.True(asSuccess.IsSuccess);
+        Assert.False(asSuccess.IsError);
         Assert.Equal(successValue.Value, asSuccess.Success);
+        Assert.Null(asSuccess.Error);
+
+        Assert.False(asError.IsSuccess);
+        Assert.True(asError.IsError);
         Assert.Null(asError.Success);
+        Assert.Equal(errorValue, asError.Error!.Value);
     }
 
     [Property]
@@ -82,8 +104,15 @@ public class ResultAccessTests
         Result<string, int> asSuccess = successValue.Value;
         Result<string, int> asError = errorValue;
 
+        Assert.True(asSuccess.IsSuccess);
+        Assert.False(asSuccess.IsError);
+        Assert.Equal(successValue.Value, asSuccess.Success);
         Assert.Null(asSuccess.Error);
-        Assert.Equal(errorValue, asError.Error);
+
+        Assert.False(asError.IsSuccess);
+        Assert.True(asError.IsError);
+        Assert.Null(asError.Success);
+        Assert.Equal(errorValue, asError.Error!.Value);
     }
 
     [Property]
@@ -92,7 +121,14 @@ public class ResultAccessTests
         Result<int, string> asSuccess = successValue;
         Result<int, string> asError = errorValue.Value;
 
+        Assert.True(asSuccess.IsSuccess);
+        Assert.False(asSuccess.IsError);
+        Assert.Equal(successValue, asSuccess.Success);
         Assert.Null(asSuccess.Error);
+
+        Assert.False(asError.IsSuccess);
+        Assert.True(asError.IsError);
+        Assert.Null(asError.Success);
         Assert.Equal(errorValue.Value, asError.Error);
     }
 
@@ -103,49 +139,14 @@ public class ResultAccessTests
     // hold on every instance regardless of which branch it landed on.
 
     [Property]
-    public void BranchesAreMutuallyExclusive(Result<int, string> r)
+    public void BranchInvariants_HoldOnArbitraryResult(Result<int, string> r)
     {
+        // Every Result is in exactly one branch; the four accessors
+        // agree on which branch that is.
         Assert.NotEqual(r.IsSuccess, r.IsError);
-    }
-
-    [Property]
-    public void SuccessIsNonNull_IffIsSuccess(Result<int, string> r)
-    {
         Assert.Equal(r.IsSuccess, r.Success.HasValue);
-    }
-
-    [Property]
-    public void ErrorIsNonNull_IffIsError(Result<int, string> r)
-    {
         Assert.Equal(r.IsError, r.Error is not null);
-    }
-
-    [Property]
-    public void SuccessAccess_PatternMatchesActiveBranch(Result<int, string> r)
-    {
-        if (r.Success is { } s)
-        {
-            Assert.True(r.IsSuccess);
-            Assert.Equal(s, r.Success);
-        }
-        else
-        {
-            Assert.True(r.IsError);
-        }
-    }
-
-    [Property]
-    public void ErrorAccess_PatternMatchesActiveBranch(Result<int, string> r)
-    {
-        if (r.Error is { } e)
-        {
-            Assert.True(r.IsError);
-            Assert.Equal(e, r.Error);
-        }
-        else
-        {
-            Assert.True(r.IsSuccess);
-        }
+        Assert.NotEqual(r.Success.HasValue, r.Error is not null);
     }
 
     // ── Subclass Result<T> inherits the same extension members ─────────
@@ -154,6 +155,8 @@ public class ResultAccessTests
     public void ResultOfT_SuccessAccess_WorksThroughSubclass()
     {
         Result<int> r = 7;
+        Assert.True(r.IsSuccess);
+        Assert.False(r.IsError);
         Assert.Equal(7, r.Success);
         Assert.Null(r.Error);
     }
@@ -163,6 +166,8 @@ public class ResultAccessTests
     {
         var ex = new InvalidOperationException("boom");
         Result<int> r = ex;
+        Assert.False(r.IsSuccess);
+        Assert.True(r.IsError);
         Assert.Null(r.Success);
         Assert.Same(ex, r.Error);
     }
