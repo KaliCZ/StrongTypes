@@ -10,147 +10,286 @@ namespace StrongTypes.Tests;
 [Properties(Arbitrary = new[] { typeof(Generators) })]
 public class ResultAggregateTests
 {
-    // ── Arity 2 — tuple ────────────────────────────────────────────────
+    // ── Arity 2 ────────────────────────────────────────────────────────
 
-    [Property]
-    public void Aggregate2_AllSuccess_ReturnsTuple(int a, string b)
+    [Fact]
+    public void Aggregate2_Tuple_AllSuccess_ReturnsTuple()
     {
-        Result<int, string> r1 = a;
-        Result<int, string> r2 = 42;
-
+        Result<int, string> r1 = 1, r2 = 2;
         var r = Result.Aggregate(r1, r2);
         Assert.True(r.IsSuccess);
-        Assert.Equal((a, 42), r.Success);
+        Assert.Equal((1, 2), r.Success);
     }
 
-    [Property]
-    public void Aggregate2_FirstError_ReturnsSingleError(string e1, int v2)
+    [Fact]
+    public void Aggregate2_Tuple_Errors_CollectedInInputOrder()
     {
-        Result<int, string> r1 = e1;
-        Result<int, string> r2 = v2;
-
+        Result<int, string> r1 = "e1", r2 = "e2";
         var r = Result.Aggregate(r1, r2);
         Assert.True(r.IsError);
-        Assert.Equal(new[] { e1 }, r.Error);
-    }
-
-    [Property]
-    public void Aggregate2_BothError_CollectsBothInOrder(string e1, string e2)
-    {
-        Result<int, string> r1 = e1;
-        Result<int, string> r2 = e2;
-
-        var r = Result.Aggregate(r1, r2);
-        Assert.Equal(new[] { e1, e2 }, r.Error);
-    }
-
-    // ── Arity 2 — combiner ─────────────────────────────────────────────
-
-    [Property]
-    public void Aggregate2_Combiner_AllSuccess_InvokesCombine(int a, int b)
-    {
-        Result<int, string> r1 = a;
-        Result<int, string> r2 = b;
-
-        var r = Result.Aggregate(r1, r2, (x, y) => x + y);
-        Assert.Equal(a + b, r.Success);
-    }
-
-    [Property]
-    public void Aggregate2_Combiner_Error_DoesNotInvokeCombine(string e1)
-    {
-        Result<int, string> r1 = e1;
-        Result<int, string> r2 = 5;
-        var invoked = false;
-
-        var r = Result.Aggregate(r1, r2, (x, y) => { invoked = true; return x + y; });
-        Assert.False(invoked);
-        Assert.Equal(new[] { e1 }, r.Error);
-    }
-
-    // ── Arities 3–7 — smoke tests: tuple + combiner happy path + error collection ──
-
-    [Fact]
-    public void Aggregate3_TupleAndCombiner()
-    {
-        Result<int, string> r1 = 1, r2 = 2, r3 = "e";
-        Assert.Equal((1, 2, 3), Result.Aggregate(r1, r2, (Result<int, string>)3).Success);
-        Assert.Equal(6, Result.Aggregate(r1, r2, (Result<int, string>)3, (a, b, c) => a + b + c).Success);
-        Assert.Equal(new[] { "e" }, Result.Aggregate(r1, r2, r3).Error);
+        Assert.Equal(new[] { "e1", "e2" }, r.Error);
     }
 
     [Fact]
-    public void Aggregate4_TupleAndCombiner()
+    public void Aggregate2_Combiner_AllSuccess_InvokesCombinerExactlyOnce()
     {
-        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, err = "e";
-        Assert.Equal((1, 2, 3, 4), Result.Aggregate(r1, r2, r3, r4).Success);
-        Assert.Equal(10, Result.Aggregate(r1, r2, r3, r4, (a, b, c, d) => a + b + c + d).Success);
-        Assert.Equal(new[] { "e" }, Result.Aggregate(r1, r2, r3, err).Error);
+        Result<int, string> r1 = 1, r2 = 2;
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, (a, b) => { calls++; return a + b; });
+        Assert.Equal(1, calls);
+        Assert.Equal(3, r.Success);
     }
 
     [Fact]
-    public void Aggregate5_TupleAndCombiner()
+    public void Aggregate2_Combiner_Error_DoesNotInvokeCombiner()
     {
-        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, err = "e";
-        Assert.Equal((1, 2, 3, 4, 5), Result.Aggregate(r1, r2, r3, r4, r5).Success);
-        Assert.Equal(15, Result.Aggregate(r1, r2, r3, r4, r5, (a, b, c, d, e) => a + b + c + d + e).Success);
-        Assert.Equal(new[] { "e" }, Result.Aggregate(r1, r2, r3, r4, err).Error);
+        Result<int, string> r1 = "e1", r2 = 2;
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, (a, b) => { calls++; return a + b; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e1" }, r.Error);
+    }
+
+    // ── Arity 3 ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Aggregate3_Tuple_AllSuccess_ReturnsTuple()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3;
+        var r = Result.Aggregate(r1, r2, r3);
+        Assert.True(r.IsSuccess);
+        Assert.Equal((1, 2, 3), r.Success);
     }
 
     [Fact]
-    public void Aggregate6_TupleAndCombiner()
+    public void Aggregate3_Tuple_Errors_CollectedInInputOrder()
     {
-        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, err = "e";
-        Assert.Equal((1, 2, 3, 4, 5, 6), Result.Aggregate(r1, r2, r3, r4, r5, r6).Success);
-        Assert.Equal(21, Result.Aggregate(r1, r2, r3, r4, r5, r6, (a, b, c, d, e, f) => a + b + c + d + e + f).Success);
-        Assert.Equal(new[] { "e" }, Result.Aggregate(r1, r2, r3, r4, r5, err).Error);
+        Result<int, string> r1 = "e1", r2 = 2, r3 = "e3";
+        var r = Result.Aggregate(r1, r2, r3);
+        Assert.Equal(new[] { "e1", "e3" }, r.Error);
     }
 
     [Fact]
-    public void Aggregate7_TupleAndCombiner()
+    public void Aggregate3_Combiner_AllSuccess_InvokesCombinerExactlyOnce()
     {
-        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7, err = "e";
-        Assert.Equal((1, 2, 3, 4, 5, 6, 7), Result.Aggregate(r1, r2, r3, r4, r5, r6, r7).Success);
-        Assert.Equal(28, Result.Aggregate(r1, r2, r3, r4, r5, r6, r7, (a, b, c, d, e, f, g) => a + b + c + d + e + f + g).Success);
-        Assert.Equal(new[] { "e" }, Result.Aggregate(r1, r2, r3, r4, r5, r6, err).Error);
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3;
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, (a, b, c) => { calls++; return a + b + c; });
+        Assert.Equal(1, calls);
+        Assert.Equal(6, r.Success);
     }
 
-    // ── Arity 8 — smoke tests covering the TRest-nested tuple path ─────
+    [Fact]
+    public void Aggregate3_Combiner_Error_DoesNotInvokeCombiner()
+    {
+        Result<int, string> r1 = 1, r2 = "e2", r3 = 3;
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, (a, b, c) => { calls++; return a + b + c; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e2" }, r.Error);
+    }
+
+    // ── Arity 4 ────────────────────────────────────────────────────────
 
     [Fact]
-    public void Aggregate8_AllSuccess_ReturnsFlatTuple()
+    public void Aggregate4_Tuple_AllSuccess_ReturnsTuple()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4;
+        var r = Result.Aggregate(r1, r2, r3, r4);
+        Assert.True(r.IsSuccess);
+        Assert.Equal((1, 2, 3, 4), r.Success);
+    }
+
+    [Fact]
+    public void Aggregate4_Tuple_Errors_CollectedInInputOrder()
+    {
+        Result<int, string> r1 = "e1", r2 = 2, r3 = "e3", r4 = "e4";
+        var r = Result.Aggregate(r1, r2, r3, r4);
+        Assert.Equal(new[] { "e1", "e3", "e4" }, r.Error);
+    }
+
+    [Fact]
+    public void Aggregate4_Combiner_AllSuccess_InvokesCombinerExactlyOnce()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4;
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, (a, b, c, d) => { calls++; return a + b + c + d; });
+        Assert.Equal(1, calls);
+        Assert.Equal(10, r.Success);
+    }
+
+    [Fact]
+    public void Aggregate4_Combiner_Error_DoesNotInvokeCombiner()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = "e3", r4 = 4;
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, (a, b, c, d) => { calls++; return a + b + c + d; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e3" }, r.Error);
+    }
+
+    // ── Arity 5 ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Aggregate5_Tuple_AllSuccess_ReturnsTuple()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5);
+        Assert.True(r.IsSuccess);
+        Assert.Equal((1, 2, 3, 4, 5), r.Success);
+    }
+
+    [Fact]
+    public void Aggregate5_Tuple_Errors_CollectedInInputOrder()
+    {
+        Result<int, string> r1 = 1, r2 = "e2", r3 = 3, r4 = "e4", r5 = 5;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5);
+        Assert.Equal(new[] { "e2", "e4" }, r.Error);
+    }
+
+    [Fact]
+    public void Aggregate5_Combiner_AllSuccess_InvokesCombinerExactlyOnce()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5;
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5,
+            (a, b, c, d, e) => { calls++; return a + b + c + d + e; });
+        Assert.Equal(1, calls);
+        Assert.Equal(15, r.Success);
+    }
+
+    [Fact]
+    public void Aggregate5_Combiner_Error_DoesNotInvokeCombiner()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = "e5";
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5,
+            (a, b, c, d, e) => { calls++; return a + b + c + d + e; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e5" }, r.Error);
+    }
+
+    // ── Arity 6 ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Aggregate6_Tuple_AllSuccess_ReturnsTuple()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6);
+        Assert.True(r.IsSuccess);
+        Assert.Equal((1, 2, 3, 4, 5, 6), r.Success);
+    }
+
+    [Fact]
+    public void Aggregate6_Tuple_Errors_CollectedInInputOrder()
+    {
+        Result<int, string> r1 = "e1", r2 = 2, r3 = 3, r4 = "e4", r5 = 5, r6 = "e6";
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6);
+        Assert.Equal(new[] { "e1", "e4", "e6" }, r.Error);
+    }
+
+    [Fact]
+    public void Aggregate6_Combiner_AllSuccess_InvokesCombinerExactlyOnce()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6;
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6,
+            (a, b, c, d, e, f) => { calls++; return a + b + c + d + e + f; });
+        Assert.Equal(1, calls);
+        Assert.Equal(21, r.Success);
+    }
+
+    [Fact]
+    public void Aggregate6_Combiner_Error_DoesNotInvokeCombiner()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = "e3", r4 = 4, r5 = 5, r6 = 6;
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6,
+            (a, b, c, d, e, f) => { calls++; return a + b + c + d + e + f; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e3" }, r.Error);
+    }
+
+    // ── Arity 7 ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Aggregate7_Tuple_AllSuccess_ReturnsTuple()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7);
+        Assert.True(r.IsSuccess);
+        Assert.Equal((1, 2, 3, 4, 5, 6, 7), r.Success);
+    }
+
+    [Fact]
+    public void Aggregate7_Tuple_Errors_CollectedInInputOrder()
+    {
+        Result<int, string> r1 = 1, r2 = "e2", r3 = 3, r4 = "e4", r5 = 5, r6 = "e6", r7 = 7;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7);
+        Assert.Equal(new[] { "e2", "e4", "e6" }, r.Error);
+    }
+
+    [Fact]
+    public void Aggregate7_Combiner_AllSuccess_InvokesCombinerExactlyOnce()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7;
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7,
+            (a, b, c, d, e, f, g) => { calls++; return a + b + c + d + e + f + g; });
+        Assert.Equal(1, calls);
+        Assert.Equal(28, r.Success);
+    }
+
+    [Fact]
+    public void Aggregate7_Combiner_Error_DoesNotInvokeCombiner()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = "e7";
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7,
+            (a, b, c, d, e, f, g) => { calls++; return a + b + c + d + e + f + g; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e7" }, r.Error);
+    }
+
+    // ── Arity 8 — exercises the TRest-nested ValueTuple path ───────────
+
+    [Fact]
+    public void Aggregate8_Tuple_AllSuccess_ReturnsTuple()
     {
         Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7, r8 = 8;
-
         var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7, r8);
         Assert.True(r.IsSuccess);
         Assert.Equal((1, 2, 3, 4, 5, 6, 7, 8), r.Success);
     }
 
     [Fact]
-    public void Aggregate8_MixedErrors_CollectsOnlyErrorsInOrder()
+    public void Aggregate8_Tuple_Errors_CollectedInInputOrder()
     {
-        Result<int, string> r1 = 1;
-        Result<int, string> r2 = "e2";
-        Result<int, string> r3 = 3;
-        Result<int, string> r4 = "e4";
-        Result<int, string> r5 = 5;
-        Result<int, string> r6 = 6;
-        Result<int, string> r7 = "e7";
-        Result<int, string> r8 = 8;
-
+        Result<int, string> r1 = 1, r2 = "e2", r3 = 3, r4 = "e4", r5 = 5, r6 = 6, r7 = "e7", r8 = 8;
         var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7, r8);
         Assert.Equal(new[] { "e2", "e4", "e7" }, r.Error);
     }
 
     [Fact]
-    public void Aggregate8_Combiner_AllSuccess_InvokesCombine()
+    public void Aggregate8_Combiner_AllSuccess_InvokesCombinerExactlyOnce()
     {
         Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7, r8 = 8;
-
+        var calls = 0;
         var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7, r8,
-            (a, b, c, d, e, f, g, h) => a + b + c + d + e + f + g + h);
+            (a, b, c, d, e, f, g, h) => { calls++; return a + b + c + d + e + f + g + h; });
+        Assert.Equal(1, calls);
         Assert.Equal(36, r.Success);
+    }
+
+    [Fact]
+    public void Aggregate8_Combiner_Error_DoesNotInvokeCombiner()
+    {
+        Result<int, string> r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7, r8 = "e8";
+        var calls = 0;
+        var r = Result.Aggregate(r1, r2, r3, r4, r5, r6, r7, r8,
+            (a, b, c, d, e, f, g, h) => { calls++; return a + b + c + d + e + f + g + h; });
+        Assert.Equal(0, calls);
+        Assert.Equal(new[] { "e8" }, r.Error);
     }
 
     // ── IEnumerable form ───────────────────────────────────────────────
@@ -187,12 +326,9 @@ public class ResultAggregateTests
     }
 
     [Fact]
-    public void AggregateEnumerable_Mixed_ReturnsOnlyErrors()
+    public void AggregateEnumerable_Mixed_ReturnsOnlyErrorsInInputOrder()
     {
-        var results = new List<Result<int, string>>
-        {
-            1, "e1", 2, 3, "e2", 4,
-        };
+        var results = new List<Result<int, string>> { 1, "e1", 2, 3, "e2", 4 };
 
         var r = Result.Aggregate(results);
         Assert.Equal(new[] { "e1", "e2" }, r.Error);
@@ -201,9 +337,7 @@ public class ResultAggregateTests
     [Fact]
     public void AggregateEnumerable_Empty_ReturnsEmptySuccessList()
     {
-        var results = new List<Result<int, string>>();
-
-        var r = Result.Aggregate(results);
+        var r = Result.Aggregate(new List<Result<int, string>>());
         Assert.True(r.IsSuccess);
         Assert.Empty(r.Success!);
     }
@@ -225,7 +359,7 @@ public class ResultAggregateTests
         Assert.Equal(new[] { "e1", "e2" }, r.Error);
     }
 
-    // ── Round-trip: the combiner is just a tuple-form + Map ────────────
+    // ── Round-trip: combiner ≡ tuple form followed by Map ──────────────
 
     [Property]
     public void Aggregate_CombinerEquivalentToTupleThenMap(int a, int b)
