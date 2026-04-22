@@ -69,30 +69,30 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
     #region Map (success branch)
 
     public Result<U, TError> Map<U>(Func<T, U> f) where U : notnull =>
-        IsSuccess ? new Result<U, TError>(f(InternalValue)) : new Result<U, TError>(InternalError);
+        IsSuccess ? f(InternalValue) : InternalError;
 
     public async Task<Result<U, TError>> MapAsync<U>(Func<T, Task<U>> f) where U : notnull =>
-        IsSuccess ? new Result<U, TError>(await f(InternalValue)) : new Result<U, TError>(InternalError);
+        IsSuccess ? await f(InternalValue) : InternalError;
 
     #endregion
 
     #region MapError (error branch)
 
     public Result<T, UError> MapError<UError>(Func<TError, UError> f) where UError : notnull =>
-        IsError ? new Result<T, UError>(f(InternalError)) : new Result<T, UError>(InternalValue);
+        IsError ? f(InternalError) : InternalValue;
 
     public async Task<Result<T, UError>> MapErrorAsync<UError>(Func<TError, Task<UError>> f) where UError : notnull =>
-        IsError ? new Result<T, UError>(await f(InternalError)) : new Result<T, UError>(InternalValue);
+        IsError ? await f(InternalError) : InternalValue;
 
     #endregion
 
     #region FlatMap
 
     public Result<U, TError> FlatMap<U>(Func<T, Result<U, TError>> f) where U : notnull =>
-        IsSuccess ? f(InternalValue) : new Result<U, TError>(InternalError);
+        IsSuccess ? f(InternalValue) : InternalError;
 
     public async Task<Result<U, TError>> FlatMapAsync<U>(Func<T, Task<Result<U, TError>>> f) where U : notnull =>
-        IsSuccess ? await f(InternalValue) : new Result<U, TError>(InternalError);
+        IsSuccess ? await f(InternalValue) : InternalError;
 
     #endregion
 
@@ -137,10 +137,10 @@ public sealed class Result<T> : Result<T, Exception>
     public static implicit operator Result<T>(Exception error) => new(error);
 
     public new Result<U> Map<U>(Func<T, U> f) where U : notnull =>
-        IsSuccess ? new Result<U>(f(InternalValue)) : new Result<U>(InternalError);
+        IsSuccess ? f(InternalValue) : InternalError;
 
     public new async Task<Result<U>> MapAsync<U>(Func<T, Task<U>> f) where U : notnull =>
-        IsSuccess ? new Result<U>(await f(InternalValue)) : new Result<U>(InternalError);
+        IsSuccess ? await f(InternalValue) : InternalError;
 
     // FlatMap's parameter matches the base signature so `new` can hide it; the
     // callback may return any `Result<U, Exception>` (including `Result<U>`
@@ -148,20 +148,16 @@ public sealed class Result<T> : Result<T, Exception>
     // because the callback may hand back a base-class instance.
     public new Result<U> FlatMap<U>(Func<T, Result<U, Exception>> f) where U : notnull
     {
-        if (IsError) return new Result<U>(InternalError);
+        if (IsError) return InternalError;
         var inner = f(InternalValue);
-        return inner.IsSuccess
-            ? new Result<U>(inner.InternalValue)
-            : new Result<U>(inner.InternalError);
+        return inner.IsSuccess ? inner.InternalValue : inner.InternalError;
     }
 
     public new async Task<Result<U>> FlatMapAsync<U>(Func<T, Task<Result<U, Exception>>> f) where U : notnull
     {
-        if (IsError) return new Result<U>(InternalError);
+        if (IsError) return InternalError;
         var inner = await f(InternalValue);
-        return inner.IsSuccess
-            ? new Result<U>(inner.InternalValue)
-            : new Result<U>(inner.InternalError);
+        return inner.IsSuccess ? inner.InternalValue : inner.InternalError;
     }
 }
 
