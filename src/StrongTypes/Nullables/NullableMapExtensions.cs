@@ -1,6 +1,5 @@
-#nullable enable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace StrongTypes;
@@ -12,6 +11,7 @@ public static class NullableMapToStructExtensions
     /// result; returns <see langword="null"/> without invoking
     /// <paramref name="map"/> when the input is <see langword="null"/>.
     /// </summary>
+    [return: NotNullIfNotNull(nameof(value))]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult> map)
         where T : struct
         where TResult : struct
@@ -33,6 +33,7 @@ public static class NullableMapToStructExtensions
     /// result; returns <see langword="null"/> without invoking
     /// <paramref name="map"/> when the input is <see langword="null"/>.
     /// </summary>
+    [return: NotNullIfNotNull(nameof(value))]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult> map)
         where T : class
         where TResult : struct
@@ -54,6 +55,7 @@ public static class NullableMapToStructExtensions
     /// is present; returns <see langword="null"/> without invoking
     /// <paramref name="map"/> when the input is <see langword="null"/>.
     /// </summary>
+    [return: NotNullIfNotNull(nameof(value))]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult>> map)
         where T : struct
         where TResult : struct
@@ -75,6 +77,7 @@ public static class NullableMapToStructExtensions
     /// is present; returns <see langword="null"/> without invoking
     /// <paramref name="map"/> when the input is <see langword="null"/>.
     /// </summary>
+    [return: NotNullIfNotNull(nameof(value))]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult>> map)
         where T : class
         where TResult : struct
