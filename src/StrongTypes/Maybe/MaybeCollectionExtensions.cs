@@ -76,7 +76,7 @@ public static class MaybeCollectionExtensions
 
     /// <summary>Projects each element with <paramref name="selector"/> and returns the maximum, or <c>None</c> when the sequence is empty.</summary>
     /// <typeparam name="T">The element type.</typeparam>
-    /// <typeparam name="TValue">The projected value type.</typeparam>
+    /// <typeparam name="TValue">The projected type.</typeparam>
     /// <param name="source">The sequence to scan.</param>
     /// <param name="selector">Projects each element.</param>
     [Pure]
@@ -103,7 +103,7 @@ public static class MaybeCollectionExtensions
 
     /// <summary>Projects each element with <paramref name="selector"/> and returns the minimum, or <c>None</c> when the sequence is empty.</summary>
     /// <typeparam name="T">The element type.</typeparam>
-    /// <typeparam name="TValue">The projected value type.</typeparam>
+    /// <typeparam name="TValue">The projected type.</typeparam>
     /// <param name="source">The sequence to scan.</param>
     /// <param name="selector">Projects each element.</param>
     [Pure]
@@ -133,7 +133,7 @@ public static class MaybeCollectionExtensions
     #region Values (flatten IEnumerable<Maybe<T>> to its populated values)
 
     /// <summary>Extracts the underlying values from every populated <see cref="Maybe{T}"/>, dropping empties.</summary>
-    /// <typeparam name="T">The wrapped value type.</typeparam>
+    /// <typeparam name="T">The wrapped type.</typeparam>
     /// <param name="source">The sequence of <see cref="Maybe{T}"/>.</param>
     [Pure]
     public static IEnumerable<T> Values<T>(this IEnumerable<Maybe<T>> source) where T : notnull

@@ -70,9 +70,9 @@ outdated, not just what the task names. Do not port code verbatim.
 - Do not delete _Old files unless explicitly asked or unless the rule above
   applies.
 
-## Validated value types — the TryCreate / Create pattern
+## Validated types — the TryCreate / Create pattern
 
-For value types that enforce a validation rule (e.g., `NonEmptyString`,
+For types that enforce a validation rule (e.g., `NonEmptyString`,
 `PositiveInt`), follow this factory pattern:
 
 ```csharp

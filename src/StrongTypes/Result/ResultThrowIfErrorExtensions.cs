@@ -8,7 +8,7 @@ namespace StrongTypes;
 public static class ResultThrowIfErrorExtensions
 {
     /// <summary>Returns the success value, or rethrows the captured exception preserving its original stack trace.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
     /// <typeparam name="TError">The error type, constrained to <see cref="Exception"/>.</typeparam>
     /// <param name="r">The result to unwrap.</param>
     public static T ThrowIfError<T, TError>(this Result<T, TError> r)
@@ -21,8 +21,8 @@ public static class ResultThrowIfErrorExtensions
     }
 
     /// <summary>Returns the success value, or throws the exception produced by <paramref name="toException"/>.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
-    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
+    /// <typeparam name="TError">The error type.</typeparam>
     /// <param name="r">The result to unwrap.</param>
     /// <param name="toException">Maps the error to an <see cref="Exception"/>.</param>
     public static T ThrowIfError<T, TError>(
@@ -37,7 +37,7 @@ public static class ResultThrowIfErrorExtensions
     }
 
     /// <summary>Returns the success value, or throws. A single captured exception is rethrown (stack preserved); multiple exceptions are wrapped in an <see cref="AggregateException"/>.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
     /// <param name="r">The result to unwrap.</param>
     public static T ThrowIfError<T>(this Result<T, IReadOnlyList<Exception>> r)
         where T : notnull

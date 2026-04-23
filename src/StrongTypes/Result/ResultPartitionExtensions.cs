@@ -8,8 +8,8 @@ namespace StrongTypes;
 public static class ResultPartitionExtensions
 {
     /// <summary>Splits a sequence of <see cref="Result{T, TError}"/> into successes and errors. Relative order is preserved within each partition.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
-    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
+    /// <typeparam name="TError">The error type.</typeparam>
     /// <param name="source">The sequence of results.</param>
     [Pure]
     public static (IReadOnlyList<T> Successes, IReadOnlyList<TError> Errors) Partition<T, TError>(
@@ -31,8 +31,8 @@ public static class ResultPartitionExtensions
     }
 
     /// <summary>Partitions the sequence, then invokes <paramref name="success"/> on the successes and <paramref name="error"/> on the errors. Both callbacks are invoked even when their partition is empty.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
-    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
+    /// <typeparam name="TError">The error type.</typeparam>
     /// <param name="source">The sequence of results.</param>
     /// <param name="success">Invoked with all successes.</param>
     /// <param name="error">Invoked with all errors.</param>
@@ -49,8 +49,8 @@ public static class ResultPartitionExtensions
     }
 
     /// <summary>Partitions the sequence, projects each partition through the matching callback, and returns the concatenated results in successes-then-errors order.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
-    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
+    /// <typeparam name="TError">The error type.</typeparam>
     /// <typeparam name="R">The projected element type.</typeparam>
     /// <param name="source">The sequence of results.</param>
     /// <param name="success">Projects the successes.</param>

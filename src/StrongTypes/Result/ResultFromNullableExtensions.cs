@@ -35,7 +35,7 @@ public static class ResultFromNullableExtensions
 
     /// <summary>Lifts a nullable reference into a <see cref="Result{T, TError}"/> with an eager custom error.</summary>
     /// <typeparam name="T">The reference type.</typeparam>
-    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <typeparam name="TError">The error type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="error">The error to emit when <paramref name="value"/> is null.</param>
     /// <remarks>A lambda returning a specific <see cref="Exception"/> subtype binds here rather than to <see cref="ToResult{T}(T?, Func{Exception})"/>. Cast to <see cref="Exception"/> to force the single-parameter form.</remarks>
@@ -47,7 +47,7 @@ public static class ResultFromNullableExtensions
 
     /// <summary>Lifts a nullable reference into a <see cref="Result{T, TError}"/> with a lazy custom error.</summary>
     /// <typeparam name="T">The reference type.</typeparam>
-    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <typeparam name="TError">The error type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="error">Produces the error when <paramref name="value"/> is null.</param>
     [Pure]

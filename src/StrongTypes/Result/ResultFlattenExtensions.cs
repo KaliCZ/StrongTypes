@@ -6,7 +6,7 @@ namespace StrongTypes;
 public static class ResultFlattenExtensions
 {
     /// <summary>Collapses a nested <see cref="Result{T, TError}"/> when both levels share the same error type.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
     /// <typeparam name="TError">The shared error type.</typeparam>
     /// <param name="nested">The nested result.</param>
     [Pure]
@@ -16,7 +16,7 @@ public static class ResultFlattenExtensions
         => nested.IsSuccess ? nested.InternalValue : nested.InternalError;
 
     /// <summary>Collapses a <see cref="Result{T}"/> of <see cref="Result{T}"/>, preserving the single-parameter form.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
     /// <param name="nested">The nested result.</param>
     [Pure]
     public static Result<T> Flatten<T>(this Result<Result<T>, Exception> nested)
@@ -24,7 +24,7 @@ public static class ResultFlattenExtensions
         => nested.IsSuccess ? nested.InternalValue : nested.InternalError;
 
     /// <summary>Collapses a nested <see cref="Result{T, TError}"/> whose inner and outer error types are different <see cref="Exception"/> subtypes. Both errors upcast to <see cref="Exception"/>.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
     /// <typeparam name="TInnerException">The inner exception type.</typeparam>
     /// <typeparam name="TOuterException">The outer exception type.</typeparam>
     /// <param name="nested">The nested result.</param>

@@ -6,7 +6,7 @@ using StrongTypes.Api.Models;
 namespace StrongTypes.Api.Controllers;
 
 /// <summary>
-/// Controller base for entities whose <typeparamref name="T"/> is a value type.
+/// Controller base for entities whose <typeparamref name="T"/> is a struct.
 /// <c>TNullable</c> is fixed to <c>T?</c> (i.e. <c>Nullable&lt;T&gt;</c>), which
 /// lets every conversion in PATCH be a direct nullable-value access — no boxing
 /// or runtime casts.
