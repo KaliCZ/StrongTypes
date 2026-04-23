@@ -9,57 +9,53 @@ using System.Threading;
 
 namespace StrongTypes;
 
-/// <summary>
-/// Extensions over <see cref="Enum"/> types. Exposes factories
-/// (<c>Parse</c>, <c>TryParse</c>, <c>Create</c>, <c>TryCreate</c>), cached
-/// metadata (<c>AllValues</c>, <c>AllFlagValues</c>, <c>AllFlagsCombined</c>),
-/// and a per-value <c>GetFlags</c> decomposition.
-/// </summary>
+/// <summary>Extensions over <see cref="Enum"/> types: factories, declared-values metadata, and flag decomposition.</summary>
 public static class EnumExtensions
 {
     extension<TEnum>(TEnum source) where TEnum : struct, Enum
     {
-        /// <summary>Thin wrapper over <see cref="Enum.Parse{TEnum}(string)"/>. Throws on failure.</summary>
+        /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>.</summary>
+        /// <param name="value">The name or numeric value to parse.</param>
+        /// <exception cref="ArgumentException"><paramref name="value"/> does not match a defined name or value.</exception>
         public static TEnum Parse(string value) => Enum.Parse<TEnum>(value);
 
-        /// <summary>Thin wrapper over <see cref="Enum.Parse{TEnum}(string, bool)"/>. Throws on failure.</summary>
+        /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>.</summary>
+        /// <param name="value">The name or numeric value to parse.</param>
+        /// <param name="ignoreCase">When <c>true</c>, the name comparison is case-insensitive.</param>
+        /// <exception cref="ArgumentException"><paramref name="value"/> does not match a defined name or value.</exception>
         public static TEnum Parse(string value, bool ignoreCase) => Enum.Parse<TEnum>(value, ignoreCase);
 
-        /// <summary>Thin wrapper over <see cref="Enum.TryParse{TEnum}(string, out TEnum)"/>. Returns <c>null</c> on failure.</summary>
+        /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>, or returns <c>null</c> when parsing fails.</summary>
+        /// <param name="value">The name or numeric value to parse.</param>
         public static TEnum? TryParse(string? value) => Enum.TryParse<TEnum>(value, out var v) ? v : null;
 
-        /// <summary>Thin wrapper over <see cref="Enum.TryParse{TEnum}(string, bool, out TEnum)"/>. Returns <c>null</c> on failure.</summary>
+        /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>, or returns <c>null</c> when parsing fails.</summary>
+        /// <param name="value">The name or numeric value to parse.</param>
+        /// <param name="ignoreCase">When <c>true</c>, the name comparison is case-insensitive.</param>
         public static TEnum? TryParse(string? value, bool ignoreCase) => Enum.TryParse<TEnum>(value, ignoreCase, out var v) ? v : null;
 
-        /// <summary>Alias for Parse, matching the repo's validated-type factory naming.</summary>
+        /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>.</summary>
+        /// <param name="value">The name or numeric value to parse.</param>
+        /// <exception cref="ArgumentException"><paramref name="value"/> does not match a defined name or value.</exception>
         public static TEnum Create(string value) => Enum.Parse<TEnum>(value);
 
-        /// <summary>Alias for TryParse, matching the repo's validated-type factory naming.</summary>
+        /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>, or returns <c>null</c> when parsing fails.</summary>
+        /// <param name="value">The name or numeric value to parse.</param>
         public static TEnum? TryCreate(string? value) => Enum.TryParse<TEnum>(value, out var v) ? v : null;
 
-        /// <summary>All declared values of <typeparamref name="TEnum"/>, cached on first type use.</summary>
+        /// <summary>All declared values of <typeparamref name="TEnum"/>.</summary>
         public static TEnum[] AllValues => EnumMeta<TEnum>.Values;
 
-        /// <summary>
-        /// Members of <typeparamref name="TEnum"/> whose underlying bits form
-        /// a single power of two. Computed and cached the first time it's
-        /// read. Throws if <typeparamref name="TEnum"/> lacks <c>[Flags]</c>.
-        /// </summary>
+        /// <summary>Members of <typeparamref name="TEnum"/> whose underlying bits form a single power of two.</summary>
+        /// <exception cref="InvalidOperationException"><typeparamref name="TEnum"/> lacks <c>[Flags]</c>.</exception>
         public static TEnum[] AllFlagValues => FlagEnumMeta<TEnum>.FlagValues;
 
-        /// <summary>
-        /// Every single-bit flag OR-ed into one value — suitable for
-        /// persisting the complete flag set as a single integer. Cached the
-        /// first time it's read. Throws if <typeparamref name="TEnum"/>
-        /// lacks <c>[Flags]</c>.
-        /// </summary>
+        /// <summary>Every single-bit flag OR-ed into one value.</summary>
+        /// <exception cref="InvalidOperationException"><typeparamref name="TEnum"/> lacks <c>[Flags]</c>.</exception>
         public static TEnum AllFlagsCombined => FlagEnumMeta<TEnum>.FlagsCombined;
 
-        /// <summary>
-        /// Splits the receiver into the individual single-bit flags it
-        /// contains, in declaration order. Returns an empty list for zero.
-        /// Throws if <typeparamref name="TEnum"/> lacks <c>[Flags]</c>.
-        /// </summary>
+        /// <summary>Splits the receiver into the individual single-bit flags it contains, in declaration order. Returns an empty list for zero.</summary>
+        /// <exception cref="InvalidOperationException"><typeparamref name="TEnum"/> lacks <c>[Flags]</c>.</exception>
         public IReadOnlyList<TEnum> GetFlags()
         {
             // Access FlagValues first so non-[Flags] enums throw even when

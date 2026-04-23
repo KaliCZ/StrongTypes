@@ -7,14 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace StrongTypes.EfCore;
 
-/// <summary>
-/// As each entity type is discovered, pre-declares every strong-type member
-/// as a scalar property with its value converter attached. Runs BEFORE EF
-/// Core's <c>PropertyDiscoveryConvention</c>, so by the time discovery walks
-/// the members, the strong-type properties already exist as scalars — no
-/// fallback into complex/owned-type inference, no "no suitable constructor"
-/// blow-up at model finalization.
-/// </summary>
+/// <summary>Pre-declares every strong-type member as a scalar property with its value converter attached, ahead of EF Core's property-discovery pass.</summary>
 internal sealed class StrongTypesConvention : IEntityTypeAddedConvention
 {
     public void ProcessEntityTypeAdded(

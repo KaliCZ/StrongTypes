@@ -7,10 +7,12 @@ namespace StrongTypes;
 
 public static partial class Result
 {
-    /// <summary>
-    /// Combines results into a tuple of values on all-success, or an array of
-    /// every collected error (not just the first) otherwise.
-    /// </summary>
+    /// <summary>Combines results into a tuple of values on all-success, or an array of every collected error otherwise.</summary>
+    /// <typeparam name="T1">The first success value type.</typeparam>
+    /// <typeparam name="T2">The second success value type.</typeparam>
+    /// <typeparam name="TError">The shared error type.</typeparam>
+    /// <param name="r1">The first result.</param>
+    /// <param name="r2">The second result.</param>
     public static Result<(T1, T2), TError[]> Aggregate<T1, T2, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2)
         where T1 : notnull where T2 : notnull where TError : notnull
@@ -24,10 +26,14 @@ public static partial class Result
         return errors;
     }
 
-    /// <summary>
-    /// Combiner form: on all-success invokes <paramref name="combine"/>; otherwise
-    /// returns all collected errors.
-    /// </summary>
+    /// <summary>On all-success invokes <paramref name="combine"/>; otherwise returns all collected errors.</summary>
+    /// <typeparam name="T1">The first success value type.</typeparam>
+    /// <typeparam name="T2">The second success value type.</typeparam>
+    /// <typeparam name="R">The combined success type.</typeparam>
+    /// <typeparam name="TError">The shared error type.</typeparam>
+    /// <param name="r1">The first result.</param>
+    /// <param name="r2">The second result.</param>
+    /// <param name="combine">Invoked with both successful values.</param>
     public static Result<R, TError[]> Aggregate<T1, T2, R, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2,
         Func<T1, T2, R> combine)
@@ -246,10 +252,10 @@ public static partial class Result
         return errors;
     }
 
-    /// <summary>
-    /// Aggregates any number of results, collecting every error. The sequence is
-    /// fully drained whether or not an error is seen.
-    /// </summary>
+    /// <summary>Aggregates any number of results, collecting every error. The sequence is fully drained whether or not an error is seen.</summary>
+    /// <typeparam name="T">The success value type.</typeparam>
+    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <param name="results">The results to aggregate.</param>
     public static Result<T[], TError[]> Aggregate<T, TError>(
         IEnumerable<Result<T, TError>> results)
         where T : notnull where TError : notnull
@@ -266,13 +272,16 @@ public static partial class Result
         return successes.ToArray();
     }
 
-    /// <summary>
-    /// Combiner form that also folds the collected errors: on all-success
-    /// invokes <paramref name="combine"/>; otherwise passes the collected
-    /// <typeparamref name="TError"/> array through <paramref name="errorMap"/>
-    /// — typically used to join multiple validation messages into a single
-    /// <typeparamref name="UError"/>.
-    /// </summary>
+    /// <summary>On all-success invokes <paramref name="combine"/>; otherwise passes the collected errors through <paramref name="errorMap"/>.</summary>
+    /// <typeparam name="T1">The first success value type.</typeparam>
+    /// <typeparam name="T2">The second success value type.</typeparam>
+    /// <typeparam name="R">The combined success type.</typeparam>
+    /// <typeparam name="TError">The incoming error type.</typeparam>
+    /// <typeparam name="UError">The mapped error type.</typeparam>
+    /// <param name="r1">The first result.</param>
+    /// <param name="r2">The second result.</param>
+    /// <param name="combine">Invoked with both successful values.</param>
+    /// <param name="errorMap">Folds the collected errors into a single <typeparamref name="UError"/>.</param>
     public static Result<R, UError> Aggregate<T1, T2, R, TError, UError>(
         Result<T1, TError> r1, Result<T2, TError> r2,
         Func<T1, T2, R> combine,

@@ -11,16 +11,12 @@ using System.Text.Json.Serialization;
 
 namespace StrongTypes;
 
-/// <summary>
-/// Factory helpers for <see cref="NonEmptyEnumerable{T}"/>.
-/// </summary>
+/// <summary>Factory helpers for <see cref="NonEmptyEnumerable{T}"/>.</summary>
 public static class NonEmptyEnumerable
 {
-    /// <summary>
-    /// Returns a <see cref="NonEmptyEnumerable{T}"/> wrapping <paramref name="values"/>, or
-    /// <c>null</c> if <paramref name="values"/> is null or empty. Wrapping is idempotent —
-    /// passing an existing <see cref="NonEmptyEnumerable{T}"/> returns it as-is.
-    /// </summary>
+    /// <summary>Wraps <paramref name="values"/> as a <see cref="NonEmptyEnumerable{T}"/>, or returns <c>null</c> when the sequence is null or empty.</summary>
+    /// <typeparam name="T">The element type.</typeparam>
+    /// <param name="values">The source sequence.</param>
     public static NonEmptyEnumerable<T>? TryCreateRange<T>(IEnumerable<T>? values) =>
         values switch
         {
@@ -43,20 +39,18 @@ public static class NonEmptyEnumerable
         return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
     }
 
-    /// <summary>
-    /// Returns a <see cref="NonEmptyEnumerable{T}"/> wrapping <paramref name="values"/>.
-    /// Throws <see cref="ArgumentException"/> if <paramref name="values"/> is null or empty.
-    /// </summary>
+    /// <summary>Wraps <paramref name="values"/> as a <see cref="NonEmptyEnumerable{T}"/>.</summary>
+    /// <typeparam name="T">The element type.</typeparam>
+    /// <param name="values">The source sequence.</param>
+    /// <exception cref="ArgumentException"><paramref name="values"/> is <c>null</c> or empty.</exception>
     public static NonEmptyEnumerable<T> CreateRange<T>(IEnumerable<T>? values)
         => TryCreateRange(values)
            ?? throw new ArgumentException("You cannot create NonEmptyEnumerable from a null or empty sequence.", nameof(values));
 
-    /// <summary>
-    /// Returns a <see cref="NonEmptyEnumerable{T}"/> wrapping <paramref name="values"/>.
-    /// Throws <see cref="ArgumentException"/> if <paramref name="values"/> is empty. Also
-    /// backs the collection-expression syntax (<c>NonEmptyEnumerable&lt;int&gt; list = [1, 2, 3];</c>);
-    /// an empty collection expression throws at runtime.
-    /// </summary>
+    /// <summary>Creates a <see cref="NonEmptyEnumerable{T}"/> from the supplied elements. Also backs the collection-expression syntax (<c>NonEmptyEnumerable&lt;int&gt; list = [1, 2, 3];</c>).</summary>
+    /// <typeparam name="T">The element type.</typeparam>
+    /// <param name="values">The elements to wrap.</param>
+    /// <exception cref="ArgumentException"><paramref name="values"/> is empty.</exception>
     public static NonEmptyEnumerable<T> Create<T>(params ReadOnlySpan<T> values)
     {
         if (values.IsEmpty)
@@ -65,12 +59,9 @@ public static class NonEmptyEnumerable
     }
 }
 
-/// <summary>
-/// A read-only list of <typeparamref name="T"/> guaranteed to contain at least one element.
-/// Construct via <see cref="NonEmptyEnumerable.Create{T}(ReadOnlySpan{T})"/>,
-/// <see cref="NonEmptyEnumerable.CreateRange{T}(IEnumerable{T})"/>, or a collection expression
-/// (<c>NonEmptyEnumerable&lt;int&gt; list = [1, 2, 3];</c>).
-/// </summary>
+/// <summary>A read-only list of <typeparamref name="T"/> guaranteed to contain at least one element.</summary>
+/// <typeparam name="T">The element type.</typeparam>
+/// <remarks>Construct via <see cref="NonEmptyEnumerable.Create{T}(ReadOnlySpan{T})"/>, <see cref="NonEmptyEnumerable.CreateRange{T}(IEnumerable{T})"/>, or a collection expression (<c>NonEmptyEnumerable&lt;int&gt; list = [1, 2, 3];</c>).</remarks>
 [JsonConverter(typeof(NonEmptyEnumerableJsonConverterFactory))]
 [CollectionBuilder(typeof(NonEmptyEnumerable), nameof(NonEmptyEnumerable.Create))]
 [DebuggerTypeProxy(typeof(NonEmptyEnumerableDebugView<>))]
@@ -99,19 +90,14 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
 
     public T this[int index] => _values[index];
 
-    /// <summary>
-    /// Returns an allocation-free struct enumerator for <c>foreach</c>.
-    /// </summary>
     public Enumerator GetEnumerator() => new(_values);
 
     IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    /// <summary>
-    /// Returns the underlying buffer as a <see cref="ReadOnlySpan{T}"/>. The span must not
-    /// outlive the enumerable.
-    /// </summary>
+    /// <summary>Returns the elements as a <see cref="ReadOnlySpan{T}"/>.</summary>
+    /// <remarks>The span must not outlive the enumerable.</remarks>
     public ReadOnlySpan<T> AsSpan() => _values;
 
     #region ICollection<T> — read-only implementation

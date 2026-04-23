@@ -9,12 +9,8 @@ using System.Text.Json.Serialization;
 
 namespace StrongTypes;
 
-/// <summary>
-/// <see cref="JsonConverterFactory"/> for <see cref="NonEmptyEnumerable{T}"/> and
-/// <see cref="INonEmptyEnumerable{T}"/>. Reads a JSON array and fails with a
-/// <see cref="JsonException"/> when the array is empty or the JSON token is not an array;
-/// JSON null round-trips to C# null. Writes as a JSON array.
-/// </summary>
+/// <summary><see cref="JsonConverterFactory"/> for <see cref="NonEmptyEnumerable{T}"/> and <see cref="INonEmptyEnumerable{T}"/>.</summary>
+/// <remarks>Reads and writes a JSON array. JSON <c>null</c> round-trips to C# <c>null</c>. An empty JSON array or a non-array token produces a <see cref="JsonException"/>.</remarks>
 public sealed class NonEmptyEnumerableJsonConverterFactory : JsonConverterFactory
 {
     private static readonly ConcurrentDictionary<Type, JsonConverter> s_converterCache = new();

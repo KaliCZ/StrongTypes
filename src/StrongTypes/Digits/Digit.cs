@@ -4,19 +4,8 @@ using System;
 
 namespace StrongTypes;
 
-/// <summary>
-/// A decimal digit in the range <c>0</c>–<c>9</c>, parsed from a single character.
-/// </summary>
-/// <remarks>
-/// <para>
-/// Construct via <see cref="TryCreate"/> or <see cref="Create"/>. A character is accepted when
-/// <see cref="char.IsDigit(char)"/> returns <c>true</c> — this includes non-ASCII Unicode decimal digits,
-/// whose numeric value is folded into a byte in the 0–9 range.
-/// </para>
-/// <para>
-/// <c>default(Digit)</c> represents the digit <c>0</c>, which satisfies the invariant.
-/// </para>
-/// </remarks>
+/// <summary>A decimal digit in the range <c>0</c>–<c>9</c>, parsed from a single character.</summary>
+/// <remarks>A character is accepted when <see cref="char.IsDigit(char)"/> returns <c>true</c>, which includes non-ASCII Unicode decimal digits whose numeric value folds into 0–9. <c>default(Digit)</c> represents <c>0</c>.</remarks>
 public readonly struct Digit :
     IEquatable<Digit>,
     IEquatable<byte>,
@@ -36,10 +25,8 @@ public readonly struct Digit :
     public static implicit operator byte(Digit d) => d.Value;
     public static implicit operator int(Digit d) => d.Value;
 
-    /// <summary>
-    /// Returns a <see cref="Digit"/> wrapping the decimal value of <paramref name="value"/>,
-    /// or <c>null</c> if <paramref name="value"/> is not a decimal digit character.
-    /// </summary>
+    /// <summary>Wraps the decimal value of <paramref name="value"/>, or returns <c>null</c> when it is not a decimal digit character.</summary>
+    /// <param name="value">The character to parse.</param>
     public static Digit? TryCreate(char value)
     {
         if (!char.IsDigit(value))
@@ -50,10 +37,9 @@ public readonly struct Digit :
         return new Digit((byte)char.GetNumericValue(value));
     }
 
-    /// <summary>
-    /// Returns a <see cref="Digit"/> wrapping the decimal value of <paramref name="value"/>.
-    /// Throws <see cref="ArgumentException"/> if <paramref name="value"/> is not a decimal digit character.
-    /// </summary>
+    /// <summary>Wraps the decimal value of <paramref name="value"/>.</summary>
+    /// <param name="value">The character to parse.</param>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is not a decimal digit character.</exception>
     public static Digit Create(char value)
     {
         return TryCreate(value)

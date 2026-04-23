@@ -5,17 +5,11 @@ using System.Globalization;
 
 namespace StrongTypes;
 
-/// <summary>
-/// Parsing extensions on <see cref="string"/>. Each method returns a nullable
-/// result: <c>null</c> when the input is null/empty/whitespace or parsing
-/// fails, a parsed value otherwise.
-/// </summary>
+/// <summary>Parsing extensions on <see cref="string"/>. Each <c>As…</c> method returns <c>null</c> when the input is null/empty/whitespace or parsing fails; each <c>To…</c> method throws.</summary>
 public static class StringExtensions
 {
-    /// <summary>
-    /// Returns a <see cref="NonEmptyString"/> wrapping <paramref name="s"/>, or
-    /// <c>null</c> if <paramref name="s"/> is null, empty, or whitespace.
-    /// </summary>
+    /// <summary>Wraps <paramref name="s"/> as a <see cref="NonEmptyString"/>, or returns <c>null</c> when it is null, empty, or whitespace.</summary>
+    /// <param name="s">The string to validate.</param>
     public static NonEmptyString? AsNonEmpty(this string? s) => NonEmptyString.TryCreate(s);
 
     public static byte? AsByte(this string? s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Integer) =>
@@ -54,13 +48,10 @@ public static class StringExtensions
     public static Guid? AsGuidExact(this string? s, string format = "D") =>
         Guid.TryParseExact(s, format, out var value) ? value : null;
 
-    /// <summary>
-    /// Parses <paramref name="s"/> as a member of <typeparamref name="TEnum"/>
-    /// via <see cref="Enum.TryParse{TEnum}(string, bool, out TEnum)"/>. Returns
-    /// <c>null</c> when parsing fails. Equivalent to <c>TEnum.TryParse(s, ignoreCase)</c>;
-    /// the indirection exists because C# does not allow calling extension-static
-    /// members through an open type parameter.
-    /// </summary>
+    /// <summary>Parses <paramref name="s"/> as a member of <typeparamref name="TEnum"/>, or returns <c>null</c> when parsing fails.</summary>
+    /// <typeparam name="TEnum">The enum type.</typeparam>
+    /// <param name="s">The name or numeric value to parse.</param>
+    /// <param name="ignoreCase">When <c>true</c>, the name comparison is case-insensitive.</param>
     public static TEnum? AsEnum<TEnum>(this string? s, bool ignoreCase = false)
         where TEnum : struct, Enum =>
         Enum.TryParse<TEnum>(s, ignoreCase, out var v) ? v : null;
@@ -69,11 +60,9 @@ public static class StringExtensions
     // --- these delegate to the framework's Parse methods, which throw ---
     // --- FormatException / OverflowException / ArgumentNullException. ---
 
-    /// <summary>
-    /// Returns a <see cref="NonEmptyString"/> wrapping <paramref name="s"/>.
-    /// Throws <see cref="ArgumentException"/> when <paramref name="s"/> is null,
-    /// empty, or whitespace.
-    /// </summary>
+    /// <summary>Wraps <paramref name="s"/> as a <see cref="NonEmptyString"/>.</summary>
+    /// <param name="s">The string to validate.</param>
+    /// <exception cref="ArgumentException"><paramref name="s"/> is null, empty, or whitespace.</exception>
     public static NonEmptyString ToNonEmpty(this string? s) => NonEmptyString.Create(s);
 
     public static byte ToByte(this string? s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Integer) =>
@@ -109,10 +98,11 @@ public static class StringExtensions
 
     public static Guid ToGuidExact(this string? s, string format = "D") => Guid.ParseExact(s!, format);
 
-    /// <summary>
-    /// Parses <paramref name="s"/> as a member of <typeparamref name="TEnum"/>.
-    /// Throws when parsing fails.
-    /// </summary>
+    /// <summary>Parses <paramref name="s"/> as a member of <typeparamref name="TEnum"/>.</summary>
+    /// <typeparam name="TEnum">The enum type.</typeparam>
+    /// <param name="s">The name or numeric value to parse.</param>
+    /// <param name="ignoreCase">When <c>true</c>, the name comparison is case-insensitive.</param>
+    /// <exception cref="ArgumentException">Parsing fails.</exception>
     public static TEnum ToEnum<TEnum>(this string? s, bool ignoreCase = false)
         where TEnum : struct, Enum =>
         Enum.Parse<TEnum>(s!, ignoreCase);

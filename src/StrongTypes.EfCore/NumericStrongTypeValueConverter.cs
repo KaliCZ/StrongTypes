@@ -4,12 +4,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace StrongTypes.EfCore;
 
-/// <summary>
-/// Generic EF Core value converter for numeric strong-type wrappers
-/// (<see cref="Positive{T}"/>, <see cref="NonNegative{T}"/>, <see cref="Negative{T}"/>,
-/// <see cref="NonPositive{T}"/>). Maps the wrapper to its underlying <typeparamref name="T"/>
-/// column via the <c>Value</c> property and <c>Create</c> factory.
-/// </summary>
+/// <summary>EF Core value converter for numeric strong-type wrappers. Maps the wrapper to its underlying <typeparamref name="T"/> column via the wrapper's <c>Value</c> property and <c>Create</c> factory.</summary>
+/// <typeparam name="TWrapper">The strong-type wrapper (<see cref="Positive{T}"/>, <see cref="NonNegative{T}"/>, <see cref="Negative{T}"/>, or <see cref="NonPositive{T}"/>).</typeparam>
+/// <typeparam name="T">The underlying numeric type.</typeparam>
 public sealed class NumericStrongTypeValueConverter<TWrapper, T> : ValueConverter<TWrapper, T>
     where TWrapper : struct
     where T : struct

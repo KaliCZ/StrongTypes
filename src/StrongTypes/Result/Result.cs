@@ -6,17 +6,10 @@ using System.Threading.Tasks;
 
 namespace StrongTypes;
 
-/// <summary>
-/// A value that is either a success carrying a <typeparamref name="T"/> or an error
-/// carrying a <typeparamref name="TError"/>. Construct through the implicit conversions
-/// (<c>return value;</c> / <c>return error;</c>) or the <see cref="Result"/> factory.
-/// <para>
-/// The typical branch check is <c>if (result.Success is {} s)</c> / <c>if (result.Error is {} e)</c>,
-/// which unwraps to the underlying value in a single expression. <c>Success</c> and
-/// <c>Error</c> are surfaced via extension members so the returned nullable type is
-/// <see cref="Nullable{T}"/> for value types and <c>T?</c> for reference types.
-/// </para>
-/// </summary>
+/// <summary>A value that is either a success carrying <typeparamref name="T"/> or an error carrying <typeparamref name="TError"/>.</summary>
+/// <typeparam name="T">The success value type.</typeparam>
+/// <typeparam name="TError">The error value type.</typeparam>
+/// <remarks>Construct through the implicit conversions (<c>return value;</c> / <c>return error;</c>) or the <see cref="Result"/> factory. Unwrap with the extension-property pattern: <c>if (result.Success is {} s)</c> or <c>if (result.Error is {} e)</c>.</remarks>
 // Note: we can't also declare IEquatable<T> and IEquatable<TError> — the C#
 // compiler rejects that combination (CS0695) because the two interfaces unify
 // when T equals TError at a closed type. The Equals(T) / Equals(TError)
@@ -79,10 +72,11 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
     public async Task<Result<U, TError>> MapAsync<U>(Func<T, Task<U>> f) where U : notnull =>
         IsSuccess ? await f(InternalValue) : InternalError;
 
-    /// <summary>
-    /// Bimap: transforms both branches in one call. Equivalent to
-    /// <c>r.Map(success).MapError(error)</c> but traverses the value once.
-    /// </summary>
+    /// <summary>Transforms both branches in one call (bimap).</summary>
+    /// <typeparam name="U">The mapped success type.</typeparam>
+    /// <typeparam name="UError">The mapped error type.</typeparam>
+    /// <param name="success">Applied when this is a success.</param>
+    /// <param name="error">Applied when this is an error.</param>
     public Result<U, UError> Map<U, UError>(Func<T, U> success, Func<TError, UError> error)
         where U : notnull
         where UError : notnull =>
@@ -126,17 +120,13 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
             : EqualityComparer<TError>.Default.Equals(InternalError, other.InternalError);
     }
 
-    /// <summary>
-    /// Returns <see langword="true"/> when this Result is a success whose value
-    /// equals <paramref name="other"/>.
-    /// </summary>
+    /// <summary>Returns <c>true</c> when this is a success whose value equals <paramref name="other"/>.</summary>
+    /// <param name="other">The value to compare against.</param>
     public bool Equals(T? other) =>
         IsSuccess && other is not null && EqualityComparer<T>.Default.Equals(InternalValue, other);
 
-    /// <summary>
-    /// Returns <see langword="true"/> when this Result is an error whose value
-    /// equals <paramref name="other"/>.
-    /// </summary>
+    /// <summary>Returns <c>true</c> when this is an error whose value equals <paramref name="other"/>.</summary>
+    /// <param name="other">The error to compare against.</param>
     public bool Equals(TError? other) =>
         IsError && other is not null && EqualityComparer<TError>.Default.Equals(InternalError, other);
 
@@ -156,13 +146,8 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
     #endregion
 }
 
-/// <summary>
-/// Shorthand for <c>Result&lt;T, Exception&gt;</c>. Method signatures can read as
-/// <c>Result&lt;T&gt;</c> without naming the error type. Shadows <c>Map</c>,
-/// <c>FlatMap</c>, and their async counterparts to narrow the return type — so
-/// chained expressions stay as <c>Result&lt;T&gt;</c> instead of decaying to the
-/// two-parameter form.
-/// </summary>
+/// <summary>Shorthand for <c>Result&lt;T, Exception&gt;</c>; chained <c>Map</c>/<c>FlatMap</c> calls stay as <see cref="Result{T}"/> rather than decaying to the two-parameter form.</summary>
+/// <typeparam name="T">The success value type.</typeparam>
 public sealed class Result<T> : Result<T, Exception>
     where T : notnull
 {
@@ -197,19 +182,30 @@ public sealed class Result<T> : Result<T, Exception>
     }
 }
 
-/// <summary>
-/// Factory helpers for <see cref="Result{T}"/> and <see cref="Result{T, TError}"/>. Prefer the
-/// implicit conversions (<c>return value;</c>) in callers; use these when type inference
-/// needs a nudge or when explicit intent reads better.
-/// </summary>
+/// <summary>Factory helpers for <see cref="Result{T}"/> and <see cref="Result{T, TError}"/>.</summary>
 public static partial class Result
 {
+    /// <summary>Wraps <paramref name="value"/> as a successful <see cref="Result{T}"/>.</summary>
+    /// <typeparam name="T">The success value type.</typeparam>
+    /// <param name="value">The success payload.</param>
     public static Result<T> Success<T>(T value) where T : notnull => new(value);
+
+    /// <summary>Wraps <paramref name="error"/> as a failed <see cref="Result{T}"/>.</summary>
+    /// <typeparam name="T">The success value type.</typeparam>
+    /// <param name="error">The captured exception.</param>
     public static Result<T> Error<T>(Exception error) where T : notnull => new(error);
 
+    /// <summary>Wraps <paramref name="value"/> as a successful <see cref="Result{T, TError}"/>.</summary>
+    /// <typeparam name="T">The success value type.</typeparam>
+    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <param name="value">The success payload.</param>
     public static Result<T, TError> Success<T, TError>(T value)
         where T : notnull where TError : notnull => new(value);
 
+    /// <summary>Wraps <paramref name="error"/> as a failed <see cref="Result{T, TError}"/>.</summary>
+    /// <typeparam name="T">The success value type.</typeparam>
+    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <param name="error">The error payload.</param>
     public static Result<T, TError> Error<T, TError>(TError error)
         where T : notnull where TError : notnull => new(error);
 }
