@@ -3,9 +3,9 @@
 
 FsCheck arbitraries for [Kalicz.StrongTypes](https://www.nuget.org/packages/Kalicz.StrongTypes).
 Lets you write property tests against code that takes or returns `NonEmptyString`,
-`Positive<T>`, `NonNegative<T>`, `Negative<T>`, `NonPositive<T>`, `Maybe<T>`, and
-`NonEmptyEnumerable<T>` without hand-rolling generators that re-derive each type's
-invariants.
+`Digit`, `Positive<T>`, `NonNegative<T>`, `Negative<T>`, `NonPositive<T>`, `Maybe<T>`,
+and `NonEmptyEnumerable<T>` without hand-rolling generators that re-derive each
+type's invariants.
 
 ## Install
 
@@ -40,11 +40,22 @@ public class MyTests
 
 ## What ships
 
-- `NonEmptyString` — filtered to non-null, non-whitespace values
-- `NullableNonEmptyString` — ~10% null injection
-- `Positive<int>`, `Negative<int>`, `NonNegative<int>`, `NonPositive<int>`
-- `Maybe<int>`, `Maybe<string>`, `Maybe<NonEmptyString>`, `Maybe<Positive<int>>` —
-  ~20% `None` injection
-- `NonEmptyEnumerable<int>`
+Scalar strong types ship three shapes: the type itself, its nullable form
+(`T?`, ~5% `null`), and `Maybe<T>` (~5% `None`).
+
+| Type                 | `T`             | `T?`                    | `Maybe<T>`              |
+| -------------------- | --------------- | ----------------------- | ----------------------- |
+| `NonEmptyString`     | `NonEmptyString`| `NullableNonEmptyString`| `MaybeNonEmptyString`   |
+| `Digit`              | `Digit`         | `NullableDigit`         | `MaybeDigit`            |
+| `Positive<int>`      | `PositiveInt`   | `NullablePositiveInt`   | `MaybePositiveInt`      |
+| `Negative<int>`      | `NegativeInt`   | `NullableNegativeInt`   | `MaybeNegativeInt`      |
+| `NonNegative<int>`   | `NonNegativeInt`| `NullableNonNegativeInt`| `MaybeNonNegativeInt`   |
+| `NonPositive<int>`   | `NonPositiveInt`| `NullableNonPositiveInt`| `MaybeNonPositiveInt`   |
+
+Apart from the above, you also get:
+
+- `NonEmptyEnumerableInt` — `NonEmptyEnumerable<int>`
+- `Maybe<T>` for common primitives: `MaybeBool`, `MaybeInt`, `MaybeLong`,
+  `MaybeDouble`, `MaybeChar`, `MaybeString`, `MaybeGuid` — all with ~5% `None`.
 
 Version matches the core `Kalicz.StrongTypes` package you install alongside it.
