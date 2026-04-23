@@ -15,7 +15,7 @@ namespace StrongTypes.Analyzers.Tests.Infrastructure;
 /// </summary>
 internal static class CodeFixTester
 {
-    public static async Task<IReadOnlyList<CodeAction>> RegisterFixesAsync(
+    public static async Task<CodeAction[]> RegisterFixesAsync(
         CodeFixProvider provider,
         string csprojPath,
         string diagnosticId = MissingEfCorePackageAnalyzer.DiagnosticId)
@@ -58,7 +58,7 @@ internal static class CodeFixTester
             CancellationToken.None);
 
         await provider.RegisterCodeFixesAsync(context);
-        return registered;
+        return registered.ToArray();
     }
 
     public static async Task ApplyAsync(CodeAction action)

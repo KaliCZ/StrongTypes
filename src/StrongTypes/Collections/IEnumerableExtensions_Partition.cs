@@ -8,12 +8,12 @@ namespace StrongTypes;
 public static partial class IEnumerableExtensions
 {
     /// <summary>
-    /// Splits <paramref name="source"/> into two lists: items for which
+    /// Splits <paramref name="source"/> into two arrays: items for which
     /// <paramref name="predicate"/> returns true (<c>Passing</c>) and items
     /// for which it returns false (<c>Violating</c>). Relative order is
     /// preserved within each partition.
     /// </summary>
-    public static (IReadOnlyList<T> Passing, IReadOnlyList<T> Violating) Partition<T>(
+    public static (T[] Passing, T[] Violating) Partition<T>(
         this IEnumerable<T> source,
         Func<T, bool> predicate)
     {
@@ -27,6 +27,6 @@ public static partial class IEnumerableExtensions
             else violating.Add(value);
         }
 
-        return (passing, violating);
+        return (passing.ToArray(), violating.ToArray());
     }
 }
