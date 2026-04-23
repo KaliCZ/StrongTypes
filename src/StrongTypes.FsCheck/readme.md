@@ -52,12 +52,9 @@ Scalar strong types ship three shapes: the type itself, its nullable form
 | `NonNegative<int>`   | `NonNegativeInt`| `NullableNonNegativeInt`| `MaybeNonNegativeInt`   |
 | `NonPositive<int>`   | `NonPositiveInt`| `NullableNonPositiveInt`| `MaybeNonPositiveInt`   |
 
-`NonEmptyString` is filtered to non-null, non-whitespace values; `Digit`
-is uniform over `0`–`9`.
+Apart from the above, you also get:
 
-Collections and `Maybe<primitive>` don't follow the three-column shape:
-
-- `NonEmptyEnumerableInt` — `NonEmptyEnumerable<int>`, plain `T` only.
+- `NonEmptyEnumerableInt` — `NonEmptyEnumerable<int>`
 - `Maybe<T>` for common primitives: `MaybeBool`, `MaybeInt`, `MaybeLong`,
   `MaybeDouble`, `MaybeChar`, `MaybeString`, `MaybeGuid` — all with ~5% `None`.
 
