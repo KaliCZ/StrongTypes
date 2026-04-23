@@ -1,10 +1,12 @@
-# StrongTypes for C# [![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build.yml?branch=main&label=build)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build.yml) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
+# StrongTypes for C# [![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build.yml?branch=main&label=build)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build.yml) [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
-[![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![StrongTypes downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![StrongTypes.EfCore downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.EfCore?label=downloads%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/) [![StrongTypes.FsCheck downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.FsCheck?label=downloads%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
+[![StrongTypes downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
+[![StrongTypes.EfCore downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.EfCore?label=downloads%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)
+[![StrongTypes.FsCheck downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.FsCheck?label=downloads%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
 
 StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused value types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive".
 
-Every value-carrying type ships with `System.Text.Json` converters wired up out of the box (the one exception is `Result`, which stays in-process), so validation runs at the wire boundary during deserialization without any extra setup.
+Every type ships with `System.Text.Json` converters out of the box (except `Result`), so invalid JSON fails at deserialization — in ASP.NET Core, that's before your endpoint method even runs.
 
 ## Contents
 
@@ -96,9 +98,11 @@ Every strong type in this library implements the full set of equality and compar
 
 ### JSON serialization
 
-All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]` — no converter registration and no custom `JsonSerializerOptions` required. The wire format is the underlying primitive (`"hello"`, `42`, …), not an object with a `Value` property, and invalid input surfaces as a `JsonException` at the boundary.
+All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]` — no converter registration and no custom `JsonSerializerOptions` required. The format is the same as the underlying primitive (`"hello"`, `42`, …), and invalid input surfaces as a `JsonException`.
 
-`Result<T, TError>` is the one exception: it has no converter, because serializing a two-branch union over the wire doesn't have a single sensible shape and hasn't been a real-world need. Unwrap it (`.Match(...)`, `.ThrowIfError()`, `.Success`/`.Error`, …) before sending anything across a JSON boundary.
+`Maybe<T>` has a special format of serialization, so Some serializes into `{ "Value": xxx }` and None into `{ "Value": null }`.
+
+`Result<T, TError>` (and `Result<T>`) has no JSON converter I don't think you want to serialize that.
 
 ### EF Core persistence
 
@@ -407,17 +411,21 @@ var missing =
 
 ### `Result<T, TError>`
 
-`Result<T, TError>` is a value that is *either* a success carrying a `T` *or* an error carrying a `TError` — making the failure path explicit in the type signature instead of hiding it behind exceptions. `Result<T>` is shorthand for `Result<T, Exception>`, so signatures can read `public Result<User> Load(...)` without naming the error type.
+`Result<T, TError>` is either a success carrying a `T` or an error carrying a `TError` — making the failure path explicit in the type signature instead of hiding it behind exceptions. `Result<T>` is shorthand for `Result<T, Exception>`, so signatures can read `public Result<User> Load(...)` without naming the error type.
 
-Unlike the other strong types, `Result` has no JSON converter — a two-branch union doesn't have a single natural on-the-wire shape, and no concrete use case has called for one yet. Treat `Result` as an in-process return type: unwrap it (`.Match(...)`, `.ThrowIfError()`, `.Success`/`.Error`, …) before serializing anything across an HTTP boundary.
+Unlike the other types, `Result` has no JSON converter. I didn't see value in making one, because the format would be awkward anyway.
 
 #### Construction
 
 Returning a `Result` is as simple as returning either branch — implicit operators handle the wrapping on both sides:
 
 ```csharp
-public Result<int, string> Parse(string s) =>
-    int.TryParse(s, out var n) ? n : "not a number";
+public Result<int, string> Parse(string s)
+{
+    return int.TryParse(s, out var n)
+        ? n
+        : "not a number";
+}
 ```
 
 Explicit factories are there when type inference needs a nudge:
@@ -440,13 +448,38 @@ if (r.Error   is { } msg)   Console.WriteLine($"failed: {msg}");
 
 `IsSuccess` / `IsError` are there too when you don't need the payload.
 
-When the error branch already carries an exception, `ThrowIfError` unwraps the success value and rethrows otherwise, preserving the original stack trace via `ExceptionDispatchInfo`:
-
+The expected usage in controllers is going to look something like this:
 ```csharp
-string contents = Result.Catch(() => File.ReadAllText(path)).ThrowIfError();
+Result<PhoneNumber, PhoneNumberError> phoneResult = Parse(request.PhoneNumber);
+if (phoneResult.Error is { } e)
+{
+    ModelState.AddModelError(nameof(request.PhoneNumber), MapPhoneErrorToApiCode(e));
+    return ValidationProblem(ModelState);
+}
 ```
 
-When `TError` is not an `Exception`, the two-parameter overload builds one from the error value — `r.ThrowIfError(e => new InvalidOperationException(e))`. For a `Result<T, IReadOnlyList<Exception>>` — the shape validation pipelines converge on after aggregating multiple failed steps — `ThrowIfError` rethrows a single exception directly and wraps multiples in an `AggregateException`.
+This is what a service implementation can look like
+```csharp
+public Result<Order, OrderError> CreateOrder(OrderData data)
+{
+    Result<Payment, PaymentError> paymentResult = Pay(data.Payment);
+    if (paymentResult.Error is { } e)
+    {
+        logger.Log("Failed to make a payment for order {OrderId} because of {ErrorReason}.", data.Id, e);
+        return OrderError.PaymentFailed; // Implicit operator
+    }
+
+    return new Order(paymentResult.Success!);
+}
+
+// If the error is not important for you, simplify with Exceptions.
+public Result<Order, OrderError> CreateOrder(OrderData data)
+{
+    Result<Payment, PaymentError> paymentResult = Pay(data.Payment);
+    var payment = paymentResult.ThrowIfError(e => new Exception($"Payment failed because of {e}."));
+    return new Order(payment);
+}
+```
 
 #### Transformation
 
@@ -464,11 +497,10 @@ string message = r.Match(
     error:   e => $"oops: {e}");
 
 // FlatMap — chain an operation that itself returns a Result.
-Result<int, string> positive = r.FlatMap<int>(x =>
-    x > 0 ? x : "must be positive");
+Result<int, string> positive = r.FlatMap<int>(x => x > 0 ? x : "must be positive");
 ```
 
-`Match` exists because the natural-looking C# form — `r switch { T v => …, TError e => … }` — isn't possible without native discriminated unions. Type patterns dispatch on the *runtime* type of `r`, and a `Result<T, TError>` is never actually a `T` or a `TError` instance, so those arms never fire. Until the language ships DUs (proposed for .NET 11), `Match` is the only form that folds both branches with a compile-time guarantee that you've handled each one.
+`Match` exists because the natural-looking C# form — `r switch { T v => …, TError e => … }` — isn't possible yet.
 
 Every sync method has an async counterpart (`MapAsync`, `FlatMapAsync`, `MatchAsync`, …).
 
@@ -477,10 +509,19 @@ Every sync method has an async counterpart (`MapAsync`, `FlatMapAsync`, `MatchAs
 `Result.Catch` captures a throwing call without writing `try/catch`:
 
 ```csharp
-Result<string> contents = Result.Catch(() => File.ReadAllText(path));
+Result<string> contents = Result.Catch(() => File.ReadAllText(path)); // catch all
+Result<int, FormatException> parsed = Result.Catch<int, FormatException>(() => int.Parse(input)); // only format Exception
 ```
 
-`Catch<T, TException>` restricts which exception type is captured — picking a non-cancellation type lets `OperationCanceledException` flow past, which is the opt-in for cancellation-aware pipelines.
+By default `OperationCanceledException` (and its `TaskCanceledException` subtype) is *not* captured — cancellation unwinds the way it normally would, instead of turning into a `Result` error. Opt in with `propagateCancellation: false` when you do want cancellation observed as an error:
+
+```csharp
+Result<string> contents = Result.Catch(
+    () => File.ReadAllText(path),
+    propagateCancellation: false);
+```
+
+Every overload has an async counterpart (`CatchAsync`) with the same optional `propagateCancellation` parameter.
 
 #### Combining validations
 
@@ -494,7 +535,9 @@ Result<User, string> ParseUser(string? nameInput, int ageInput)
     Result<NonEmptyString, string> name = nameInput.AsNonEmpty().ToResult("name must not be empty");
     Result<Positive<int>, string>  age  = ageInput.AsPositive().ToResult("age must be positive");
 
-    return Result.Aggregate(name, age, (n, a) => new User(n, a), errors => string.Join("; ", errors));
+    return Result.Aggregate(name, age,
+        (n, a) => new User(n, a),
+        errors => string.Join("; ", errors));
 }
 ```
 

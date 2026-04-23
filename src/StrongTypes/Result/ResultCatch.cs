@@ -7,54 +7,47 @@ namespace StrongTypes;
 
 public static partial class Result
 {
-    /// <summary>
-    /// Runs <paramref name="f"/> and returns its value as a success; any thrown
-    /// <see cref="Exception"/> (including <see cref="OperationCanceledException"/>)
-    /// is captured as an error. Use <see cref="Catch{T, TException}(Func{T})"/>
-    /// when you need to restrict which exceptions are captured.
-    /// </summary>
-    public static Result<T> Catch<T>(Func<T> f) where T : notnull
+    /// <summary>Runs <paramref name="f"/>, returning its value as a success or any thrown exception as an error.</summary>
+    /// <param name="f">The operation to invoke.</param>
+    /// <param name="propagateCancellation">When <c>true</c> (default), <see cref="OperationCanceledException"/> is rethrown rather than captured.</param>
+    public static Result<T> Catch<T>(Func<T> f, bool propagateCancellation = true) where T : notnull
     {
         try { return f(); }
+        catch (OperationCanceledException) when (propagateCancellation) { throw; }
         catch (Exception e) { return e; }
     }
 
-    /// <summary>
-    /// Runs <paramref name="f"/> and returns its value as a success; only
-    /// exceptions assignable to <typeparamref name="TException"/> are captured
-    /// as errors, others propagate. This is the opt-in for cancellation-aware
-    /// pipelines: pick a non-cancellation exception type and
-    /// <see cref="OperationCanceledException"/> will flow past.
-    /// </summary>
-    public static Result<T> Catch<T, TException>(Func<T> f)
+    /// <summary>Runs <paramref name="f"/>; only exceptions assignable to <typeparamref name="TException"/> are captured, others propagate.</summary>
+    /// <param name="f">The operation to invoke.</param>
+    /// <param name="propagateCancellation">When <c>true</c> (default), <see cref="OperationCanceledException"/> is rethrown even if it would otherwise match <typeparamref name="TException"/>.</param>
+    public static Result<T, TException> Catch<T, TException>(Func<T> f, bool propagateCancellation = true)
         where T : notnull
         where TException : Exception
     {
         try { return f(); }
+        catch (OperationCanceledException) when (propagateCancellation) { throw; }
         catch (TException e) { return e; }
     }
 
-    /// <summary>
-    /// Awaits <paramref name="f"/> and returns its value as a success; any
-    /// thrown exception (including <see cref="OperationCanceledException"/>) is
-    /// captured as an error.
-    /// </summary>
-    public static async Task<Result<T>> CatchAsync<T>(Func<Task<T>> f) where T : notnull
+    /// <summary>Awaits <paramref name="f"/>, returning its value as a success or any thrown exception as an error.</summary>
+    /// <param name="f">The async operation to await.</param>
+    /// <param name="propagateCancellation">When <c>true</c> (default), <see cref="OperationCanceledException"/> is rethrown rather than captured.</param>
+    public static async Task<Result<T>> CatchAsync<T>(Func<Task<T>> f, bool propagateCancellation = true) where T : notnull
     {
         try { return await f(); }
+        catch (OperationCanceledException) when (propagateCancellation) { throw; }
         catch (Exception e) { return e; }
     }
 
-    /// <summary>
-    /// Awaits <paramref name="f"/> and returns its value as a success; only
-    /// exceptions assignable to <typeparamref name="TException"/> are captured
-    /// as errors, others propagate.
-    /// </summary>
-    public static async Task<Result<T>> CatchAsync<T, TException>(Func<Task<T>> f)
+    /// <summary>Awaits <paramref name="f"/>; only exceptions assignable to <typeparamref name="TException"/> are captured, others propagate.</summary>
+    /// <param name="f">The async operation to await.</param>
+    /// <param name="propagateCancellation">When <c>true</c> (default), <see cref="OperationCanceledException"/> is rethrown even if it would otherwise match <typeparamref name="TException"/>.</param>
+    public static async Task<Result<T, TException>> CatchAsync<T, TException>(Func<Task<T>> f, bool propagateCancellation = true)
         where T : notnull
         where TException : Exception
     {
         try { return await f(); }
+        catch (OperationCanceledException) when (propagateCancellation) { throw; }
         catch (TException e) { return e; }
     }
 }

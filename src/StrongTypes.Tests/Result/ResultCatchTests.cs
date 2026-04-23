@@ -31,15 +31,28 @@ public class ResultCatchTests
     }
 
     [Fact]
-    public void Catch_OperationCanceledException_IsCaptured()
+    public void Catch_OperationCanceledException_PropagatesByDefault()
     {
-        // Default Catch is symmetric with a plain try/catch — OCE is captured
-        // like any other exception. Cancellation-aware pipelines use the typed
-        // Catch<T, TException> overload with a non-OCE type to let OCE propagate.
+        Assert.Throws<OperationCanceledException>(() =>
+            Result.Catch<int>(() => throw new OperationCanceledException()));
+    }
+
+    [Fact]
+    public void Catch_OperationCanceledException_CapturedWhenPropagateFalse()
+    {
         var oce = new OperationCanceledException();
-        var r = Result.Catch<int>(() => throw oce);
+        var r = Result.Catch<int>(() => throw oce, propagateCancellation: false);
         Assert.True(r.IsError);
         Assert.Same(oce, r.Error);
+    }
+
+    [Fact]
+    public void Catch_TaskCanceledException_PropagatesByDefault()
+    {
+        // TaskCanceledException derives from OperationCanceledException, so
+        // the same propagation rule covers it.
+        Assert.Throws<TaskCanceledException>(() =>
+            Result.Catch<int>(() => throw new TaskCanceledException()));
     }
 
     // ── Typed Catch<T, TException> ─────────────────────────────────────
@@ -62,6 +75,16 @@ public class ResultCatchTests
     }
 
     [Fact]
+    public void CatchTyped_ReturnsNarrowedResultType()
+    {
+        // Return type flows the chosen TException through — caller gets
+        // Result<int, InvalidOperationException>, not the base Result<int>.
+        Result<int, InvalidOperationException> r =
+            Result.Catch<int, InvalidOperationException>(() => 1);
+        Assert.True(r.IsSuccess);
+    }
+
+    [Fact]
     public void CatchTyped_NonMatchingException_Propagates()
     {
         Assert.Throws<ArgumentException>(() =>
@@ -71,10 +94,28 @@ public class ResultCatchTests
     [Fact]
     public void CatchTyped_WithNonOceType_LetsOceEscape()
     {
-        // The typed variant is the opt-in for cancellation-aware pipelines:
-        // picking any non-OCE type means OperationCanceledException propagates.
+        // Double-guarded: OCE doesn't match InvalidOperationException anyway,
+        // and the default propagateCancellation=true would rethrow it first.
         Assert.Throws<OperationCanceledException>(() =>
             Result.Catch<int, InvalidOperationException>(() => throw new OperationCanceledException()));
+    }
+
+    [Fact]
+    public void CatchTyped_WithExceptionType_PropagatesOceByDefault()
+    {
+        // TException = Exception would normally catch OCE, but
+        // propagateCancellation=true rethrows it first.
+        Assert.Throws<OperationCanceledException>(() =>
+            Result.Catch<int, Exception>(() => throw new OperationCanceledException()));
+    }
+
+    [Fact]
+    public void CatchTyped_WithExceptionType_CapturesOceWhenPropagateFalse()
+    {
+        var oce = new OperationCanceledException();
+        var r = Result.Catch<int, Exception>(() => throw oce, propagateCancellation: false);
+        Assert.True(r.IsError);
+        Assert.Same(oce, r.Error);
     }
 
     // ── CatchAsync ─────────────────────────────────────────────────────
@@ -101,7 +142,20 @@ public class ResultCatchTests
     }
 
     [Fact]
-    public async Task CatchAsync_OperationCanceledException_IsCaptured()
+    public async Task CatchAsync_OperationCanceledException_PropagatesByDefault()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+            await Result.CatchAsync<int>(async () =>
+            {
+                await Task.Delay(Timeout.Infinite, cts.Token);
+                return 0;
+            }));
+    }
+
+    [Fact]
+    public async Task CatchAsync_OperationCanceledException_CapturedWhenPropagateFalse()
     {
         using var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -109,7 +163,7 @@ public class ResultCatchTests
         {
             await Task.Delay(Timeout.Infinite, cts.Token);
             return 0;
-        });
+        }, propagateCancellation: false);
         Assert.True(r.IsError);
         Assert.IsAssignableFrom<OperationCanceledException>(r.Error);
     }
@@ -127,6 +181,18 @@ public class ResultCatchTests
         });
         Assert.True(r.IsError);
         Assert.Same(thrown, r.Error);
+    }
+
+    [Fact]
+    public async Task CatchAsyncTyped_ReturnsNarrowedResultType()
+    {
+        Result<int, InvalidOperationException> r =
+            await Result.CatchAsync<int, InvalidOperationException>(async () =>
+            {
+                await Task.Yield();
+                return 1;
+            });
+        Assert.True(r.IsSuccess);
     }
 
     [Fact]
