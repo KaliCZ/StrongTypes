@@ -4,28 +4,15 @@
 [![StrongTypes.EfCore downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.EfCore?label=downloads%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)
 [![StrongTypes.FsCheck downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.FsCheck?label=downloads%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
 
-StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused value types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive".
+StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive".
 
 Every type ships with `System.Text.Json` converters out of the box (except `Result`), so invalid JSON fails at deserialization — in ASP.NET Core, that's before your endpoint method even runs.
 
-The library ships as three NuGet packages. The core package has no third-party dependencies; the other two are opt-in:
+You can also store the types directly in your EF Core entities with the use of the EfCore package.
 
-```mermaid
-flowchart LR
-    subgraph Core[Kalicz.StrongTypes]
-        CoreBody["`- core types
-        - System.Text.Json converters`"]
-    end
-    subgraph EfCore[Kalicz.StrongTypes.EfCore]
-        EfCoreBody["`- EF Core value converters
-        - convention + DbContext extension`"]
-    end
-    subgraph FsCheck[Kalicz.StrongTypes.FsCheck]
-        FsCheckBody["`- FsCheck Arbitrary generators`"]
-    end
-    EfCore -->|depends on| Core
-    FsCheck -->|depends on| Core
-```
+<img src="docs/diagrams/impact.svg" alt="Impact of StrongTypes on validation boundaries" width="1100" />
+
+<img src="docs/diagrams/package-layout.svg" alt="Package layout" width="680" />
 
 ## Contents
 
@@ -60,13 +47,7 @@ NonEmptyString name = NonEmptyString.Create(input);
 
 The `TryCreate` / `Create` split (and the `As…` / `To…` extensions that mirror it) is used across every validated type in the library — pick the factory that matches how you want to handle bad input at the call site:
 
-```mermaid
-flowchart LR
-    In([input]) --> V{valid?}
-    V -->|yes| Ok["T"]
-    V -->|no, TryCreate / As…| Null["null"]
-    V -->|no, Create / To…| Throw["throws<br/>ArgumentException"]
-```
+<img src="docs/diagrams/trycreate-create-flow.svg" alt="TryCreate vs Create flow" width="900" />
 
 Or via the `AsNonEmpty()` extension on any `string?`:
 
@@ -86,23 +67,6 @@ Four generic wrappers that enforce a sign invariant on any `INumber<T>` — `int
 | `NonNegative<T>`  | greater than or equal to zero |
 | `Negative<T>`     | strictly less than zero    |
 | `NonPositive<T>`  | less than or equal to zero |
-
-Visually, on the number line:
-
-```mermaid
-flowchart LR
-    neg["x &lt; 0"]
-    zero(("0"))
-    pos["x &gt; 0"]
-    neg --- zero --- pos
-
-    Negative["Negative&lt;T&gt;<br/>default = -1"] -.-> neg
-    NonPositive["NonPositive&lt;T&gt;<br/>default = 0"] -.-> neg
-    NonPositive -.-> zero
-    NonNegative["NonNegative&lt;T&gt;<br/>default = 0"] -.-> zero
-    NonNegative -.-> pos
-    Positive["Positive&lt;T&gt;<br/>default = 1"] -.-> pos
-```
 
 Same factory pattern:
 
@@ -152,7 +116,7 @@ All strong types ship with `System.Text.Json` converters attached via `[JsonConv
 
 ### EF Core persistence
 
-If you want to store strong types directly on your EF Core entities, add the companion package [`Kalicz.StrongTypes.EfCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/). It provides the value converters needed to map `NonEmptyString`, `Positive<T>`, and friends to their underlying column types. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md) for setup details.
+If you want to store strong types directly on your EF Core entities, add the companion package [`Kalicz.StrongTypes.EfCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/). It provides the value converters needed to map `NonEmptyString`, `Positive<T>`, and other numeric types to their underlying column types. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md) for setup details.
 
 ## `NonEmptyEnumerable<T>`
 
@@ -216,10 +180,7 @@ NonEmptyEnumerable<Dog>      dogs    = [new Dog()];
 INonEmptyEnumerable<Animal>  animals = dogs;  // allowed thanks to `out T`
 ```
 
-```mermaid
-flowchart LR
-    Dogs["NonEmptyEnumerable&lt;Dog&gt;"] -->|implicit conversion<br/>(out T covariance)| Animals["INonEmptyEnumerable&lt;Animal&gt;"]
-```
+<img src="docs/diagrams/covariance.svg" alt="Covariant out T upcast" width="900" />
 
 All extensions (`Select`, `Concat`, `Max`, `Last`, …) have overloads on both the concrete type and the interface, so either receiver type works in a chain.
 
@@ -355,18 +316,7 @@ The generic constraint is `where T : notnull` — `Maybe<int?>` and `Maybe<strin
 
 HTTP `PATCH` has a long-standing modelling problem for nullable fields: a request needs to distinguish three intents — *don't touch this field*, *clear this field to null*, and *set it to a new value*. A plain `T?` collapses the first two cases. `Maybe<T>?` keeps them apart, because `Maybe<T>` itself is a value, so wrapping it in `T?` adds a real third state:
 
-| JSON                     | Property value     | Intent                |
-| ------------------------ |--------------------| --------------------- |
-| field omitted, or `null` | `(Maybe<T>?)null`  | leave field untouched |
-| `{}` or `{"Value":null}` | `Maybe<T>.None`    | clear field to `null` |
-| `{"Value":x}`            | `Maybe<T>.Some(x)` | set field to `x`      |
-
-```mermaid
-flowchart LR
-    J1["field omitted<br/>or null"]       --> V1["(Maybe&lt;T&gt;?)null"]  --> I1["leave untouched"]
-    J2["{}<br/>or {&quot;Value&quot;:null}"] --> V2["Maybe&lt;T&gt;.None"]    --> I2["clear to null"]
-    J3["{&quot;Value&quot;:x}"]           --> V3["Maybe&lt;T&gt;.Some(x)"] --> I3["set to x"]
-```
+<img src="docs/diagrams/patch-three-state.svg" alt="PATCH three-state model" width="900" />
 
 The request DTO and PATCH handler then read straight off pattern matching, with no out-of-band sentinel values:
 
@@ -434,16 +384,7 @@ var label = maybe.Match(
 
 `Maybe<T>` composes monadically through `Map`, `FlatMap`, and `Where`. Each operation is a no-op on `None`, so chains short-circuit cleanly without explicit null checks:
 
-```mermaid
-flowchart LR
-    S1["Some(x)"] -->|Map f|     S2["Some(f(x))"]
-    N1["None"]    -->|Map f|     N2["None (short-circuit)"]
-    S3["Some(x)"] -->|FlatMap f| R["f(x) : Maybe&lt;U&gt;"]
-    N3["None"]    -->|FlatMap f| N4["None (short-circuit)"]
-    S4["Some(x)"] -->|Where p|   W{"p(x)?"}
-    W -->|true|  S5["Some(x)"]
-    W -->|false| N5["None"]
-```
+<img src="docs/diagrams/maybe-composition.svg" alt="Maybe composition pipeline" width="900" />
 
 ```csharp
 // Map — transform the inner value when present.
@@ -557,15 +498,7 @@ public Result<Order, OrderError> CreateOrder(OrderData data)
 
 `Map`, `MapError`, `Match`, and `FlatMap` let you chain without explicit branching. Success and error values flow down independent tracks — `Map` only touches the success side, `MapError` only touches the error side, and `FlatMap` short-circuits on error:
 
-```mermaid
-flowchart LR
-    S1["Success(x)"] -->|Map f|      S2["Success(f(x))"]
-    E1["Error(e)"]   -->|Map f|      E2["Error(e) (pass-through)"]
-    S3["Success(x)"] -->|MapError g| S4["Success(x) (pass-through)"]
-    E3["Error(e)"]   -->|MapError g| E4["Error(g(e))"]
-    S5["Success(x)"] -->|FlatMap f|  R["f(x) : Result&lt;U, TError&gt;"]
-    E5["Error(e)"]   -->|FlatMap f|  E6["Error(e) (short-circuit)"]
-```
+<img src="docs/diagrams/result-composition.svg" alt="Result composition pipeline" width="900" />
 
 
 ```csharp
