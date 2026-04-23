@@ -42,16 +42,8 @@ The `TryCreate` / `Create` split (and the `As…` / `To…` extensions that mirr
 A string guaranteed to be non-null, non-empty, and not just whitespace. Construct it via the factory pair:
 
 ```csharp
-// Returns null when the input is null/empty/whitespace — caller handles the null case.
-NonEmptyString? name = NonEmptyString.TryCreate(input);
-
-// Throws ArgumentException on invalid input.
-NonEmptyString name = NonEmptyString.Create(input);
-```
-
-Or via the `AsNonEmpty()` extension on any `string?`:
-
-```csharp
+NonEmptyString? name = NonEmptyString.TryCreate(input); // null when null/empty/whitespace
+NonEmptyString  name = NonEmptyString.Create(input); // Throws ArgumentException
 NonEmptyString? name = userInput.AsNonEmpty();
 ```
 
@@ -73,31 +65,13 @@ Four generic wrappers that enforce a sign invariant on any `INumber<T>` — `int
 Same factory pattern:
 
 ```csharp
-Positive<int>?    p   = Positive<int>.TryCreate(quantity);
-Positive<decimal> amt = Positive<decimal>.Create(price);
-
-NonNegative<int>? age = NonNegative<int>.TryCreate(years);
+Positive<int>?       p   = Positive<int>.TryCreate(input);     // null if invalid
+Negative<int>?        n   = input.AsNegative();                // null if invalid
+NonNegative<decimal> nn = NonNegative<decimal>.Create(input);  // throws if invalid
+NonPositive<decimal> np = input.ToNonPositive();               // throws if invalid
 ```
 
-Or via the `AsPositive()`, `AsNonNegative()`, `AsNegative()`, and `AsNonPositive()` extensions on any `INumber<T>` — mirroring `AsNonEmpty()` on `string?`. Each returns `null` when the invariant isn't met:
-
-```csharp
-Positive<int>?    p   = quantity.AsPositive();
-NonNegative<int>? age = years.AsNonNegative();
-Negative<int>?    debt = balance.AsNegative();
-NonPositive<decimal>? loss = pnl.AsNonPositive();
-```
-
-When you'd rather fail loudly at the boundary than deal with `null`, the `To…` variants throw `ArgumentException` on invariant violation — same relationship as `Create` vs `TryCreate`:
-
-```csharp
-Positive<int>    p    = quantity.ToPositive();      // throws if quantity <= 0
-NonNegative<int> age  = years.ToNonNegative();
-Negative<int>    debt = balance.ToNegative();
-NonPositive<decimal> loss = pnl.ToNonPositive();
-```
-
-`default(Positive<T>)` still satisfies the invariant (e.g. `default(Positive<int>)` is `1`, not an invalid `0`), so the structs survive zero-initialization without breaking their guarantee.
+All defaults (e.g. `default(Positive<T>)`) still satisfy their invariants (e.g. `default(Positive<int>)` is `1`, not an invalid `0`).
 
 [↑ Back to contents](#contents)
 
@@ -109,6 +83,20 @@ Every strong type in this library implements the full set of equality and compar
 - `IComparable<T>`, `IComparable`, and the `<`, `<=`, `>`, `>=` operators
 - `GetHashCode` and `Equals(object?)` overrides consistent with value-based equality
 - A sensible `ToString()` that returns the underlying value
+
+Equality and comparison also work directly against the underlying value — there's no need to unwrap `.Value` first:
+
+```csharp
+
+bool stringEquality1 = NonEmptyString.Create("Alice") == "Alice"; // true - implicit operator
+bool stringEquality2 = name.CompareTo("Alice") == "Alice";        // true - explicit operator overload
+
+bool intEquality1 = 2 == Positive<int>.Create(2);                 // true - implicit operator
+bool intEquality2 = Positive<int>.Create(2) == 2;                 // true - explicit operator overload
+
+bool order = Positive<int>.Create(4) > 2;                         // true - explicit operator overload
+// Same for the other types and equality methods
+```
 
 [↑ Back to contents](#contents)
 
@@ -135,24 +123,21 @@ A read-only sequence guaranteed to contain at least one element. The non-empty i
 ```csharp
 var list = NonEmptyEnumerable.Create(1, 2, 3);
 
-NonEmptyEnumerable<int> list = [1, 2, 3];
+NonEmptyEnumerable<int> list = [1, 2, 3]; // collection expression works, but throws for empty []
 
 // CreateRange for runtime sequences (List<T>, LINQ queries, …).
+// `Create` name is taken by collection expression support. Therefore called `CreateRange`.
 NonEmptyEnumerable<int>  throws   = NonEmptyEnumerable.CreateRange(source);      // throws on empty/null
 NonEmptyEnumerable<int>? nullable = NonEmptyEnumerable.TryCreateRange(source);   // null on empty/null
-```
-
-Or via extensions on any `IEnumerable<T>?`:
-
-```csharp
+// Just use the extension - it's nicer syntax.
 NonEmptyEnumerable<int>? maybe = values.AsNonEmpty();   // null on empty/null
 NonEmptyEnumerable<int>  must  = values.ToNonEmpty();   // throws on empty/null
 ```
 
-Access the non-emptiness directly:
+Guaranteed item accessible via the `Head` and `Tail` properties:
 
 ```csharp
-int                head  = list.Head;    // always defined (may itself be null if T is nullable)
+int                head  = list.Head;    // always defined = first item
 IReadOnlyList<int> tail  = list.Tail;    // everything after Head
 int                count = list.Count;   // always >= 1
 ```
@@ -412,8 +397,7 @@ Maybe<int> doubled = Maybe.Some(3).Map(x => x * 2);          // Some(6)
 Maybe<int> stillNone = Maybe<int>.None.Map(x => x * 2);      // None
 
 // FlatMap — chain an operation that itself returns a Maybe, without nesting.
-Maybe<int> Parse(string s) =>
-    int.TryParse(s, out var n) ? Maybe.Some(n) : Maybe<int>.None;
+Maybe<int> Parse(string s) => int.TryParse(s, out var n) ? Maybe.Some(n) : Maybe<int>.None;
 
 Maybe<int> good = Maybe.Some("42").FlatMap(Parse);           // Some(42)
 Maybe<int> bad  = Maybe.Some("nope").FlatMap(Parse);         // None
