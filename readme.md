@@ -10,7 +10,7 @@ Every type ships with `System.Text.Json` converters out of the box (except `Resu
 
 You can also store the types directly in your EF Core entities with the use of the EfCore package.
 
-<img src="docs/diagrams/impact.svg" alt="Impact of StrongTypes on validation boundaries" width="1100" />
+<img src="docs/diagrams/impact.svg" alt="Impact of StrongTypes on validation boundaries" width="990" height="760" />
 
 <img src="docs/diagrams/package-layout.svg" alt="Package layout" width="680" />
 
