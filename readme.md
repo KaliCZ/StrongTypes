@@ -57,7 +57,7 @@ NonEmptyString? name = userInput.AsNonEmpty();
 
 `NonEmptyString` exposes the common `string` surface (`Length`, `Contains`, `StartsWith`, `Substring`, `ToUpper`, …) and implicitly converts to `string`.
 
-[↑ Back to top](#contents)
+[↑ Back to contents](#contents)
 
 ### Numeric wrappers
 
@@ -99,7 +99,7 @@ NonPositive<decimal> loss = pnl.ToNonPositive();
 
 `default(Positive<T>)` still satisfies the invariant (e.g. `default(Positive<int>)` is `1`, not an invalid `0`), so the structs survive zero-initialization without breaking their guarantee.
 
-[↑ Back to top](#contents)
+[↑ Back to contents](#contents)
 
 ### What you get for free
 
@@ -110,7 +110,7 @@ Every strong type in this library implements the full set of equality and compar
 - `GetHashCode` and `Equals(object?)` overrides consistent with value-based equality
 - A sensible `ToString()` that returns the underlying value
 
-[↑ Back to top](#contents)
+[↑ Back to contents](#contents)
 
 ### JSON serialization
 
@@ -120,13 +120,13 @@ All strong types ship with `System.Text.Json` converters attached via `[JsonConv
 
 `Result<T, TError>` (and `Result<T>`) has no JSON converter I don't think you want to serialize that.
 
-[↑ Back to top](#contents)
+[↑ Back to contents](#contents)
 
 ### EF Core persistence
 
 If you want to store strong types directly on your EF Core entities, add the companion package [`Kalicz.StrongTypes.EfCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/). It provides the value converters needed to map `NonEmptyString`, `Positive<T>`, and other numeric types to their underlying column types. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md) for setup details.
 
-[↑ Back to top](#contents)
+[↑ Back to contents](#contents)
 
 ## `NonEmptyEnumerable<T>`
 
@@ -194,7 +194,7 @@ INonEmptyEnumerable<Animal>  animals = dogs;  // allowed thanks to `out T`
 
 All extensions (`Select`, `Concat`, `Max`, `Last`, …) have overloads on both the concrete type and the interface, so either receiver type works in a chain.
 
-[↑ Back to top](#contents)
+[↑ Back to contents](#contents)
 
 ### JSON
 
@@ -204,7 +204,7 @@ Serializes as a JSON array; an empty JSON array is rejected with `JsonException`
 
 The same converter also serves `INonEmptyEnumerable<T>`, so properties typed as the interface round-trip the same way — deserialization still produces a concrete `NonEmptyEnumerable<T>` behind the interface reference.
 
-[↑ Back to top](#contents)
+[↑ Back to contents](#contents)
 
 ## Parsing helpers
 
@@ -252,7 +252,7 @@ foreach (var flag in user.GetFlags())
 
 The flag helpers throw `InvalidOperationException` if the enum isn't marked `[Flags]`, so a typo at the declaration fails loudly at the first call instead of silently returning the wrong thing.
 
-[↑ Back to top](#contents)
+[↑ Back to contents](#contents)
 
 ### Strings
 
@@ -276,7 +276,7 @@ Roles          role = header.ToEnum<Roles>();   // throws ArgumentException
 
 `AsEnum<TEnum>` / `ToEnum<TEnum>` work through an open generic `TEnum` parameter, which the `Roles.TryParse(...)` extension member can't — use them when you only know the enum type generically.
 
-[↑ Back to top](#contents)
+[↑ Back to contents](#contents)
 
 ## Algebraic types
 
@@ -324,7 +324,7 @@ string? normalized = maybeName.Value is {} n
 > [!WARNING]
 > `Map` / `MapTrue` / `MapFalse` are slower than the equivalent ternary. The mapper is passed as a delegate, so the JIT has to go through a function-pointer invocation instead of the direct branch it gets from a `?:`. Prefer the ternary on hot paths; reach for `Map` where readability matters more than the nanoseconds.
 
-[↑ Back to top](#contents)
+[↑ Back to contents](#contents)
 
 ### `Maybe<T>`
 
@@ -442,7 +442,7 @@ var missing =
 
 `Maybe<T>` serializes via `System.Text.Json` as `{ "Value": x }` for `Some` and `{ "Value": null }` for `None` — no converter registration or custom `JsonSerializerOptions` needed. Deserialization also accepts `{}` for `None`, so callers can omit the property entirely.
 
-[↑ Back to top](#contents)
+[↑ Back to contents](#contents)
 
 ### `Result<T, TError>`
 
@@ -595,7 +595,7 @@ Result<Positive<int>[], string> ParseOrderQuantities(IEnumerable<int> inputs)
 }
 ```
 
-[↑ Back to top](#contents)
+[↑ Back to contents](#contents)
 
 ## Acknowledgments
 
@@ -603,4 +603,4 @@ This library is vaguely based on [FuncSharp](https://github.com/MewsSystems/Func
 
 Licensed under the [MIT License](license.txt).
 
-[↑ Back to top](#contents)
+[↑ Back to contents](#contents)
