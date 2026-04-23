@@ -33,7 +33,7 @@ A string guaranteed to be non-null, non-empty, and not just whitespace. Construc
 
 ```csharp
 // Returns null when the input is null/empty/whitespace — caller handles the null case.
-NonEmptyString? maybe = NonEmptyString.TryCreate(input);
+NonEmptyString? name = NonEmptyString.TryCreate(input);
 
 // Throws ArgumentException on invalid input.
 NonEmptyString name = NonEmptyString.Create(input);
@@ -253,6 +253,9 @@ Roles          role = header.ToEnum<Roles>();   // throws ArgumentException
 StrongTypes is not an attempt to build a full algebraic type system. The purpose of these types is just to help where C# functionality is lacking, not to invent a framework and work fully in the algebraic types.
 
 These types enable quite a few simplifications when it comes to parsing and validations. But I wouldn't recommend building the whole app by composing them. They're meant to bridge small local pieces of the application. Let's start by introducing some functionality so we don't need the algebraic types in the first place.
+
+> [!NOTE]
+> **No discriminated union / `OneOf` type is included.** I didn't see a reason to reinvent one — [`mcintyre321/OneOf`](https://github.com/mcintyre321/OneOf) or [`domn1995/dunet`](https://github.com/domn1995/dunet) already cover this space well, and .NET 11 is expected to introduce native discriminated unions at the language level. If you have a concrete use case where neither option works for you, please [open a GitHub issue](https://github.com/KaliCZ/StrongTypes/issues) and let me know.
 
 ### Prefer nullables: `Map`, `MapTrue`, `MapFalse`
 
@@ -556,10 +559,6 @@ Result<Positive<int>[], string> ParseOrderQuantities(IEnumerable<int> inputs)
         invalidNumbers => $"Some numbers are not positive: [{string.Join(", ", invalidNumbers)}]");
 }
 ```
-
-### Missing `OneOf`
-> [!NOTE]
-> **No discriminated union / `OneOf` type is included.** I didn't see a reason to reinvent one — [`mcintyre321/OneOf`](https://github.com/mcintyre321/OneOf) or [`domn1995/dunet`](https://github.com/domn1995/dunet) already cover this space well, and .NET 11 is expected to introduce native discriminated unions at the language level. If you have a concrete use case where neither option works for you, please [open a GitHub issue](https://github.com/KaliCZ/StrongTypes/issues) and let me know.
 
 ## Acknowledgments
 
