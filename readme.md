@@ -12,14 +12,17 @@ The library ships as three NuGet packages. The core package has no third-party d
 
 ```mermaid
 flowchart LR
-    Core["`**Kalicz.StrongTypes**
-    - core types
-    - System.Text.Json converters`"]
-    EfCore["`**Kalicz.StrongTypes.EfCore**
-    - EF Core value converters
-    - convention + DbContext extension`"]
-    FsCheck["`**Kalicz.StrongTypes.FsCheck**
-    - FsCheck Arbitrary generators`"]
+    subgraph Core[Kalicz.StrongTypes]
+        CoreBody["`- core types
+        - System.Text.Json converters`"]
+    end
+    subgraph EfCore[Kalicz.StrongTypes.EfCore]
+        EfCoreBody["`- EF Core value converters
+        - convention + DbContext extension`"]
+    end
+    subgraph FsCheck[Kalicz.StrongTypes.FsCheck]
+        FsCheckBody["`- FsCheck Arbitrary generators`"]
+    end
     EfCore -->|depends on| Core
     FsCheck -->|depends on| Core
 ```
