@@ -57,10 +57,10 @@ public static class EnumExtensions
 
         /// <summary>
         /// Splits the receiver into the individual single-bit flags it
-        /// contains, in declaration order. Returns an empty array for zero.
+        /// contains, in declaration order. Returns an empty list for zero.
         /// Throws if <typeparamref name="TEnum"/> lacks <c>[Flags]</c>.
         /// </summary>
-        public TEnum[] GetFlags()
+        public IReadOnlyList<TEnum> GetFlags()
         {
             // Access FlagValues first so non-[Flags] enums throw even when
             // the receiver is zero.
@@ -72,21 +72,16 @@ public static class EnumExtensions
                 return Array.Empty<TEnum>();
             }
 
-            var count = 0;
+            var matched = new List<TEnum>(flags.Length);
             foreach (var flag in flags)
             {
                 var flagBits = FlagEnumMeta<TEnum>.ToLong(flag);
-                if ((bits & flagBits) == flagBits) count++;
+                if ((bits & flagBits) == flagBits)
+                {
+                    matched.Add(flag);
+                }
             }
-
-            var result = new TEnum[count];
-            var w = 0;
-            foreach (var flag in flags)
-            {
-                var flagBits = FlagEnumMeta<TEnum>.ToLong(flag);
-                if ((bits & flagBits) == flagBits) result[w++] = flag;
-            }
-            return result;
+            return matched;
         }
     }
 }
