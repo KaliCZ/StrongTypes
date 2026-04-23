@@ -123,24 +123,21 @@ A read-only sequence guaranteed to contain at least one element. The non-empty i
 ```csharp
 var list = NonEmptyEnumerable.Create(1, 2, 3);
 
-NonEmptyEnumerable<int> list = [1, 2, 3];
+NonEmptyEnumerable<int> list = [1, 2, 3]; // collection expression works, but throws for empty []
 
 // CreateRange for runtime sequences (List<T>, LINQ queries, …).
+// `Create` name is taken by collection expression support. Therefore called `CreateRange`.
 NonEmptyEnumerable<int>  throws   = NonEmptyEnumerable.CreateRange(source);      // throws on empty/null
 NonEmptyEnumerable<int>? nullable = NonEmptyEnumerable.TryCreateRange(source);   // null on empty/null
-```
-
-Or via extensions on any `IEnumerable<T>?`:
-
-```csharp
+// Just use the extension - it's nicer syntax.
 NonEmptyEnumerable<int>? maybe = values.AsNonEmpty();   // null on empty/null
 NonEmptyEnumerable<int>  must  = values.ToNonEmpty();   // throws on empty/null
 ```
 
-Access the non-emptiness directly:
+Guaranteed item accessible via the `Head` and `Tail` properties:
 
 ```csharp
-int                head  = list.Head;    // always defined (may itself be null if T is nullable)
+int                head  = list.Head;    // always defined = first item
 IReadOnlyList<int> tail  = list.Tail;    // everything after Head
 int                count = list.Count;   // always >= 1
 ```
