@@ -1,6 +1,6 @@
-#nullable enable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 
 namespace StrongTypes;
@@ -12,6 +12,8 @@ public static class NullableMapToStructExtensions
     /// <typeparam name="TResult">The result value type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="map">Invoked only when <paramref name="value"/> has a value.</param>
+    [return: NotNullIfNotNull(nameof(value))]
+    [Pure]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult> map)
         where T : struct
         where TResult : struct
@@ -22,6 +24,7 @@ public static class NullableMapToStructExtensions
     /// <typeparam name="TResult">The result value type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="map">Invoked only when <paramref name="value"/> has a value; may return <c>null</c>.</param>
+    [Pure]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult?> map)
         where T : struct
         where TResult : struct
@@ -32,6 +35,8 @@ public static class NullableMapToStructExtensions
     /// <typeparam name="TResult">The result value type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="map">Invoked only when <paramref name="value"/> is non-null.</param>
+    [return: NotNullIfNotNull(nameof(value))]
+    [Pure]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult> map)
         where T : class
         where TResult : struct
@@ -42,6 +47,7 @@ public static class NullableMapToStructExtensions
     /// <typeparam name="TResult">The result value type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="map">Invoked only when <paramref name="value"/> is non-null; may return <c>null</c>.</param>
+    [Pure]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult?> map)
         where T : class
         where TResult : struct
@@ -52,6 +58,8 @@ public static class NullableMapToStructExtensions
     /// <typeparam name="TResult">The result value type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="map">Awaited only when <paramref name="value"/> has a value.</param>
+    [return: NotNullIfNotNull(nameof(value))]
+    [Pure]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult>> map)
         where T : struct
         where TResult : struct
@@ -62,6 +70,7 @@ public static class NullableMapToStructExtensions
     /// <typeparam name="TResult">The result value type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="map">Awaited only when <paramref name="value"/> has a value; may yield <c>null</c>.</param>
+    [Pure]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult?>> map)
         where T : struct
         where TResult : struct
@@ -72,6 +81,8 @@ public static class NullableMapToStructExtensions
     /// <typeparam name="TResult">The result value type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="map">Awaited only when <paramref name="value"/> is non-null.</param>
+    [return: NotNullIfNotNull(nameof(value))]
+    [Pure]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult>> map)
         where T : class
         where TResult : struct
@@ -82,6 +93,7 @@ public static class NullableMapToStructExtensions
     /// <typeparam name="TResult">The result value type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="map">Awaited only when <paramref name="value"/> is non-null; may yield <c>null</c>.</param>
+    [Pure]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult?>> map)
         where T : class
         where TResult : struct
@@ -95,6 +107,7 @@ public static class NullableMapToClassExtensions
     /// <typeparam name="TResult">The result reference type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="map">Invoked only when <paramref name="value"/> has a value; may return <c>null</c>.</param>
+    [Pure]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult?> map)
         where T : struct
         where TResult : class
@@ -105,6 +118,7 @@ public static class NullableMapToClassExtensions
     /// <typeparam name="TResult">The result reference type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="map">Invoked only when <paramref name="value"/> is non-null; may return <c>null</c>.</param>
+    [Pure]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult?> map)
         where T : class
         where TResult : class
@@ -115,6 +129,7 @@ public static class NullableMapToClassExtensions
     /// <typeparam name="TResult">The result reference type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="map">Awaited only when <paramref name="value"/> has a value; may yield <c>null</c>.</param>
+    [Pure]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult?>> map)
         where T : struct
         where TResult : class
@@ -125,6 +140,7 @@ public static class NullableMapToClassExtensions
     /// <typeparam name="TResult">The result reference type.</typeparam>
     /// <param name="value">The nullable input.</param>
     /// <param name="map">Awaited only when <paramref name="value"/> is non-null; may yield <c>null</c>.</param>
+    [Pure]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult?>> map)
         where T : class
         where TResult : class

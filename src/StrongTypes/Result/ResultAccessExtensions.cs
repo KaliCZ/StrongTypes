@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace StrongTypes;
 
 // C# 14 extension members: `Result<T, TError>.Success` and `.Error` surface the

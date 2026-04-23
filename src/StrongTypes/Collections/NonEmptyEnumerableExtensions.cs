@@ -1,7 +1,6 @@
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 
@@ -13,6 +12,7 @@ public static class NonEmptyEnumerableExtensions
     /// <summary>Wraps <paramref name="source"/> as a <see cref="NonEmptyEnumerable{T}"/>, or returns <c>null</c> when the sequence is null or empty.</summary>
     /// <typeparam name="T">The element type.</typeparam>
     /// <param name="source">The sequence to wrap.</param>
+    [Pure]
     public static NonEmptyEnumerable<T>? AsNonEmpty<T>(this IEnumerable<T>? source)
         => NonEmptyEnumerable.TryCreateRange(source);
 
@@ -20,9 +20,11 @@ public static class NonEmptyEnumerableExtensions
     /// <typeparam name="T">The element type.</typeparam>
     /// <param name="source">The sequence to wrap.</param>
     /// <exception cref="ArgumentException"><paramref name="source"/> is <c>null</c> or empty.</exception>
+    [Pure]
     public static NonEmptyEnumerable<T> ToNonEmpty<T>(this IEnumerable<T>? source)
         => NonEmptyEnumerable.CreateRange(source);
 
+    [Pure]
     public static NonEmptyEnumerable<TResult> Select<T, TResult>(
         this NonEmptyEnumerable<T> source,
         Func<T, TResult> selector)
@@ -36,6 +38,7 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<TResult>.FromValidatedArray(buffer);
     }
 
+    [Pure]
     public static NonEmptyEnumerable<TResult> Select<T, TResult>(
         this INonEmptyEnumerable<T> source,
         Func<T, TResult> selector)
@@ -49,6 +52,7 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<TResult>.FromValidatedArray(buffer);
     }
 
+    [Pure]
     public static NonEmptyEnumerable<TResult> Select<T, TResult>(
         this NonEmptyEnumerable<T> source,
         Func<T, int, TResult> selector)
@@ -62,6 +66,7 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<TResult>.FromValidatedArray(buffer);
     }
 
+    [Pure]
     public static NonEmptyEnumerable<TResult> Select<T, TResult>(
         this INonEmptyEnumerable<T> source,
         Func<T, int, TResult> selector)
@@ -75,6 +80,7 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<TResult>.FromValidatedArray(buffer);
     }
 
+    [Pure]
     public static NonEmptyEnumerable<TResult> SelectMany<T, TResult>(
         this INonEmptyEnumerable<T> source,
         Func<T, INonEmptyEnumerable<TResult>> selector)
@@ -86,6 +92,7 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<TResult>.FromValidatedArray(flattened);
     }
 
+    [Pure]
     public static NonEmptyEnumerable<T> Distinct<T>(this INonEmptyEnumerable<T> source)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -93,6 +100,7 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<T>.FromValidatedArray(distinct);
     }
 
+    [Pure]
     public static NonEmptyEnumerable<T> Concat<T>(this NonEmptyEnumerable<T> source, params ReadOnlySpan<T> items)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -103,6 +111,7 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
     }
 
+    [Pure]
     public static NonEmptyEnumerable<T> Concat<T>(this INonEmptyEnumerable<T> source, params ReadOnlySpan<T> items)
     {
         if (source is NonEmptyEnumerable<T> concrete) return concrete.Concat(items);
@@ -114,6 +123,7 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
     }
 
+    [Pure]
     public static NonEmptyEnumerable<T> Concat<T>(this NonEmptyEnumerable<T> source, IEnumerable<T> items)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -121,6 +131,7 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<T>.FromValidatedArray(Enumerable.Concat(source, items).ToArray());
     }
 
+    [Pure]
     public static NonEmptyEnumerable<T> Concat<T>(this INonEmptyEnumerable<T> source, IEnumerable<T> items)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -128,6 +139,7 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<T>.FromValidatedArray(Enumerable.Concat(source, items).ToArray());
     }
 
+    [Pure]
     public static NonEmptyEnumerable<T> Flatten<T>(this INonEmptyEnumerable<INonEmptyEnumerable<T>> source)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -139,6 +151,7 @@ public static class NonEmptyEnumerableExtensions
     /// <param name="head">The leading element.</param>
     /// <param name="tails">Sequences concatenated after <paramref name="head"/>.</param>
     /// <exception cref="ArgumentNullException"><paramref name="tails"/> or any element of it is <c>null</c>.</exception>
+    [Pure]
     public static NonEmptyEnumerable<T> Concat<T>(this T head, params IEnumerable<T>[] tails)
     {
         ArgumentNullException.ThrowIfNull(tails);
@@ -148,12 +161,14 @@ public static class NonEmptyEnumerableExtensions
         return [head, ..tails.SelectMany(items => items)];
     }
 
+    [Pure]
     public static NonEmptyEnumerable<T> Prepend<T>(this INonEmptyEnumerable<T> source, T item)
     {
         ArgumentNullException.ThrowIfNull(source);
         return item.Concat(source);
     }
 
+    [Pure]
     public static NonEmptyEnumerable<T> Append<T>(this INonEmptyEnumerable<T> source, T item)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -165,6 +180,7 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
     }
 
+    [Pure]
     public static NonEmptyEnumerable<T> Reverse<T>(this NonEmptyEnumerable<T> source)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -173,6 +189,7 @@ public static class NonEmptyEnumerableExtensions
         return NonEmptyEnumerable<T>.FromValidatedArray(buffer);
     }
 
+    [Pure]
     public static NonEmptyEnumerable<T> Reverse<T>(this INonEmptyEnumerable<T> source)
     {
         if (source is NonEmptyEnumerable<T> concrete) return concrete.Reverse();
@@ -186,6 +203,7 @@ public static class NonEmptyEnumerableExtensions
     /// <typeparam name="T">The element type.</typeparam>
     /// <param name="source">The sequence to take from.</param>
     /// <param name="count">The positive number of elements to take.</param>
+    [Pure]
     public static NonEmptyEnumerable<T> Take<T>(this INonEmptyEnumerable<T> source, Positive<int> count)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -203,23 +221,27 @@ public static class NonEmptyEnumerableExtensions
     /// <param name="source">The sequence to take from.</param>
     /// <param name="count">The number of elements to take.</param>
     /// <exception cref="ArgumentException"><paramref name="count"/> is not positive.</exception>
+    [Pure]
     public static NonEmptyEnumerable<T> Take<T>(this INonEmptyEnumerable<T> source, int count)
         => source.Take(count.ToPositive());
 
     // ── Aggregation (total functions — non-emptiness makes these non-throwing) ──
 
+    [Pure]
     public static T Max<T>(this INonEmptyEnumerable<T> source)
     {
         ArgumentNullException.ThrowIfNull(source);
         return Enumerable.Max(source)!;
     }
 
+    [Pure]
     public static T Min<T>(this INonEmptyEnumerable<T> source)
     {
         ArgumentNullException.ThrowIfNull(source);
         return Enumerable.Min(source)!;
     }
 
+    [Pure]
     public static T MaxBy<T, TKey>(this INonEmptyEnumerable<T> source, Func<T, TKey> keySelector)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -227,6 +249,7 @@ public static class NonEmptyEnumerableExtensions
         return Enumerable.MaxBy(source, keySelector)!;
     }
 
+    [Pure]
     public static T MinBy<T, TKey>(this INonEmptyEnumerable<T> source, Func<T, TKey> keySelector)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -234,12 +257,14 @@ public static class NonEmptyEnumerableExtensions
         return Enumerable.MinBy(source, keySelector)!;
     }
 
+    [Pure]
     public static T Last<T>(this INonEmptyEnumerable<T> source)
     {
         ArgumentNullException.ThrowIfNull(source);
         return source[source.Count - 1];
     }
 
+    [Pure]
     public static T Aggregate<T>(this INonEmptyEnumerable<T> source, Func<T, T, T> func)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -251,6 +276,7 @@ public static class NonEmptyEnumerableExtensions
     /// <typeparam name="T">A numeric type.</typeparam>
     /// <param name="source">The sequence to average.</param>
     /// <exception cref="OverflowException">The running sum overflows <typeparamref name="T"/>.</exception>
+    [Pure]
     public static T Average<T>(this INonEmptyEnumerable<T> source) where T : INumber<T>
     {
         ArgumentNullException.ThrowIfNull(source);

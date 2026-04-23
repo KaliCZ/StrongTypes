@@ -1,6 +1,5 @@
-#nullable enable
-
 using System;
+using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 
 namespace StrongTypes;
@@ -14,6 +13,7 @@ public static class MaybeStructValueExtensions
 {
     extension<T>(Maybe<T> m) where T : struct
     {
+        [Pure]
         public T? Value => m.HasValue ? m.InternalValue : null;
     }
 }
@@ -22,20 +22,24 @@ public static class MaybeClassValueExtensions
 {
     extension<T>(Maybe<T> m) where T : class
     {
+        [Pure]
         public T? Value => m.HasValue ? m.InternalValue : null;
     }
 }
 
 public static class MaybeExtensions
 {
+    [Pure]
     public static Maybe<T> ToMaybe<T>(this T? value)
         where T : struct
         => value.HasValue ? Maybe<T>.Some(value.Value) : default;
 
+    [Pure]
     public static Maybe<T> ToMaybe<T>(this T? value)
         where T : class
         => value is not null ? Maybe<T>.Some(value) : default;
 
+    [Pure]
     public static async Task<Maybe<B>> MapAsync<A, B>(this Maybe<A> m, Func<A, Task<B>> f)
         where A : notnull
         where B : notnull
@@ -51,6 +55,7 @@ public static class MaybeExtensions
         else if (ifNone is not null) await ifNone();
     }
 
+    [Pure]
     public static async Task<R> MatchAsync<A, R>(
         this Maybe<A> m,
         Func<A, Task<R>> ifSome,
@@ -58,6 +63,7 @@ public static class MaybeExtensions
         where A : notnull
         => m.HasValue ? await ifSome(m.InternalValue) : await ifNone();
 
+    [Pure]
     public static async Task<Maybe<B>> FlatMapAsync<A, B>(this Maybe<A> m, Func<A, Task<Maybe<B>>> f)
         where A : notnull
         where B : notnull
@@ -65,16 +71,19 @@ public static class MaybeExtensions
 
     #region LINQ aliases
 
+    [Pure]
     public static Maybe<B> Select<A, B>(this Maybe<A> m, Func<A, B> f)
         where A : notnull
         where B : notnull
         => m.Map(f);
 
+    [Pure]
     public static Maybe<B> SelectMany<A, B>(this Maybe<A> m, Func<A, Maybe<B>> f)
         where A : notnull
         where B : notnull
         => m.FlatMap(f);
 
+    [Pure]
     public static Maybe<B> SelectMany<A, X, B>(
         this Maybe<A> m,
         Func<A, Maybe<X>> f,

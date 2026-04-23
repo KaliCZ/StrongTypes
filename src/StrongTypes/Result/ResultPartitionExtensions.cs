@@ -1,7 +1,6 @@
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace StrongTypes;
@@ -12,6 +11,7 @@ public static class ResultPartitionExtensions
     /// <typeparam name="T">The success value type.</typeparam>
     /// <typeparam name="TError">The error value type.</typeparam>
     /// <param name="source">The sequence of results.</param>
+    [Pure]
     public static (IReadOnlyList<T> Successes, IReadOnlyList<TError> Errors) Partition<T, TError>(
         this IEnumerable<Result<T, TError>> source)
         where T : notnull
@@ -55,6 +55,7 @@ public static class ResultPartitionExtensions
     /// <param name="source">The sequence of results.</param>
     /// <param name="success">Projects the successes.</param>
     /// <param name="error">Projects the errors.</param>
+    [Pure]
     public static R[] PartitionMatch<T, TError, R>(
         this IEnumerable<Result<T, TError>> source,
         Func<IReadOnlyList<T>, IEnumerable<R>> success,

@@ -1,6 +1,5 @@
-#nullable enable
-
 using System;
+using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 
 namespace StrongTypes;
@@ -12,6 +11,7 @@ public static class BooleanMapToStructExtensions
     /// <param name="value">The flag being mapped.</param>
     /// <param name="map">Invoked only when <paramref name="value"/> is <c>true</c>.</param>
     /// <returns>The result of <paramref name="map"/> when <paramref name="value"/> is <c>true</c>; otherwise <c>null</c>.</returns>
+    [Pure]
     public static T? MapTrue<T>(this bool value, Func<T> map) where T : struct
         => value ? map() : null;
 
@@ -20,6 +20,7 @@ public static class BooleanMapToStructExtensions
     /// <param name="value">The flag being mapped.</param>
     /// <param name="map">Invoked only when <paramref name="value"/> is <c>true</c>; may return <c>null</c>.</param>
     /// <returns>The result of <paramref name="map"/> when <paramref name="value"/> is <c>true</c>; otherwise <c>null</c>.</returns>
+    [Pure]
     public static T? MapTrue<T>(this bool value, Func<T?> map) where T : struct
         => value ? map() : null;
 
@@ -28,6 +29,7 @@ public static class BooleanMapToStructExtensions
     /// <param name="value">The flag being mapped.</param>
     /// <param name="map">Invoked only when <paramref name="value"/> is <c>false</c>.</param>
     /// <returns>The result of <paramref name="map"/> when <paramref name="value"/> is <c>false</c>; otherwise <c>null</c>.</returns>
+    [Pure]
     public static T? MapFalse<T>(this bool value, Func<T> map) where T : struct
         => value ? null : map();
 
@@ -36,6 +38,7 @@ public static class BooleanMapToStructExtensions
     /// <param name="value">The flag being mapped.</param>
     /// <param name="map">Invoked only when <paramref name="value"/> is <c>false</c>; may return <c>null</c>.</param>
     /// <returns>The result of <paramref name="map"/> when <paramref name="value"/> is <c>false</c>; otherwise <c>null</c>.</returns>
+    [Pure]
     public static T? MapFalse<T>(this bool value, Func<T?> map) where T : struct
         => value ? null : map();
 
@@ -75,6 +78,7 @@ public static class BooleanMapToClassExtensions
     /// <param name="value">The flag being mapped.</param>
     /// <param name="map">Invoked only when <paramref name="value"/> is <c>true</c>; may return <c>null</c>.</param>
     /// <returns>The result of <paramref name="map"/> when <paramref name="value"/> is <c>true</c>; otherwise <c>null</c>.</returns>
+    [Pure]
     public static T? MapTrue<T>(this bool value, Func<T?> map) where T : class
         => value ? map() : null;
 
@@ -83,6 +87,7 @@ public static class BooleanMapToClassExtensions
     /// <param name="value">The flag being mapped.</param>
     /// <param name="map">Invoked only when <paramref name="value"/> is <c>false</c>; may return <c>null</c>.</param>
     /// <returns>The result of <paramref name="map"/> when <paramref name="value"/> is <c>false</c>; otherwise <c>null</c>.</returns>
+    [Pure]
     public static T? MapFalse<T>(this bool value, Func<T?> map) where T : class
         => value ? null : map();
 

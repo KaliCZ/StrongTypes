@@ -1,6 +1,5 @@
-#nullable enable
-
 using System;
+using System.Diagnostics.Contracts;
 
 namespace StrongTypes;
 
@@ -20,6 +19,7 @@ public readonly struct Digit :
         Value = value;
     }
 
+    [Pure]
     public byte Value { get; }
 
     public static implicit operator byte(Digit d) => d.Value;
@@ -27,6 +27,7 @@ public readonly struct Digit :
 
     /// <summary>Wraps the decimal value of <paramref name="value"/>, or returns <c>null</c> when it is not a decimal digit character.</summary>
     /// <param name="value">The character to parse.</param>
+    [Pure]
     public static Digit? TryCreate(char value)
     {
         if (!char.IsDigit(value))
@@ -40,6 +41,7 @@ public readonly struct Digit :
     /// <summary>Wraps the decimal value of <paramref name="value"/>.</summary>
     /// <param name="value">The character to parse.</param>
     /// <exception cref="ArgumentException"><paramref name="value"/> is not a decimal digit character.</exception>
+    [Pure]
     public static Digit Create(char value)
     {
         return TryCreate(value)
@@ -48,8 +50,10 @@ public readonly struct Digit :
 
     #region Equality
 
+    [Pure]
     public override int GetHashCode() => Value.GetHashCode();
 
+    [Pure]
     public override bool Equals(object? obj) =>
         obj switch
         {
@@ -59,10 +63,13 @@ public readonly struct Digit :
             _ => false
         };
 
+    [Pure]
     public bool Equals(Digit other) => Value == other.Value;
 
+    [Pure]
     public bool Equals(byte other) => Value == other;
 
+    [Pure]
     public bool Equals(int other) => Value == other;
 
     public static bool operator ==(Digit left, Digit right) => left.Equals(right);
@@ -82,10 +89,13 @@ public readonly struct Digit :
 
     #region Comparison
 
+    [Pure]
     public int CompareTo(Digit other) => Value.CompareTo(other.Value);
 
+    [Pure]
     public int CompareTo(byte other) => Value.CompareTo(other);
 
+    [Pure]
     public int CompareTo(int other) => ((int)Value).CompareTo(other);
 
     int IComparable.CompareTo(object? obj) =>
@@ -123,5 +133,6 @@ public readonly struct Digit :
 
     #endregion Comparison
 
+    [Pure]
     public override string ToString() => Value.ToString();
 }

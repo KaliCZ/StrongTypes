@@ -1,6 +1,5 @@
-#nullable enable
-
 using System;
+using System.Diagnostics.Contracts;
 
 namespace StrongTypes;
 
@@ -10,6 +9,7 @@ public static class ResultFlattenExtensions
     /// <typeparam name="T">The success value type.</typeparam>
     /// <typeparam name="TError">The shared error type.</typeparam>
     /// <param name="nested">The nested result.</param>
+    [Pure]
     public static Result<T, TError> Flatten<T, TError>(this Result<Result<T, TError>, TError> nested)
         where T : notnull
         where TError : notnull
@@ -18,6 +18,7 @@ public static class ResultFlattenExtensions
     /// <summary>Collapses a <see cref="Result{T}"/> of <see cref="Result{T}"/>, preserving the single-parameter form.</summary>
     /// <typeparam name="T">The success value type.</typeparam>
     /// <param name="nested">The nested result.</param>
+    [Pure]
     public static Result<T> Flatten<T>(this Result<Result<T>, Exception> nested)
         where T : notnull
         => nested.IsSuccess ? nested.InternalValue : nested.InternalError;
@@ -27,6 +28,7 @@ public static class ResultFlattenExtensions
     /// <typeparam name="TInnerException">The inner exception type.</typeparam>
     /// <typeparam name="TOuterException">The outer exception type.</typeparam>
     /// <param name="nested">The nested result.</param>
+    [Pure]
     public static Result<T> Flatten<T, TInnerException, TOuterException>(
         this Result<Result<T, TInnerException>, TOuterException> nested)
         where T : notnull

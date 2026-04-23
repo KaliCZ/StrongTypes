@@ -1,5 +1,4 @@
-#nullable enable
-
+using System.Diagnostics.Contracts;
 using System.Numerics;
 using System.Text.Json.Serialization;
 
@@ -21,10 +20,12 @@ public readonly partial struct Positive<T>
         _offset = offset;
     }
 
+    [Pure]
     public T Value => _offset + T.One;
 
     /// <summary>Wraps <paramref name="value"/>, or returns <c>null</c> when it is not strictly greater than zero.</summary>
     /// <param name="value">The number to validate.</param>
+    [Pure]
     public static Positive<T>? TryCreate(T value)
     {
         return value > T.Zero ? new Positive<T>(value - T.One) : null;

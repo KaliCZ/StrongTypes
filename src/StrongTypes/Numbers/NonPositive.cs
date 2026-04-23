@@ -1,5 +1,4 @@
-#nullable enable
-
+using System.Diagnostics.Contracts;
 using System.Numerics;
 using System.Text.Json.Serialization;
 
@@ -18,10 +17,12 @@ public readonly partial struct NonPositive<T>
         Value = value;
     }
 
+    [Pure]
     public T Value { get; }
 
     /// <summary>Wraps <paramref name="value"/>, or returns <c>null</c> when it is greater than zero.</summary>
     /// <param name="value">The number to validate.</param>
+    [Pure]
     public static NonPositive<T>? TryCreate(T value)
     {
         return value <= T.Zero ? new NonPositive<T>(value) : null;

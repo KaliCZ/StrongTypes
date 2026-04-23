@@ -1,5 +1,3 @@
-#nullable enable
-
 using FsCheck.Xunit;
 using Xunit;
 

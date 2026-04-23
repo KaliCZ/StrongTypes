@@ -1,6 +1,5 @@
-#nullable enable
-
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace StrongTypes;
@@ -11,6 +10,7 @@ public static partial class IEnumerableExtensions
     /// <typeparam name="T">The element type.</typeparam>
     /// <param name="first">The starting sequence.</param>
     /// <param name="items">Elements appended after <paramref name="first"/>.</param>
+    [Pure]
     public static IEnumerable<T> Concat<T>(this IEnumerable<T> first, params T[] items)
         => Enumerable.Concat(first, items);
 
@@ -18,6 +18,7 @@ public static partial class IEnumerableExtensions
     /// <typeparam name="T">The element type.</typeparam>
     /// <param name="first">The starting sequence.</param>
     /// <param name="others">Sequences concatenated after <paramref name="first"/>.</param>
+    [Pure]
     public static IEnumerable<T> Concat<T>(this IEnumerable<T> first, params IEnumerable<T>[] others)
         => Enumerable.Concat(first, others.SelectMany(o => o));
 }

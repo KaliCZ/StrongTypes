@@ -1,7 +1,6 @@
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Numerics;
@@ -17,45 +16,55 @@ public static class EnumExtensions
         /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>.</summary>
         /// <param name="value">The name or numeric value to parse.</param>
         /// <exception cref="ArgumentException"><paramref name="value"/> does not match a defined name or value.</exception>
+        [Pure]
         public static TEnum Parse(string value) => Enum.Parse<TEnum>(value);
 
         /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>.</summary>
         /// <param name="value">The name or numeric value to parse.</param>
         /// <param name="ignoreCase">When <c>true</c>, the name comparison is case-insensitive.</param>
         /// <exception cref="ArgumentException"><paramref name="value"/> does not match a defined name or value.</exception>
+        [Pure]
         public static TEnum Parse(string value, bool ignoreCase) => Enum.Parse<TEnum>(value, ignoreCase);
 
         /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>, or returns <c>null</c> when parsing fails.</summary>
         /// <param name="value">The name or numeric value to parse.</param>
+        [Pure]
         public static TEnum? TryParse(string? value) => Enum.TryParse<TEnum>(value, out var v) ? v : null;
 
         /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>, or returns <c>null</c> when parsing fails.</summary>
         /// <param name="value">The name or numeric value to parse.</param>
         /// <param name="ignoreCase">When <c>true</c>, the name comparison is case-insensitive.</param>
+        [Pure]
         public static TEnum? TryParse(string? value, bool ignoreCase) => Enum.TryParse<TEnum>(value, ignoreCase, out var v) ? v : null;
 
         /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>.</summary>
         /// <param name="value">The name or numeric value to parse.</param>
         /// <exception cref="ArgumentException"><paramref name="value"/> does not match a defined name or value.</exception>
+        [Pure]
         public static TEnum Create(string value) => Enum.Parse<TEnum>(value);
 
         /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>, or returns <c>null</c> when parsing fails.</summary>
         /// <param name="value">The name or numeric value to parse.</param>
+        [Pure]
         public static TEnum? TryCreate(string? value) => Enum.TryParse<TEnum>(value, out var v) ? v : null;
 
         /// <summary>All declared values of <typeparamref name="TEnum"/>.</summary>
+        [Pure]
         public static TEnum[] AllValues => EnumMeta<TEnum>.Values;
 
         /// <summary>Members of <typeparamref name="TEnum"/> whose underlying bits form a single power of two.</summary>
         /// <exception cref="InvalidOperationException"><typeparamref name="TEnum"/> lacks <c>[Flags]</c>.</exception>
+        [Pure]
         public static TEnum[] AllFlagValues => FlagEnumMeta<TEnum>.FlagValues;
 
         /// <summary>Every single-bit flag OR-ed into one value.</summary>
         /// <exception cref="InvalidOperationException"><typeparamref name="TEnum"/> lacks <c>[Flags]</c>.</exception>
+        [Pure]
         public static TEnum AllFlagsCombined => FlagEnumMeta<TEnum>.FlagsCombined;
 
         /// <summary>Splits the receiver into the individual single-bit flags it contains, in declaration order. Returns an empty list for zero.</summary>
         /// <exception cref="InvalidOperationException"><typeparamref name="TEnum"/> lacks <c>[Flags]</c>.</exception>
+        [Pure]
         public IReadOnlyList<TEnum> GetFlags()
         {
             // Access FlagValues first so non-[Flags] enums throw even when
@@ -103,6 +112,7 @@ internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
     // last-write-wins is benign, and .NET guarantees the array's writes
     // are visible before its reference is published.
     private static TEnum[]? _flagValues;
+    [Pure]
     public static TEnum[] FlagValues => _flagValues ??= ScanForFlagValues();
 
     // FlagsCombined is a TEnum (up to 8 bytes; not atomic on 32-bit) and
@@ -112,6 +122,7 @@ internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
     private static TEnum _flagsCombined;
     private static bool _flagsCombinedReady;
     private static object? _flagsCombinedLock;
+    [Pure]
     public static TEnum FlagsCombined => LazyInitializer.EnsureInitialized(
         ref _flagsCombined, ref _flagsCombinedReady, ref _flagsCombinedLock, OrAllFlagValues
     );

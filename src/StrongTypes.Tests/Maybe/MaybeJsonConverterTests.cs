@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Text.Json;
 using FsCheck.Xunit;
 using Xunit;

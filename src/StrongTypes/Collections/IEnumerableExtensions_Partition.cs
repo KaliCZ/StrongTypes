@@ -1,7 +1,6 @@
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 
 namespace StrongTypes;
 
@@ -12,6 +11,7 @@ public static partial class IEnumerableExtensions
     /// <param name="source">The sequence to partition.</param>
     /// <param name="predicate">Tested against each element.</param>
     /// <returns><c>Passing</c> holds items for which <paramref name="predicate"/> returned <c>true</c>; <c>Violating</c> holds the rest.</returns>
+    [Pure]
     public static (IReadOnlyList<T> Passing, IReadOnlyList<T> Violating) Partition<T>(
         this IEnumerable<T> source,
         Func<T, bool> predicate)
