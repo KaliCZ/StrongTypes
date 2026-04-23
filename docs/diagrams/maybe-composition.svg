@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 640" role="img" aria-label="Maybe composition: Map, FlatMap, Where">
+  <style>
+    .op-name   { font: 700 16px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #111827; }
+    .op-sig    { font: 14px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #6B7280; }
+    .op-hint   { font: 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #6B7280; }
+    .track-tag { font: 600 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; }
+    .mono      { font: 13px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; }
+    .op-label  { font: 600 12px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #111827; }
+    .note      { font: 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #6B7280; }
+  </style>
+
+  <defs>
+    <marker id="mc-g" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0,0 L 9,3 L 0,6 z" fill="#10B981"/>
+    </marker>
+    <marker id="mc-n" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0,0 L 9,3 L 0,6 z" fill="#9CA3AF"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="640" fill="#FFFFFF"/>
+  <rect x="0.5" y="0.5" width="899" height="639" fill="none" stroke="#E5E7EB" rx="10"/>
+
+  <!-- ═══════════════════ SECTION 1: Map ═══════════════════ -->
+  <g>
+    <text class="op-name" x="30" y="40">Map</text>
+    <text class="op-sig"  x="85" y="40">f : T → U</text>
+    <text class="op-hint" x="870" y="40" text-anchor="end">result is auto-wrapped back into Maybe</text>
+    <line x1="30" y1="52" x2="870" y2="52" stroke="#E5E7EB" stroke-dasharray="3 3"/>
+
+    <!-- Some track -->
+    <text class="track-tag" x="30" y="90" fill="#047857">Some</text>
+    <rect x="90"  y="74" width="130" height="32" rx="16" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
+    <text class="mono" x="155" y="95" text-anchor="middle" fill="#065F46">Some(x)</text>
+    <line x1="220" y1="90" x2="400" y2="90" stroke="#10B981" stroke-width="1.5" marker-end="url(#mc-g)"/>
+    <text class="op-label" x="310" y="82" text-anchor="middle">Map(f)</text>
+    <rect x="400" y="74" width="160" height="32" rx="16" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
+    <text class="mono" x="480" y="95" text-anchor="middle" fill="#065F46">Some(f(x))</text>
+    <text class="note" x="580" y="95">f returned a T; Maybe wraps it automatically</text>
+
+    <!-- None track -->
+    <text class="track-tag" x="30" y="140" fill="#6B7280">None</text>
+    <rect x="90"  y="124" width="130" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono" x="155" y="145" text-anchor="middle" fill="#374151">None</text>
+    <line x1="220" y1="140" x2="400" y2="140" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#mc-n)"/>
+    <text class="op-label" x="310" y="132" text-anchor="middle" fill="#6B7280">Map(f)</text>
+    <rect x="400" y="124" width="160" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono" x="480" y="145" text-anchor="middle" fill="#374151">None</text>
+    <text class="note" x="580" y="145">f never called — short-circuits</text>
+  </g>
+
+  <!-- ═══════════════════ SECTION 2: FlatMap ═══════════════════ -->
+  <g transform="translate(0, 180)">
+    <text class="op-name" x="30" y="40">FlatMap</text>
+    <text class="op-sig"  x="125" y="40">f : T → Maybe&lt;U&gt;</text>
+    <text class="op-hint" x="870" y="40" text-anchor="end">f already returns Maybe&lt;U&gt; — unwrapped directly to avoid Maybe&lt;Maybe&lt;U&gt;&gt;</text>
+    <line x1="30" y1="52" x2="870" y2="52" stroke="#E5E7EB" stroke-dasharray="3 3"/>
+
+    <!-- Some track: branches -->
+    <text class="track-tag" x="30" y="107" fill="#047857">Some</text>
+    <rect x="90"  y="91" width="130" height="32" rx="16" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
+    <text class="mono" x="155" y="112" text-anchor="middle" fill="#065F46">Some(x)</text>
+
+    <!-- Arrow to intermediate -->
+    <line x1="220" y1="107" x2="290" y2="107" stroke="#10B981" stroke-width="1.5" marker-end="url(#mc-g)"/>
+    <text class="op-label" x="255" y="99" text-anchor="middle">FlatMap(f)</text>
+
+    <!-- Intermediate "f(x) : Maybe<U>" -->
+    <rect x="290" y="91" width="170" height="32" rx="8" fill="#FFFFFF" stroke="#6366F1" stroke-width="1.5" stroke-dasharray="5 3"/>
+    <text class="mono" x="375" y="112" text-anchor="middle" fill="#4338CA">f(x) : Maybe&lt;U&gt;</text>
+
+    <!-- Branch arrows out of intermediate -->
+    <path d="M 460 100 C 495 95, 505 82, 540 80" fill="none" stroke="#10B981" stroke-width="1.5" marker-end="url(#mc-g)"/>
+    <path d="M 460 115 C 495 120, 505 133, 540 135" fill="none" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#mc-n)"/>
+
+    <!-- Outcome pills (top: Some, bottom: None) -->
+    <rect x="540" y="64" width="140" height="32" rx="16" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
+    <text class="mono" x="610" y="85" text-anchor="middle" fill="#065F46">Some(y)</text>
+    <text class="note" x="690" y="85">f returned Some</text>
+
+    <rect x="540" y="120" width="140" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono" x="610" y="141" text-anchor="middle" fill="#374151">None</text>
+    <text class="note" x="690" y="141">f returned None</text>
+
+    <!-- None track -->
+    <text class="track-tag" x="30" y="185" fill="#6B7280">None</text>
+    <rect x="90"  y="169" width="130" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono" x="155" y="190" text-anchor="middle" fill="#374151">None</text>
+    <line x1="220" y1="185" x2="540" y2="185" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#mc-n)"/>
+    <text class="op-label" x="380" y="177" text-anchor="middle" fill="#6B7280">FlatMap(f)</text>
+    <rect x="540" y="169" width="140" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono" x="610" y="190" text-anchor="middle" fill="#374151">None</text>
+    <text class="note" x="690" y="190">f never called — short-circuits</text>
+  </g>
+
+  <!-- ═══════════════════ SECTION 3: Where ═══════════════════ -->
+  <g transform="translate(0, 400)">
+    <text class="op-name" x="30" y="40">Where</text>
+    <text class="op-sig"  x="110" y="40">p : T → bool</text>
+    <text class="op-hint" x="870" y="40" text-anchor="end">predicate decides whether to keep the value</text>
+    <line x1="30" y1="52" x2="870" y2="52" stroke="#E5E7EB" stroke-dasharray="3 3"/>
+
+    <!-- Some track: branches -->
+    <text class="track-tag" x="30" y="107" fill="#047857">Some</text>
+    <rect x="90"  y="91" width="130" height="32" rx="16" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
+    <text class="mono" x="155" y="112" text-anchor="middle" fill="#065F46">Some(x)</text>
+
+    <!-- Arrow with "Where(p)" label, splits -->
+    <path d="M 220 100 C 300 95, 340 82, 400 80" fill="none" stroke="#10B981" stroke-width="1.5" marker-end="url(#mc-g)"/>
+    <path d="M 220 115 C 300 120, 340 133, 400 135" fill="none" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#mc-n)"/>
+    <text class="op-label" x="290" y="112" text-anchor="middle">Where(p)</text>
+
+    <!-- Outcome pills -->
+    <rect x="400" y="64" width="140" height="32" rx="16" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
+    <text class="mono" x="470" y="85" text-anchor="middle" fill="#065F46">Some(x)</text>
+    <text class="note" x="550" y="85">p(x) = true</text>
+
+    <rect x="400" y="120" width="140" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono" x="470" y="141" text-anchor="middle" fill="#374151">None</text>
+    <text class="note" x="550" y="141">p(x) = false</text>
+
+    <!-- None track -->
+    <text class="track-tag" x="30" y="185" fill="#6B7280">None</text>
+    <rect x="90"  y="169" width="130" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono" x="155" y="190" text-anchor="middle" fill="#374151">None</text>
+    <line x1="220" y1="185" x2="400" y2="185" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#mc-n)"/>
+    <text class="op-label" x="310" y="177" text-anchor="middle" fill="#6B7280">Where(p)</text>
+    <rect x="400" y="169" width="140" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono" x="470" y="190" text-anchor="middle" fill="#374151">None</text>
+    <text class="note" x="550" y="190">p never called — short-circuits</text>
+  </g>
+</svg>

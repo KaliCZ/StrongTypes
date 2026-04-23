@@ -4,9 +4,15 @@
 [![StrongTypes.EfCore downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.EfCore?label=downloads%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)
 [![StrongTypes.FsCheck downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.FsCheck?label=downloads%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
 
-StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused value types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive".
+StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive".
 
 Every type ships with `System.Text.Json` converters out of the box (except `Result`), so invalid JSON fails at deserialization — in ASP.NET Core, that's before your endpoint method even runs.
+
+You can also store the types directly in your EF Core entities with the use of the EfCore package.
+
+<img src="docs/diagrams/impact.svg" alt="Impact of StrongTypes on validation boundaries" width="990" height="760" />
+
+<img src="docs/diagrams/package-layout.svg" alt="Package layout" width="680" />
 
 ## Contents
 
@@ -38,6 +44,10 @@ NonEmptyString? name = NonEmptyString.TryCreate(input);
 // Throws ArgumentException on invalid input.
 NonEmptyString name = NonEmptyString.Create(input);
 ```
+
+The `TryCreate` / `Create` split (and the `As…` / `To…` extensions that mirror it) is used across every validated type in the library — pick the factory that matches how you want to handle bad input at the call site:
+
+<img src="docs/diagrams/trycreate-create-flow.svg" alt="TryCreate vs Create flow" width="900" />
 
 Or via the `AsNonEmpty()` extension on any `string?`:
 
@@ -106,7 +116,7 @@ All strong types ship with `System.Text.Json` converters attached via `[JsonConv
 
 ### EF Core persistence
 
-If you want to store strong types directly on your EF Core entities, add the companion package [`Kalicz.StrongTypes.EfCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/). It provides the value converters needed to map `NonEmptyString`, `Positive<T>`, and friends to their underlying column types. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md) for setup details.
+If you want to store strong types directly on your EF Core entities, add the companion package [`Kalicz.StrongTypes.EfCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/). It provides the value converters needed to map `NonEmptyString`, `Positive<T>`, and other numeric types to their underlying column types. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md) for setup details.
 
 ## `NonEmptyEnumerable<T>`
 
@@ -169,6 +179,8 @@ int avg  = list.Average();
 NonEmptyEnumerable<Dog>      dogs    = [new Dog()];
 INonEmptyEnumerable<Animal>  animals = dogs;  // allowed thanks to `out T`
 ```
+
+<img src="docs/diagrams/covariance.svg" alt="Covariant out T upcast" width="900" />
 
 All extensions (`Select`, `Concat`, `Max`, `Last`, …) have overloads on both the concrete type and the interface, so either receiver type works in a chain.
 
@@ -304,11 +316,7 @@ The generic constraint is `where T : notnull` — `Maybe<int?>` and `Maybe<strin
 
 HTTP `PATCH` has a long-standing modelling problem for nullable fields: a request needs to distinguish three intents — *don't touch this field*, *clear this field to null*, and *set it to a new value*. A plain `T?` collapses the first two cases. `Maybe<T>?` keeps them apart, because `Maybe<T>` itself is a value, so wrapping it in `T?` adds a real third state:
 
-| JSON                     | Property value     | Intent                |
-| ------------------------ |--------------------| --------------------- |
-| field omitted, or `null` | `(Maybe<T>?)null`  | leave field untouched |
-| `{}` or `{"Value":null}` | `Maybe<T>.None`    | clear field to `null` |
-| `{"Value":x}`            | `Maybe<T>.Some(x)` | set field to `x`      |
+<img src="docs/diagrams/patch-three-state.svg" alt="PATCH three-state model" width="900" />
 
 The request DTO and PATCH handler then read straight off pattern matching, with no out-of-band sentinel values:
 
@@ -375,6 +383,8 @@ var label = maybe.Match(
 #### Composition
 
 `Maybe<T>` composes monadically through `Map`, `FlatMap`, and `Where`. Each operation is a no-op on `None`, so chains short-circuit cleanly without explicit null checks:
+
+<img src="docs/diagrams/maybe-composition.svg" alt="Maybe composition pipeline" width="900" />
 
 ```csharp
 // Map — transform the inner value when present.
@@ -486,7 +496,10 @@ public Result<Order, OrderError> CreateOrder(OrderData data)
 
 #### Transformation
 
-`Map`, `MapError`, `Match`, and `FlatMap` let you chain without explicit branching:
+`Map`, `MapError`, `Match`, and `FlatMap` let you chain without explicit branching. Success and error values flow down independent tracks — `Map` only touches the success side, `MapError` only touches the error side, and `FlatMap` short-circuits on error:
+
+<img src="docs/diagrams/result-composition.svg" alt="Result composition pipeline" width="900" />
+
 
 ```csharp
 Result<int, string> r = Parse("42");
