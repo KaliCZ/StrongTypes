@@ -1,7 +1,6 @@
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 
 namespace StrongTypes;
 
@@ -13,6 +12,7 @@ public static partial class IEnumerableExtensions
     /// for which it returns false (<c>Violating</c>). Relative order is
     /// preserved within each partition.
     /// </summary>
+    [Pure]
     public static (IReadOnlyList<T> Passing, IReadOnlyList<T> Violating) Partition<T>(
         this IEnumerable<T> source,
         Func<T, bool> predicate)

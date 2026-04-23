@@ -1,6 +1,5 @@
-#nullable enable
-
 using System;
+using System.Diagnostics.Contracts;
 
 namespace StrongTypes;
 
@@ -15,6 +14,7 @@ public static class ResultFromNullableExtensions
     /// eager or lazy overloads when you want a specific exception or a custom
     /// error value.
     /// </summary>
+    [Pure]
     public static Result<T> ToResult<T>(this T? value)
         where T : class
         => value is { } v ? v : new ArgumentNullException();
@@ -23,6 +23,7 @@ public static class ResultFromNullableExtensions
     /// Eager exception overload. A non-null <paramref name="value"/> becomes a
     /// success; a null value becomes <paramref name="error"/>.
     /// </summary>
+    [Pure]
     public static Result<T> ToResult<T>(this T? value, Exception error)
         where T : class
         => value is { } v ? v : error;
@@ -31,6 +32,7 @@ public static class ResultFromNullableExtensions
     /// Lazy exception overload — prefer when the exception is expensive to
     /// construct (e.g. deep stack capture).
     /// </summary>
+    [Pure]
     public static Result<T> ToResult<T>(this T? value, Func<Exception> error)
         where T : class
         => value is { } v ? v : error();
@@ -44,6 +46,7 @@ public static class ResultFromNullableExtensions
     /// the single-parameter form, cast to <see cref="Exception"/>.
     /// </para>
     /// </summary>
+    [Pure]
     public static Result<T, TError> ToResult<T, TError>(this T? value, TError error)
         where T : class
         where TError : notnull
@@ -52,6 +55,7 @@ public static class ResultFromNullableExtensions
     /// <summary>
     /// Lazy custom-error overload.
     /// </summary>
+    [Pure]
     public static Result<T, TError> ToResult<T, TError>(this T? value, Func<TError> error)
         where T : class
         where TError : notnull
@@ -60,27 +64,32 @@ public static class ResultFromNullableExtensions
     // ── Value type receivers ───────────────────────────────────────────
 
     /// <inheritdoc cref="ToResult{T}(T?)"/>
+    [Pure]
     public static Result<T> ToResult<T>(this T? value)
         where T : struct
         => value is { } v ? v : new ArgumentNullException();
 
     /// <inheritdoc cref="ToResult{T}(T?, Exception)"/>
+    [Pure]
     public static Result<T> ToResult<T>(this T? value, Exception error)
         where T : struct
         => value is { } v ? v : error;
 
     /// <inheritdoc cref="ToResult{T}(T?, Func{Exception})"/>
+    [Pure]
     public static Result<T> ToResult<T>(this T? value, Func<Exception> error)
         where T : struct
         => value is { } v ? v : error();
 
     /// <inheritdoc cref="ToResult{T, TError}(T?, TError)"/>
+    [Pure]
     public static Result<T, TError> ToResult<T, TError>(this T? value, TError error)
         where T : struct
         where TError : notnull
         => value is { } v ? v : error;
 
     /// <inheritdoc cref="ToResult{T, TError}(T?, Func{TError})"/>
+    [Pure]
     public static Result<T, TError> ToResult<T, TError>(this T? value, Func<TError> error)
         where T : struct
         where TError : notnull

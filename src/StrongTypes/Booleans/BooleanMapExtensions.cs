@@ -1,6 +1,5 @@
-#nullable enable
-
 using System;
+using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 
 namespace StrongTypes;
@@ -12,6 +11,7 @@ public static class BooleanMapToStructExtensions
     /// <paramref name="value"/> is <see langword="true"/>; returns
     /// <see langword="null"/> otherwise without invoking <paramref name="map"/>.
     /// </summary>
+    [Pure]
     public static T? MapTrue<T>(this bool value, Func<T> map) where T : struct
         => value ? map() : null;
 
@@ -21,6 +21,7 @@ public static class BooleanMapToStructExtensions
     /// <see langword="null"/> otherwise without invoking <paramref name="map"/>.
     /// The mapper may itself return <see langword="null"/>.
     /// </summary>
+    [Pure]
     public static T? MapTrue<T>(this bool value, Func<T?> map) where T : struct
         => value ? map() : null;
 
@@ -29,6 +30,7 @@ public static class BooleanMapToStructExtensions
     /// <paramref name="value"/> is <see langword="false"/>; returns
     /// <see langword="null"/> otherwise without invoking <paramref name="map"/>.
     /// </summary>
+    [Pure]
     public static T? MapFalse<T>(this bool value, Func<T> map) where T : struct
         => value ? null : map();
 
@@ -38,6 +40,7 @@ public static class BooleanMapToStructExtensions
     /// <see langword="null"/> otherwise without invoking <paramref name="map"/>.
     /// The mapper may itself return <see langword="null"/>.
     /// </summary>
+    [Pure]
     public static T? MapFalse<T>(this bool value, Func<T?> map) where T : struct
         => value ? null : map();
 
@@ -84,6 +87,7 @@ public static class BooleanMapToClassExtensions
     /// <see langword="null"/> otherwise without invoking <paramref name="map"/>.
     /// The mapper may itself return <see langword="null"/>.
     /// </summary>
+    [Pure]
     public static T? MapTrue<T>(this bool value, Func<T?> map) where T : class
         => value ? map() : null;
 
@@ -93,6 +97,7 @@ public static class BooleanMapToClassExtensions
     /// <see langword="null"/> otherwise without invoking <paramref name="map"/>.
     /// The mapper may itself return <see langword="null"/>.
     /// </summary>
+    [Pure]
     public static T? MapFalse<T>(this bool value, Func<T?> map) where T : class
         => value ? null : map();
 

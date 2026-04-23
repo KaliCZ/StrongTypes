@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>CS1591</NoWarn>
+    <Nullable>enable</Nullable>
     <Version>0.0.0-dev</Version>
     <PackageId>Kalicz.StrongTypes</PackageId>
     <Description>A C# library that reduces boilerplate and prevents bugs through stronger typing. Continuation of FuncSharp.</Description>

@@ -1,6 +1,5 @@
-#nullable enable
-
 using System;
+using System.Diagnostics.Contracts;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -28,8 +27,11 @@ public readonly struct Maybe<T> :
 {
     internal readonly T InternalValue;
 
+    [Pure]
     public bool IsSome { get; }
+    [Pure]
     public bool IsNone => !IsSome;
+    [Pure]
     public bool HasValue => IsSome;
 
     private Maybe(T value)
@@ -38,6 +40,7 @@ public readonly struct Maybe<T> :
         IsSome = true;
     }
 
+    [Pure]
     public static Maybe<T> Some(T value) => new(value);
 
     public static readonly Maybe<T> None = default;
@@ -54,6 +57,7 @@ public readonly struct Maybe<T> :
 
     #region Match / Map / FlatMap / Where
 
+    [Pure]
     public R Match<R>(Func<T, R> ifSome, Func<R> ifNone) =>
         IsSome ? ifSome(InternalValue) : ifNone();
 
@@ -63,12 +67,15 @@ public readonly struct Maybe<T> :
         else ifNone?.Invoke();
     }
 
+    [Pure]
     public Maybe<B> Map<B>(Func<T, B> f) where B : notnull =>
         IsSome ? Maybe<B>.Some(f(InternalValue)) : default;
 
+    [Pure]
     public Maybe<B> FlatMap<B>(Func<T, Maybe<B>> f) where B : notnull =>
         IsSome ? f(InternalValue) : default;
 
+    [Pure]
     public Maybe<T> Where(Func<T, bool> predicate) =>
         IsSome && predicate(InternalValue) ? this : default;
 
@@ -76,6 +83,7 @@ public readonly struct Maybe<T> :
 
     #region Enumeration
 
+    [Pure]
     public IEnumerator<T> GetEnumerator()
     {
         if (IsSome) yield return InternalValue;
@@ -87,16 +95,20 @@ public readonly struct Maybe<T> :
 
     #region Equality
 
+    [Pure]
     public bool Equals(Maybe<T> other) =>
         IsSome == other.IsSome
         && (IsNone || EqualityComparer<T>.Default.Equals(InternalValue, other.InternalValue));
 
+    [Pure]
     public bool Equals(T? other) =>
         IsSome && other is not null && EqualityComparer<T>.Default.Equals(InternalValue, other);
 
+    [Pure]
     public override bool Equals(object? obj) =>
         obj is Maybe<T> same && Equals(same);
 
+    [Pure]
     public override int GetHashCode() =>
         IsSome ? EqualityComparer<T>.Default.GetHashCode(InternalValue) : 0;
 
@@ -112,6 +124,7 @@ public readonly struct Maybe<T> :
 
     #region Comparison
 
+    [Pure]
     public int CompareTo(Maybe<T> other)
     {
         if (IsNone && other.IsNone) return 0;
@@ -120,6 +133,7 @@ public readonly struct Maybe<T> :
         return Comparer<T>.Default.Compare(InternalValue, other.InternalValue);
     }
 
+    [Pure]
     public int CompareTo(T? other)
     {
         if (IsNone) return other is null ? 0 : -1;
@@ -145,6 +159,7 @@ public readonly struct Maybe<T> :
 
     #endregion
 
+    [Pure]
     public override string ToString() => IsSome ? $"Some({InternalValue})" : "None";
 }
 
@@ -164,7 +179,9 @@ public readonly struct MaybeNone;
 /// </summary>
 public static class Maybe
 {
+    [Pure]
     public static Maybe<T> Some<T>(T value) where T : notnull => Maybe<T>.Some(value);
 
+    [Pure]
     public static MaybeNone None => default;
 }

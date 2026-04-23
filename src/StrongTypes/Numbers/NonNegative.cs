@@ -1,5 +1,4 @@
-#nullable enable
-
+using System.Diagnostics.Contracts;
 using System.Numerics;
 using System.Text.Json.Serialization;
 
@@ -24,12 +23,14 @@ public readonly partial struct NonNegative<T>
         Value = value;
     }
 
+    [Pure]
     public T Value { get; }
 
     /// <summary>
     /// Returns a <see cref="NonNegative{T}"/> wrapping <paramref name="value"/>, or
     /// <c>null</c> if <paramref name="value"/> is less than zero.
     /// </summary>
+    [Pure]
     public static NonNegative<T>? TryCreate(T value)
     {
         return value >= T.Zero ? new NonNegative<T>(value) : null;
