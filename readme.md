@@ -84,6 +84,20 @@ Every strong type in this library implements the full set of equality and compar
 - `GetHashCode` and `Equals(object?)` overrides consistent with value-based equality
 - A sensible `ToString()` that returns the underlying value
 
+Equality and comparison also work directly against the underlying value — there's no need to unwrap `.Value` first:
+
+```csharp
+
+bool stringEquality1 = NonEmptyString.Create("Alice") == "Alice"; // true - implicit operator
+bool stringEquality2 = name.CompareTo("Alice") == "Alice";        // true - explicit operator overload
+
+bool intEquality1 = 2 == Positive<int>.Create(2);                 // true - implicit operator
+bool intEquality2 = Positive<int>.Create(2) == 2;                 // true - explicit operator overload
+
+bool order = Positive<int>.Create(4) > 2;                         // true - explicit operator overload
+// Same for the other types and equality methods
+```
+
 [↑ Back to contents](#contents)
 
 ### JSON serialization
