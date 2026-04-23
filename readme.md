@@ -397,8 +397,7 @@ Maybe<int> doubled = Maybe.Some(3).Map(x => x * 2);          // Some(6)
 Maybe<int> stillNone = Maybe<int>.None.Map(x => x * 2);      // None
 
 // FlatMap — chain an operation that itself returns a Maybe, without nesting.
-Maybe<int> Parse(string s) =>
-    int.TryParse(s, out var n) ? Maybe.Some(n) : Maybe<int>.None;
+Maybe<int> Parse(string s) => int.TryParse(s, out var n) ? Maybe.Some(n) : Maybe<int>.None;
 
 Maybe<int> good = Maybe.Some("42").FlatMap(Parse);           // Some(42)
 Maybe<int> bad  = Maybe.Some("nope").FlatMap(Parse);         // None
