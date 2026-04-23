@@ -53,7 +53,7 @@ public static class ResultPartitionExtensions
     /// through the matching callback, and returns the concatenated results in
     /// successes-then-errors order.
     /// </summary>
-    public static IReadOnlyList<R> PartitionMatch<T, TError, R>(
+    public static R[] PartitionMatch<T, TError, R>(
         this IEnumerable<Result<T, TError>> source,
         Func<IReadOnlyList<T>, IEnumerable<R>> success,
         Func<IReadOnlyList<TError>, IEnumerable<R>> error)

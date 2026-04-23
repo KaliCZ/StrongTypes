@@ -12,6 +12,7 @@
   <Folder Name="/Main Package/">
     <Project Path="src/StrongTypes.Analyzers/StrongTypes.Analyzers.csproj" />
     <Project Path="src/StrongTypes.Analyzers.Tests/StrongTypes.Analyzers.Tests.csproj" />
+    <Project Path="src/StrongTypes.Benchmarks/StrongTypes.Benchmarks.csproj" />
     <Project Path="src/StrongTypes.SourceGenerators/StrongTypes.SourceGenerators.csproj" />
     <Project Path="src/StrongTypes.Tests/StrongTypes.Tests.csproj" />
     <Project Path="src/StrongTypes/StrongTypes.csproj" />
