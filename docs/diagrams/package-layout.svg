@@ -34,7 +34,7 @@
 
   <!-- Bullet 3: Useful Types with JSON converters -->
   <circle class="bullet" cx="156" cy="116" r="2.5"/>
-  <text class="body" x="166" y="120">Validated value types<tspan fill="#6B7280"> (with JSON converters)</tspan></text>
+  <text class="body" x="166" y="120">Validated types<tspan fill="#6B7280"> (with JSON converters)</tspan></text>
 
   <!-- Sub-bullets -->
   <circle class="sub-bullet" cx="185" cy="139" r="2.3"/>

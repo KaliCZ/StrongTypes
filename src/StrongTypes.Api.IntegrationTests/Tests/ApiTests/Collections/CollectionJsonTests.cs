@@ -159,7 +159,7 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     }
 
     // ───────────────────────────────────────────────────────────────────
-    // Positive<int> — strong value type. Element null reachable for T? only.
+    // Positive<int> — strong type (struct). Element null reachable for T? only.
     // ───────────────────────────────────────────────────────────────────
 
     [Fact]

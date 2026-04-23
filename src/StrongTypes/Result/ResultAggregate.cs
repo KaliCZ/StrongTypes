@@ -7,8 +7,8 @@ namespace StrongTypes;
 public static partial class Result
 {
     /// <summary>Combines results into a tuple of values on all-success, or an array of every collected error otherwise.</summary>
-    /// <typeparam name="T1">The first success value type.</typeparam>
-    /// <typeparam name="T2">The second success value type.</typeparam>
+    /// <typeparam name="T1">The first success type.</typeparam>
+    /// <typeparam name="T2">The second success type.</typeparam>
     /// <typeparam name="TError">The shared error type.</typeparam>
     /// <param name="r1">The first result.</param>
     /// <param name="r2">The second result.</param>
@@ -27,8 +27,8 @@ public static partial class Result
     }
 
     /// <summary>On all-success invokes <paramref name="combine"/>; otherwise returns all collected errors.</summary>
-    /// <typeparam name="T1">The first success value type.</typeparam>
-    /// <typeparam name="T2">The second success value type.</typeparam>
+    /// <typeparam name="T1">The first success type.</typeparam>
+    /// <typeparam name="T2">The second success type.</typeparam>
     /// <typeparam name="R">The combined success type.</typeparam>
     /// <typeparam name="TError">The shared error type.</typeparam>
     /// <param name="r1">The first result.</param>
@@ -266,8 +266,8 @@ public static partial class Result
     }
 
     /// <summary>Aggregates any number of results, collecting every error. The sequence is fully drained whether or not an error is seen.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
-    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
+    /// <typeparam name="TError">The error type.</typeparam>
     /// <param name="results">The results to aggregate.</param>
     [Pure]
     public static Result<T[], TError[]> Aggregate<T, TError>(
@@ -287,8 +287,8 @@ public static partial class Result
     }
 
     /// <summary>On all-success invokes <paramref name="combine"/>; otherwise passes the collected errors through <paramref name="errorMap"/>.</summary>
-    /// <typeparam name="T1">The first success value type.</typeparam>
-    /// <typeparam name="T2">The second success value type.</typeparam>
+    /// <typeparam name="T1">The first success type.</typeparam>
+    /// <typeparam name="T2">The second success type.</typeparam>
     /// <typeparam name="R">The combined success type.</typeparam>
     /// <typeparam name="TError">The incoming error type.</typeparam>
     /// <typeparam name="UError">The mapped error type.</typeparam>

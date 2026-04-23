@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 namespace StrongTypes;
 
 /// <summary>A value that is either a success carrying <typeparamref name="T"/> or an error carrying <typeparamref name="TError"/>.</summary>
-/// <typeparam name="T">The success value type.</typeparam>
-/// <typeparam name="TError">The error value type.</typeparam>
+/// <typeparam name="T">The success type.</typeparam>
+/// <typeparam name="TError">The error type.</typeparam>
 /// <remarks>Construct through the implicit conversions (<c>return value;</c> / <c>return error;</c>) or the <see cref="Result"/> factory. Unwrap with the extension-property pattern: <c>if (result.Success is {} s)</c> or <c>if (result.Error is {} e)</c>.</remarks>
 // Note: we can't also declare IEquatable<T> and IEquatable<TError> — the C#
 // compiler rejects that combination (CS0695) because the two interfaces unify
@@ -164,7 +164,7 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
 }
 
 /// <summary>Shorthand for <c>Result&lt;T, Exception&gt;</c>; chained <c>Map</c>/<c>FlatMap</c> calls stay as <see cref="Result{T}"/> rather than decaying to the two-parameter form.</summary>
-/// <typeparam name="T">The success value type.</typeparam>
+/// <typeparam name="T">The success type.</typeparam>
 public sealed class Result<T> : Result<T, Exception>
     where T : notnull
 {
@@ -207,28 +207,28 @@ public sealed class Result<T> : Result<T, Exception>
 public static partial class Result
 {
     /// <summary>Wraps <paramref name="value"/> as a successful <see cref="Result{T}"/>.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
     /// <param name="value">The success payload.</param>
     [Pure]
     public static Result<T> Success<T>(T value) where T : notnull => new(value);
 
     /// <summary>Wraps <paramref name="error"/> as a failed <see cref="Result{T}"/>.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
     /// <param name="error">The captured exception.</param>
     [Pure]
     public static Result<T> Error<T>(Exception error) where T : notnull => new(error);
 
     /// <summary>Wraps <paramref name="value"/> as a successful <see cref="Result{T, TError}"/>.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
-    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
+    /// <typeparam name="TError">The error type.</typeparam>
     /// <param name="value">The success payload.</param>
     [Pure]
     public static Result<T, TError> Success<T, TError>(T value)
         where T : notnull where TError : notnull => new(value);
 
     /// <summary>Wraps <paramref name="error"/> as a failed <see cref="Result{T, TError}"/>.</summary>
-    /// <typeparam name="T">The success value type.</typeparam>
-    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <typeparam name="T">The success type.</typeparam>
+    /// <typeparam name="TError">The error type.</typeparam>
     /// <param name="error">The error payload.</param>
     [Pure]
     public static Result<T, TError> Error<T, TError>(TError error)

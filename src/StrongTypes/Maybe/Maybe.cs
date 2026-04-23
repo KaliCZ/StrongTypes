@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace StrongTypes;
 
 /// <summary>A value that is either <c>Some(T)</c> or <c>None</c>.</summary>
-/// <typeparam name="T">The wrapped value type.</typeparam>
+/// <typeparam name="T">The wrapped type.</typeparam>
 /// <remarks>Unwrap with the extension-property pattern: <c>if (maybe.Value is {} v)</c>.</remarks>
 [JsonConverter(typeof(MaybeJsonConverterFactory))]
 public readonly struct Maybe<T> :
@@ -163,7 +163,7 @@ public readonly struct MaybeNone;
 public static class Maybe
 {
     /// <summary>Wraps <paramref name="value"/> as <see cref="Maybe{T}"/>.<c>Some</c>.</summary>
-    /// <typeparam name="T">The wrapped value type.</typeparam>
+    /// <typeparam name="T">The wrapped type.</typeparam>
     /// <param name="value">The value to wrap.</param>
     [Pure]
     public static Maybe<T> Some<T>(T value) where T : notnull => Maybe<T>.Some(value);
