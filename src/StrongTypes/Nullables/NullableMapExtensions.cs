@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.Contracts;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
@@ -12,6 +13,7 @@ public static class NullableMapToStructExtensions
     /// <paramref name="map"/> when the input is <see langword="null"/>.
     /// </summary>
     [return: NotNullIfNotNull(nameof(value))]
+    [Pure]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult> map)
         where T : struct
         where TResult : struct
@@ -23,6 +25,7 @@ public static class NullableMapToStructExtensions
     /// <paramref name="map"/> when the input is <see langword="null"/>. The
     /// mapper may itself return <see langword="null"/>.
     /// </summary>
+    [Pure]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult?> map)
         where T : struct
         where TResult : struct
@@ -34,6 +37,7 @@ public static class NullableMapToStructExtensions
     /// <paramref name="map"/> when the input is <see langword="null"/>.
     /// </summary>
     [return: NotNullIfNotNull(nameof(value))]
+    [Pure]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult> map)
         where T : class
         where TResult : struct
@@ -45,6 +49,7 @@ public static class NullableMapToStructExtensions
     /// <paramref name="map"/> when the input is <see langword="null"/>. The
     /// mapper may itself return <see langword="null"/>.
     /// </summary>
+    [Pure]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult?> map)
         where T : class
         where TResult : struct
@@ -56,6 +61,7 @@ public static class NullableMapToStructExtensions
     /// <paramref name="map"/> when the input is <see langword="null"/>.
     /// </summary>
     [return: NotNullIfNotNull(nameof(value))]
+    [Pure]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult>> map)
         where T : struct
         where TResult : struct
@@ -67,6 +73,7 @@ public static class NullableMapToStructExtensions
     /// <paramref name="map"/> when the input is <see langword="null"/>. The
     /// mapper may itself return <see langword="null"/>.
     /// </summary>
+    [Pure]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult?>> map)
         where T : struct
         where TResult : struct
@@ -78,6 +85,7 @@ public static class NullableMapToStructExtensions
     /// <paramref name="map"/> when the input is <see langword="null"/>.
     /// </summary>
     [return: NotNullIfNotNull(nameof(value))]
+    [Pure]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult>> map)
         where T : class
         where TResult : struct
@@ -89,6 +97,7 @@ public static class NullableMapToStructExtensions
     /// <paramref name="map"/> when the input is <see langword="null"/>. The
     /// mapper may itself return <see langword="null"/>.
     /// </summary>
+    [Pure]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult?>> map)
         where T : class
         where TResult : struct
@@ -103,6 +112,7 @@ public static class NullableMapToClassExtensions
     /// <paramref name="map"/> when the input is <see langword="null"/>. The
     /// mapper may itself return <see langword="null"/>.
     /// </summary>
+    [Pure]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult?> map)
         where T : struct
         where TResult : class
@@ -114,6 +124,7 @@ public static class NullableMapToClassExtensions
     /// <paramref name="map"/> when the input is <see langword="null"/>. The
     /// mapper may itself return <see langword="null"/>.
     /// </summary>
+    [Pure]
     public static TResult? Map<T, TResult>(this T? value, Func<T, TResult?> map)
         where T : class
         where TResult : class
@@ -125,6 +136,7 @@ public static class NullableMapToClassExtensions
     /// <paramref name="map"/> when the input is <see langword="null"/>. The
     /// mapper may itself return <see langword="null"/>.
     /// </summary>
+    [Pure]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult?>> map)
         where T : struct
         where TResult : class
@@ -136,6 +148,7 @@ public static class NullableMapToClassExtensions
     /// <paramref name="map"/> when the input is <see langword="null"/>. The
     /// mapper may itself return <see langword="null"/>.
     /// </summary>
+    [Pure]
     public static async Task<TResult?> MapAsync<T, TResult>(this T? value, Func<T, Task<TResult?>> map)
         where T : class
         where TResult : class

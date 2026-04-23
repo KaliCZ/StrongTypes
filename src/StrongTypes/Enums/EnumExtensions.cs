@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.Contracts;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -18,24 +19,31 @@ public static class EnumExtensions
     extension<TEnum>(TEnum source) where TEnum : struct, Enum
     {
         /// <summary>Thin wrapper over <see cref="Enum.Parse{TEnum}(string)"/>. Throws on failure.</summary>
+        [Pure]
         public static TEnum Parse(string value) => Enum.Parse<TEnum>(value);
 
         /// <summary>Thin wrapper over <see cref="Enum.Parse{TEnum}(string, bool)"/>. Throws on failure.</summary>
+        [Pure]
         public static TEnum Parse(string value, bool ignoreCase) => Enum.Parse<TEnum>(value, ignoreCase);
 
         /// <summary>Thin wrapper over <see cref="Enum.TryParse{TEnum}(string, out TEnum)"/>. Returns <c>null</c> on failure.</summary>
+        [Pure]
         public static TEnum? TryParse(string? value) => Enum.TryParse<TEnum>(value, out var v) ? v : null;
 
         /// <summary>Thin wrapper over <see cref="Enum.TryParse{TEnum}(string, bool, out TEnum)"/>. Returns <c>null</c> on failure.</summary>
+        [Pure]
         public static TEnum? TryParse(string? value, bool ignoreCase) => Enum.TryParse<TEnum>(value, ignoreCase, out var v) ? v : null;
 
         /// <summary>Alias for Parse, matching the repo's validated-type factory naming.</summary>
+        [Pure]
         public static TEnum Create(string value) => Enum.Parse<TEnum>(value);
 
         /// <summary>Alias for TryParse, matching the repo's validated-type factory naming.</summary>
+        [Pure]
         public static TEnum? TryCreate(string? value) => Enum.TryParse<TEnum>(value, out var v) ? v : null;
 
         /// <summary>All declared values of <typeparamref name="TEnum"/>, cached on first type use.</summary>
+        [Pure]
         public static IReadOnlyList<TEnum> AllValues => EnumMeta<TEnum>.Values;
 
         /// <summary>
@@ -43,6 +51,7 @@ public static class EnumExtensions
         /// a single power of two. Computed and cached the first time it's
         /// read. Throws if <typeparamref name="TEnum"/> lacks <c>[Flags]</c>.
         /// </summary>
+        [Pure]
         public static IReadOnlyList<TEnum> AllFlagValues => FlagEnumMeta<TEnum>.FlagValues;
 
         /// <summary>
@@ -51,6 +60,7 @@ public static class EnumExtensions
         /// first time it's read. Throws if <typeparamref name="TEnum"/>
         /// lacks <c>[Flags]</c>.
         /// </summary>
+        [Pure]
         public static TEnum AllFlagsCombined => FlagEnumMeta<TEnum>.FlagsCombined;
 
         /// <summary>
@@ -58,6 +68,7 @@ public static class EnumExtensions
         /// contains, in declaration order. Returns an empty list for zero.
         /// Throws if <typeparamref name="TEnum"/> lacks <c>[Flags]</c>.
         /// </summary>
+        [Pure]
         public IReadOnlyList<TEnum> GetFlags()
         {
             // Access FlagValues first so non-[Flags] enums throw even when
@@ -105,6 +116,7 @@ internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
     // last-write-wins is benign, and .NET guarantees the array's writes
     // are visible before its reference is published.
     private static IReadOnlyList<TEnum>? _flagValues;
+    [Pure]
     public static IReadOnlyList<TEnum> FlagValues => _flagValues ??= ScanForFlagValues();
 
     // FlagsCombined is a TEnum (up to 8 bytes; not atomic on 32-bit) and
@@ -114,6 +126,7 @@ internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
     private static TEnum _flagsCombined;
     private static bool _flagsCombinedReady;
     private static object? _flagsCombinedLock;
+    [Pure]
     public static TEnum FlagsCombined => LazyInitializer.EnsureInitialized(
         ref _flagsCombined, ref _flagsCombinedReady, ref _flagsCombinedLock, OrAllFlagValues
     );

@@ -1,3 +1,4 @@
+using System.Diagnostics.Contracts;
 using System.Numerics;
 using System.Text.Json.Serialization;
 
@@ -25,12 +26,14 @@ public readonly partial struct Negative<T>
         _offset = offset;
     }
 
+    [Pure]
     public T Value => _offset - T.One;
 
     /// <summary>
     /// Returns a <see cref="Negative{T}"/> wrapping <paramref name="value"/>, or
     /// <c>null</c> if <paramref name="value"/> is not strictly less than zero.
     /// </summary>
+    [Pure]
     public static Negative<T>? TryCreate(T value)
     {
         return value < T.Zero ? new Negative<T>(value + T.One) : null;

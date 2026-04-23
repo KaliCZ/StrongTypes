@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.Contracts;
 using System.Collections.Generic;
 
 namespace StrongTypes;
@@ -9,6 +10,7 @@ public static partial class Result
     /// Combines results into a tuple of values on all-success, or an array of
     /// every collected error (not just the first) otherwise.
     /// </summary>
+    [Pure]
     public static Result<(T1, T2), TError[]> Aggregate<T1, T2, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2)
         where T1 : notnull where T2 : notnull where TError : notnull
@@ -26,6 +28,7 @@ public static partial class Result
     /// Combiner form: on all-success invokes <paramref name="combine"/>; otherwise
     /// returns all collected errors.
     /// </summary>
+    [Pure]
     public static Result<R, TError[]> Aggregate<T1, T2, R, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2,
         Func<T1, T2, R> combine)
@@ -40,6 +43,7 @@ public static partial class Result
         return errors;
     }
 
+    [Pure]
     public static Result<(T1, T2, T3), TError[]> Aggregate<T1, T2, T3, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3)
         where T1 : notnull where T2 : notnull where T3 : notnull where TError : notnull
@@ -54,6 +58,7 @@ public static partial class Result
         return errors;
     }
 
+    [Pure]
     public static Result<R, TError[]> Aggregate<T1, T2, T3, R, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3,
         Func<T1, T2, T3, R> combine)
@@ -69,6 +74,7 @@ public static partial class Result
         return errors;
     }
 
+    [Pure]
     public static Result<(T1, T2, T3, T4), TError[]> Aggregate<T1, T2, T3, T4, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4)
         where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where TError : notnull
@@ -84,6 +90,7 @@ public static partial class Result
         return errors;
     }
 
+    [Pure]
     public static Result<R, TError[]> Aggregate<T1, T2, T3, T4, R, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4,
         Func<T1, T2, T3, T4, R> combine)
@@ -100,6 +107,7 @@ public static partial class Result
         return errors;
     }
 
+    [Pure]
     public static Result<(T1, T2, T3, T4, T5), TError[]> Aggregate<T1, T2, T3, T4, T5, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5)
         where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where TError : notnull
@@ -116,6 +124,7 @@ public static partial class Result
         return errors;
     }
 
+    [Pure]
     public static Result<R, TError[]> Aggregate<T1, T2, T3, T4, T5, R, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5,
         Func<T1, T2, T3, T4, T5, R> combine)
@@ -133,6 +142,7 @@ public static partial class Result
         return errors;
     }
 
+    [Pure]
     public static Result<(T1, T2, T3, T4, T5, T6), TError[]> Aggregate<T1, T2, T3, T4, T5, T6, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5, Result<T6, TError> r6)
         where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where TError : notnull
@@ -150,6 +160,7 @@ public static partial class Result
         return errors;
     }
 
+    [Pure]
     public static Result<R, TError[]> Aggregate<T1, T2, T3, T4, T5, T6, R, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5, Result<T6, TError> r6,
         Func<T1, T2, T3, T4, T5, T6, R> combine)
@@ -168,6 +179,7 @@ public static partial class Result
         return errors;
     }
 
+    [Pure]
     public static Result<(T1, T2, T3, T4, T5, T6, T7), TError[]> Aggregate<T1, T2, T3, T4, T5, T6, T7, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5, Result<T6, TError> r6, Result<T7, TError> r7)
         where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where TError : notnull
@@ -186,6 +198,7 @@ public static partial class Result
         return errors;
     }
 
+    [Pure]
     public static Result<R, TError[]> Aggregate<T1, T2, T3, T4, T5, T6, T7, R, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5, Result<T6, TError> r6, Result<T7, TError> r7,
         Func<T1, T2, T3, T4, T5, T6, T7, R> combine)
@@ -205,6 +218,7 @@ public static partial class Result
         return errors;
     }
 
+    [Pure]
     public static Result<(T1, T2, T3, T4, T5, T6, T7, T8), TError[]> Aggregate<T1, T2, T3, T4, T5, T6, T7, T8, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5, Result<T6, TError> r6, Result<T7, TError> r7, Result<T8, TError> r8)
         where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull where T6 : notnull where T7 : notnull where T8 : notnull where TError : notnull
@@ -224,6 +238,7 @@ public static partial class Result
         return errors;
     }
 
+    [Pure]
     public static Result<R, TError[]> Aggregate<T1, T2, T3, T4, T5, T6, T7, T8, R, TError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5, Result<T6, TError> r6, Result<T7, TError> r7, Result<T8, TError> r8,
         Func<T1, T2, T3, T4, T5, T6, T7, T8, R> combine)
@@ -248,6 +263,7 @@ public static partial class Result
     /// Aggregates any number of results, collecting every error. The sequence is
     /// fully drained whether or not an error is seen.
     /// </summary>
+    [Pure]
     public static Result<T[], TError[]> Aggregate<T, TError>(
         IEnumerable<Result<T, TError>> results)
         where T : notnull where TError : notnull
@@ -271,6 +287,7 @@ public static partial class Result
     /// — typically used to join multiple validation messages into a single
     /// <typeparamref name="UError"/>.
     /// </summary>
+    [Pure]
     public static Result<R, UError> Aggregate<T1, T2, R, TError, UError>(
         Result<T1, TError> r1, Result<T2, TError> r2,
         Func<T1, T2, R> combine,
@@ -279,6 +296,7 @@ public static partial class Result
         where TError : notnull where UError : notnull
         => Aggregate(r1, r2, combine).MapError(errorMap);
 
+    [Pure]
     public static Result<R, UError> Aggregate<T1, T2, T3, R, TError, UError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3,
         Func<T1, T2, T3, R> combine,
@@ -287,6 +305,7 @@ public static partial class Result
         where TError : notnull where UError : notnull
         => Aggregate(r1, r2, r3, combine).MapError(errorMap);
 
+    [Pure]
     public static Result<R, UError> Aggregate<T1, T2, T3, T4, R, TError, UError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4,
         Func<T1, T2, T3, T4, R> combine,
@@ -295,6 +314,7 @@ public static partial class Result
         where TError : notnull where UError : notnull
         => Aggregate(r1, r2, r3, r4, combine).MapError(errorMap);
 
+    [Pure]
     public static Result<R, UError> Aggregate<T1, T2, T3, T4, T5, R, TError, UError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5,
         Func<T1, T2, T3, T4, T5, R> combine,
@@ -303,6 +323,7 @@ public static partial class Result
         where TError : notnull where UError : notnull
         => Aggregate(r1, r2, r3, r4, r5, combine).MapError(errorMap);
 
+    [Pure]
     public static Result<R, UError> Aggregate<T1, T2, T3, T4, T5, T6, R, TError, UError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5, Result<T6, TError> r6,
         Func<T1, T2, T3, T4, T5, T6, R> combine,
@@ -311,6 +332,7 @@ public static partial class Result
         where TError : notnull where UError : notnull
         => Aggregate(r1, r2, r3, r4, r5, r6, combine).MapError(errorMap);
 
+    [Pure]
     public static Result<R, UError> Aggregate<T1, T2, T3, T4, T5, T6, T7, R, TError, UError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5, Result<T6, TError> r6, Result<T7, TError> r7,
         Func<T1, T2, T3, T4, T5, T6, T7, R> combine,
@@ -319,6 +341,7 @@ public static partial class Result
         where TError : notnull where UError : notnull
         => Aggregate(r1, r2, r3, r4, r5, r6, r7, combine).MapError(errorMap);
 
+    [Pure]
     public static Result<R, UError> Aggregate<T1, T2, T3, T4, T5, T6, T7, T8, R, TError, UError>(
         Result<T1, TError> r1, Result<T2, TError> r2, Result<T3, TError> r3, Result<T4, TError> r4, Result<T5, TError> r5, Result<T6, TError> r6, Result<T7, TError> r7, Result<T8, TError> r8,
         Func<T1, T2, T3, T4, T5, T6, T7, T8, R> combine,
@@ -327,6 +350,7 @@ public static partial class Result
         where TError : notnull where UError : notnull
         => Aggregate(r1, r2, r3, r4, r5, r6, r7, r8, combine).MapError(errorMap);
 
+    [Pure]
     public static Result<T[], UError> Aggregate<T, TError, UError>(
         IEnumerable<Result<T, TError>> results,
         Func<TError[], UError> errorMap)

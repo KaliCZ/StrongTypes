@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.Contracts;
 
 namespace StrongTypes;
 
@@ -10,6 +11,7 @@ public static class BooleanExtensions
     /// evaluated eagerly; use the <see cref="Func{TResult}"/> overload to defer
     /// evaluation of the consequence.
     /// </summary>
+    [Pure]
     public static bool Implies(this bool condition, bool consequence) => !condition || consequence;
 
     /// <summary>
@@ -18,5 +20,6 @@ public static class BooleanExtensions
     /// <paramref name="consequence"/> is only invoked when
     /// <paramref name="condition"/> is <c>true</c>.
     /// </summary>
+    [Pure]
     public static bool Implies(this bool condition, Func<bool> consequence) => !condition || consequence();
 }

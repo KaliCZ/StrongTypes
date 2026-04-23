@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.Contracts;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -10,6 +11,7 @@ public static class ResultPartitionExtensions
     /// Splits a sequence of <see cref="Result{T, TError}"/> into successes and errors.
     /// Relative order is preserved within each partition.
     /// </summary>
+    [Pure]
     public static (IReadOnlyList<T> Successes, IReadOnlyList<TError> Errors) Partition<T, TError>(
         this IEnumerable<Result<T, TError>> source)
         where T : notnull
@@ -51,6 +53,7 @@ public static class ResultPartitionExtensions
     /// through the matching callback, and returns the concatenated results in
     /// successes-then-errors order.
     /// </summary>
+    [Pure]
     public static IReadOnlyList<R> PartitionMatch<T, TError, R>(
         this IEnumerable<Result<T, TError>> source,
         Func<IReadOnlyList<T>, IEnumerable<R>> success,

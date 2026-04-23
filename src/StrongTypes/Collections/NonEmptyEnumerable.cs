@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -19,6 +20,7 @@ public static class NonEmptyEnumerable
     /// <c>null</c> if <paramref name="values"/> is null or empty. Wrapping is idempotent —
     /// passing an existing <see cref="NonEmptyEnumerable{T}"/> returns it as-is.
     /// </summary>
+    [Pure]
     public static NonEmptyEnumerable<T>? TryCreateRange<T>(IEnumerable<T>? values) =>
         values switch
         {
@@ -45,6 +47,7 @@ public static class NonEmptyEnumerable
     /// Returns a <see cref="NonEmptyEnumerable{T}"/> wrapping <paramref name="values"/>.
     /// Throws <see cref="ArgumentException"/> if <paramref name="values"/> is null or empty.
     /// </summary>
+    [Pure]
     public static NonEmptyEnumerable<T> CreateRange<T>(IEnumerable<T>? values)
         => TryCreateRange(values)
            ?? throw new ArgumentException("You cannot create NonEmptyEnumerable from a null or empty sequence.", nameof(values));
@@ -55,6 +58,7 @@ public static class NonEmptyEnumerable
     /// backs the collection-expression syntax (<c>NonEmptyEnumerable&lt;int&gt; list = [1, 2, 3];</c>);
     /// an empty collection expression throws at runtime.
     /// </summary>
+    [Pure]
     public static NonEmptyEnumerable<T> Create<T>(params ReadOnlySpan<T> values)
     {
         if (values.IsEmpty)
@@ -116,6 +120,7 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
 
     bool ICollection<T>.IsReadOnly => true;
 
+    [Pure]
     public bool Contains(T item) => Array.IndexOf(_values, item) >= 0;
 
     public void CopyTo(T[] array, int arrayIndex)
@@ -150,11 +155,14 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
 
     #region Equality
 
+    [Pure]
     public bool Equals(NonEmptyEnumerable<T>? other)
         => other is not null && _values.AsSpan().SequenceEqual(other._values);
 
+    [Pure]
     public override bool Equals(object? obj) => obj is NonEmptyEnumerable<T> other && Equals(other);
 
+    [Pure]
     public override int GetHashCode()
     {
         var hash = new HashCode();
@@ -164,5 +172,6 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
 
     #endregion
 
+    [Pure]
     public override string ToString() => $"[{string.Join(", ", _values)}]";
 }
