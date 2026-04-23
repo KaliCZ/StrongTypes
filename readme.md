@@ -602,3 +602,5 @@ Result<Positive<int>[], string> ParseOrderQuantities(IEnumerable<int> inputs)
 This library is vaguely based on [FuncSharp](https://github.com/MewsSystems/FuncSharp) by [Honza Siroky](https://github.com/siroky), bringing some of the concepts into modern C# and .NET.
 
 Licensed under the [MIT License](license.txt).
+
+[↑ Back to top](#contents)
