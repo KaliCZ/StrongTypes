@@ -546,21 +546,23 @@ Result<User, string> ParseUser(string? nameInput, int ageInput)
 Result<User, string[]> x = Result.Aggregate(name, age, (n, a) => new User(n, a));
 ```
 
-You can aggregate up to 8 results directly, or pass an `IEnumerable` when the count is dynamic — useful for validating a list of inputs:
+You can pass an `IEnumerable` when the count is dynamic — useful for validating a list of inputs:
 
 ```csharp
-Result<int, string> ParseQuantity(string raw) =>
-    int.TryParse(raw, out var n) && n > 0 ? n : $"'{raw}' is not a positive integer";
-
-Result<int[], string> ParseQuantities(IEnumerable<string> inputs) =>
-    Result.Aggregate(inputs.Select(ParseQuantity), errors => string.Join("; ", errors));
+Result<Positive<int>[], string> ParseOrderQuantities(IEnumerable<int> inputs)
+{
+    return Result.Aggregate(
+        inputs.Select(i => i.AsPositive().ToResult(i)), // Result<Positive<int>, int>
+        invalidNumbers => $"Some numbers are not positive: [{string.Join(", ", invalidNumbers)}]");
+}
 ```
 
-The combiner overload (shown in the `ParseUser` example) returns a built object directly; a tuple-returning form is also provided when there's no natural constructor to call.
-
+### Missing `OneOf`
 > [!NOTE]
 > **No discriminated union / `OneOf` type is included.** I didn't see a reason to reinvent one — [`mcintyre321/OneOf`](https://github.com/mcintyre321/OneOf) or [`domn1995/dunet`](https://github.com/domn1995/dunet) already cover this space well, and .NET 11 is expected to introduce native discriminated unions at the language level. If you have a concrete use case where neither option works for you, please [open a GitHub issue](https://github.com/KaliCZ/StrongTypes/issues) and let me know.
 
 ## Acknowledgments
 
-This library is the continuation of [FuncSharp](https://github.com/MewsSystems/FuncSharp) by [Honza Siroky](https://github.com/siroky), bringing the concepts into modern C#. Licensed under the [MIT License](license.txt).
+This library is vaguely based on [FuncSharp](https://github.com/MewsSystems/FuncSharp) by [Honza Siroky](https://github.com/siroky), bringing some of the concepts into modern C# and .NET.
+
+Licensed under the [MIT License](license.txt).
