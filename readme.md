@@ -1,13 +1,12 @@
-# StrongTypes for C# [![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build.yml?branch=main&label=build)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build.yml) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
+# StrongTypes for C# [![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build.yml?branch=main&label=build)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build.yml) [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
-[![Kalicz.StrongTypes on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
-[![Kalicz.StrongTypes downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)<br>
-[![Kalicz.StrongTypes.EfCore on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes.EfCore?label=nuget%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)
-[![Kalicz.StrongTypes.EfCore downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.EfCore?label=downloads%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)<br>
-[![Kalicz.StrongTypes.FsCheck on NuGet](https://img.shields.io/nuget/v/Kalicz.StrongTypes.FsCheck?label=nuget%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
-[![Kalicz.StrongTypes.FsCheck downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.FsCheck?label=downloads%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
+[![StrongTypes downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
+[![StrongTypes.EfCore downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.EfCore?label=downloads%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)
+[![StrongTypes.FsCheck downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.FsCheck?label=downloads%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
 
-StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused value types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive". Every type ships with `System.Text.Json` converters wired up out of the box, so validation runs at the wire boundary during deserialization without any extra setup.
+StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused value types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive".
+
+Every type ships with `System.Text.Json` converters out of the box (except `Result`), so invalid JSON fails at deserialization — in ASP.NET Core, that's before your endpoint method even runs.
 
 ## Contents
 
@@ -24,8 +23,7 @@ StrongTypes is not an attempt to build a full algebraic type system on top of C#
 - [Algebraic types](#algebraic-types)
   - [Prefer nullables: `Map`, `MapTrue`, `MapFalse`](#prefer-nullables-map-maptrue-mapfalse)
   - [`Maybe<T>`](#maybet)
-- [Legacy types (to be replaced)](#legacy-types-to-be-replaced)
-  - [`Try<A, E>`](#trya-e)
+  - [`Result<T, TError>`](#resultt-terror)
 
 ## Helpful Types
 
@@ -35,7 +33,7 @@ A string guaranteed to be non-null, non-empty, and not just whitespace. Construc
 
 ```csharp
 // Returns null when the input is null/empty/whitespace — caller handles the null case.
-NonEmptyString? maybe = NonEmptyString.TryCreate(input);
+NonEmptyString? name = NonEmptyString.TryCreate(input);
 
 // Throws ArgumentException on invalid input.
 NonEmptyString name = NonEmptyString.Create(input);
@@ -100,7 +98,11 @@ Every strong type in this library implements the full set of equality and compar
 
 ### JSON serialization
 
-All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]` — no converter registration and no custom `JsonSerializerOptions` required. The wire format is the underlying primitive (`"hello"`, `42`, …), not an object with a `Value` property, and invalid input surfaces as a `JsonException` at the boundary.
+All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]` — no converter registration and no custom `JsonSerializerOptions` required. The format is the same as the underlying primitive (`"hello"`, `42`, …), and invalid input surfaces as a `JsonException`.
+
+`Maybe<T>` has a special format of serialization, so Some serializes into `{ "Value": xxx }` and None into `{ "Value": null }`.
+
+`Result<T, TError>` (and `Result<T>`) has no JSON converter I don't think you want to serialize that.
 
 ### EF Core persistence
 
@@ -251,6 +253,9 @@ Roles          role = header.ToEnum<Roles>();   // throws ArgumentException
 StrongTypes is not an attempt to build a full algebraic type system. The purpose of these types is just to help where C# functionality is lacking, not to invent a framework and work fully in the algebraic types.
 
 These types enable quite a few simplifications when it comes to parsing and validations. But I wouldn't recommend building the whole app by composing them. They're meant to bridge small local pieces of the application. Let's start by introducing some functionality so we don't need the algebraic types in the first place.
+
+> [!NOTE]
+> **No discriminated union / `OneOf` type is included.** I didn't see a reason to reinvent one — [`mcintyre321/OneOf`](https://github.com/mcintyre321/OneOf) or [`domn1995/dunet`](https://github.com/domn1995/dunet) already cover this space well, and .NET 11 is expected to introduce native discriminated unions at the language level. If you have a concrete use case where neither option works for you, please [open a GitHub issue](https://github.com/KaliCZ/StrongTypes/issues) and let me know.
 
 ### Prefer nullables: `Map`, `MapTrue`, `MapFalse`
 
@@ -407,21 +412,156 @@ var missing =
 
 `Maybe<T>` serializes via `System.Text.Json` as `{ "Value": x }` for `Some` and `{ "Value": null }` for `None` — no converter registration or custom `JsonSerializerOptions` needed. Deserialization also accepts `{}` for `None`, so callers can omit the property entirely.
 
-## Legacy types (to be replaced)
+### `Result<T, TError>`
 
-> [!WARNING]
-> The types in this section are inherited from FuncSharp and will be removed in a future release. They are kept for now so existing code keeps compiling, but new code should avoid them.
+`Result<T, TError>` is either a success carrying a `T` or an error carrying a `TError` — making the failure path explicit in the type signature instead of hiding it behind exceptions. `Result<T>` is shorthand for `Result<T, Exception>`, so signatures can read `public Result<User> Load(...)` without naming the error type.
 
-### `Try<A, E>`
+Unlike the other types, `Result` has no JSON converter. I didn't see value in making one, because the format would be awkward anyway.
 
-`Try<A, E>` represents the result of an operation that can end in either success (`A`) or error (`E`), making the failure path explicit in the type signature instead of hiding it behind exceptions.
+#### Construction
 
-> [!WARNING]
-> `Try<A, E>` will be replaced by a modern `Result<T, E>` implementation that supports pattern matching.
+Returning a `Result` is as simple as returning either branch — implicit operators handle the wrapping on both sides:
 
-> [!NOTE]
-> **No discriminated union / `OneOf` type is included.** I didn't see a reason to reinvent one — [`mcintyre321/OneOf`](https://github.com/mcintyre321/OneOf) or [`domn1995/dunet`](https://github.com/domn1995/dunet) already cover this space well, and .NET 11 is expected to introduce native discriminated unions at the language level. If you have a concrete use case where neither option works for you, please [open a GitHub issue](https://github.com/KaliCZ/StrongTypes/issues) and let me know.
+```csharp
+public Result<int, string> Parse(string s)
+{
+    return int.TryParse(s, out var n)
+        ? n
+        : "not a number";
+}
+```
+
+Explicit factories are there when type inference needs a nudge:
+
+```csharp
+var ok  = Result.Success<int, string>(42);
+var err = Result.Error<int, string>("bad");
+```
+
+#### Inspection
+
+Pattern matching with `is { } v` unwraps the inner value in one expression:
+
+```csharp
+Result<int, string> r = Parse(input);
+
+if (r.Success is { } value) Console.WriteLine($"got {value}");
+if (r.Error   is { } msg)   Console.WriteLine($"failed: {msg}");
+```
+
+`IsSuccess` / `IsError` are there too when you don't need the payload.
+
+The expected usage in controllers is going to look something like this:
+```csharp
+Result<PhoneNumber, PhoneNumberError> phoneResult = Parse(request.PhoneNumber);
+if (phoneResult.Error is { } e)
+{
+    ModelState.AddModelError(nameof(request.PhoneNumber), MapPhoneErrorToApiCode(e));
+    return ValidationProblem(ModelState);
+}
+```
+
+This is what a service implementation can look like
+```csharp
+public Result<Order, OrderError> CreateOrder(OrderData data)
+{
+    Result<Payment, PaymentError> paymentResult = Pay(data.Payment);
+    if (paymentResult.Error is { } e)
+    {
+        logger.Log("Failed to make a payment for order {OrderId} because of {ErrorReason}.", data.Id, e);
+        return OrderError.PaymentFailed; // Implicit operator
+    }
+
+    return new Order(paymentResult.Success!);
+}
+
+// If the error is not important for you, simplify with Exceptions.
+public Result<Order, OrderError> CreateOrder(OrderData data)
+{
+    Result<Payment, PaymentError> paymentResult = Pay(data.Payment);
+    var payment = paymentResult.ThrowIfError(e => new Exception($"Payment failed because of {e}."));
+    return new Order(payment);
+}
+```
+
+#### Transformation
+
+`Map`, `MapError`, `Match`, and `FlatMap` let you chain without explicit branching:
+
+```csharp
+Result<int, string> r = Parse("42");
+
+// Map — transform the success value; errors pass through unchanged.
+Result<int, string> doubled = r.Map(x => x * 2);
+
+// Match — fold both branches into a single value.
+string message = r.Match(
+    success: x => $"got {x}",
+    error:   e => $"oops: {e}");
+
+// FlatMap — chain an operation that itself returns a Result.
+Result<int, string> positive = r.FlatMap<int>(x => x > 0 ? x : "must be positive");
+```
+
+`Match` exists because the natural-looking C# form — `r switch { T v => …, TError e => … }` — isn't possible yet.
+
+Every sync method has an async counterpart (`MapAsync`, `FlatMapAsync`, `MatchAsync`, …).
+
+#### Wrapping exceptions
+
+`Result.Catch` captures a throwing call without writing `try/catch`:
+
+```csharp
+Result<string> contents = Result.Catch(() => File.ReadAllText(path)); // catch all
+Result<int, FormatException> parsed = Result.Catch<int, FormatException>(() => int.Parse(input)); // only format Exception
+```
+
+By default `OperationCanceledException` (and its `TaskCanceledException` subtype) is *not* captured — cancellation unwinds the way it normally would, instead of turning into a `Result` error. Opt in with `propagateCancellation: false` when you do want cancellation observed as an error:
+
+```csharp
+Result<string> contents = Result.Catch(
+    () => File.ReadAllText(path),
+    propagateCancellation: false);
+```
+
+Every overload has an async counterpart (`CatchAsync`) with the same optional `propagateCancellation` parameter.
+
+#### Combining validations
+
+`Result.Aggregate` combines multiple results, collecting *every* error (not just the first) — which is what you want when validating an input:
+
+```csharp
+record User(NonEmptyString Name, Positive<int> Age);
+
+Result<User, string> ParseUser(string? nameInput, int ageInput)
+{
+    Result<NonEmptyString, string> name = nameInput.AsNonEmpty() // NonEmptyString?
+        .ToResult("name must not be empty");
+    Result<Positive<int>, string>  age  = ageInput.AsPositive() // Positive<int>?
+        .ToResult("age must be positive");
+
+    return Result.Aggregate(name, age, // up to 8 parameters here
+        (n, a) => new User(n, a),
+        errors => string.Join("; ", errors));
+}
+
+// Or pass the list of errors out directly without any mapping
+Result<User, string[]> x = Result.Aggregate(name, age, (n, a) => new User(n, a));
+```
+
+You can pass an `IEnumerable` when the count is dynamic — useful for validating a list of inputs:
+
+```csharp
+Result<Positive<int>[], string> ParseOrderQuantities(IEnumerable<int> inputs)
+{
+    return Result.Aggregate(
+        inputs.Select(i => i.AsPositive().ToResult(i)), // Result<Positive<int>, int>
+        invalidNumbers => $"Some numbers are not positive: [{string.Join(", ", invalidNumbers)}]");
+}
+```
 
 ## Acknowledgments
 
-This library is the continuation of [FuncSharp](https://github.com/MewsSystems/FuncSharp) by [Honza Siroky](https://github.com/siroky), bringing the concepts into modern C#. Licensed under the [MIT License](license.txt).
+This library is vaguely based on [FuncSharp](https://github.com/MewsSystems/FuncSharp) by [Honza Siroky](https://github.com/siroky), bringing some of the concepts into modern C# and .NET.
+
+Licensed under the [MIT License](license.txt).

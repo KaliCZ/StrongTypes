@@ -1,30 +1,30 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FsCheck.Xunit;
 using Xunit;
 
 namespace StrongTypes.Tests;
 
+[Properties(Arbitrary = new[] { typeof(Generators) })]
 public class PositiveExtensionsTests
 {
     [Property]
-    public void Sum_MatchesUnderlyingSum_WhenNoOverflow(int[] values)
+    public void Sum_MatchesUnderlyingSum_OrThrowsOnOverflow(Positive<int>[] values)
     {
-        // Filter to strictly-positive and cap magnitude so no overflow.
-        var positives = values
-            .Where(v => v > 0 && v < 1_000_000)
-            .Select(v => Positive<int>.Create(v))
-            .ToArray();
-        if (positives.Length == 0)
-        {
-            return;
-        }
+        if (values.Length == 0) return; // empty is covered by a dedicated fact
 
-        var expected = positives.Sum(p => p.Value);
-        var actual = positives.Sum();
-        Assert.Equal(expected, actual.Value);
+        long expected = values.Sum(p => (long)p.Value);
+        if (expected > int.MaxValue)
+        {
+            Assert.Throws<OverflowException>(() => values.Sum());
+        }
+        else
+        {
+            Assert.Equal((int)expected, values.Sum().Value);
+        }
     }
 
     [Fact]
@@ -59,5 +59,59 @@ public class PositiveExtensionsTests
     {
         var values = new[] { Positive<decimal>.Create(1.5m), Positive<decimal>.Create(2.25m) };
         Assert.Equal(3.75m, values.Sum().Value);
+    }
+
+    [Fact]
+    public void Sum_NullSource_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() => ((IEnumerable<Positive<int>>)null!).Sum());
+    }
+
+    // ── Unwrap ──────────────────────────────────────────────────────────
+
+    [Property]
+    public void Unwrap_ReturnsUnderlyingValue(Positive<int> p)
+    {
+        Assert.Equal(p.Value, p.Unwrap());
+    }
+
+    // ── Min / Max ───────────────────────────────────────────────────────
+
+    [Property]
+    public void Min_MatchesUnderlyingMin(Positive<int>[] values)
+    {
+        if (values.Length == 0) return;
+        Assert.Equal(values.Select(p => p.Value).Min(), values.Min().Value);
+    }
+
+    [Property]
+    public void Max_MatchesUnderlyingMax(Positive<int>[] values)
+    {
+        if (values.Length == 0) return;
+        Assert.Equal(values.Select(p => p.Value).Max(), values.Max().Value);
+    }
+
+    [Fact]
+    public void Min_Empty_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => Array.Empty<Positive<int>>().Min());
+    }
+
+    [Fact]
+    public void Max_Empty_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => Array.Empty<Positive<int>>().Max());
+    }
+
+    [Fact]
+    public void Min_NullSource_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() => ((IEnumerable<Positive<int>>)null!).Min());
+    }
+
+    [Fact]
+    public void Max_NullSource_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() => ((IEnumerable<Positive<int>>)null!).Max());
     }
 }

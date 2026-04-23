@@ -108,36 +108,6 @@ public class MaybeExtensionsTests
         Assert.Equal(-1, result);
     }
 
-    // ── ToTry ───────────────────────────────────────────────────────────
-
-    private enum ParseError
-    {
-        Unused = 0,
-        Missing = 1
-    }
-
-    [Fact]
-    public void ToTry_Some_Success()
-    {
-        var calls = 0;
-        var result = Maybe<int>.Some(7).ToTry(() => { calls++; return ParseError.Missing; });
-        Assert.True(result.IsSuccess);
-        Assert.True(result.Success.IsSome);
-        Assert.Equal(7, result.Success.Value);
-        Assert.Equal(0, calls);
-    }
-
-    [Fact]
-    public void ToTry_Empty_Error()
-    {
-        var calls = 0;
-        var result = Maybe<int>.None.ToTry(() => { calls++; return ParseError.Missing; });
-        Assert.True(result.IsError);
-        Assert.True(result.Error.IsSome);
-        Assert.Equal(ParseError.Missing, result.Error.Value);
-        Assert.Equal(1, calls);
-    }
-
     // ── ToMaybe ─────────────────────────────────────────────────────────
 
     [Property]

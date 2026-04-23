@@ -179,4 +179,59 @@ public class PositiveTests
         Assert.Equal(int.MaxValue, Positive<int>.Create(int.MaxValue).Value);
         Assert.Equal(long.MaxValue, Positive<long>.Create(long.MaxValue).Value);
     }
+
+    // ── Generated members: branch coverage ──────────────────────────────
+
+    [Fact]
+    public void ExplicitOperator_FromUnderlying_Wraps()
+    {
+        var positive = (Positive<int>)5;
+        Assert.Equal(5, positive.Value);
+    }
+
+    [Fact]
+    public void ExplicitOperator_FromUnderlying_ThrowsOnInvariantViolation()
+    {
+        Assert.Throws<ArgumentException>(() => (Positive<int>)0);
+    }
+
+    [Fact]
+    public void Equals_BoxedUnderlying_MatchesValue()
+    {
+        var positive = Positive<int>.Create(7);
+        Assert.True(positive.Equals((object)7));
+        Assert.False(positive.Equals((object)8));
+    }
+
+    [Fact]
+    public void IComparable_CompareTo_Null_Returns1()
+    {
+        System.IComparable positive = Positive<int>.Create(7);
+        Assert.Equal(1, positive.CompareTo(null));
+    }
+
+    [Fact]
+    public void IComparable_CompareTo_BoxedSelf_MatchesUnderlying()
+    {
+        System.IComparable a = Positive<int>.Create(3);
+        Assert.Equal(0, a.CompareTo(Positive<int>.Create(3)));
+        Assert.True(a.CompareTo(Positive<int>.Create(5)) < 0);
+        Assert.True(a.CompareTo(Positive<int>.Create(1)) > 0);
+    }
+
+    [Fact]
+    public void IComparable_CompareTo_BoxedUnderlying_MatchesUnderlying()
+    {
+        System.IComparable a = Positive<int>.Create(3);
+        Assert.Equal(0, a.CompareTo(3));
+        Assert.True(a.CompareTo(5) < 0);
+        Assert.True(a.CompareTo(1) > 0);
+    }
+
+    [Fact]
+    public void IComparable_CompareTo_UnrelatedType_Throws()
+    {
+        System.IComparable positive = Positive<int>.Create(3);
+        Assert.Throws<ArgumentException>(() => positive.CompareTo("not a number"));
+    }
 }

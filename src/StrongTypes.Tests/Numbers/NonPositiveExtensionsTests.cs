@@ -9,13 +9,15 @@ using Xunit;
 namespace StrongTypes.Tests;
 
 [Properties(Arbitrary = new[] { typeof(Generators) })]
-public class NonNegativeExtensionsTests
+public class NonPositiveExtensionsTests
 {
+    // ── Sum ─────────────────────────────────────────────────────────────
+
     [Property]
-    public void Sum_MatchesUnderlyingSum_OrThrowsOnOverflow(NonNegative<int>[] values)
+    public void Sum_MatchesUnderlyingSum_OrThrowsOnOverflow(NonPositive<int>[] values)
     {
         long expected = values.Sum(n => (long)n.Value);
-        if (expected > int.MaxValue)
+        if (expected < int.MinValue)
         {
             Assert.Throws<OverflowException>(() => values.Sum());
         }
@@ -28,33 +30,33 @@ public class NonNegativeExtensionsTests
     [Fact]
     public void Sum_EmptyReturnsZero()
     {
-        Assert.Equal(0, Array.Empty<NonNegative<int>>().Sum().Value);
+        Assert.Equal(0, Array.Empty<NonPositive<int>>().Sum().Value);
     }
 
     [Fact]
-    public void Sum_ThrowsOverflowException_OnIntOverflow()
+    public void Sum_ThrowsOverflowException_OnIntUnderflow()
     {
-        var values = new[] { NonNegative<int>.Create(int.MaxValue), NonNegative<int>.Create(1) };
+        var values = new[] { NonPositive<int>.Create(int.MinValue), NonPositive<int>.Create(-1) };
         Assert.Throws<OverflowException>(() => values.Sum());
     }
 
     [Fact]
     public void Sum_Decimal_Works()
     {
-        var values = new[] { NonNegative<decimal>.Create(0m), NonNegative<decimal>.Create(2.25m) };
-        Assert.Equal(2.25m, values.Sum().Value);
+        var values = new[] { NonPositive<decimal>.Create(0m), NonPositive<decimal>.Create(-2.25m) };
+        Assert.Equal(-2.25m, values.Sum().Value);
     }
 
     [Fact]
     public void Sum_NullSource_Throws()
     {
-        Assert.Throws<ArgumentNullException>(() => ((IEnumerable<NonNegative<int>>)null!).Sum());
+        Assert.Throws<ArgumentNullException>(() => ((IEnumerable<NonPositive<int>>)null!).Sum());
     }
 
     // ── Unwrap ──────────────────────────────────────────────────────────
 
     [Property]
-    public void Unwrap_ReturnsUnderlyingValue(NonNegative<int> n)
+    public void Unwrap_ReturnsUnderlyingValue(NonPositive<int> n)
     {
         Assert.Equal(n.Value, n.Unwrap());
     }
@@ -62,14 +64,14 @@ public class NonNegativeExtensionsTests
     // ── Min / Max ───────────────────────────────────────────────────────
 
     [Property]
-    public void Min_MatchesUnderlyingMin(NonNegative<int>[] values)
+    public void Min_MatchesUnderlyingMin(NonPositive<int>[] values)
     {
         if (values.Length == 0) return;
         Assert.Equal(values.Select(n => n.Value).Min(), values.Min().Value);
     }
 
     [Property]
-    public void Max_MatchesUnderlyingMax(NonNegative<int>[] values)
+    public void Max_MatchesUnderlyingMax(NonPositive<int>[] values)
     {
         if (values.Length == 0) return;
         Assert.Equal(values.Select(n => n.Value).Max(), values.Max().Value);
@@ -78,24 +80,24 @@ public class NonNegativeExtensionsTests
     [Fact]
     public void Min_Empty_Throws()
     {
-        Assert.Throws<InvalidOperationException>(() => Array.Empty<NonNegative<int>>().Min());
+        Assert.Throws<InvalidOperationException>(() => Array.Empty<NonPositive<int>>().Min());
     }
 
     [Fact]
     public void Max_Empty_Throws()
     {
-        Assert.Throws<InvalidOperationException>(() => Array.Empty<NonNegative<int>>().Max());
+        Assert.Throws<InvalidOperationException>(() => Array.Empty<NonPositive<int>>().Max());
     }
 
     [Fact]
     public void Min_NullSource_Throws()
     {
-        Assert.Throws<ArgumentNullException>(() => ((IEnumerable<NonNegative<int>>)null!).Min());
+        Assert.Throws<ArgumentNullException>(() => ((IEnumerable<NonPositive<int>>)null!).Min());
     }
 
     [Fact]
     public void Max_NullSource_Throws()
     {
-        Assert.Throws<ArgumentNullException>(() => ((IEnumerable<NonNegative<int>>)null!).Max());
+        Assert.Throws<ArgumentNullException>(() => ((IEnumerable<NonPositive<int>>)null!).Max());
     }
 }
