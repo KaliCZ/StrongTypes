@@ -58,7 +58,39 @@
                               PackagePath="analyzers/dotnet/cs" />
     </ItemGroup>
   </Target>
-  <ItemGroup>
-    <None Include="..\..\readme.md" Pack="true" PackagePath="\" />
-  </ItemGroup>
+  <!-- Rewrite the readme's diagram `![alt](docs/diagrams/...)` paths to absolute
+       URLs pinned to the release tag before packing. The source readme.md keeps
+       relative paths so GitHub browsing (both HEAD and per-tag views) resolves
+       diagrams against the corresponding commit; the packed copy points at a
+       fixed tag so nuget.org renders the diagrams that shipped with that version,
+       even if the diagrams change on main later. Dev builds (Version=0.0.0-dev)
+       fall back to the main branch. -->
+  <UsingTask TaskName="_RewriteDiagramUrls" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <SourcePath ParameterType="System.String" Required="true" />
+      <DestinationPath ParameterType="System.String" Required="true" />
+      <BaseUrl ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var content = System.IO.File.ReadAllText(SourcePath);
+        content = content.Replace("](docs/diagrams/", "](" + BaseUrl);
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(DestinationPath));
+        System.IO.File.WriteAllText(DestinationPath, content);
+      ]]></Code>
+    </Task>
+  </UsingTask>
+  <Target Name="_GeneratePackedReadme" BeforeTargets="_GetPackageFiles">
+    <PropertyGroup>
+      <_ReadmeSourcePath>$(MSBuildThisFileDirectory)..\..\readme.md</_ReadmeSourcePath>
+      <_PackedReadmePath>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)readme.md'))</_PackedReadmePath>
+      <_DiagramRef Condition="'$(Version)' != '' and '$(Version)' != '0.0.0-dev'">v$(Version)</_DiagramRef>
+      <_DiagramRef Condition="'$(_DiagramRef)' == ''">main</_DiagramRef>
+      <_DiagramBaseUrl>https://raw.githubusercontent.com/KaliCZ/StrongTypes/$(_DiagramRef)/docs/diagrams/</_DiagramBaseUrl>
+    </PropertyGroup>
+    <_RewriteDiagramUrls SourcePath="$(_ReadmeSourcePath)" DestinationPath="$(_PackedReadmePath)" BaseUrl="$(_DiagramBaseUrl)" />
+    <ItemGroup>
+      <None Include="$(_PackedReadmePath)" Pack="true" PackagePath="\" Visible="false" />
+    </ItemGroup>
+  </Target>
 </Project>
