@@ -4,20 +4,12 @@ using System.Globalization;
 
 namespace StrongTypes;
 
-/// <summary>
-/// Parsing extensions on <see cref="NonEmptyString"/>. Each method returns a
-/// nullable result: <c>null</c> when parsing fails, a parsed value otherwise.
-/// </summary>
+/// <summary>Parsing extensions on <see cref="NonEmptyString"/>. Each <c>As…</c> method returns <c>null</c> when parsing fails; each <c>To…</c> method throws.</summary>
 public static class NonEmptyStringExtensions
 {
-    /// <summary>
-    /// Returns the underlying <see cref="string"/> value. Intended for LINQ
-    /// expressions translated by EF Core: the StrongTypes.EfCore package
-    /// registers a method call translator that rewrites this call as the
-    /// underlying string column, so callers can write
-    /// <c>e.Value.Unwrap().Contains("foo")</c> and have EF translate it to
-    /// SQL against the underlying string column.
-    /// </summary>
+    /// <summary>Returns the underlying <see cref="string"/> value.</summary>
+    /// <param name="s">The wrapper.</param>
+    /// <remarks>StrongTypes.EfCore translates this call in LINQ expressions to the underlying string column, letting callers write <c>e.Value.Unwrap().Contains("foo")</c> against SQL.</remarks>
     [Pure]
     public static string Unwrap(this NonEmptyString s) => s.Value;
 

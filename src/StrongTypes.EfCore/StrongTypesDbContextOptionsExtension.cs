@@ -7,23 +7,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace StrongTypes.EfCore;
 
-/// <summary>
-/// Wires StrongTypes into a DbContext's internal service provider:
-/// <list type="bullet">
-/// <item><see cref="StrongTypesConventionSetPlugin"/> auto-applies the right
-/// <c>ValueConverter</c> to every strong-type property on every mapped
-/// entity, running before EF's property-discovery convention so wrappers
-/// never get inferred as owned entity types.</item>
-/// <item><see cref="UnwrapMethodCallTranslatorPlugin"/> translates
-/// <c>strongType.Unwrap()</c> inside LINQ predicates so filters like
-/// <c>.Where(e =&gt; e.Name.Unwrap().Contains("foo"))</c> or
-/// <c>EF.Functions.Like(e.Name.Unwrap(), "%foo%")</c> run server-side.</item>
-/// </list>
-/// Callers wire it up with a single
-/// <see cref="StrongTypesDbContextOptionsBuilderExtensions.UseStrongTypes"/>
-/// call on the options builder — no <c>ConfigureConventions</c> override
-/// needed on the DbContext.
-/// </summary>
+/// <summary>Wires StrongTypes value conversions and LINQ translations into a DbContext.</summary>
+/// <remarks>Enable with <see cref="StrongTypesDbContextOptionsBuilderExtensions.UseStrongTypes"/> on the options builder; no <c>ConfigureConventions</c> override required.</remarks>
 public sealed class StrongTypesDbContextOptionsExtension : IDbContextOptionsExtension
 {
     public DbContextOptionsExtensionInfo Info => new ExtensionInfo(this);
@@ -51,12 +36,8 @@ public sealed class StrongTypesDbContextOptionsExtension : IDbContextOptionsExte
 
 public static class StrongTypesDbContextOptionsBuilderExtensions
 {
-    /// <summary>
-    /// Registers <see cref="StrongTypesDbContextOptionsExtension"/> on the
-    /// options builder. After this call, any strong-type property on any
-    /// mapped entity gets its value converter applied automatically and
-    /// <c>Unwrap()</c> inside LINQ predicates translates to server-side SQL.
-    /// </summary>
+    /// <summary>Enables automatic value conversion of strong-type properties and server-side translation of <c>Unwrap()</c> in LINQ predicates.</summary>
+    /// <param name="optionsBuilder">The options builder to configure.</param>
     public static DbContextOptionsBuilder UseStrongTypes(this DbContextOptionsBuilder optionsBuilder)
     {
         var extension = optionsBuilder.Options.FindExtension<StrongTypesDbContextOptionsExtension>()

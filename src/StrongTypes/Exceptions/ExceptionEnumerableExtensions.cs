@@ -5,17 +5,11 @@ using System.Linq;
 
 namespace StrongTypes;
 
-/// <summary>
-/// Extensions that collapse a sequence of exceptions into a single one.
-/// A single exception passes through unwrapped; multiple exceptions are wrapped
-/// in an <see cref="AggregateException"/>.
-/// </summary>
+/// <summary>Extensions that collapse a sequence of exceptions into a single one. A single exception passes through unwrapped; multiple exceptions are wrapped in an <see cref="AggregateException"/>.</summary>
 public static class ExceptionEnumerableExtensions
 {
-    /// <summary>
-    /// Returns a single <see cref="Exception"/> aggregating <paramref name="source"/>,
-    /// or <c>null</c> when the sequence is empty.
-    /// </summary>
+    /// <summary>Returns a single <see cref="Exception"/> aggregating <paramref name="source"/>, or <c>null</c> when the sequence is empty.</summary>
+    /// <param name="source">The exceptions to aggregate.</param>
     public static Exception? Aggregate(this IEnumerable<Exception> source)
         => source switch
         {
@@ -26,10 +20,8 @@ public static class ExceptionEnumerableExtensions
             _ => Aggregate((IReadOnlyList<Exception>)source.ToArray())
         };
 
-    /// <summary>
-    /// Returns a single <see cref="Exception"/> aggregating <paramref name="source"/>,
-    /// or <c>null</c> when the list is empty.
-    /// </summary>
+    /// <summary>Returns a single <see cref="Exception"/> aggregating <paramref name="source"/>, or <c>null</c> when the list is empty.</summary>
+    /// <param name="source">The exceptions to aggregate.</param>
     [Pure]
     public static Exception? Aggregate(this IReadOnlyList<Exception> source)
         => source.Count switch
@@ -39,6 +31,8 @@ public static class ExceptionEnumerableExtensions
             _ => new AggregateException(source)
         };
 
+    /// <summary>Returns a single <see cref="Exception"/> aggregating <paramref name="source"/>.</summary>
+    /// <param name="source">The exceptions to aggregate.</param>
     [Pure]
     public static Exception Aggregate(this INonEmptyEnumerable<Exception> source)
         => source.Count switch

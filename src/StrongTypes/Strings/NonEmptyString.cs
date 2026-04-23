@@ -5,13 +5,8 @@ using System.Text.Json.Serialization;
 
 namespace StrongTypes;
 
-/// <summary>
-/// A string guaranteed to be non-null, non-empty, and not consisting solely of whitespace.
-/// </summary>
-/// <remarks>
-/// Comparison is delegated to <see cref="string.CompareTo(string?)"/> and therefore
-/// uses the current culture, matching the behavior of comparing two plain strings.
-/// </remarks>
+/// <summary>A string guaranteed to be non-null, non-empty, and not consisting solely of whitespace.</summary>
+/// <remarks>Comparison uses the current culture (it delegates to <see cref="string.CompareTo(string?)"/>).</remarks>
 [JsonConverter(typeof(NonEmptyStringJsonConverter))]
 public sealed class NonEmptyString :
     IEquatable<NonEmptyString>,
@@ -33,10 +28,8 @@ public sealed class NonEmptyString :
 
     public static explicit operator NonEmptyString(string s) => Create(s);
 
-    /// <summary>
-    /// Returns a <see cref="NonEmptyString"/> wrapping <paramref name="value"/>, or
-    /// <c>null</c> if <paramref name="value"/> is null, empty, or whitespace.
-    /// </summary>
+    /// <summary>Wraps <paramref name="value"/>, or returns <c>null</c> when it is null, empty, or whitespace.</summary>
+    /// <param name="value">The string to validate.</param>
     [Pure]
     public static NonEmptyString? TryCreate(string? value)
     {
@@ -48,11 +41,9 @@ public sealed class NonEmptyString :
         return new NonEmptyString(value);
     }
 
-    /// <summary>
-    /// Returns a <see cref="NonEmptyString"/> wrapping <paramref name="value"/>.
-    /// Throws <see cref="ArgumentException"/> if <paramref name="value"/> is null,
-    /// empty, or whitespace.
-    /// </summary>
+    /// <summary>Wraps <paramref name="value"/>.</summary>
+    /// <param name="value">The string to validate.</param>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is null, empty, or whitespace.</exception>
     [Pure]
     public static NonEmptyString Create(string? value)
     {

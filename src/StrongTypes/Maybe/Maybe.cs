@@ -1,21 +1,14 @@
 using System;
-using System.Diagnostics.Contracts;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Text.Json.Serialization;
 
 namespace StrongTypes;
 
-/// <summary>
-/// A value type that either holds a value of <typeparamref name="T"/> (Some) or has no value (None).
-/// <para>
-/// The typical "has value" check is the extension-property pattern
-/// <c>if (maybe.Value is {} v)</c>, which unwraps to the underlying value in a single
-/// expression. <c>Value</c> is provided via extension members split between the
-/// struct- and class-constrained branches so the returned nullable type is
-/// <c>Nullable&lt;T&gt;</c> for value types and <c>T?</c> for reference types.
-/// </para>
-/// </summary>
+/// <summary>A value that is either <c>Some(T)</c> or <c>None</c>.</summary>
+/// <typeparam name="T">The wrapped value type.</typeparam>
+/// <remarks>Unwrap with the extension-property pattern: <c>if (maybe.Value is {} v)</c>.</remarks>
 [JsonConverter(typeof(MaybeJsonConverterFactory))]
 public readonly struct Maybe<T> :
     IEquatable<Maybe<T>>,
@@ -163,25 +156,19 @@ public readonly struct Maybe<T> :
     public override string ToString() => IsSome ? $"Some({InternalValue})" : "None";
 }
 
-/// <summary>
-/// Marker struct backing the untyped <see cref="Maybe.None"/> singleton. It carries
-/// no state; its only job is to be implicitly convertible to <see cref="Maybe{T}"/>
-/// for any T, so callers can write <c>Maybe.None</c> wherever a typed
-/// <c>Maybe&lt;T&gt;</c> is expected without naming T.
-/// </summary>
+/// <summary>Untyped <c>None</c> literal that converts to any <see cref="Maybe{T}"/>.</summary>
 public readonly struct MaybeNone;
 
-/// <summary>
-/// Factory helpers for <see cref="Maybe{T}"/> that let callers skip the explicit
-/// generic argument: <c>Maybe.Some(5)</c> infers <c>Maybe&lt;int&gt;</c> from the
-/// argument; <c>Maybe.None</c> binds to whatever <c>Maybe&lt;T&gt;</c> the
-/// surrounding context expects.
-/// </summary>
+/// <summary>Factory helpers for <see cref="Maybe{T}"/> with inferred type arguments.</summary>
 public static class Maybe
 {
+    /// <summary>Wraps <paramref name="value"/> as <see cref="Maybe{T}"/>.<c>Some</c>.</summary>
+    /// <typeparam name="T">The wrapped value type.</typeparam>
+    /// <param name="value">The value to wrap.</param>
     [Pure]
     public static Maybe<T> Some<T>(T value) where T : notnull => Maybe<T>.Some(value);
 
+    /// <summary>The untyped <c>None</c> literal.</summary>
     [Pure]
     public static MaybeNone None => default;
 }

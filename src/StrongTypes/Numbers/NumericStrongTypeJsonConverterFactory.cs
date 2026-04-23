@@ -8,13 +8,8 @@ using System.Text.Json.Serialization;
 
 namespace StrongTypes;
 
-/// <summary>
-/// <see cref="JsonConverterFactory"/> that handles all numeric strong-type wrappers
-/// (<see cref="Positive{T}"/>, <see cref="NonNegative{T}"/>, <see cref="Negative{T}"/>,
-/// <see cref="NonPositive{T}"/>). Serializes by writing the underlying numeric value
-/// directly; deserializes by reading the number and passing it through
-/// <c>TryCreate</c> so invalid values are rejected at the deserialization boundary.
-/// </summary>
+/// <summary><see cref="JsonConverterFactory"/> for <see cref="Positive{T}"/>, <see cref="NonNegative{T}"/>, <see cref="Negative{T}"/>, and <see cref="NonPositive{T}"/>.</summary>
+/// <remarks>Reads and writes the underlying numeric value; JSON values that fail the wrapper's invariant throw <see cref="JsonException"/>.</remarks>
 public sealed class NumericStrongTypeJsonConverterFactory : JsonConverterFactory
 {
     private static readonly HashSet<Type> SupportedDefinitions =

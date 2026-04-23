@@ -7,15 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace StrongTypes.EfCore;
 
-/// <summary>
-/// Translates <c>Unwrap()</c> calls on strong types as a pass-through to the
-/// underlying column, re-typed with the fresh mapping for the underlying CLR
-/// type. Re-mapping matters: if we returned the column expression with its
-/// strong-type value-converter mapping intact, downstream operators (string
-/// <c>Contains</c> / <c>EF.Functions.Like</c>, numeric comparison literals)
-/// would pipe their raw-type arguments through that converter at SQL-parameter
-/// bind time and fail with <c>InvalidCastException</c>.
-/// </summary>
+/// <summary>Translates <c>Unwrap()</c> calls on strong types to the underlying column in generated SQL.</summary>
 public sealed class UnwrapMethodCallTranslator(
     ISqlExpressionFactory sqlExpressionFactory,
     IRelationalTypeMappingSource typeMappingSource) : IMethodCallTranslator

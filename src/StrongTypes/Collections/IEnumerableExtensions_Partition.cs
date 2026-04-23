@@ -6,12 +6,11 @@ namespace StrongTypes;
 
 public static partial class IEnumerableExtensions
 {
-    /// <summary>
-    /// Splits <paramref name="source"/> into two lists: items for which
-    /// <paramref name="predicate"/> returns true (<c>Passing</c>) and items
-    /// for which it returns false (<c>Violating</c>). Relative order is
-    /// preserved within each partition.
-    /// </summary>
+    /// <summary>Splits <paramref name="source"/> by <paramref name="predicate"/>, preserving relative order within each partition.</summary>
+    /// <typeparam name="T">The element type.</typeparam>
+    /// <param name="source">The sequence to partition.</param>
+    /// <param name="predicate">Tested against each element.</param>
+    /// <returns><c>Passing</c> holds items for which <paramref name="predicate"/> returned <c>true</c>; <c>Violating</c> holds the rest.</returns>
     [Pure]
     public static (IReadOnlyList<T> Passing, IReadOnlyList<T> Violating) Partition<T>(
         this IEnumerable<T> source,

@@ -5,17 +5,11 @@ using System.Text.Json.Serialization;
 
 namespace StrongTypes;
 
-/// <summary>
-/// <see cref="JsonConverterFactory"/> for <see cref="Maybe{T}"/> that accepts any of
-/// the following JSON shapes as inputs:
-/// <list type="bullet">
-///   <item><description><c>{}</c> — empty Maybe</description></item>
-///   <item><description><c>{ "Value": null }</c> — empty Maybe</description></item>
-///   <item><description><c>{ "Value": x }</c> — <see cref="Maybe{T}.Some"/> with the parsed value</description></item>
-/// </list>
-/// Writes an empty Maybe as <c>{ "Value": null }</c> and a populated Maybe as
-/// <c>{ "Value": x }</c>.
-/// </summary>
+/// <summary><see cref="JsonConverterFactory"/> for <see cref="Maybe{T}"/>.</summary>
+/// <remarks>
+/// Accepts <c>{}</c>, <c>{ "Value": null }</c> (both empty), or <c>{ "Value": x }</c> (populated).
+/// Writes empty as <c>{ "Value": null }</c> and populated as <c>{ "Value": x }</c>.
+/// </remarks>
 public sealed class MaybeJsonConverterFactory : JsonConverterFactory
 {
     private static readonly ConcurrentDictionary<Type, JsonConverter> s_converterCache = new();
