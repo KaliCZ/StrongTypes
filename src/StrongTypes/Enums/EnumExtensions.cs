@@ -44,7 +44,7 @@ public static class EnumExtensions
 
         /// <summary>All declared values of <typeparamref name="TEnum"/>, cached on first type use.</summary>
         [Pure]
-        public static IReadOnlyList<TEnum> AllValues => EnumMeta<TEnum>.Values;
+        public static TEnum[] AllValues => EnumMeta<TEnum>.Values;
 
         /// <summary>
         /// Members of <typeparamref name="TEnum"/> whose underlying bits form
@@ -52,7 +52,7 @@ public static class EnumExtensions
         /// read. Throws if <typeparamref name="TEnum"/> lacks <c>[Flags]</c>.
         /// </summary>
         [Pure]
-        public static IReadOnlyList<TEnum> AllFlagValues => FlagEnumMeta<TEnum>.FlagValues;
+        public static TEnum[] AllFlagValues => FlagEnumMeta<TEnum>.FlagValues;
 
         /// <summary>
         /// Every single-bit flag OR-ed into one value — suitable for
@@ -81,7 +81,7 @@ public static class EnumExtensions
                 return Array.Empty<TEnum>();
             }
 
-            var matched = new List<TEnum>(flags.Count);
+            var matched = new List<TEnum>(flags.Length);
             foreach (var flag in flags)
             {
                 var flagBits = FlagEnumMeta<TEnum>.ToLong(flag);
@@ -101,7 +101,7 @@ public static class EnumExtensions
 // cctors EnumMeta; FlagEnumMeta's cctor fires only when flag APIs are used.
 internal static class EnumMeta<TEnum> where TEnum : struct, Enum
 {
-    public static readonly IReadOnlyList<TEnum> Values = Enum.GetValues<TEnum>();
+    public static readonly TEnum[] Values = Enum.GetValues<TEnum>();
 }
 
 internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
@@ -115,9 +115,9 @@ internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
     // ScanForFlagValues more than once, but the scan is deterministic so
     // last-write-wins is benign, and .NET guarantees the array's writes
     // are visible before its reference is published.
-    private static IReadOnlyList<TEnum>? _flagValues;
+    private static TEnum[]? _flagValues;
     [Pure]
-    public static IReadOnlyList<TEnum> FlagValues => _flagValues ??= ScanForFlagValues();
+    public static TEnum[] FlagValues => _flagValues ??= ScanForFlagValues();
 
     // FlagsCombined is a TEnum (up to 8 bytes; not atomic on 32-bit) and
     // default(TEnum) == 0 is a valid computed result, so we can't use
@@ -139,7 +139,7 @@ internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
     // BitOperations.IsPow2 treats negatives as non-flags, which is what we
     // want: a power of two is by definition positive, so a sign-extended
     // high bit on a signed underlying type is excluded.
-    private static IReadOnlyList<TEnum> ScanForFlagValues()
+    private static TEnum[] ScanForFlagValues()
     {
         if (!HasFlagsAttribute)
             throw new InvalidOperationException($"{typeof(TEnum).FullName} is not a [Flags] enum; flag-related APIs are unavailable.");

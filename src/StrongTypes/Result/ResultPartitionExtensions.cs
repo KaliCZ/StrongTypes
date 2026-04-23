@@ -54,7 +54,7 @@ public static class ResultPartitionExtensions
     /// successes-then-errors order.
     /// </summary>
     [Pure]
-    public static IReadOnlyList<R> PartitionMatch<T, TError, R>(
+    public static R[] PartitionMatch<T, TError, R>(
         this IEnumerable<Result<T, TError>> source,
         Func<IReadOnlyList<T>, IEnumerable<R>> success,
         Func<IReadOnlyList<TError>, IEnumerable<R>> error)

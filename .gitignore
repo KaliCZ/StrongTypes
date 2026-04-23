@@ -10,3 +10,4 @@ src/packages
 src/.idea
 .idea/
 .claude/
+BenchmarkDotNet.Artifacts/
