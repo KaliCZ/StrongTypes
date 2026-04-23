@@ -12,7 +12,7 @@ public static class ResultPartitionExtensions
     /// Splits a sequence of <see cref="Result{T, TError}"/> into successes and errors.
     /// Relative order is preserved within each partition.
     /// </summary>
-    public static (T[] Successes, TError[] Errors) Partition<T, TError>(
+    public static (IReadOnlyList<T> Successes, IReadOnlyList<TError> Errors) Partition<T, TError>(
         this IEnumerable<Result<T, TError>> source)
         where T : notnull
         where TError : notnull
@@ -27,7 +27,7 @@ public static class ResultPartitionExtensions
             else errors.Add(r.InternalError);
         }
 
-        return (successes.ToArray(), errors.ToArray());
+        return (successes, errors);
     }
 
     /// <summary>

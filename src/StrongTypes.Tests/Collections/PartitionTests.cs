@@ -27,7 +27,7 @@ public class PartitionTests
     public void Partition_TotalCountMatchesSource(int[] source)
     {
         var (passing, violating) = source.Partition(i => i > 0);
-        Assert.Equal(source.Length, passing.Length + violating.Length);
+        Assert.Equal(source.Length, passing.Count + violating.Count);
     }
 
     [Property]

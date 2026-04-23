@@ -31,7 +31,7 @@ public class ResultPartitionTests
     public void Partition_PreservesTotalCount(Result<int, string>[] items)
     {
         var (successes, errors) = items.Partition();
-        Assert.Equal(items.Length, successes.Length + errors.Length);
+        Assert.Equal(items.Length, successes.Count + errors.Count);
     }
 
     [Property]

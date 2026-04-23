@@ -23,7 +23,7 @@ internal static class TestReferences
         "Kalicz.StrongTypes",
     };
 
-    public static readonly MetadataReference[] Core = BuildCoreReferences();
+    public static readonly IReadOnlyList<MetadataReference> Core = BuildCoreReferences();
 
     public static readonly MetadataReference StrongTypes =
         MetadataReference.CreateFromFile(typeof(NonEmptyString).Assembly.Location);
@@ -34,7 +34,7 @@ internal static class TestReferences
     public static readonly MetadataReference StrongTypesEfCore =
         MetadataReference.CreateFromFile(typeof(global::StrongTypes.EfCore.StrongTypesDbContextOptionsExtension).Assembly.Location);
 
-    private static MetadataReference[] BuildCoreReferences()
+    private static IReadOnlyList<MetadataReference> BuildCoreReferences()
     {
         // AppContext "TRUSTED_PLATFORM_ASSEMBLIES" isn't always populated under
         // Microsoft.Testing.Platform hosts, so enumerate the loaded set instead. Force-load a few
@@ -58,7 +58,7 @@ internal static class TestReferences
             }
             references.Add(MetadataReference.CreateFromFile(assembly.Location));
         }
-        return references.ToArray();
+        return references;
     }
 
     public static IEnumerable<MetadataReference> With(params MetadataReference[] extras)

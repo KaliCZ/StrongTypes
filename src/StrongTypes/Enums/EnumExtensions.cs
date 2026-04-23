@@ -72,16 +72,21 @@ public static class EnumExtensions
                 return Array.Empty<TEnum>();
             }
 
-            var matched = new List<TEnum>(flags.Length);
+            var count = 0;
             foreach (var flag in flags)
             {
                 var flagBits = FlagEnumMeta<TEnum>.ToLong(flag);
-                if ((bits & flagBits) == flagBits)
-                {
-                    matched.Add(flag);
-                }
+                if ((bits & flagBits) == flagBits) count++;
             }
-            return matched.ToArray();
+
+            var result = new TEnum[count];
+            var w = 0;
+            foreach (var flag in flags)
+            {
+                var flagBits = FlagEnumMeta<TEnum>.ToLong(flag);
+                if ((bits & flagBits) == flagBits) result[w++] = flag;
+            }
+            return result;
         }
     }
 }
