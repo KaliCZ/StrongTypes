@@ -42,16 +42,8 @@ The `TryCreate` / `Create` split (and the `As…` / `To…` extensions that mirr
 A string guaranteed to be non-null, non-empty, and not just whitespace. Construct it via the factory pair:
 
 ```csharp
-// Returns null when the input is null/empty/whitespace — caller handles the null case.
-NonEmptyString? name = NonEmptyString.TryCreate(input);
-
-// Throws ArgumentException on invalid input.
-NonEmptyString name = NonEmptyString.Create(input);
-```
-
-Or via the `AsNonEmpty()` extension on any `string?`:
-
-```csharp
+NonEmptyString? name = NonEmptyString.TryCreate(input); // null when null/empty/whitespace
+NonEmptyString  name = NonEmptyString.Create(input); // Throws ArgumentException
 NonEmptyString? name = userInput.AsNonEmpty();
 ```
 
@@ -73,31 +65,13 @@ Four generic wrappers that enforce a sign invariant on any `INumber<T>` — `int
 Same factory pattern:
 
 ```csharp
-Positive<int>?    p   = Positive<int>.TryCreate(quantity);
-Positive<decimal> amt = Positive<decimal>.Create(price);
-
-NonNegative<int>? age = NonNegative<int>.TryCreate(years);
+Positive<int>?       p   = Positive<int>.TryCreate(input);     // null if invalid
+Negative<int>?        n   = input.AsNegative();                // null if invalid
+NonNegative<decimal> nn = NonNegative<decimal>.Create(input);  // throws if invalid
+NonPositive<decimal> np = input.ToNonPositive();               // throws if invalid
 ```
 
-Or via the `AsPositive()`, `AsNonNegative()`, `AsNegative()`, and `AsNonPositive()` extensions on any `INumber<T>` — mirroring `AsNonEmpty()` on `string?`. Each returns `null` when the invariant isn't met:
-
-```csharp
-Positive<int>?    p   = quantity.AsPositive();
-NonNegative<int>? age = years.AsNonNegative();
-Negative<int>?    debt = balance.AsNegative();
-NonPositive<decimal>? loss = pnl.AsNonPositive();
-```
-
-When you'd rather fail loudly at the boundary than deal with `null`, the `To…` variants throw `ArgumentException` on invariant violation — same relationship as `Create` vs `TryCreate`:
-
-```csharp
-Positive<int>    p    = quantity.ToPositive();      // throws if quantity <= 0
-NonNegative<int> age  = years.ToNonNegative();
-Negative<int>    debt = balance.ToNegative();
-NonPositive<decimal> loss = pnl.ToNonPositive();
-```
-
-`default(Positive<T>)` still satisfies the invariant (e.g. `default(Positive<int>)` is `1`, not an invalid `0`), so the structs survive zero-initialization without breaking their guarantee.
+All defaults (e.g. `default(Positive<T>)`) still satisfy their invariants (e.g. `default(Positive<int>)` is `1`, not an invalid `0`).
 
 [↑ Back to contents](#contents)
 
