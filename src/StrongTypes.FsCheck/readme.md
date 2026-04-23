@@ -40,12 +40,14 @@ public class MyTests
 
 ## What ships
 
+Every strong type ships three shapes: the type itself, its nullable form
+(`T?`, ~5% `null`), and `Maybe<T>` (~5% `None`).
+
 - `NonEmptyString` — filtered to non-null, non-whitespace values
-- `NullableNonEmptyString` — ~5% null injection
 - `Digit` — uniform over `0`–`9`
 - `Positive<int>`, `Negative<int>`, `NonNegative<int>`, `NonPositive<int>`
-- `Maybe<int>`, `Maybe<string>`, `Maybe<NonEmptyString>`, `Maybe<Positive<int>>`,
-  `Maybe<Digit>` — ~5% `None` injection
 - `NonEmptyEnumerable<int>`
+- `Maybe<T>` for common primitives: `bool`, `int`, `long`, `double`, `char`,
+  `string`, `Guid`
 
 Version matches the core `Kalicz.StrongTypes` package you install alongside it.
