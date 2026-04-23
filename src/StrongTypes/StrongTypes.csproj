@@ -58,7 +58,7 @@
                               PackagePath="analyzers/dotnet/cs" />
     </ItemGroup>
   </Target>
-  <!-- Rewrite the readme's diagram <img src="docs/diagrams/..."> paths to absolute
+  <!-- Rewrite the readme's diagram `![alt](docs/diagrams/...)` paths to absolute
        URLs pinned to the release tag before packing. The source readme.md keeps
        relative paths so GitHub browsing (both HEAD and per-tag views) resolves
        diagrams against the corresponding commit; the packed copy points at a
@@ -74,7 +74,7 @@
     <Task>
       <Code Type="Fragment" Language="cs"><![CDATA[
         var content = System.IO.File.ReadAllText(SourcePath);
-        content = content.Replace("src=\"docs/diagrams/", "src=\"" + BaseUrl);
+        content = content.Replace("](docs/diagrams/", "](" + BaseUrl);
         System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(DestinationPath));
         System.IO.File.WriteAllText(DestinationPath, content);
       ]]></Code>
