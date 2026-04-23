@@ -40,13 +40,13 @@ public class MyTests
 
 ## What ships
 
-Every strong type ships three shapes: the type itself, its nullable form
+Scalar strong types ship three shapes: the type itself, its nullable form
 (`T?`, ~5% `null`), and `Maybe<T>` (~5% `None`).
 
 - `NonEmptyString` — filtered to non-null, non-whitespace values
 - `Digit` — uniform over `0`–`9`
 - `Positive<int>`, `Negative<int>`, `NonNegative<int>`, `NonPositive<int>`
-- `NonEmptyEnumerable<int>`
+- `NonEmptyEnumerable<int>` — `T` only
 - `Maybe<T>` for common primitives: `bool`, `int`, `long`, `double`, `char`,
   `string`, `Guid`
 

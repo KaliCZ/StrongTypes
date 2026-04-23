@@ -4,7 +4,7 @@ using FsCheck.Fluent;
 namespace StrongTypes.FsCheck;
 
 /// <summary>Shared FsCheck arbitraries for StrongTypes.</summary>
-/// <remarks>Reference via <c>[Properties(Arbitrary = new[] { typeof(Generators) })]</c> on a test class. Every strong type ships three shapes: the type itself, its nullable form (~5% <c>null</c>), and <c>Maybe&lt;T&gt;</c> (~5% <c>None</c>).</remarks>
+/// <remarks>Reference via <c>[Properties(Arbitrary = new[] { typeof(Generators) })]</c> on a test class. Scalar strong types ship three shapes: the type itself, its nullable form (~5% <c>null</c>), and <c>Maybe&lt;T&gt;</c> (~5% <c>None</c>).</remarks>
 public static class Generators
 {
     #region NonEmptyString
@@ -143,18 +143,6 @@ public static class Generators
     public static Arbitrary<NonEmptyEnumerable<int>> NonEmptyEnumerableInt { get; } =
         Arb.From(Gen.NonEmptyListOf(ArbMap.Default.ArbFor<int>().Generator)
             .Select(list => NonEmptyEnumerable.CreateRange(list)));
-
-    /// <summary>Arbitrary <see cref="NonEmptyEnumerable{T}"/> of <see cref="int"/> or <c>null</c>, with ~5% <c>null</c>.</summary>
-    public static Arbitrary<NonEmptyEnumerable<int>?> NullableNonEmptyEnumerableInt { get; } =
-        Arb.From(Gen.Frequency(
-            (1, Gen.Constant<NonEmptyEnumerable<int>?>(null)),
-            (19, NonEmptyEnumerableInt.Generator.Select(n => (NonEmptyEnumerable<int>?)n))));
-
-    /// <summary>Arbitrary <see cref="Maybe{T}"/> of <see cref="NonEmptyEnumerable{T}"/> of <see cref="int"/>, with ~5% <c>None</c>.</summary>
-    public static Arbitrary<Maybe<NonEmptyEnumerable<int>>> MaybeNonEmptyEnumerableInt { get; } =
-        Arb.From(Gen.Frequency(
-            (1, Gen.Constant(Maybe<NonEmptyEnumerable<int>>.None)),
-            (19, NonEmptyEnumerableInt.Generator.Select(Maybe.Some))));
 
     #endregion
 
