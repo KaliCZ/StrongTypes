@@ -532,21 +532,18 @@ record User(NonEmptyString Name, Positive<int> Age);
 
 Result<User, string> ParseUser(string? nameInput, int ageInput)
 {
-    Result<NonEmptyString, string> name = nameInput.AsNonEmpty().ToResult("name must not be empty");
-    Result<Positive<int>, string>  age  = ageInput.AsPositive().ToResult("age must be positive");
+    Result<NonEmptyString, string> name = nameInput.AsNonEmpty() // NonEmptyString?
+        .ToResult("name must not be empty");
+    Result<Positive<int>, string>  age  = ageInput.AsPositive() // Positive<int>?
+        .ToResult("age must be positive");
 
-    return Result.Aggregate(name, age,
+    return Result.Aggregate(name, age, // up to 8 parameters here
         (n, a) => new User(n, a),
         errors => string.Join("; ", errors));
 }
-```
 
-`.AsNonEmpty()` / `.AsPositive()` return a nullable of the validated type; `.ToResult("…")` lifts that nullable into a `Result<T, string>` with the given error on null. The final `errorMap` parameter on `Aggregate` folds the collected `string[]` into a single message — the same thing you'd otherwise write as a chained `.MapError(...)`.
-
-If both inputs are invalid, the aggregated error carries both messages:
-
-```csharp
-ParseUser("", -5);   // Error: "name must not be empty; age must be positive"
+// Or pass the list of errors out directly without any mapping
+Result<User, string[]> x = Result.Aggregate(name, age, (n, a) => new User(n, a));
 ```
 
 You can aggregate up to 8 results directly, or pass an `IEnumerable` when the count is dynamic — useful for validating a list of inputs:
