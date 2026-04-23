@@ -43,11 +43,22 @@ public class MyTests
 Scalar strong types ship three shapes: the type itself, its nullable form
 (`T?`, ~5% `null`), and `Maybe<T>` (~5% `None`).
 
-- `NonEmptyString` — filtered to non-null, non-whitespace values
-- `Digit` — uniform over `0`–`9`
-- `Positive<int>`, `Negative<int>`, `NonNegative<int>`, `NonPositive<int>`
-- `NonEmptyEnumerable<int>` — `T` only
-- `Maybe<T>` for common primitives: `bool`, `int`, `long`, `double`, `char`,
-  `string`, `Guid`
+| Type                 | `T`             | `T?`                    | `Maybe<T>`              |
+| -------------------- | --------------- | ----------------------- | ----------------------- |
+| `NonEmptyString`     | `NonEmptyString`| `NullableNonEmptyString`| `MaybeNonEmptyString`   |
+| `Digit`              | `Digit`         | `NullableDigit`         | `MaybeDigit`            |
+| `Positive<int>`      | `PositiveInt`   | `NullablePositiveInt`   | `MaybePositiveInt`      |
+| `Negative<int>`      | `NegativeInt`   | `NullableNegativeInt`   | `MaybeNegativeInt`      |
+| `NonNegative<int>`   | `NonNegativeInt`| `NullableNonNegativeInt`| `MaybeNonNegativeInt`   |
+| `NonPositive<int>`   | `NonPositiveInt`| `NullableNonPositiveInt`| `MaybeNonPositiveInt`   |
+
+`NonEmptyString` is filtered to non-null, non-whitespace values; `Digit`
+is uniform over `0`–`9`.
+
+Collections and `Maybe<primitive>` don't follow the three-column shape:
+
+- `NonEmptyEnumerableInt` — `NonEmptyEnumerable<int>`, plain `T` only.
+- `Maybe<T>` for common primitives: `MaybeBool`, `MaybeInt`, `MaybeLong`,
+  `MaybeDouble`, `MaybeChar`, `MaybeString`, `MaybeGuid` — all with ~5% `None`.
 
 Version matches the core `Kalicz.StrongTypes` package you install alongside it.
