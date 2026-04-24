@@ -78,7 +78,14 @@ jobs:
     - name: Publish packages
       run: dotnet nuget push ./out/*.nupkg --source nuget.org --api-key ${{ secrets.NUGET_TOKEN }}
 
-    - name: Attach packages to release
+    # Ship the Claude / Codex skill file alongside the nupkgs so users can
+    # curl a version-pinned copy directly from the GitHub release instead
+    # of pulling from raw.githubusercontent. Renamed to strongtypes.SKILL.md
+    # on the release page so it sits next to the packages unambiguously;
+    # users save it back to SKILL.md on disk (see readme install snippet).
+    - name: Attach packages and skill to release
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release upload "$GITHUB_REF_NAME" ./out/*.nupkg
+      run: |
+        cp .claude/skills/strongtypes/SKILL.md ./out/strongtypes.SKILL.md
+        gh release upload "$GITHUB_REF_NAME" ./out/*.nupkg ./out/strongtypes.SKILL.md

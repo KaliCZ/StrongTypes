@@ -70,6 +70,15 @@ For Codex, replace `~/.claude/` with `~/.codex/` (or symlink between the
 two). Pin to a tag — e.g. `…/v1.2.0/.claude/…` — when you want a
 stable, version-locked copy.
 
+Each GitHub release also attaches the skill as `strongtypes.SKILL.md`
+alongside the `.nupkg` files, so the download URL matches the NuGet
+version you're installing:
+
+```bash
+curl -L https://github.com/KaliCZ/StrongTypes/releases/download/v1.2.0/strongtypes.SKILL.md \
+  -o .claude/skills/strongtypes/SKILL.md
+```
+
 [↑ Back to contents](#contents)
 
 
