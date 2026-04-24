@@ -16,6 +16,7 @@ You can also store the types directly in your EF Core entities with the use of t
 
 ## Contents
 
+- [Use with Claude or Codex](#use-with-claude-or-codex)
 - [Helpful Types](#helpful-types)
   - [`NonEmptyString`](#nonemptystring)
   - [Numeric wrappers: `Positive<T>`, `NonNegative<T>`, `Negative<T>`, `NonPositive<T>`](#numeric-wrappers)
@@ -30,6 +31,41 @@ You can also store the types directly in your EF Core entities with the use of t
   - [Prefer nullables: `Map`, `MapTrue`, `MapFalse`](#prefer-nullables-map-maptrue-mapfalse)
   - [`Maybe<T>`](#maybet)
   - [`Result<T, TError>`](#resultt-terror)
+
+## Use with Claude or Codex
+
+If you let Claude Code or Codex write code in a project that depends on
+StrongTypes, drop in the bundled [SKILL.md](.claude/skills/strongtypes/SKILL.md)
+so the agent picks the right idioms — `T?` vs `Maybe<T>?` vs
+`Result<T, TError>`, implicit operators over explicit factories, and so on.
+The skill is one Markdown file; no plugin, no install step beyond a
+`curl`.
+
+**Project-scoped (recommended — every contributor gets it):**
+
+```bash
+mkdir -p .claude/skills/strongtypes
+curl -L https://raw.githubusercontent.com/KaliCZ/StrongTypes/main/.claude/skills/strongtypes/SKILL.md \
+  -o .claude/skills/strongtypes/SKILL.md
+```
+
+Commit the file; from the next session both Claude Code and Codex pick it
+up automatically.
+
+**User-scoped (available in every session on your machine):**
+
+```bash
+mkdir -p ~/.claude/skills/strongtypes
+curl -L https://raw.githubusercontent.com/KaliCZ/StrongTypes/main/.claude/skills/strongtypes/SKILL.md \
+  -o ~/.claude/skills/strongtypes/SKILL.md
+```
+
+For Codex, replace `~/.claude/` with `~/.codex/` (or symlink between the
+two). Pin to a tag — e.g. `…/v1.2.0/.claude/…` — when you want a
+stable, version-locked copy.
+
+[↑ Back to contents](#contents)
+
 
 ## Helpful Types
 
