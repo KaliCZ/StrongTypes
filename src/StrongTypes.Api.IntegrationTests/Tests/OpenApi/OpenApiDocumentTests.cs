@@ -315,4 +315,81 @@ public sealed class OpenApiDocumentTests(TestWebApplicationFactory factory) : ID
             : [];
         Assert.DoesNotContain("Value", required);
     }
+
+    // ───────────────────────────────────────────────────────────────────
+    // Transitive composition — when one strong type wraps another, the
+    // outer transformer must not swallow the inner's bounds. A
+    // Maybe<Positive<int>> needs minimum:0/exclusiveMinimum:true on its
+    // inner Value, not just type:integer; a Maybe<NonEmptyString> needs
+    // minLength:1; a NonEmptyEnumerable<Maybe<…>> needs both the array
+    // bound and the Maybe wrapper with its own inner bound.
+    // ───────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Maybe_Of_Positive_Int_Carries_Inner_Minimum_Zero_And_ExclusiveMinimum()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/nested-strong-types"));
+        var maybe = Resolve(doc, Property(body, "maybePositiveInt"));
+
+        Assert.Equal("object", StringOrNull(maybe, "type"));
+
+        var inner = Resolve(doc, maybe.GetProperty("properties").GetProperty("Value"));
+        Assert.Equal("integer", StringOrNull(inner, "type"));
+        Assert.Equal("int32", StringOrNull(inner, "format"));
+        Assert.Equal(0m, DecimalOrNull(inner, "minimum"));
+        Assert.True(BoolOrFalse(inner, "exclusiveMinimum"));
+    }
+
+    [Fact]
+    public async Task Maybe_Of_NonEmptyString_Carries_Inner_MinLength_1()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/nested-strong-types"));
+        var maybe = Resolve(doc, Property(body, "maybeNonEmptyString"));
+
+        Assert.Equal("object", StringOrNull(maybe, "type"));
+
+        var inner = Resolve(doc, maybe.GetProperty("properties").GetProperty("Value"));
+        Assert.Equal("string", StringOrNull(inner, "type"));
+        Assert.Equal(1, IntOrNull(inner, "minLength"));
+    }
+
+    [Fact]
+    public async Task Maybe_Of_NonEmptyEnumerable_Carries_Inner_MinItems_And_Element_Bound()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/nested-strong-types"));
+        var maybe = Resolve(doc, Property(body, "maybeNonEmptyStringArray"));
+
+        Assert.Equal("object", StringOrNull(maybe, "type"));
+
+        var inner = Resolve(doc, maybe.GetProperty("properties").GetProperty("Value"));
+        Assert.Equal("array", StringOrNull(inner, "type"));
+        Assert.Equal(1, IntOrNull(inner, "minItems"));
+
+        var items = Resolve(doc, inner.GetProperty("items"));
+        Assert.Equal("string", StringOrNull(items, "type"));
+        Assert.Equal(1, IntOrNull(items, "minLength"));
+    }
+
+    [Fact]
+    public async Task NonEmptyEnumerable_Of_Maybe_Of_Positive_Int_Carries_Every_Bound()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/nested-strong-types"));
+        var array = Resolve(doc, Property(body, "nonEmptyArrayOfMaybePositiveInt"));
+
+        Assert.Equal("array", StringOrNull(array, "type"));
+        Assert.Equal(1, IntOrNull(array, "minItems"));
+
+        var maybe = Resolve(doc, array.GetProperty("items"));
+        Assert.Equal("object", StringOrNull(maybe, "type"));
+
+        var inner = Resolve(doc, maybe.GetProperty("properties").GetProperty("Value"));
+        Assert.Equal("integer", StringOrNull(inner, "type"));
+        Assert.Equal("int32", StringOrNull(inner, "format"));
+        Assert.Equal(0m, DecimalOrNull(inner, "minimum"));
+        Assert.True(BoolOrFalse(inner, "exclusiveMinimum"));
+    }
 }

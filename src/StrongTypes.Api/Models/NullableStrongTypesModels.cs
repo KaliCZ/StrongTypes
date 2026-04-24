@@ -13,3 +13,20 @@ public sealed record NullableStrongTypesRequest(
     Positive<int>? NullablePositiveInt,
     NonEmptyEnumerable<NonEmptyString>? NullableNonEmptyStringArray,
     NonEmptyEnumerable<Positive<int>>? NullableNonEmptyPositiveIntArray);
+
+/// <summary>
+/// Request DTO that nests the strong types inside each other so the OpenAPI
+/// integration tests can assert every transformer composes — a
+/// <c>Maybe&lt;Positive&lt;int&gt;&gt;</c> must not just describe <c>Value</c>
+/// as an integer, it must carry the <c>Positive</c> bound through to that
+/// inner schema. Same story for <c>Maybe&lt;NonEmptyString&gt;</c> carrying
+/// <c>minLength</c>, <c>Maybe&lt;NonEmptyEnumerable&lt;T&gt;&gt;</c> carrying
+/// <c>minItems</c>, and <c>NonEmptyEnumerable&lt;Maybe&lt;Positive&lt;int&gt;&gt;&gt;</c>
+/// carrying both the array-level and the numeric bound.
+/// </summary>
+public sealed record NestedStrongTypesRequest(
+    Maybe<Positive<int>> MaybePositiveInt,
+    Maybe<NonEmptyString> MaybeNonEmptyString,
+    Maybe<NonEmptyEnumerable<NonEmptyString>> MaybeNonEmptyStringArray,
+    NonEmptyEnumerable<Maybe<Positive<int>>> NonEmptyArrayOfMaybePositiveInt);
+
