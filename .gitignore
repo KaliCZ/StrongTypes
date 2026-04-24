@@ -9,5 +9,6 @@
 src/packages
 src/.idea
 .idea/
-.claude/
+.claude/*
+!.claude/skills/
 BenchmarkDotNet.Artifacts/
