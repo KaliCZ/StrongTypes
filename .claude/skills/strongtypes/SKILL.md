@@ -50,8 +50,12 @@ Reach for it when:
   positive", "list must have at least one item"). Use the matching wrapper
   at the API / DTO boundary.
 - You want JSON to reject bad input for you at deserialization time.
-- You have an HTTP `PATCH`-style three-state field (skip / clear / set).
-  That is the canonical `Maybe<T>?` case — see the design-philosophy section.
+- You have a three-state update field (skip / clear / set). The HTTP
+  `PATCH` DTO is the textbook case, but the same pattern applies to
+  any in-process update method whose argument needs to mean "don't
+  touch this", "clear this", or "set this to a value" — no HTTP
+  required. That is the canonical `Maybe<T>?` case — see the
+  design-philosophy section.
 - A method's failure mode needs to be visible at the call site, translated
   to a user-facing error, or aggregated with other failures. Use
   `Result<T, TError>` — usually `TError` is an enum.
@@ -80,11 +84,20 @@ Read the decision tree before writing a new DTO field or service signature.
    and `decimal?` captures them both.
 
 2. **Can the field be absent *and* be explicitly cleared to null?** → use
-   `Maybe<T>?`. This is the HTTP `PATCH` three-state case:
-   - `null` → client did not send the property; leave the entity alone.
-   - `Maybe<T>.None` (`{ "Value": null }` on the wire) → client asked to
-     clear the field.
-   - `Maybe.Some(x)` (`{ "Value": x }`) → client asked to set the field.
+   `Maybe<T>?`. The pattern applies to *any* update operation that needs
+   those three states, not just HTTP. In a DTO, a service signature, a
+   message payload, a builder parameter — wherever "don't touch",
+   "clear", and "set" all need to coexist:
+   - `null` → skip; the caller did not supply this field. Leave the
+     existing value alone.
+   - `Maybe<T>.None` → the caller asked to clear the field to null.
+   - `Maybe.Some(x)` → the caller asked to set the field to `x`.
+
+   The HTTP `PATCH` DTO is the most visible case (because JSON
+   distinguishes "property omitted" from "property sent as null"), but
+   the exact same argument applies to, e.g., an `ApplyChanges` service
+   method called from another service: three distinct intents, three
+   distinct states, one `Maybe<T>?` parameter.
 
 3. **Is the field always present and meaningful?** → the bare strong type
    (`NonEmptyString`, `Positive<int>`, …). No nullable wrapping.
@@ -136,10 +149,11 @@ public record OrderUpdate(
 
 ### Summary rule
 
-> **`T?` is the default.** Reach for `Maybe<T>` only when you need the
-> three-state distinction (PATCH-style). Reach for `Result<T, TError>`
-> only when the caller needs the error *reason*, not just the fact of
-> failure. Everything else is a primitive or a strong wrapper.
+> **`T?` is the default.** Reach for `Maybe<T>?` only when the field
+> genuinely has three states (skip / clear / set) — anywhere in the
+> system, not just PATCH DTOs. Reach for `Result<T, TError>` only when
+> the caller needs the error *reason*, not just the fact of failure.
+> Everything else is a primitive or a strong wrapper.
 
 ### Why not just return `Result` from every validator?
 
@@ -807,8 +821,9 @@ these for readability.
   nullable" → `Map`, `MapTrue`, `MapFalse`.
 - You want "run this unconditionally and handle null at call site" →
   plain method with `T?` parameter and `is not { } v` pattern.
-- You want "two-state vs three-state tracking for a PATCH-style field" →
-  `Maybe<T>?`, not `Map`.
+- You want "two-state vs three-state tracking for an update-style field"
+  (skip / clear / set — HTTP PATCH or any plain update DTO / service
+  parameter) → `Maybe<T>?`, not `Map`.
 
 ## `Maybe<T>`
 
@@ -818,8 +833,12 @@ they would collapse the `None` and `Some(null)` cases.
 
 > **Before reaching for `Maybe<T>`, re-read the design-philosophy section.**
 > Most optional fields should be plain `T?`. `Maybe<T>` exists for the
-> three-state case (typically HTTP `PATCH`) and as a total replacement
-> for the throwing `First` / `Single` / `Max` LINQ calls.
+> three-state case — wherever a field or parameter needs to mean "skip",
+> "clear", *and* "set" at the same time. HTTP `PATCH` DTOs are the most
+> visible example, but the same pattern applies to plain in-process
+> update methods (service calls, builders, message payloads) with no
+> HTTP involved. It is also a total replacement for the throwing
+> `First` / `Single` / `Max` LINQ calls.
 
 ### Construction — prefer implicit operators
 
@@ -907,11 +926,48 @@ IEnumerable<int> values = maybes.Values();
 `Maybe<T>` serialises as `{ "Value": x }` for `Some` and either
 `{ "Value": null }` or `{}` for `None`. The converter is on the type, so
 no registration is needed. The same `[JsonConverter]` attribute is also
-what makes the `Maybe<T>?` HTTP `PATCH` pattern work — a missing property
-deserializes as `null` on the outer nullable; a `{}` or `{ "Value": null }`
-deserializes as `Maybe<T>.None`; anything else becomes `Maybe.Some(value)`.
+what makes the `Maybe<T>?` update pattern work over the wire — a missing
+property deserializes as `null` on the outer nullable; a `{}` or
+`{ "Value": null }` deserializes as `Maybe<T>.None`; anything else
+becomes `Maybe.Some(value)`.
 
-### HTTP PATCH — the canonical three-state case
+### Three-state updates — the canonical case
+
+The pattern applies wherever an update needs to distinguish "skip",
+"clear", and "set" — HTTP `PATCH` or pure in-process code alike.
+
+**In-process service call — no HTTP involved.** An `ApplyChanges` method
+whose caller can leave a field alone, clear it, or set a new value:
+
+```csharp
+public record ProfileChanges(
+    Maybe<string>? Nickname,        // null = skip; None = clear; Some(x) = set
+    Maybe<DateOnly>? Birthday       // same three states
+);
+
+public sealed class ProfileService(IProfileRepository repo)
+{
+    public async Task ApplyChanges(Guid userId, ProfileChanges changes)
+    {
+        var profile = await repo.LoadAsync(userId);
+
+        if (changes.Nickname is { } nick)
+            profile.Nickname = nick.Value;       // nick.Value: string?
+        if (changes.Birthday is { } bday)
+            profile.Birthday = bday.Value;
+
+        await repo.SaveAsync(profile);
+    }
+}
+```
+
+The caller of `ApplyChanges` may be a controller, a background job, a
+message consumer, another service — none of that matters. The three
+states exist purely in the domain.
+
+**HTTP PATCH — the same pattern once more, across the wire.** The JSON
+converter takes care of the mapping; the handler body is identical in
+shape:
 
 ```csharp
 public record PatchRequest(
@@ -932,9 +988,9 @@ public async Task<IActionResult> Patch(Guid id, PatchRequest request)
 }
 ```
 
-Note the double unwrap: `request.Nickname is { } nick` tells you the
-client sent *something*; `nick.Value` is then the intended new value
-(possibly null for the "clear" intent).
+Note the double unwrap in both examples: `request.Nickname is { } nick`
+tells you the caller sent *something*; `nick.Value` is then the intended
+new value (possibly null for the "clear" intent).
 
 ## `Result<T, TError>`
 
@@ -1367,8 +1423,10 @@ public record Profile(Maybe<string> Bio);
 public record Profile(string? Bio);
 ```
 
-`Maybe<T>` is for the **three-state** case (skip / clear / set), typically
-HTTP PATCH. If there's no "clear" intent, `T?` is enough.
+`Maybe<T>` is for the **three-state** case (skip / clear / set). HTTP
+`PATCH` is the visible example, but the rule applies to any update —
+service method, builder, message payload, internal DTO. If there's no
+"clear" intent, `T?` is enough.
 
 ### 2. Using `Maybe<T>` for update DTOs that can't remove the value
 
