@@ -37,7 +37,7 @@ public sealed class MissingEfCorePackageAnalyzer : DiagnosticAnalyzer
         category: "Usage",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "Kalicz.StrongTypes.EfCore ships value converters and the Unwrap() LINQ translator needed for EF Core to round-trip NonEmptyString, Positive<T>, NonNegative<T>, Negative<T>, and NonPositive<T> to a database column. Without the package, EF Core infers the wrapper as an owned entity type and fails at model-build time.",
+        description: "Kalicz.StrongTypes.EfCore ships value converters and the Unwrap() LINQ translator needed for EF Core to round-trip NonEmptyString, Positive<T>, NonNegative<T>, Negative<T>, NonPositive<T>, and BoundedInt<TBounds> to a database column. Without the package, EF Core infers the wrapper as an owned entity type and fails at model-build time.",
         helpLinkUri: "https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore");
 
     // Canonical names in metadata form so compiled generics match
@@ -47,7 +47,8 @@ public sealed class MissingEfCorePackageAnalyzer : DiagnosticAnalyzer
         "StrongTypes.Positive`1",
         "StrongTypes.NonNegative`1",
         "StrongTypes.Negative`1",
-        "StrongTypes.NonPositive`1");
+        "StrongTypes.NonPositive`1",
+        "StrongTypes.BoundedInt`1");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
