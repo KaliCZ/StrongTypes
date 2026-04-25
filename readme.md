@@ -19,6 +19,8 @@ You can also store the types directly in your EF Core entities with the use of t
 - [Helpful Types](#helpful-types)
   - [`NonEmptyString`](#nonemptystring)
   - [Numeric wrappers: `Positive<T>`, `NonNegative<T>`, `Negative<T>`, `NonPositive<T>`](#numeric-wrappers)
+  - [`BoundedInt<TBounds>`](#boundedinttbounds)
+  - [Defining your own validated wrapper](#defining-your-own-validated-wrapper)
   - [What you get for free](#what-you-get-for-free)
   - [JSON serialization](#json-serialization)
   - [EF Core persistence](#ef-core-persistence)
@@ -72,6 +74,50 @@ NonPositive<decimal> np = input.ToNonPositive();               // throws if inva
 ```
 
 All defaults (e.g. `default(Positive<T>)`) still satisfy their invariants (e.g. `default(Positive<int>)` is `1`, not an invalid `0`).
+
+[↑ Back to contents](#contents)
+
+### `BoundedInt<TBounds>`
+
+A 32-bit integer constrained to a closed range `[Min, Max]`. The bounds are not values you pass at every call site — they live on a small witness type, so the rule travels with the type and the validity of `pageSize` is part of its signature:
+
+```csharp
+public readonly struct PageSizeBounds : IBounds<int>
+{
+    public static int Min => 1;
+    public static int Max => 100;
+}
+
+BoundedInt<PageSizeBounds>? p   = BoundedInt<PageSizeBounds>.TryCreate(input); // null if invalid
+BoundedInt<PageSizeBounds>  p2  = BoundedInt<PageSizeBounds>.Create(input);    // throws if invalid
+BoundedInt<PageSizeBounds>? p3  = input.AsBounded<PageSizeBounds>();           // null if invalid
+BoundedInt<PageSizeBounds>  p4  = input.ToBounded<PageSizeBounds>();           // throws if invalid
+
+void GetUsers(BoundedInt<PageSizeBounds> pageSize) { … }   // 1..100 enforced at the boundary
+```
+
+Both endpoints are inclusive. `default(BoundedInt<TBounds>)` wraps `TBounds.Min` so it always satisfies the invariant. There is no `Sum` extension — bounded ranges are not closed under addition.
+
+[↑ Back to contents](#contents)
+
+### Defining your own validated wrapper
+
+`Positive<T>`, `BoundedInt<TBounds>`, and the rest are just `partial struct`s decorated with `[NumericWrapper]`. The library's source generator emits all the equality, comparison, conversion, and `Create` boilerplate; the JSON converter factory recognizes any type that carries the attribute. To add your own validated numeric wrapper, write the `Value` property and `TryCreate` and tag the struct:
+
+```csharp
+[NumericWrapper(InvariantDescription = "even")]
+[JsonConverter(typeof(NumericStrongTypeJsonConverterFactory))]
+public readonly partial struct EvenInt
+{
+    public int Value { get; }
+    private EvenInt(int value) { Value = value; }
+
+    public static EvenInt? TryCreate(int value)
+        => value % 2 == 0 ? new EvenInt(value) : null;
+}
+```
+
+That is the whole file. The generated `Create`, `==`, `<`, `IEquatable<int>`, `implicit operator int`, `ToString`, JSON round-tripping, and `EvenIntExtensions.Min` / `.Max` / `.Unwrap` come from the attribute alone.
 
 [↑ Back to contents](#contents)
 

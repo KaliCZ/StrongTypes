@@ -167,6 +167,41 @@ public class MissingEfCorePackageAnalyzerTests
     }
 
     [Fact]
+    public async Task Detects_bounded_int_wrapper()
+    {
+        const string source = """
+            using Microsoft.EntityFrameworkCore;
+            using StrongTypes;
+
+            namespace Sample;
+
+            public readonly struct PageSizeBounds : IBounds<int>
+            {
+                public static int Min => 1;
+                public static int Max => 100;
+            }
+
+            public class Entity
+            {
+                public int Id { get; set; }
+                public BoundedInt<PageSizeBounds> PageSize { get; set; }
+            }
+
+            public class SampleContext : DbContext
+            {
+                public DbSet<Entity> Entities { get; set; } = null!;
+            }
+            """;
+
+        var diagnostics = await AnalyzerTester.RunAsync(
+            new MissingEfCorePackageAnalyzer(),
+            source,
+            TestReferences.With(TestReferences.EntityFrameworkCore));
+
+        Assert.NotEmpty(diagnostics.WhereId(MissingEfCorePackageAnalyzer.DiagnosticId));
+    }
+
+    [Fact]
     public async Task Reports_at_dbset_entity_property_and_dbcontext_locations()
     {
         // Single DbContext + single DbSet + entity with one wrapper property should produce

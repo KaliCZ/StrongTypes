@@ -52,7 +52,8 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention
             return definition == typeof(Positive<>)
                 || definition == typeof(NonNegative<>)
                 || definition == typeof(Negative<>)
-                || definition == typeof(NonPositive<>);
+                || definition == typeof(NonPositive<>)
+                || definition == typeof(BoundedInt<>);
         }
         return false;
     }
@@ -73,9 +74,13 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention
             if (definition == typeof(Positive<>) ||
                 definition == typeof(NonNegative<>) ||
                 definition == typeof(Negative<>) ||
-                definition == typeof(NonPositive<>))
+                definition == typeof(NonPositive<>) ||
+                definition == typeof(BoundedInt<>))
             {
-                var underlying = unwrapped.GetGenericArguments()[0];
+                // Read the underlying numeric type from the wrapper's Value
+                // property: BoundedInt<TBounds> closes over the bounds witness,
+                // so its first generic argument isn't the underlying type.
+                var underlying = unwrapped.GetProperty("Value", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)!.PropertyType;
                 var converterType = typeof(NumericStrongTypeValueConverter<,>).MakeGenericType(unwrapped, underlying);
                 return (ValueConverter)Activator.CreateInstance(converterType)!;
             }
