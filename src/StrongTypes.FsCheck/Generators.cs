@@ -137,6 +137,38 @@ public static class Generators
 
     #endregion
 
+    #region Intervals
+
+    /// <summary>Arbitrary <see cref="ClosedInterval{T}"/> of <see cref="int"/>. Always satisfies <c>Start &lt;= End</c>.</summary>
+    public static Arbitrary<ClosedInterval<int>> ClosedIntervalInt { get; } =
+        Arb.From(ArbMap.Default.ArbFor<int>().Generator.SelectMany(a =>
+            ArbMap.Default.ArbFor<int>().Generator.Select(b =>
+                a <= b
+                    ? ClosedInterval<int>.Create(a, b)
+                    : ClosedInterval<int>.Create(b, a))));
+
+    /// <summary>Arbitrary <see cref="Interval{T}"/> of <see cref="int"/> covering all four nullability combinations.</summary>
+    public static Arbitrary<Interval<int>> IntervalInt { get; } =
+        Arb.From(Gen.Frequency(
+            (1, Gen.Constant(Interval<int>.Create(null, null))),
+            (3, ArbMap.Default.ArbFor<int>().Generator.Select(e => Interval<int>.Create(null, e))),
+            (3, ArbMap.Default.ArbFor<int>().Generator.Select(s => Interval<int>.Create(s, null))),
+            (3, ClosedIntervalInt.Generator.Select(c => Interval<int>.Create(c.Start, c.End)))));
+
+    /// <summary>Arbitrary <see cref="IntervalFrom{T}"/> of <see cref="int"/>. <c>Start</c> is always present; <c>End</c> is null ~25% of the time.</summary>
+    public static Arbitrary<IntervalFrom<int>> IntervalFromInt { get; } =
+        Arb.From(Gen.Frequency(
+            (1, ArbMap.Default.ArbFor<int>().Generator.Select(s => IntervalFrom<int>.Create(s, null))),
+            (3, ClosedIntervalInt.Generator.Select(c => IntervalFrom<int>.Create(c.Start, c.End)))));
+
+    /// <summary>Arbitrary <see cref="IntervalUntil{T}"/> of <see cref="int"/>. <c>End</c> is always present; <c>Start</c> is null ~25% of the time.</summary>
+    public static Arbitrary<IntervalUntil<int>> IntervalUntilInt { get; } =
+        Arb.From(Gen.Frequency(
+            (1, ArbMap.Default.ArbFor<int>().Generator.Select(e => IntervalUntil<int>.Create(null, e))),
+            (3, ClosedIntervalInt.Generator.Select(c => IntervalUntil<int>.Create(c.Start, c.End)))));
+
+    #endregion
+
     #region NonEmptyEnumerable<int>
 
     /// <summary>Arbitrary <see cref="NonEmptyEnumerable{T}"/> of <see cref="int"/>.</summary>
