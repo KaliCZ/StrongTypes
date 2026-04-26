@@ -59,8 +59,8 @@
     </ItemGroup>
   </Target>
   <!-- Rewrite relative readme links — diagrams under docs/diagrams/ and the
-       skill file under .claude/skills/ — to absolute URLs pinned to the release
-       tag before packing. The source readme.md keeps relative paths so GitHub
+       skill file under Skill/ — to absolute URLs pinned to the release tag
+       before packing. The source readme.md keeps relative paths so GitHub
        browsing (both HEAD and per-tag views) resolves them against the
        corresponding commit; the packed copy points at a fixed tag so nuget.org
        renders the diagrams that shipped with that version (and links to the
@@ -80,7 +80,7 @@
         // replacements below don't double-prefix.
         content = content.Replace("https://raw.githubusercontent.com/KaliCZ/StrongTypes/main/", RawBaseUrl);
         content = content.Replace("](docs/diagrams/", "](" + RawBaseUrl + "docs/diagrams/");
-        content = content.Replace("](.claude/skills/", "](" + RawBaseUrl + ".claude/skills/");
+        content = content.Replace("](Skill/", "](" + RawBaseUrl + "Skill/");
         System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(DestinationPath));
         System.IO.File.WriteAllText(DestinationPath, content);
       ]]></Code>
