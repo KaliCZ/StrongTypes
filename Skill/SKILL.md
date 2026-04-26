@@ -188,20 +188,26 @@ mistakes you wouldn't catch from the decision trees alone.
    `Result<T, TError>.Success(value)`; `Maybe<int> x = 42;` over
    `Maybe<int>.Some(42)`. Use the explicit form only when inference
    collides.
-5. **Unwrapping a wrapper the moment you can.** Once you have a
-   `NonEmptyString`, pass it as `NonEmptyString` — don't call `.Value`
-   to satisfy a `string`-taking helper. The implicit conversion handles
-   the interop; the wrapper keeps the invariant flowing.
+5. **Downstream signatures that take the underlying type.** Once a
+   value has been validated into a `NonEmptyString` / `Positive<int>`,
+   keep that type flowing through the code you own — service methods,
+   DB entity properties, message payloads. A downstream `string` /
+   `int` parameter throws away the invariant and forces every caller
+   to re-validate (or skip validation and hope).
 
    ```csharp
-   // Wrong — loses the invariant on the very next line.
-   public void Greet(NonEmptyString name)
-       => _downstream.Greet(name.Value);
+   // Wrong — caller has a NonEmptyString but the signature accepts
+   // any string, so the invariant is gone at the next layer.
+   public void Greet(string name) { ... }
 
-   // Right — implicit conversion already exists.
-   public void Greet(NonEmptyString name)
-       => _downstream.Greet(name);
+   // Right — the signature documents and enforces the invariant.
+   public void Greet(NonEmptyString name) { ... }
    ```
+
+   `.Value` and the implicit conversion are interchangeable — neither
+   is "wrong". The fix is to widen the wrapper's reach in your own
+   types, not to police how you cross into BCL / third-party APIs that
+   take primitives.
 
 6. **Constructing wrappers through the throwing factory in a controller.**
    `ToX` is for *internal* code where invalid input is a bug. `AsX` is
