@@ -11,10 +11,8 @@ Every type ships with `System.Text.Json` converters out of the box (except `Resu
 You can also store the types directly in your EF Core entities with the use of the EfCore package.
 
 > 🤖 Letting Claude Code or Codex write code in a project that uses
-> StrongTypes? Drop in the bundled
-> [SKILL.md](Skill/SKILL.md) — see
-> [Use with Claude or Codex](#use-with-claude-or-codex) for the one-line
-> install.
+> StrongTypes? See [Use with Claude or Codex](#use-with-claude-or-codex)
+> below.
 
 ![Impact of StrongTypes on validation boundaries](docs/diagrams/impact.svg)
 
