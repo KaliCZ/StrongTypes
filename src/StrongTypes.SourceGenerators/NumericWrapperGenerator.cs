@@ -36,6 +36,7 @@ public sealed class NumericWrapperGenerator : IIncrementalGenerator
         string TypeNameWithArity,
         string SelfType,
         string UnderlyingType,
+        bool UnderlyingIsValueType,
         string? TypeParameterList,
         ImmutableArray<string> ConstraintClauses,
         string AccessModifier,
@@ -56,6 +57,8 @@ public sealed class NumericWrapperGenerator : IIncrementalGenerator
                 return null;
 
             var underlyingType = valueProperty.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var underlyingIsValueType = valueProperty.Type.IsValueType
+                && valueProperty.Type.TypeKind != TypeKind.TypeParameter;
             var ns = symbol.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
                 : symbol.ContainingNamespace.ToDisplayString();
@@ -108,6 +111,7 @@ public sealed class NumericWrapperGenerator : IIncrementalGenerator
                 TypeNameWithArity: typeNameWithArity,
                 SelfType: selfType,
                 UnderlyingType: underlyingType,
+                UnderlyingIsValueType: underlyingIsValueType,
                 TypeParameterList: typeParameterList,
                 ConstraintClauses: constraintClauses,
                 AccessModifier: accessibility,
@@ -206,7 +210,10 @@ public sealed class NumericWrapperGenerator : IIncrementalGenerator
             sb.AppendLine();
 
             sb.Append("    public bool Equals(").Append(self).AppendLine(" other) => Value.Equals(other.Value);");
-            sb.Append("    public bool Equals(").Append(t).AppendLine("? other) => other is not null && Value.Equals(other);");
+            if (m.UnderlyingIsValueType)
+                sb.Append("    public bool Equals(").Append(t).AppendLine(" other) => Value.Equals(other);");
+            else
+                sb.Append("    public bool Equals(").Append(t).AppendLine("? other) => other is not null && Value.Equals(other);");
             sb.AppendLine();
 
             sb.Append("    public static bool operator ==(").Append(self).Append(" left, ").Append(self).AppendLine(" right) => left.Equals(right);");
@@ -218,7 +225,10 @@ public sealed class NumericWrapperGenerator : IIncrementalGenerator
             sb.AppendLine();
 
             sb.Append("    public int CompareTo(").Append(self).AppendLine(" other) => Value.CompareTo(other.Value);");
-            sb.Append("    public int CompareTo(").Append(t).AppendLine("? other) => other is null ? 1 : Value.CompareTo(other);");
+            if (m.UnderlyingIsValueType)
+                sb.Append("    public int CompareTo(").Append(t).AppendLine(" other) => Value.CompareTo(other);");
+            else
+                sb.Append("    public int CompareTo(").Append(t).AppendLine("? other) => other is null ? 1 : Value.CompareTo(other);");
             sb.AppendLine();
 
             sb.AppendLine("    int global::System.IComparable.CompareTo(object? obj) => obj switch");
