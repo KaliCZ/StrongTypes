@@ -75,10 +75,6 @@
     <Task>
       <Code Type="Fragment" Language="cs"><![CDATA[
         var content = System.IO.File.ReadAllText(SourcePath);
-        // Pin literal "raw.githubusercontent.com/.../main/" URLs (used in copy-paste
-        // curl commands inside code blocks) to the release tag first, so the
-        // replacements below don't double-prefix.
-        content = content.Replace("https://raw.githubusercontent.com/KaliCZ/StrongTypes/main/", RawBaseUrl);
         content = content.Replace("](docs/diagrams/", "](" + RawBaseUrl + "docs/diagrams/");
         content = content.Replace("](Skill/", "](" + RawBaseUrl + "Skill/");
         System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(DestinationPath));
