@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace StrongTypes.OpenApi;
 
@@ -14,7 +14,7 @@ public sealed class NonEmptyStringSchemaTransformer : IOpenApiSchemaTransformer
             return Task.CompletedTask;
 
         StrongTypesSchemaReset.ResetToScalar(schema);
-        schema.Type = "string";
+        schema.Type = JsonSchemaType.String;
         schema.MinLength = 1;
         return Task.CompletedTask;
     }

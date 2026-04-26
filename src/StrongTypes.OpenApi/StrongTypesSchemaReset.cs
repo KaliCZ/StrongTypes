@@ -1,4 +1,4 @@
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace StrongTypes.OpenApi;
 
@@ -21,8 +21,8 @@ internal static class StrongTypesSchemaReset
         schema.Format = null;
         schema.Minimum = null;
         schema.Maximum = null;
-        schema.ExclusiveMinimum = false;
-        schema.ExclusiveMaximum = false;
+        schema.ExclusiveMinimum = null;
+        schema.ExclusiveMaximum = null;
         schema.MinLength = null;
         schema.MaxLength = null;
         schema.MinItems = null;

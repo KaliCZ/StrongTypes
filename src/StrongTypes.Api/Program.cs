@@ -6,7 +6,11 @@ using StrongTypes.OpenApi;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi(options => options.AddStrongTypes());
+builder.Services.AddOpenApi(options =>
+{
+    options.OpenApiVersion = Microsoft.OpenApi.OpenApiSpecVersion.OpenApi3_0;
+    options.AddStrongTypes();
+});
 builder.Services.AddDbContext<SqlServerDbContext>(options => options
     .UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"))
     .UseStrongTypes());

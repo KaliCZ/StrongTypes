@@ -1,28 +1,29 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace StrongTypes.OpenApi;
 
 /// <summary>Rewrites the schema for the numeric strong-type wrappers <see cref="Positive{T}"/>, <see cref="NonNegative{T}"/>, <see cref="Negative{T}"/>, and <see cref="NonPositive{T}"/> to the underlying primitive type with the appropriate minimum/maximum bound.</summary>
 public sealed class NumericStrongTypeSchemaTransformer : IOpenApiSchemaTransformer
 {
-    private static readonly Dictionary<Type, (string Type, string? Format)> s_primitiveMap = new()
+    private static readonly Dictionary<Type, (JsonSchemaType Type, string? Format)> s_primitiveMap = new()
     {
-        [typeof(sbyte)] = ("integer", "int32"),
-        [typeof(byte)] = ("integer", "int32"),
-        [typeof(short)] = ("integer", "int32"),
-        [typeof(ushort)] = ("integer", "int32"),
-        [typeof(int)] = ("integer", "int32"),
-        [typeof(uint)] = ("integer", "int64"),
-        [typeof(long)] = ("integer", "int64"),
-        [typeof(ulong)] = ("integer", "int64"),
-        [typeof(float)] = ("number", "float"),
-        [typeof(double)] = ("number", "double"),
-        [typeof(decimal)] = ("number", "double"),
+        [typeof(sbyte)] = (JsonSchemaType.Integer, "int32"),
+        [typeof(byte)] = (JsonSchemaType.Integer, "int32"),
+        [typeof(short)] = (JsonSchemaType.Integer, "int32"),
+        [typeof(ushort)] = (JsonSchemaType.Integer, "int32"),
+        [typeof(int)] = (JsonSchemaType.Integer, "int32"),
+        [typeof(uint)] = (JsonSchemaType.Integer, "int64"),
+        [typeof(long)] = (JsonSchemaType.Integer, "int64"),
+        [typeof(ulong)] = (JsonSchemaType.Integer, "int64"),
+        [typeof(float)] = (JsonSchemaType.Number, "float"),
+        [typeof(double)] = (JsonSchemaType.Number, "double"),
+        [typeof(decimal)] = (JsonSchemaType.Number, "double"),
     };
 
     public Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
@@ -62,12 +63,25 @@ public sealed class NumericStrongTypeSchemaTransformer : IOpenApiSchemaTransform
         }
         else
         {
-            schema.Type = "number";
+            schema.Type = JsonSchemaType.Number;
         }
 
-        schema.Minimum = minimum;
-        schema.ExclusiveMinimum = exclusiveMinimum;
-        schema.Maximum = maximum;
-        schema.ExclusiveMaximum = exclusiveMaximum;
+        if (minimum is { } min)
+        {
+            var text = min.ToString(CultureInfo.InvariantCulture);
+            if (exclusiveMinimum)
+                schema.ExclusiveMinimum = text;
+            else
+                schema.Minimum = text;
+        }
+
+        if (maximum is { } max)
+        {
+            var text = max.ToString(CultureInfo.InvariantCulture);
+            if (exclusiveMaximum)
+                schema.ExclusiveMaximum = text;
+            else
+                schema.Maximum = text;
+        }
     }
 }

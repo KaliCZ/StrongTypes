@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace StrongTypes.OpenApi;
 
@@ -16,11 +16,11 @@ public sealed class MaybeSchemaTransformer : IOpenApiSchemaTransformer
             return;
 
         var innerType = type.GetGenericArguments()[0];
-        var innerSchema = await context.GetOrCreateSchemaAsync(innerType, jsonPropertyInfo: null, cancellationToken);
+        var innerSchema = await context.GetOrCreateSchemaAsync(innerType, parameterDescription: null, cancellationToken);
 
         StrongTypesSchemaReset.ResetToScalar(schema);
-        schema.Type = "object";
-        schema.Properties = new Dictionary<string, OpenApiSchema>
+        schema.Type = JsonSchemaType.Object;
+        schema.Properties = new Dictionary<string, IOpenApiSchema>
         {
             ["Value"] = innerSchema,
         };

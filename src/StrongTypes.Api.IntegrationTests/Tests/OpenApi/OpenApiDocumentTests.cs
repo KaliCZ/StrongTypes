@@ -28,8 +28,10 @@ public sealed class OpenApiDocumentTests(TestWebApplicationFactory factory) : ID
     }
 
     // Resolves a schema node against the document. Follows $ref (components
-    // lookup) and the common single-element allOf wrapper ASP.NET Core emits
-    // for nullable $ref positions (`{ "allOf": [{ "$ref": ... }], "nullable": true }`),
+    // lookup), the single-element allOf wrapper ASP.NET Core emits for nullable
+    // $ref positions in older library versions (`{ "allOf": [{ "$ref": ... }],
+    // "nullable": true }`), and the oneOf wrapper the newer Microsoft.OpenApi
+    // 2.x writer emits (`{ "oneOf": [{ "nullable": true }, { "$ref": ... }] }`),
     // so the tests stay focused on the underlying schema contract.
     private static JsonElement Resolve(JsonElement doc, JsonElement schema)
     {
@@ -53,6 +55,39 @@ public sealed class OpenApiDocumentTests(TestWebApplicationFactory factory) : ID
             {
                 schema = allOf[0];
                 continue;
+            }
+
+            if (schema.TryGetProperty("oneOf", out var oneOf)
+                && oneOf.ValueKind == JsonValueKind.Array)
+            {
+                JsonElement? nonNull = null;
+                var allBranchesNullableOrUnderlying = true;
+                foreach (var branch in oneOf.EnumerateArray())
+                {
+                    if (branch.ValueKind == JsonValueKind.Object
+                        && branch.TryGetProperty("nullable", out var n)
+                        && n.ValueKind == JsonValueKind.True
+                        && branch.EnumerateObject().Count() == 1)
+                    {
+                        continue;
+                    }
+
+                    if (nonNull is null)
+                    {
+                        nonNull = branch;
+                    }
+                    else
+                    {
+                        allBranchesNullableOrUnderlying = false;
+                        break;
+                    }
+                }
+
+                if (allBranchesNullableOrUnderlying && nonNull is { } single)
+                {
+                    schema = single;
+                    continue;
+                }
             }
 
             return schema;
