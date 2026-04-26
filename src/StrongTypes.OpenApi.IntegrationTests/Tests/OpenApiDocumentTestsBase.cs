@@ -2,7 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Xunit;
 
-namespace StrongTypes.Api.IntegrationTests.Tests.OpenApi;
+namespace StrongTypes.OpenApi.IntegrationTests.Tests;
 
 /// <summary>
 /// The OpenAPI spec contract every strong-type wrapper must satisfy, regardless

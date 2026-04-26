@@ -16,6 +16,7 @@
     <Project Path="src/StrongTypes.OpenApi.TestApi.Shared/StrongTypes.OpenApi.TestApi.Shared.csproj" />
     <Project Path="src/StrongTypes.OpenApi.TestApi.Microsoft/StrongTypes.OpenApi.TestApi.Microsoft.csproj" />
     <Project Path="src/StrongTypes.OpenApi.TestApi.Swashbuckle/StrongTypes.OpenApi.TestApi.Swashbuckle.csproj" />
+    <Project Path="src/StrongTypes.OpenApi.IntegrationTests/StrongTypes.OpenApi.IntegrationTests.csproj" />
   </Folder>
   <Folder Name="/Main Package/">
     <Project Path="src/StrongTypes.Analyzers/StrongTypes.Analyzers.csproj" />
