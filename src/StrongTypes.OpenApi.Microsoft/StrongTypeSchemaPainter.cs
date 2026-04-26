@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.OpenApi;
+using StrongTypes.OpenApi.Core;
 
 namespace StrongTypes.OpenApi.Microsoft;
 
@@ -33,7 +34,7 @@ internal static class StrongTypeSchemaPainter
         var painted = TryBuild(name, components);
         if (painted is null) return false;
 
-        StrongTypesSchemaReset.ResetToScalar(schema);
+        SchemaPaint.ClearWrapperShape(schema);
         CopyInto(schema, painted);
         return true;
     }

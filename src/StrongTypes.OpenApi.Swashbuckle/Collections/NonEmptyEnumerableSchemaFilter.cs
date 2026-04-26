@@ -1,4 +1,5 @@
 using Microsoft.OpenApi;
+using StrongTypes.OpenApi.Core;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace StrongTypes.OpenApi.Swashbuckle;
@@ -20,9 +21,9 @@ public sealed class NonEmptyEnumerableSchemaFilter : ISchemaFilter
         var itemsSchema = context.SchemaGenerator.GenerateSchema(
             elementType, context.SchemaRepository, memberInfo: null, parameterInfo: null, routeInfo: null);
 
-        StrongTypesSchemaReset.ResetToScalar(concrete);
+        SchemaPaint.ClearWrapperShape(concrete);
         concrete.Type = JsonSchemaType.Array;
-        concrete.MinItems = 1;
+        SchemaPaint.TightenMinItems(concrete, 1);
         concrete.Items = itemsSchema;
     }
 }

@@ -10,6 +10,7 @@
     <Project Path="src/StrongTypes.FsCheck/StrongTypes.FsCheck.csproj" />
   </Folder>
   <Folder Name="/OpenApi packages/">
+    <Project Path="src/StrongTypes.OpenApi.Core/StrongTypes.OpenApi.Core.csproj" />
     <Project Path="src/StrongTypes.OpenApi.Microsoft/StrongTypes.OpenApi.Microsoft.csproj" />
     <Project Path="src/StrongTypes.OpenApi.Swashbuckle/StrongTypes.OpenApi.Swashbuckle.csproj" />
     <Project Path="src/StrongTypes.OpenApi.TestApi.Swashbuckle/StrongTypes.OpenApi.TestApi.Swashbuckle.csproj" />

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using StrongTypes.OpenApi.Core;
 
 namespace StrongTypes.OpenApi.Microsoft;
 
@@ -21,9 +22,9 @@ public sealed class NonEmptyEnumerableSchemaTransformer : IOpenApiSchemaTransfor
         var elementType = type.GetGenericArguments()[0];
         var itemsSchema = await context.GetOrCreateSchemaAsync(elementType, parameterDescription: null, cancellationToken);
 
-        StrongTypesSchemaReset.ResetToScalar(schema);
+        SchemaPaint.ClearWrapperShape(schema);
         schema.Type = JsonSchemaType.Array;
-        schema.MinItems = 1;
+        SchemaPaint.TightenMinItems(schema, 1);
         schema.Items = itemsSchema;
     }
 }

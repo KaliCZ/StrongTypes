@@ -1,10 +1,10 @@
-using System.Globalization;
 using Microsoft.OpenApi;
+using StrongTypes.OpenApi.Core;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace StrongTypes.OpenApi.Swashbuckle;
 
-/// <summary>Rewrites the schema for the numeric strong-type wrappers <see cref="Positive{T}"/>, <see cref="NonNegative{T}"/>, <see cref="Negative{T}"/>, and <see cref="NonPositive{T}"/> to the underlying primitive type with the appropriate minimum/maximum bound.</summary>
+/// <summary>Rewrites the schema for the numeric strong-type wrappers <see cref="Positive{T}"/>, <see cref="NonNegative{T}"/>, <see cref="Negative{T}"/>, and <see cref="NonPositive{T}"/> to the underlying primitive type with the appropriate minimum/maximum floor. Caller-supplied <c>[Range]</c> annotations are preserved when at least as tight as the wrapper's floor.</summary>
 public sealed class NumericStrongTypeSchemaFilter : ISchemaFilter
 {
     private static readonly Dictionary<Type, (JsonSchemaType Type, string? Format)> s_primitiveMap = new()
@@ -32,24 +32,22 @@ public sealed class NumericStrongTypeSchemaFilter : ISchemaFilter
         var underlying = type.GetGenericArguments()[0];
 
         if (definition == typeof(Positive<>))
-            Rewrite(concrete, underlying, minimum: 0m, exclusiveMinimum: true);
+            Paint(concrete, underlying, lowerFloor: (0m, true));
         else if (definition == typeof(NonNegative<>))
-            Rewrite(concrete, underlying, minimum: 0m, exclusiveMinimum: false);
+            Paint(concrete, underlying, lowerFloor: (0m, false));
         else if (definition == typeof(Negative<>))
-            Rewrite(concrete, underlying, maximum: 0m, exclusiveMaximum: true);
+            Paint(concrete, underlying, upperFloor: (0m, true));
         else if (definition == typeof(NonPositive<>))
-            Rewrite(concrete, underlying, maximum: 0m, exclusiveMaximum: false);
+            Paint(concrete, underlying, upperFloor: (0m, false));
     }
 
-    private static void Rewrite(
+    private static void Paint(
         OpenApiSchema schema,
         Type underlying,
-        decimal? minimum = null,
-        bool exclusiveMinimum = false,
-        decimal? maximum = null,
-        bool exclusiveMaximum = false)
+        (decimal Value, bool Exclusive)? lowerFloor = null,
+        (decimal Value, bool Exclusive)? upperFloor = null)
     {
-        StrongTypesSchemaReset.ResetToScalar(schema);
+        SchemaPaint.ClearWrapperShape(schema);
 
         if (s_primitiveMap.TryGetValue(underlying, out var map))
         {
@@ -61,18 +59,9 @@ public sealed class NumericStrongTypeSchemaFilter : ISchemaFilter
             schema.Type = JsonSchemaType.Number;
         }
 
-        if (minimum is { } min)
-        {
-            var text = min.ToString(CultureInfo.InvariantCulture);
-            if (exclusiveMinimum) schema.ExclusiveMinimum = text;
-            else schema.Minimum = text;
-        }
-
-        if (maximum is { } max)
-        {
-            var text = max.ToString(CultureInfo.InvariantCulture);
-            if (exclusiveMaximum) schema.ExclusiveMaximum = text;
-            else schema.Maximum = text;
-        }
+        if (lowerFloor is { } lower)
+            SchemaPaint.TightenLowerBound(schema, lower.Value, lower.Exclusive);
+        if (upperFloor is { } upper)
+            SchemaPaint.TightenUpperBound(schema, upper.Value, upper.Exclusive);
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.OpenApi;
+using StrongTypes.OpenApi.Core;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace StrongTypes.OpenApi.Swashbuckle;
@@ -23,7 +24,7 @@ public sealed class MaybeSchemaFilter : ISchemaFilter
         var innerSchema = context.SchemaGenerator.GenerateSchema(
             innerType, context.SchemaRepository, memberInfo: null, parameterInfo: null, routeInfo: null);
 
-        StrongTypesSchemaReset.ResetToScalar(concrete);
+        SchemaPaint.ClearWrapperShape(concrete);
         concrete.Type = JsonSchemaType.Object;
         concrete.Properties = new Dictionary<string, IOpenApiSchema>
         {
