@@ -1,4 +1,4 @@
-# OpenAPI — `Kalicz.StrongTypes.OpenApi`
+# OpenAPI — `Kalicz.StrongTypes.OpenApi.Microsoft`
 
 For apps wired to **`Microsoft.AspNetCore.OpenApi`** (`AddOpenApi()`).
 If you use **Swashbuckle** (`AddSwaggerGen()`) instead, see

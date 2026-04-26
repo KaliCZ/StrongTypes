@@ -1,4 +1,4 @@
-# Kalicz.StrongTypes.OpenApi
+# Kalicz.StrongTypes.OpenApi.Microsoft
 
 OpenAPI schema plumbing for [Kalicz.StrongTypes](https://www.nuget.org/packages/Kalicz.StrongTypes).
 
@@ -9,10 +9,14 @@ union surface. This package registers schema transformers that rewrite those
 schemas to match the JSON the converters actually emit, so generated clients
 and API explorers see the real wire format.
 
+If your app uses Swashbuckle (`AddSwaggerGen()`) instead, install
+[`Kalicz.StrongTypes.OpenApi.Swashbuckle`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Swashbuckle)
+— it provides the same schema corrections against Swashbuckle's pipeline.
+
 ## Install
 
 ```powershell
-dotnet add package Kalicz.StrongTypes.OpenApi
+dotnet add package Kalicz.StrongTypes.OpenApi.Microsoft
 ```
 
 ## Register

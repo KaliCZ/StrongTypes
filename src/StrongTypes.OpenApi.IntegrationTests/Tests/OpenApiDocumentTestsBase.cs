@@ -429,4 +429,5 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         Assert.Equal(0m, DecimalOrNull(inner, "minimum"));
         Assert.True(BoolOrFalse(inner, "exclusiveMinimum"));
     }
+
 }

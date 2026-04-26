@@ -1,4 +1,4 @@
-# Swashbuckle — `Kalicz.StrongTypes.Swashbuckle`
+# Swashbuckle — `Kalicz.StrongTypes.OpenApi.Swashbuckle`
 
 For apps wired to **`Swashbuckle.AspNetCore`** (`AddSwaggerGen()`). If
 you use Microsoft's built-in **`AddOpenApi()`** instead, see

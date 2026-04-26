@@ -66,17 +66,17 @@
   <circle class="sm-bullet" cx="230" cy="316" r="2"/>
   <text class="card-body" x="238" y="320">generators</text>
 
-  <!-- OpenApi card -->
+  <!-- OpenApi.Microsoft card -->
   <rect x="405" y="245" width="185" height="100" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
-  <text class="card-title" x="419" y="269">Kalicz.StrongTypes.OpenApi</text>
+  <text class="card-title" x="412" y="269">Kalicz.StrongTypes.OpenApi.Microsoft</text>
   <circle class="sm-bullet" cx="425" cy="294" r="2"/>
   <text class="card-body" x="433" y="298">Schema transformers</text>
   <circle class="sm-bullet" cx="425" cy="316" r="2"/>
   <text class="card-body" x="433" y="320">for <tspan font-family="ui-monospace, Menlo, Consolas, monospace">AddOpenApi()</tspan></text>
 
-  <!-- Swashbuckle card -->
+  <!-- OpenApi.Swashbuckle card -->
   <rect x="600" y="245" width="185" height="100" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
-  <text class="card-title" x="614" y="269">Kalicz.StrongTypes.Swashbuckle</text>
+  <text class="card-title" x="608" y="269">Kalicz.StrongTypes.OpenApi.Swashbuckle</text>
   <circle class="sm-bullet" cx="620" cy="294" r="2"/>
   <text class="card-body" x="628" y="298">Schema filters</text>
   <circle class="sm-bullet" cx="620" cy="316" r="2"/>

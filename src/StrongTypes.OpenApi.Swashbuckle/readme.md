@@ -1,4 +1,4 @@
-# Kalicz.StrongTypes.Swashbuckle
+# Kalicz.StrongTypes.OpenApi.Swashbuckle
 
 Swashbuckle (Swagger) schema plumbing for [Kalicz.StrongTypes](https://www.nuget.org/packages/Kalicz.StrongTypes).
 
@@ -10,13 +10,13 @@ JSON the converters actually emit, so generated clients and Swagger UI see the
 real wire format.
 
 If your app uses `Microsoft.AspNetCore.OpenApi` (`AddOpenApi()`) instead of
-Swashbuckle, install [`Kalicz.StrongTypes.OpenApi`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi)
+Swashbuckle, install [`Kalicz.StrongTypes.OpenApi.Microsoft`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft)
 — it provides the same schema corrections against Microsoft's pipeline.
 
 ## Install
 
 ```powershell
-dotnet add package Kalicz.StrongTypes.Swashbuckle
+dotnet add package Kalicz.StrongTypes.OpenApi.Swashbuckle
 ```
 
 ## Register

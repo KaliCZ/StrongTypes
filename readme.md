@@ -3,8 +3,8 @@
 [![StrongTypes downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
 [![StrongTypes.EfCore downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.EfCore?label=downloads%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)
 [![StrongTypes.FsCheck downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.FsCheck?label=downloads%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
-[![StrongTypes.OpenApi downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.OpenApi?label=downloads%20%28StrongTypes.OpenApi%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi/)
-[![StrongTypes.Swashbuckle downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.Swashbuckle?label=downloads%20%28StrongTypes.Swashbuckle%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.Swashbuckle/)
+[![StrongTypes.OpenApi.Microsoft downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.OpenApi.Microsoft?label=downloads%20%28StrongTypes.OpenApi.Microsoft%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft/)
+[![StrongTypes.OpenApi.Swashbuckle downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.OpenApi.Swashbuckle?label=downloads%20%28StrongTypes.OpenApi.Swashbuckle%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Swashbuckle/)
 
 StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive".
 
@@ -144,8 +144,8 @@ If you want to store strong types directly on your EF Core entities, add the com
 
 By default, ASP.NET Core's spec generators describe strong-type wrappers by their CLR shape — `NonEmptyString` becomes an object with a `Value` field, `Positive<int>` a wrapper object, `Maybe<T>` the full union surface — so generated clients see nonsense and validation hints (`minLength`, `minimum`, …) never reach consumers. Two companion packages fix that, one per generator pipeline:
 
-- [`Kalicz.StrongTypes.OpenApi`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi/) for **`Microsoft.AspNetCore.OpenApi`** (`AddOpenApi()`, the default in .NET 9+ templates). Register with `options.AddStrongTypes()`. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.OpenApi/readme.md).
-- [`Kalicz.StrongTypes.Swashbuckle`](https://www.nuget.org/packages/Kalicz.StrongTypes.Swashbuckle/) for **`Swashbuckle.AspNetCore`** (`AddSwaggerGen()`). Register with `options.AddStrongTypes()`. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.Swashbuckle/readme.md).
+- [`Kalicz.StrongTypes.OpenApi.Microsoft`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft/) for **`Microsoft.AspNetCore.OpenApi`** (`AddOpenApi()`, the default in .NET 9+ templates). Register with `options.AddStrongTypes()`. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.OpenApi.Microsoft/readme.md).
+- [`Kalicz.StrongTypes.OpenApi.Swashbuckle`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Swashbuckle/) for **`Swashbuckle.AspNetCore`** (`AddSwaggerGen()`). Register with `options.AddStrongTypes()`. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.OpenApi.Swashbuckle/readme.md).
 
 Pick the one that matches the generator your app already uses. They're not interchangeable — `Microsoft.AspNetCore.OpenApi` and Swashbuckle have disjoint extension points (`IOpenApiSchemaTransformer` vs `ISchemaFilter`), so the package built for one does nothing for the other.
 
