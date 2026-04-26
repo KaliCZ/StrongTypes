@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace StrongTypes.OpenApi.TestApi.Swashbuckle;
+namespace StrongTypes.OpenApi.TestApi.Shared;
 
 [ApiController]
 [Route("non-empty-string-entities")]

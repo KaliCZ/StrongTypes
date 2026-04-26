@@ -13,6 +13,8 @@
     <Project Path="src/StrongTypes.OpenApi.Core/StrongTypes.OpenApi.Core.csproj" />
     <Project Path="src/StrongTypes.OpenApi.Microsoft/StrongTypes.OpenApi.Microsoft.csproj" />
     <Project Path="src/StrongTypes.OpenApi.Swashbuckle/StrongTypes.OpenApi.Swashbuckle.csproj" />
+    <Project Path="src/StrongTypes.OpenApi.TestApi.Shared/StrongTypes.OpenApi.TestApi.Shared.csproj" />
+    <Project Path="src/StrongTypes.OpenApi.TestApi.Microsoft/StrongTypes.OpenApi.TestApi.Microsoft.csproj" />
     <Project Path="src/StrongTypes.OpenApi.TestApi.Swashbuckle/StrongTypes.OpenApi.TestApi.Swashbuckle.csproj" />
   </Folder>
   <Folder Name="/Main Package/">

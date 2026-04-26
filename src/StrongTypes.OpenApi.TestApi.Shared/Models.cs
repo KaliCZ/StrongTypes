@@ -1,4 +1,4 @@
-namespace StrongTypes.OpenApi.TestApi.Swashbuckle;
+namespace StrongTypes.OpenApi.TestApi.Shared;
 
 public sealed record StructEntityRequest<T>(T Value, T? NullableValue) where T : struct;
 

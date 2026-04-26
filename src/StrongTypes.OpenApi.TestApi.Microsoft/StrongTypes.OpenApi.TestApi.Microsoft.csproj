@@ -7,15 +7,13 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>CS1591</NoWarn>
     <IsPackable>false</IsPackable>
-    <RootNamespace>StrongTypes.OpenApi.TestApi.Swashbuckle</RootNamespace>
-    <AssemblyName>StrongTypes.OpenApi.TestApi.Swashbuckle</AssemblyName>
+    <RootNamespace>StrongTypes.OpenApi.TestApi.Microsoft</RootNamespace>
+    <AssemblyName>StrongTypes.OpenApi.TestApi.Microsoft</AssemblyName>
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.OpenApi.Generated</InterceptorsNamespaces>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
-    <ProjectReference Include="..\StrongTypes.OpenApi.Swashbuckle\StrongTypes.OpenApi.Swashbuckle.csproj" />
+    <ProjectReference Include="..\StrongTypes.OpenApi.Microsoft\StrongTypes.OpenApi.Microsoft.csproj" />
     <ProjectReference Include="..\StrongTypes.OpenApi.TestApi.Shared\StrongTypes.OpenApi.TestApi.Shared.csproj" />
   </ItemGroup>
 </Project>

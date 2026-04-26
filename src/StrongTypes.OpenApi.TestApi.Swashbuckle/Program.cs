@@ -1,4 +1,5 @@
 using StrongTypes.OpenApi.Swashbuckle;
+using StrongTypes.OpenApi.TestApi.Shared;
 
 namespace StrongTypes.OpenApi.TestApi.Swashbuckle;
 
@@ -11,7 +12,8 @@ public class SwashbuckleTestApiEntryPoint
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .AddApplicationPart(typeof(NonEmptyStringEntityController).Assembly);
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(options => options.AddStrongTypes());
 
