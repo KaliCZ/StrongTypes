@@ -65,6 +65,21 @@ public static class NumberExtensions
     public static NonPositive<T> ToNonPositive<T>(this T value) where T : INumber<T>
         => NonPositive<T>.Create(value);
 
+    /// <summary>Wraps <paramref name="value"/> as <see cref="BoundedInt{TBounds}"/>, or returns <c>null</c> when it is outside <c>[TBounds.Min, TBounds.Max]</c>.</summary>
+    /// <typeparam name="TBounds">A witness type carrying the inclusive lower and upper bounds.</typeparam>
+    /// <param name="value">The number to validate.</param>
+    [Pure]
+    public static BoundedInt<TBounds>? AsBounded<TBounds>(this int value) where TBounds : IBounds<int>
+        => BoundedInt<TBounds>.TryCreate(value);
+
+    /// <summary>Wraps <paramref name="value"/> as <see cref="BoundedInt{TBounds}"/>.</summary>
+    /// <typeparam name="TBounds">A witness type carrying the inclusive lower and upper bounds.</typeparam>
+    /// <param name="value">The number to validate.</param>
+    /// <exception cref="System.ArgumentException"><paramref name="value"/> is outside <c>[TBounds.Min, TBounds.Max]</c>.</exception>
+    [Pure]
+    public static BoundedInt<TBounds> ToBounded<TBounds>(this int value) where TBounds : IBounds<int>
+        => BoundedInt<TBounds>.Create(value);
+
     /// <summary>Divides <paramref name="a"/> by <paramref name="b"/>, or returns <c>null</c> when <paramref name="b"/> is zero.</summary>
     /// <param name="a">The dividend.</param>
     /// <param name="b">The divisor.</param>
