@@ -42,12 +42,25 @@ jobs:
     # `-- --coverage ...` forwards flags to Microsoft.Testing.Platform's code
     # coverage extension; each test project emits a Cobertura XML under its
     # own TestResults/ folder, which ReportGenerator merges in the next step.
+    #
+    # Wrapped in one retry: integration tests boot Testcontainers that pull
+    # mcr.microsoft.com / Docker Hub images, and those registries' edge WAFs
+    # occasionally block runner IPs, failing every test in a single fixture-
+    # init burst. A single retry recovers from the short-lived block without
+    # masking real test failures (a real failure fails twice and surfaces).
     - name: Test
-      run: >-
-        dotnet test --no-restore --no-build --configuration $config
-        --
-        --coverage
-        --coverage-output-format cobertura
+      run: |
+        attempt=1
+        max_attempts=2
+        until dotnet test --no-restore --no-build --configuration $config -- --coverage --coverage-output-format cobertura; do
+          if [ $attempt -ge $max_attempts ]; then
+            echo "::error::Tests failed after $attempt attempts"
+            exit 1
+          fi
+          echo "::warning::Tests failed on attempt $attempt/$max_attempts, retrying after 10s..."
+          attempt=$((attempt+1))
+          sleep 10
+        done
 
     - name: Generate coverage report
       if: ${{ !cancelled() }}
