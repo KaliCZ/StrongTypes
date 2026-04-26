@@ -21,6 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes.Api\StrongTypes.Api.csproj" />
     <ProjectReference Include="..\StrongTypes.EfCore\StrongTypes.EfCore.csproj" />
-    <ProjectReference Include="..\StrongTypes.SwaggerApi\StrongTypes.SwaggerApi.csproj" />
+    <ProjectReference Include="..\StrongTypes.OpenApi.TestApi.Swashbuckle\StrongTypes.OpenApi.TestApi.Swashbuckle.csproj" />
   </ItemGroup>
 </Project>

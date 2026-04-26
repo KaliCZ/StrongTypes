@@ -15,6 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
     <ProjectReference Include="..\StrongTypes.EfCore\StrongTypes.EfCore.csproj" />
-    <ProjectReference Include="..\StrongTypes.OpenApi\StrongTypes.OpenApi.csproj" />
+    <ProjectReference Include="..\StrongTypes.OpenApi.Microsoft\StrongTypes.OpenApi.Microsoft.csproj" />
   </ItemGroup>
 </Project>

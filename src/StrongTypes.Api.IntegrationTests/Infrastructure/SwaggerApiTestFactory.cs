@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Testing;
-using StrongTypes.SwaggerApi;
+using StrongTypes.OpenApi.TestApi.Swashbuckle;
 
 namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 
@@ -8,6 +8,6 @@ namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 /// suite uses this instead of <see cref="TestWebApplicationFactory"/> so the
 /// JSON spec it inspects is unambiguously the Swashbuckle pipeline's output,
 /// not Microsoft.AspNetCore.OpenApi's. No databases are needed — the
-/// SwaggerApi project carries no persistence.
+/// Swashbuckle test app carries no persistence.
 /// </summary>
-public sealed class SwaggerApiTestFactory : WebApplicationFactory<SwaggerApiEntryPoint>;
+public sealed class SwaggerApiTestFactory : WebApplicationFactory<SwashbuckleTestApiEntryPoint>;
