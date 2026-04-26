@@ -205,26 +205,26 @@ mistakes you wouldn't catch from the decision trees alone.
    `Result<T, TError>.Success(value)`; `Maybe<int> x = 42;` over
    `Maybe<int>.Some(42)`. Use the explicit form only when inference
    collides.
-5. **Downstream signatures that take the underlying type.** Once a
-   value has been validated into a `NonEmptyString` / `Positive<int>`,
-   keep that type flowing through the code you own — service methods,
-   DB entity properties, message payloads. A downstream `string` /
-   `int` parameter throws away the invariant and forces every caller
-   to re-validate (or skip validation and hope).
+5. **Signatures typed against what the value *can* be, not what it
+   *must* be.** Pick parameter, return, and property types from the
+   value's actual semantics — not from the caller's convenience or
+   whatever primitive happens to be lying around. If a name genuinely
+   can't be empty for the function to make sense, the parameter is
+   `NonEmptyString`. If a count must be positive, it's `Positive<int>`.
+   The signature is the contract; let it carry the invariant.
 
    ```csharp
-   // Wrong — caller has a NonEmptyString but the signature accepts
-   // any string, so the invariant is gone at the next layer.
+   // Wrong — `Greet("")` is meaningless, but the signature allows it.
    public void Greet(string name) { ... }
 
-   // Right — the signature documents and enforces the invariant.
+   // Right — the type rules out the meaningless call.
    public void Greet(NonEmptyString name) { ... }
    ```
 
    `.Value` and the implicit conversion are interchangeable — neither
-   is "wrong". The fix is to widen the wrapper's reach in your own
-   types, not to police how you cross into BCL / third-party APIs that
-   take primitives.
+   is "wrong". The fix is to model the right type at the boundary, not
+   to police how you cross into BCL / third-party APIs that take
+   primitives.
 
 6. **Constructing wrappers through the throwing factory in a controller.**
    `ToX` is for *internal* code where invalid input is a bug. `AsX` is
