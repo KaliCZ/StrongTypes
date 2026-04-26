@@ -5,13 +5,17 @@ Construction is always via the factory pair — constructors are private.
 
 ## Factories
 
-```csharp
-NonEmptyString? name = NonEmptyString.TryCreate(input);   // null when null / empty / whitespace
-NonEmptyString  name = NonEmptyString.Create(input);      // throws ArgumentException
+**Prefer the extensions** — they read better at the call site and chain
+naturally. The static factories exist for cases where extension lookup
+isn't possible (generic code, expression trees that can't see usings).
 
-// Extensions — identical semantics, nicer syntax at the call site.
+```csharp
 NonEmptyString? name = input.AsNonEmpty();                // null on failure
 NonEmptyString  name = input.ToNonEmpty();                // throws on failure
+
+// Static factories — identical semantics, less idiomatic.
+NonEmptyString? name = NonEmptyString.TryCreate(input);
+NonEmptyString  name = NonEmptyString.Create(input);
 ```
 
 `AsNonEmpty()` is the one you want 90% of the time — pattern-match with

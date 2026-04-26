@@ -8,10 +8,11 @@ All three follow the `As… returns T?` / `To… throws` pattern.
 A `readonly struct` wrapping a single `'0'`–`'9'` character.
 
 ```csharp
+Digit? d = '7'.AsDigit();          // extension on char — preferred
+
+// Static factories — same semantics, less idiomatic.
 Digit? d = Digit.TryCreate('7');   // null if not '0'..'9'
 Digit  d = Digit.Create('7');      // throws on invalid
-
-Digit? d = '7'.AsDigit();          // extension on char
 ```
 
 Conversions and invariants:

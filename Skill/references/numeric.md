@@ -17,18 +17,20 @@ that would break it.
 
 ## Factories
 
-Same pattern as `NonEmptyString`:
+Same pattern as `NonEmptyString` — **prefer the extensions**; static
+factories exist as a fallback for generic code where extension lookup
+isn't reachable.
 
 ```csharp
-Positive<int>?       p   = Positive<int>.TryCreate(input);   // null if invalid
-Positive<int>        p   = Positive<int>.Create(input);      // throws if invalid
-
-// Extensions
 Positive<int>?       p   = input.AsPositive();               // null on failure
 Positive<int>        p   = input.ToPositive();               // throws on failure
 NonNegative<decimal> nn  = price.ToNonNegative();
 Negative<int>?       n   = drift.AsNegative();
 NonPositive<decimal> np  = correction.ToNonPositive();
+
+// Static factories — same semantics, less idiomatic.
+Positive<int>?       p   = Positive<int>.TryCreate(input);
+Positive<int>        p   = Positive<int>.Create(input);
 ```
 
 All four types have `AsX` / `ToX` extension methods available on any
@@ -45,7 +47,7 @@ All four types have `AsX` / `ToX` extension methods available on any
   prefer `AsPositive()` / `ToPositive()` extensions instead.
 - `IEquatable<Self>`, `IEquatable<T>`, `IComparable<Self>`, `IComparable<T>`
   and matching `==`, `!=`, `<`, `<=`, `>`, `>=` operators on both sides —
-  so `Positive<int>.Create(4) > 2` is just a comparison, no unwrap.
+  so `4.ToPositive() > 2` is just a comparison, no unwrap.
 - `GetHashCode`, `Equals(object?)`, `ToString()` delegating to the value.
 - `System.Text.Json` converter via `[JsonConverter]` — serialises as the
   underlying primitive.
