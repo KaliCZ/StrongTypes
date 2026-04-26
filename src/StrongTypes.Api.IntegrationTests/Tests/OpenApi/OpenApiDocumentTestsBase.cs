@@ -1,26 +1,28 @@
 using System.Net.Http.Json;
 using System.Text.Json;
-using StrongTypes.Api.IntegrationTests.Infrastructure;
 using Xunit;
 
 namespace StrongTypes.Api.IntegrationTests.Tests.OpenApi;
 
 /// <summary>
-/// Fetches the OpenAPI document served by the API and asserts that every
-/// strong type is described using the JSON shape its converter actually reads
-/// and writes — not the raw CLR shape ASP.NET Core would infer by default.
+/// The OpenAPI spec contract every strong-type wrapper must satisfy, regardless
+/// of which generator produced the document. The Microsoft.AspNetCore.OpenApi
+/// and Swashbuckle pipelines emit the same logical schema (modulo formatting,
+/// ordering, and component naming); a single shared assertion suite pins the
+/// shape and is run twice — once per concrete subclass — so any divergence
+/// shows up as a per-generator failure.
 /// </summary>
-[Collection(IntegrationTestCollection.Name)]
-public sealed class OpenApiDocumentTests(TestWebApplicationFactory factory) : IDisposable
+public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 {
-    private readonly HttpClient _client = factory.CreateClient();
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-    public void Dispose() => _client.Dispose();
+    public void Dispose() => client.Dispose();
+
+    protected abstract string DocumentUrl { get; }
 
     private async Task<JsonElement> GetDocumentAsync()
     {
-        var response = await _client.GetAsync("/openapi/v1.json", Ct);
+        var response = await client.GetAsync(DocumentUrl, Ct);
         Assert.True(
             response.IsSuccessStatusCode,
             $"Expected success but got {(int)response.StatusCode} {response.StatusCode}: {await response.Content.ReadAsStringAsync(Ct)}");
@@ -28,11 +30,11 @@ public sealed class OpenApiDocumentTests(TestWebApplicationFactory factory) : ID
     }
 
     // Resolves a schema node against the document. Follows $ref (components
-    // lookup), the single-element allOf wrapper ASP.NET Core emits for nullable
-    // $ref positions in older library versions (`{ "allOf": [{ "$ref": ... }],
-    // "nullable": true }`), and the oneOf wrapper the newer Microsoft.OpenApi
-    // 2.x writer emits (`{ "oneOf": [{ "nullable": true }, { "$ref": ... }] }`),
-    // so the tests stay focused on the underlying schema contract.
+    // lookup), the single-element allOf wrapper older OpenAPI writers emit for
+    // nullable $ref positions (`{ "allOf": [{ "$ref": ... }], "nullable": true }`),
+    // and the oneOf wrapper the newer Microsoft.OpenApi 2.x writer emits
+    // (`{ "oneOf": [{ "nullable": true }, { "$ref": ... }] }`), so the tests
+    // stay focused on the underlying schema contract.
     private static JsonElement Resolve(JsonElement doc, JsonElement schema)
     {
         while (true)

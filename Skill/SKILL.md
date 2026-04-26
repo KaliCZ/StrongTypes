@@ -21,8 +21,10 @@ demand when about to write code against that surface.
 | `Kalicz.StrongTypes`          | The core types (`NonEmptyString`, numeric wrappers, `NonEmptyEnumerable<T>`, `Maybe<T>`, `Result<T, TError>`, …).  |
 | `Kalicz.StrongTypes.EfCore`   | EF Core value converters + a `.Unwrap()` LINQ translator so strong types sit directly on entity properties.        |
 | `Kalicz.StrongTypes.FsCheck`  | FsCheck `Arbitrary<T>` generators registered via `[Properties(Arbitrary = new[] { typeof(Generators) })]`.         |
+| `Kalicz.StrongTypes.OpenApi`  | Schema transformers for `Microsoft.AspNetCore.OpenApi` (`AddOpenApi()`) so wrappers render as the wire JSON shape, not the CLR shape. |
+| `Kalicz.StrongTypes.Swashbuckle` | The same idea for Swashbuckle's `AddSwaggerGen()` pipeline — schema filters that produce the wire JSON shape. |
 
-Add EfCore / FsCheck only when you hit those stacks.
+Add EfCore / FsCheck only when you hit those stacks. Pick **one** of OpenApi or Swashbuckle to match the spec generator your app already uses (they're not interchangeable — see `references/openapi.md` for the decision).
 
 ## Type catalog — what's in the box
 
@@ -55,6 +57,8 @@ demand when about to write code against that surface.
 | `IEnumerable<T>` extensions, `ReadOnlyList`, `Result` partition helpers | `references/collections.md`     |
 | EF Core: `UseStrongTypes` value converters, `.Unwrap()` LINQ marker | `references/efcore.md`          |
 | FsCheck: shared `Generators` class, shipped arbitraries       | `references/fscheck.md`         |
+| OpenAPI (Microsoft `AddOpenApi`): `AddStrongTypes()` schema transformers | `references/openapi.md`     |
+| OpenAPI (Swashbuckle `AddSwaggerGen`): `AddStrongTypes()` schema filters | `references/swashbuckle.md` |
 
 ## Design philosophy — picking the right wrapper
 

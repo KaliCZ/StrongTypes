@@ -2,6 +2,7 @@
   <Folder Name="/API Tests/">
     <Project Path="src/StrongTypes.Api.IntegrationTests/StrongTypes.Api.IntegrationTests.csproj" />
     <Project Path="src/StrongTypes.Api/StrongTypes.Api.csproj" />
+    <Project Path="src/StrongTypes.SwaggerApi/StrongTypes.SwaggerApi.csproj" />
   </Folder>
   <Folder Name="/EF Core package/">
     <Project Path="src/StrongTypes.EfCore/StrongTypes.EfCore.csproj" />
@@ -11,6 +12,9 @@
   </Folder>
   <Folder Name="/OpenApi package/">
     <Project Path="src/StrongTypes.OpenApi/StrongTypes.OpenApi.csproj" />
+  </Folder>
+  <Folder Name="/Swashbuckle package/">
+    <Project Path="src/StrongTypes.Swashbuckle/StrongTypes.Swashbuckle.csproj" />
   </Folder>
   <Folder Name="/Main Package/">
     <Project Path="src/StrongTypes.Analyzers/StrongTypes.Analyzers.csproj" />
