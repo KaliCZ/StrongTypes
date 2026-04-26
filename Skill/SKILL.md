@@ -157,20 +157,37 @@ Consequences:
 - `Result<T, TError>` has **no** converter by design. Translate to a
   response DTO before serialising.
 
-## Per-type references — load on demand
+## Type catalog — what's in the box
 
-| Type / topic                                          | File                                         |
-| ----------------------------------------------------- | -------------------------------------------- |
-| `NonEmptyString` (factories, string surface, parsers) | `references/nonemptystring.md`               |
-| `Positive<T>` / `NonNegative<T>` / `Negative<T>` / `NonPositive<T>` | `references/numeric.md`         |
-| `NonEmptyEnumerable<T>` / `INonEmptyEnumerable<T>`    | `references/nonemptyenumerable.md`           |
-| `Digit`, enum extensions, `string?` parsers           | `references/parsing.md`                      |
-| `T?.Map`, `bool.MapTrue` / `MapFalse`                 | `references/map.md`                          |
-| `Maybe<T>` (incl. three-state `Maybe<T>?` updates)    | `references/maybe.md`                        |
-| `Result<T, TError>` and `Result<T>`                   | `references/result.md`                       |
-| Collection / exception / boolean helpers              | `references/collections.md`                  |
-| EF Core integration (`UseStrongTypes`, `Unwrap()`)    | `references/efcore.md`                       |
-| FsCheck integration (`Generators`, arbitraries)       | `references/fscheck.md`                      |
+Quick scan of what the library ships. Per-type detail (factories, full
+API surface, edge cases) lives in the linked reference — load it on
+demand when about to write code against that surface.
+
+**Validated wrappers** (invalid input → `null` from `AsX`, exception from `ToX`)
+
+| Type                                                                | Invariant                            | Reference                          |
+| ------------------------------------------------------------------- | ------------------------------------ | ---------------------------------- |
+| `NonEmptyString`                                                    | non-null, non-empty, non-whitespace  | `references/nonemptystring.md`     |
+| `Positive<T>` / `NonNegative<T>` / `Negative<T>` / `NonPositive<T>` | sign constraint on any `INumber<T>`  | `references/numeric.md`            |
+| `NonEmptyEnumerable<T>` / `INonEmptyEnumerable<T>`                  | at least one element                 | `references/nonemptyenumerable.md` |
+| `Digit`                                                             | a single `'0'`–`'9'` character       | `references/parsing.md`            |
+
+**Algebraic types** (no validation; carry a value or an alternative)
+
+| Type                                       | Shape                                            | Reference              |
+| ------------------------------------------ | ------------------------------------------------ | ---------------------- |
+| `Maybe<T>`                                 | `Some(T)` / `None`. `Maybe<T>?` = three-state.   | `references/maybe.md`  |
+| `Result<T, TError>` / `Result<T>`          | `Success(T)` / `Error(TError)`. `Result<T>` is a shorthand for `TError = Exception`. | `references/result.md` |
+
+**Helpers and integrations**
+
+| Topic                                                         | Reference                       |
+| ------------------------------------------------------------- | ------------------------------- |
+| Enum extensions (`Enum.Parse`, `AllValues`, `AllFlagValues`, `GetFlags`) and `string?` parsers (`AsInt`, `AsGuid`, `AsEnum<T>`, …) | `references/parsing.md`         |
+| `T?.Map`, `bool.MapTrue` / `MapFalse`                         | `references/map.md`             |
+| `IEnumerable<T>` extensions, `ReadOnlyList`, `Result` partition helpers | `references/collections.md`     |
+| EF Core: `UseStrongTypes` value converters, `.Unwrap()` LINQ marker | `references/efcore.md`          |
+| FsCheck: shared `Generators` class, shipped arbitraries       | `references/fscheck.md`         |
 
 ## Anti-patterns — common misuses to avoid
 
