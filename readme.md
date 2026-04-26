@@ -10,12 +10,17 @@ Every type ships with `System.Text.Json` converters out of the box (except `Resu
 
 You can also store the types directly in your EF Core entities with the use of the EfCore package.
 
+> 🤖 Letting Claude Code or Codex write code in a project that uses
+> StrongTypes? See [Use with Claude or Codex](#use-with-claude-or-codex)
+> below.
+
 ![Impact of StrongTypes on validation boundaries](docs/diagrams/impact.svg)
 
 ![Package layout](docs/diagrams/package-layout.svg)
 
 ## Contents
 
+- [Use with Claude or Codex](#use-with-claude-or-codex)
 - [Helpful Types](#helpful-types)
   - [`NonEmptyString`](#nonemptystring)
   - [Numeric wrappers: `Positive<T>`, `NonNegative<T>`, `Negative<T>`, `NonPositive<T>`](#numeric-wrappers)
@@ -30,6 +35,22 @@ You can also store the types directly in your EF Core entities with the use of t
   - [Prefer nullables: `Map`, `MapTrue`, `MapFalse`](#prefer-nullables-map-maptrue-mapfalse)
   - [`Maybe<T>`](#maybet)
   - [`Result<T, TError>`](#resultt-terror)
+
+## Use with Claude or Codex
+
+The skill lives in [`Skill/`](Skill/). Drop it under your project's
+`.claude/skills/strongtypes/` (or `~/.claude/skills/strongtypes/` for
+user scope; swap `.claude` for `.codex` for Codex) and the agent picks
+it up. Each release ships a `strongtypes-skill.tar.gz` asset:
+
+```bash
+mkdir -p .claude/skills/strongtypes
+curl -L https://github.com/KaliCZ/StrongTypes/releases/latest/download/strongtypes-skill.tar.gz \
+  | tar -xz -C .claude/skills/strongtypes
+```
+
+[↑ Back to contents](#contents)
+
 
 ## Helpful Types
 
