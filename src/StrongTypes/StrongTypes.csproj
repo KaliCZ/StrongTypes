@@ -60,23 +60,26 @@
   </Target>
   <!-- Rewrite relative readme links — diagrams under docs/diagrams/ and the
        skill file under Skill/ — to absolute URLs pinned to the release tag
-       before packing. The source readme.md keeps relative paths so GitHub
-       browsing (both HEAD and per-tag views) resolves them against the
-       corresponding commit; the packed copy points at a fixed tag so nuget.org
-       renders the diagrams that shipped with that version (and links to the
-       SKILL.md that shipped with that version), even if the source moves on
-       main later. Dev builds (Version=0.0.0-dev) fall back to the main branch. -->
+       before packing. Also pin the "releases/latest/download/" skill-tarball
+       URL to the specific release tag so the nuget.org-rendered readme for
+       a given package version points at the asset that shipped with that
+       version. The source readme.md keeps relative paths and the latest
+       URL so GitHub browsing always resolves to the most recent release;
+       the packed copy is version-locked. Dev builds (Version=0.0.0-dev)
+       fall back to main / latest. -->
   <UsingTask TaskName="_RewriteReleaseUrls" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <SourcePath ParameterType="System.String" Required="true" />
       <DestinationPath ParameterType="System.String" Required="true" />
       <RawBaseUrl ParameterType="System.String" Required="true" />
+      <ReleaseAssetBaseUrl ParameterType="System.String" Required="true" />
     </ParameterGroup>
     <Task>
       <Code Type="Fragment" Language="cs"><![CDATA[
         var content = System.IO.File.ReadAllText(SourcePath);
         content = content.Replace("](docs/diagrams/", "](" + RawBaseUrl + "docs/diagrams/");
         content = content.Replace("](Skill/", "](" + RawBaseUrl + "Skill/");
+        content = content.Replace("https://github.com/KaliCZ/StrongTypes/releases/latest/download/", ReleaseAssetBaseUrl);
         System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(DestinationPath));
         System.IO.File.WriteAllText(DestinationPath, content);
       ]]></Code>
@@ -89,8 +92,10 @@
       <_ReleaseRef Condition="'$(Version)' != '' and '$(Version)' != '0.0.0-dev'">v$(Version)</_ReleaseRef>
       <_ReleaseRef Condition="'$(_ReleaseRef)' == ''">main</_ReleaseRef>
       <_ReleaseRawBaseUrl>https://raw.githubusercontent.com/KaliCZ/StrongTypes/$(_ReleaseRef)/</_ReleaseRawBaseUrl>
+      <_ReleaseAssetBaseUrl Condition="'$(Version)' != '' and '$(Version)' != '0.0.0-dev'">https://github.com/KaliCZ/StrongTypes/releases/download/v$(Version)/</_ReleaseAssetBaseUrl>
+      <_ReleaseAssetBaseUrl Condition="'$(_ReleaseAssetBaseUrl)' == ''">https://github.com/KaliCZ/StrongTypes/releases/latest/download/</_ReleaseAssetBaseUrl>
     </PropertyGroup>
-    <_RewriteReleaseUrls SourcePath="$(_ReadmeSourcePath)" DestinationPath="$(_PackedReadmePath)" RawBaseUrl="$(_ReleaseRawBaseUrl)" />
+    <_RewriteReleaseUrls SourcePath="$(_ReadmeSourcePath)" DestinationPath="$(_PackedReadmePath)" RawBaseUrl="$(_ReleaseRawBaseUrl)" ReleaseAssetBaseUrl="$(_ReleaseAssetBaseUrl)" />
     <ItemGroup>
       <None Include="$(_PackedReadmePath)" Pack="true" PackagePath="\" Visible="false" />
     </ItemGroup>

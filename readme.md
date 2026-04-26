@@ -47,7 +47,7 @@ it up. Each release ships a `strongtypes-skill.tar.gz` asset:
 
 ```bash
 mkdir -p .claude/skills/strongtypes
-curl -L https://github.com/KaliCZ/StrongTypes/releases/download/v1.2.0/strongtypes-skill.tar.gz \
+curl -L https://github.com/KaliCZ/StrongTypes/releases/latest/download/strongtypes-skill.tar.gz \
   | tar -xz -C .claude/skills/strongtypes
 ```
 
