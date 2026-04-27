@@ -49,40 +49,40 @@
   <text class="sub-body" x="81" y="185">Numeric wrappers <tspan font-family="ui-monospace, Menlo, Consolas, monospace">(Positive&lt;T&gt;, …)</tspan></text>
 
   <!-- OpenApi.Microsoft card (top-right) -->
-  <rect x="425" y="15" width="360" height="92" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
-  <text class="card-title" x="439" y="37">Kalicz.StrongTypes.OpenApi.Microsoft</text>
-  <circle class="sm-bullet" cx="445" cy="62" r="2"/>
-  <text class="card-body" x="453" y="66">Schema transformers</text>
-  <circle class="sm-bullet" cx="445" cy="87" r="2"/>
-  <text class="card-body" x="453" y="91">for <tspan font-family="ui-monospace, Menlo, Consolas, monospace">AddOpenApi()</tspan></text>
+  <rect x="460" y="15" width="320" height="92" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text class="card-title" x="474" y="37">Kalicz.StrongTypes.OpenApi.Microsoft</text>
+  <circle class="sm-bullet" cx="480" cy="62" r="2"/>
+  <text class="card-body" x="488" y="66">Schema transformers</text>
+  <circle class="sm-bullet" cx="480" cy="87" r="2"/>
+  <text class="card-body" x="488" y="91">for <tspan font-family="ui-monospace, Menlo, Consolas, monospace">AddOpenApi()</tspan></text>
 
   <!-- OpenApi.Swashbuckle card (mid-right) -->
-  <rect x="425" y="113" width="360" height="92" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
-  <text class="card-title" x="439" y="135">Kalicz.StrongTypes.OpenApi.Swashbuckle</text>
-  <circle class="sm-bullet" cx="445" cy="160" r="2"/>
-  <text class="card-body" x="453" y="164">Schema filters</text>
-  <circle class="sm-bullet" cx="445" cy="185" r="2"/>
-  <text class="card-body" x="453" y="189">for <tspan font-family="ui-monospace, Menlo, Consolas, monospace">AddSwaggerGen()</tspan></text>
+  <rect x="460" y="113" width="320" height="92" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text class="card-title" x="474" y="135">Kalicz.StrongTypes.OpenApi.Swashbuckle</text>
+  <circle class="sm-bullet" cx="480" cy="160" r="2"/>
+  <text class="card-body" x="488" y="164">Schema filters</text>
+  <circle class="sm-bullet" cx="480" cy="185" r="2"/>
+  <text class="card-body" x="488" y="189">for <tspan font-family="ui-monospace, Menlo, Consolas, monospace">AddSwaggerGen()</tspan></text>
 
-  <!-- EfCore card (bottom-left) -->
-  <rect x="15" y="235" width="395" height="110" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <!-- EfCore card (bottom-left, under Core) -->
+  <rect x="15" y="235" width="190" height="110" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
   <text class="card-title" x="29" y="259">Kalicz.StrongTypes.EfCore</text>
   <circle class="sm-bullet" cx="35" cy="284" r="2"/>
   <text class="card-body" x="43" y="288">EF Core value converters</text>
   <circle class="sm-bullet" cx="35" cy="306" r="2"/>
   <text class="card-body" x="43" y="310">DbContext extension</text>
 
-  <!-- FsCheck card (bottom-right) -->
-  <rect x="425" y="235" width="360" height="110" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
-  <text class="card-title" x="439" y="259">Kalicz.StrongTypes.FsCheck</text>
-  <circle class="sm-bullet" cx="445" cy="284" r="2"/>
-  <text class="card-body" x="453" y="288">FsCheck Arbitrary&lt;T&gt;</text>
-  <circle class="sm-bullet" cx="445" cy="306" r="2"/>
-  <text class="card-body" x="453" y="310">generators</text>
+  <!-- FsCheck card (bottom-right, under Core) -->
+  <rect x="220" y="235" width="190" height="110" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text class="card-title" x="234" y="259">Kalicz.StrongTypes.FsCheck</text>
+  <circle class="sm-bullet" cx="240" cy="284" r="2"/>
+  <text class="card-body" x="248" y="288">FsCheck Arbitrary&lt;T&gt;</text>
+  <circle class="sm-bullet" cx="240" cy="306" r="2"/>
+  <text class="card-body" x="248" y="310">generators</text>
 
   <!-- Arrows from satellite cards to core card -->
-  <line x1="425" y1="61"  x2="412" y2="61"  stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
-  <line x1="425" y1="159" x2="412" y2="159" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
-  <line x1="212" y1="235" x2="212" y2="210" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
-  <line x1="450" y1="235" x2="400" y2="212" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
+  <line x1="460" y1="61"  x2="412" y2="61"  stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
+  <line x1="460" y1="159" x2="412" y2="159" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
+  <line x1="110" y1="235" x2="110" y2="210" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
+  <line x1="315" y1="235" x2="315" y2="210" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
 </svg>
