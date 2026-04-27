@@ -43,9 +43,18 @@ internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTran
             if (!componentNameToType.TryGetValue(componentName, out var parentType)) continue;
 
             ApplyToParent(parent, parentType);
+            NormaliseRequired(parent, parentType);
         }
 
         return Task.CompletedTask;
+    }
+
+    private static void NormaliseRequired(OpenApiSchema parent, Type parentType)
+    {
+        var required = RequiredSet.ComputeJsonNames(parentType);
+        if (parent.Properties is { } props)
+            required.IntersectWith(props.Keys);
+        parent.Required = required;
     }
 
     private static void ApplyToParent(OpenApiSchema parent, Type parentType)
@@ -131,10 +140,51 @@ internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTran
     {
         if (type is null || !seen.Add(type)) return;
 
-        var schemaName = type.Name;
+        var schemaName = ComputeSchemaName(type);
         if (!map.ContainsKey(schemaName)) map[schemaName] = type;
 
         foreach (var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             Visit(p.PropertyType, map, seen);
+    }
+
+    // Mimics Microsoft.AspNetCore.OpenApi's default schema-id strategy:
+    //   `Foo`            → "Foo"
+    //   `Foo<Bar>`       → "FooOfBar"
+    //   `Foo<Bar<Baz>>`  → "FooOfBarOfBaz"
+    //   primitive types  → C# keyword (int, string, …) — that's what shows
+    //                      up in component names like "PositiveOfint".
+    private static string ComputeSchemaName(Type type)
+    {
+        var keyword = GetPrimitiveKeyword(type);
+        if (keyword is not null) return keyword;
+
+        if (!type.IsGenericType) return type.Name;
+
+        var raw = type.Name;
+        var backtick = raw.IndexOf('`');
+        var baseName = backtick < 0 ? raw : raw[..backtick];
+
+        var args = type.GetGenericArguments();
+        var argNames = string.Concat(args.Select(ComputeSchemaName));
+        return $"{baseName}Of{argNames}";
+    }
+
+    private static string? GetPrimitiveKeyword(Type type)
+    {
+        if (type == typeof(byte)) return "byte";
+        if (type == typeof(sbyte)) return "sbyte";
+        if (type == typeof(short)) return "short";
+        if (type == typeof(ushort)) return "ushort";
+        if (type == typeof(int)) return "int";
+        if (type == typeof(uint)) return "uint";
+        if (type == typeof(long)) return "long";
+        if (type == typeof(ulong)) return "ulong";
+        if (type == typeof(float)) return "float";
+        if (type == typeof(double)) return "double";
+        if (type == typeof(decimal)) return "decimal";
+        if (type == typeof(bool)) return "bool";
+        if (type == typeof(string)) return "string";
+        if (type == typeof(char)) return "char";
+        return null;
     }
 }

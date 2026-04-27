@@ -558,6 +558,43 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         Assert.Equal(5m, CollectMinUpperBound(doc, range));
     }
 
+    // ───────────────────────────────────────────────────────────────────
+    // Required-array contract — non-nullable C# properties are required,
+    // nullable C# properties are not. Microsoft and Swashbuckle disagree
+    // by default (Microsoft puts everything in required including
+    // nullable refs; Swashbuckle puts nothing); the wrapper-paint passes
+    // normalise both pipelines to the OpenAPI semantic.
+    // ───────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Required_Reference_NonNullable_Is_Listed_Nullable_Is_Not()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/non-empty-string-entities"));
+        var required = ReadRequiredArray(body);
+
+        Assert.Contains("value", required);
+        Assert.DoesNotContain("nullableValue", required);
+    }
+
+    [Fact]
+    public async Task Required_Struct_NonNullable_Is_Listed_Nullable_Is_Not()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/positive-int-entities"));
+        var required = ReadRequiredArray(body);
+
+        Assert.Contains("value", required);
+        Assert.DoesNotContain("nullableValue", required);
+    }
+
+    private static string[] ReadRequiredArray(JsonElement schema)
+    {
+        if (!schema.TryGetProperty("required", out var req) || req.ValueKind != JsonValueKind.Array)
+            return [];
+        return req.EnumerateArray().Select(e => e.GetString() ?? string.Empty).ToArray();
+    }
+
     [Fact]
     public async Task Property_NonEmptyEnumerable_With_MaxLength_Carries_Min_And_MaxItems()
     {
