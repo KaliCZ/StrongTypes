@@ -10,7 +10,7 @@ StrongTypes is not an attempt to build a full algebraic type system on top of C#
 
 Every type ships with `System.Text.Json` converters out of the box (except `Result`), so invalid JSON fails at deserialization — in ASP.NET Core, that's before your endpoint method even runs.
 
-You can also store the types directly in your EF Core entities with the use of the EfCore package.
+You can store the types directly in your EF Core entities with the use of the EfCore package. OpenAPI documentation is supported with the use of the OpenAPI packages for microsoft or Swagger - see [Packages](#packages) below.
 
 > 🤖 Letting Claude Code or Codex write code in a project that uses
 > StrongTypes? See [Use with Claude or Codex](#use-with-claude-or-codex)
