@@ -13,13 +13,11 @@ using StrongTypes.OpenApi.Core;
 namespace StrongTypes.OpenApi.Microsoft;
 
 /// <summary>
-/// Re-applies caller-supplied data-annotations (<c>[StringLength]</c>,
-/// <c>[RegularExpression]</c>, <c>[Range]</c>, <c>[MaxLength]</c>,
-/// <c>[MinLength]</c>) to property positions whose CLR type is a strong-type
-/// wrapper. Without this pass the Microsoft pipeline would render the
-/// property as a bare <c>$ref</c> to the wrapper component and silently
-/// drop every caller annotation — the very contract this package exists
-/// to preserve.
+/// Re-applies caller-supplied data-annotations to property positions whose
+/// CLR type is a strong-type wrapper. Without this pass the Microsoft
+/// pipeline would render the property as a bare <c>$ref</c> to the wrapper
+/// component and silently drop every caller annotation — the very contract
+/// this package exists to preserve.
 ///
 /// Implemented as a <see cref="IOpenApiDocumentTransformer"/> rather than a
 /// schema transformer because the framework's deduplication pass rewrites

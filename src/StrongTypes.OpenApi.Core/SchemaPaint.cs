@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json.Nodes;
 using Microsoft.OpenApi;
 
 namespace StrongTypes.OpenApi.Core;
@@ -92,6 +93,24 @@ public static class SchemaPaint
     {
         if (!string.IsNullOrEmpty(schema.Format)) return;
         schema.Format = format;
+    }
+
+    /// <summary>
+    /// Sets <c>description</c> only when the schema doesn't already carry one.
+    /// </summary>
+    public static void SetDescriptionIfAbsent(OpenApiSchema schema, string description)
+    {
+        if (!string.IsNullOrEmpty(schema.Description)) return;
+        schema.Description = description;
+    }
+
+    /// <summary>
+    /// Sets <c>default</c> only when the schema doesn't already carry one.
+    /// </summary>
+    public static void SetDefaultIfAbsent(OpenApiSchema schema, JsonNode @default)
+    {
+        if (schema.Default is not null) return;
+        schema.Default = @default;
     }
 
     /// <summary>

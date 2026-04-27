@@ -1,24 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
 using Microsoft.OpenApi;
+using StrongTypes.OpenApi.Core;
 
-namespace StrongTypes.OpenApi.Core;
+namespace StrongTypes.OpenApi.Microsoft;
 
-/// <summary>
-/// Applies caller-supplied data-annotations to the on-the-wire schema for a
-/// property whose CLR type is a strong-type wrapper. The two ASP.NET Core
-/// OpenAPI pipelines (Microsoft.AspNetCore.OpenApi and Swashbuckle) both
-/// strip <c>[StringLength]</c>, <c>[RegularExpression]</c>, <c>[Range]</c>
-/// and the like before our type-level transformers / filters get to see
-/// them; this helper, called from each pipeline's property-level pass,
-/// reads the annotations off the property and layers them back on top of
-/// the wrapper's wire shape using the <see cref="SchemaPaint"/> tighten-
-/// wins rules.
-/// </summary>
-public static class WrapperAnnotationApplier
+// Source: Microsoft.AspNetCore.OpenApi 10.0 — JsonNodeSchemaExtensions.ApplyValidationAttributes
+// and OpenApiSchemaService's per-property attribute pass. Keep this in step on runtime upgrades.
+internal static class WrapperAnnotationApplier
 {
     public static bool TryApply(OpenApiSchema schema, Type? propertyClrType, IEnumerable<Attribute> attributes)
     {
@@ -27,29 +20,32 @@ public static class WrapperAnnotationApplier
         var unwrapped = Nullable.GetUnderlyingType(propertyClrType) ?? propertyClrType;
         var attrList = attributes as IReadOnlyList<Attribute> ?? attributes.ToArray();
 
+        var matched = false;
         if (unwrapped == typeof(NonEmptyString))
         {
             ApplyStringAnnotations(schema, attrList);
-            return true;
+            matched = true;
         }
-
-        if (!unwrapped.IsGenericType) return false;
-        var def = unwrapped.GetGenericTypeDefinition();
-
-        if (def == typeof(Positive<>) || def == typeof(NonNegative<>) ||
-            def == typeof(Negative<>) || def == typeof(NonPositive<>))
+        else if (unwrapped.IsGenericType)
         {
-            ApplyNumericAnnotations(schema, attrList);
-            return true;
+            var def = unwrapped.GetGenericTypeDefinition();
+            if (def == typeof(Positive<>) || def == typeof(NonNegative<>) ||
+                def == typeof(Negative<>) || def == typeof(NonPositive<>))
+            {
+                ApplyNumericAnnotations(schema, attrList);
+                matched = true;
+            }
+            else if (def == typeof(NonEmptyEnumerable<>) || def == typeof(INonEmptyEnumerable<>))
+            {
+                ApplyArrayAnnotations(schema, attrList);
+                matched = true;
+            }
         }
 
-        if (def == typeof(NonEmptyEnumerable<>) || def == typeof(INonEmptyEnumerable<>))
-        {
-            ApplyArrayAnnotations(schema, attrList);
-            return true;
-        }
+        if (!matched) return false;
 
-        return false;
+        ApplyUniversalAnnotations(schema, attrList);
+        return true;
     }
 
     private static void ApplyStringAnnotations(OpenApiSchema schema, IReadOnlyList<Attribute> attrs)
@@ -61,6 +57,10 @@ public static class WrapperAnnotationApplier
                 case StringLengthAttribute sl:
                     if (sl.MinimumLength > 0) SchemaPaint.TightenMinLength(schema, sl.MinimumLength);
                     if (sl.MaximumLength > 0) SchemaPaint.TightenMaxLength(schema, sl.MaximumLength);
+                    break;
+                case LengthAttribute len:
+                    SchemaPaint.TightenMinLength(schema, len.MinimumLength);
+                    SchemaPaint.TightenMaxLength(schema, len.MaximumLength);
                     break;
                 case MinLengthAttribute ml:
                     SchemaPaint.TightenMinLength(schema, ml.Length);
@@ -74,6 +74,12 @@ public static class WrapperAnnotationApplier
                 case EmailAddressAttribute:
                     SchemaPaint.SetFormatIfAbsent(schema, "email");
                     break;
+                case UrlAttribute:
+                    SchemaPaint.SetFormatIfAbsent(schema, "uri");
+                    break;
+                case Base64StringAttribute:
+                    SchemaPaint.SetFormatIfAbsent(schema, "byte");
+                    break;
             }
         }
     }
@@ -85,9 +91,9 @@ public static class WrapperAnnotationApplier
             if (a is RangeAttribute range)
             {
                 if (TryToDecimal(range.Minimum, out var min))
-                    SchemaPaint.TightenLowerBound(schema, min, floorExclusive: false);
+                    SchemaPaint.TightenLowerBound(schema, min, floorExclusive: range.MinimumIsExclusive);
                 if (TryToDecimal(range.Maximum, out var max))
-                    SchemaPaint.TightenUpperBound(schema, max, floorExclusive: false);
+                    SchemaPaint.TightenUpperBound(schema, max, floorExclusive: range.MaximumIsExclusive);
             }
         }
     }
@@ -98,6 +104,10 @@ public static class WrapperAnnotationApplier
         {
             switch (a)
             {
+                case LengthAttribute len:
+                    SchemaPaint.TightenMinItems(schema, len.MinimumLength);
+                    SchemaPaint.TightenMaxItems(schema, len.MaximumLength);
+                    break;
                 case MinLengthAttribute ml:
                     SchemaPaint.TightenMinItems(schema, ml.Length);
                     break;
@@ -105,6 +115,15 @@ public static class WrapperAnnotationApplier
                     SchemaPaint.TightenMaxItems(schema, mxl.Length);
                     break;
             }
+        }
+    }
+
+    private static void ApplyUniversalAnnotations(OpenApiSchema schema, IReadOnlyList<Attribute> attrs)
+    {
+        foreach (var a in attrs)
+        {
+            if (a is DescriptionAttribute desc && !string.IsNullOrEmpty(desc.Description))
+                SchemaPaint.SetDescriptionIfAbsent(schema, desc.Description);
         }
     }
 

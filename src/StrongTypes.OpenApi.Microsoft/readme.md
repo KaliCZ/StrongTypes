@@ -48,16 +48,17 @@ app.MapOpenApi();
 
 ## Data annotations
 
-Both ASP.NET Core OpenAPI pipelines drop every `[StringLength]` /
-`[RegularExpression]` / `[Range]` / `[MaxLength]` / `[MinLength]` /
-`[EmailAddress]` on a property whose CLR type carries a custom
-`JsonConverter` &mdash; which every strong-type wrapper does &mdash;
-collapsing the property to a bare `$ref` to the wrapper component.
+Both ASP.NET Core OpenAPI pipelines drop every `ValidationAttribute` on a
+property whose CLR type carries a custom `JsonConverter` &mdash; which every
+strong-type wrapper does &mdash; collapsing the property to a bare `$ref` to
+the wrapper component.
 
-This package re-applies them. Caller bounds compose with the wrapper's
-floor under tighter-wins rules: the wrapper never relaxes a caller's
-constraint, and a caller bound that would loosen the wrapper's floor is
-ignored.
+This package re-applies them: every annotation
+`Microsoft.AspNetCore.OpenApi` natively supports on a primitive-typed
+property also works on a wrapper-typed one. Caller bounds compose with the
+wrapper's floor under tighter-wins rules: the wrapper never relaxes a
+caller's constraint, and a caller bound that would loosen the wrapper's
+floor is ignored.
 
 ```csharp
 public sealed record CreateUserRequest(
@@ -72,7 +73,13 @@ public sealed record CreateUserRequest(
     NonEmptyEnumerable<NonEmptyString> Tags,
 
     [EmailAddress]
-    NonEmptyString ContactEmail);
+    NonEmptyString ContactEmail,
+
+    [Url]
+    NonEmptyString Website,
+
+    [Description("Short user tagline")]
+    NonEmptyString Tagline);
 ```
 
 On the wire:
@@ -83,3 +90,11 @@ On the wire:
 | `Age` | `{ "type": "integer", "format": "int32", "minimum": 18, "maximum": 120 }` |
 | `Tags` | `{ "type": "array", "minItems": 1, "maxItems": 10, "items": { "type": "string", "minLength": 1 } }` |
 | `ContactEmail` | `{ "type": "string", "minLength": 1, "format": "email" }` |
+| `Website` | `{ "type": "string", "minLength": 1, "format": "uri" }` |
+| `Tagline` | `{ "type": "string", "minLength": 1, "description": "Short user tagline" }` |
+
+`[DefaultValue]` is **not** supported on wrapper-typed properties &mdash; the
+framework's own default-value handler crashes when the attribute's underlying
+value (e.g. `string`) doesn't match the property's declared wrapper type
+(e.g. `NonEmptyString`). Apply `[DefaultValue]` only to primitive-typed
+properties.

@@ -20,6 +20,18 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 
     protected abstract string DocumentUrl { get; }
 
+    /// <summary>
+    /// Annotations <see cref="System.ComponentModel.DescriptionAttribute"/>,
+    /// <see cref="System.ComponentModel.DefaultValueAttribute"/>,
+    /// <see cref="System.ComponentModel.DataAnnotations.LengthAttribute"/>,
+    /// <see cref="System.ComponentModel.DataAnnotations.Base64StringAttribute"/>,
+    /// and <see cref="System.ComponentModel.DataAnnotations.RangeAttribute.MinimumIsExclusive"/>
+    /// are written by Microsoft.AspNetCore.OpenApi but not by Swashbuckle's
+    /// <c>DataAnnotationsSchemaFilter</c>. Tests pinning their wire output run
+    /// only against the Microsoft pipeline.
+    /// </summary>
+    protected virtual bool IsMicrosoftPipeline => false;
+
     private async Task<JsonElement> GetDocumentAsync()
     {
         var response = await client.GetAsync(DocumentUrl, Ct);
@@ -546,6 +558,52 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     }
 
     [Fact]
+    public async Task Property_NonEmptyString_With_Url_Carries_Format_Uri_And_Wrapper_MinLength()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var websiteUrl = Property(body, "websiteUrl");
+
+        Assert.Equal(1, CollectMaxInt(doc, websiteUrl, "minLength"));
+        Assert.Equal("uri", CollectFirstString(doc, websiteUrl, "format"));
+    }
+
+    [Fact]
+    public async Task Property_NonEmptyString_With_Length_Tightens_Both_Bounds_Above_Wrapper_Floor()
+    {
+        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not handle [Length].");
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var slug = Property(body, "slug");
+
+        Assert.Equal(2, CollectMaxInt(doc, slug, "minLength"));
+        Assert.Equal(8, CollectMinInt(doc, slug, "maxLength"));
+    }
+
+    [Fact]
+    public async Task Property_NonEmptyString_With_Base64String_Carries_Format_Byte_And_Wrapper_MinLength()
+    {
+        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not handle [Base64String].");
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var encodedBlob = Property(body, "encodedBlob");
+
+        Assert.Equal(1, CollectMaxInt(doc, encodedBlob, "minLength"));
+        Assert.Equal("byte", CollectFirstString(doc, encodedBlob, "format"));
+    }
+
+    [Fact]
+    public async Task Property_NonEmptyString_With_Description_Carries_Description()
+    {
+        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not handle [Description]; it sources description from XML doc comments instead.");
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var tagline = Property(body, "tagline");
+
+        Assert.Equal("Short user tagline", CollectFirstString(doc, tagline, "description"));
+    }
+
+    [Fact]
     public async Task Property_Positive_Int_With_Range_Carries_Both_Bounds()
     {
         var doc = await GetDocumentAsync();
@@ -554,6 +612,18 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 
         Assert.Equal(18m, CollectMaxLowerBound(doc, age));
         Assert.Equal(120m, CollectMinUpperBound(doc, age));
+    }
+
+    [Fact]
+    public async Task Property_Positive_Int_With_Range_MinimumIsExclusive_Carries_Exclusive_Lower_Bound()
+    {
+        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not honor RangeAttribute.MinimumIsExclusive.");
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-numbers"));
+        var exclusive = Property(body, "exclusiveLowerAge");
+
+        AssertExclusiveLowerBoundReachable(doc, exclusive, 1m);
+        Assert.Equal(10m, CollectMinUpperBound(doc, exclusive));
     }
 
     [Fact]

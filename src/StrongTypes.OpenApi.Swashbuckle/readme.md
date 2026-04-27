@@ -49,16 +49,17 @@ app.UseSwaggerUI();
 
 ## Data annotations
 
-Both ASP.NET Core OpenAPI pipelines drop every `[StringLength]` /
-`[RegularExpression]` / `[Range]` / `[MaxLength]` / `[MinLength]` /
-`[EmailAddress]` on a property whose CLR type carries a custom
-`JsonConverter` &mdash; which every strong-type wrapper does &mdash;
-collapsing the property to a bare `$ref` to the wrapper component.
+Both ASP.NET Core OpenAPI pipelines drop every `ValidationAttribute` on a
+property whose CLR type carries a custom `JsonConverter` &mdash; which every
+strong-type wrapper does &mdash; collapsing the property to a bare `$ref` to
+the wrapper component.
 
-This package re-applies them. Caller bounds compose with the wrapper's
-floor under tighter-wins rules: the wrapper never relaxes a caller's
-constraint, and a caller bound that would loosen the wrapper's floor is
-ignored.
+This package re-applies them: every annotation Swashbuckle's
+`DataAnnotationsSchemaFilter` natively writes for a primitive-typed property
+(including any third-party schema filter you've registered) also reaches a
+wrapper-typed one. Caller bounds compose with the wrapper's floor under
+tighter-wins rules: the wrapper never relaxes a caller's constraint, and a
+caller bound that would loosen the wrapper's floor is ignored.
 
 ```csharp
 public sealed record CreateUserRequest(
@@ -73,7 +74,10 @@ public sealed record CreateUserRequest(
     NonEmptyEnumerable<NonEmptyString> Tags,
 
     [EmailAddress]
-    NonEmptyString ContactEmail);
+    NonEmptyString ContactEmail,
+
+    [Url]
+    NonEmptyString Website);
 ```
 
 On the wire:
@@ -84,3 +88,11 @@ On the wire:
 | `Age` | `{ "type": "integer", "format": "int32", "minimum": 18, "maximum": 120 }` |
 | `Tags` | `{ "type": "array", "minItems": 1, "maxItems": 10, "items": { "type": "string", "minLength": 1 } }` |
 | `ContactEmail` | `{ "type": "string", "minLength": 1, "format": "email" }` |
+| `Website` | `{ "type": "string", "minLength": 1, "format": "uri" }` |
+
+Annotations Swashbuckle's `DataAnnotationsSchemaFilter` doesn't natively map
+on primitive-typed properties &mdash; for example `[Description]`,
+`[DefaultValue]`, `[Length]`, `[Base64String]`, or
+`[Range(MinimumIsExclusive = true)]` &mdash; aren't written here either. If
+you also need those, `Microsoft.AspNetCore.OpenApi` does support them; see
+[`Kalicz.StrongTypes.OpenApi.Microsoft`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft).
