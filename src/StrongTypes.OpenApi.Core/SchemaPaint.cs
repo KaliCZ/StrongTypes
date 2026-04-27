@@ -57,6 +57,35 @@ public static class SchemaPaint
     }
 
     /// <summary>
+    /// Applies a <c>maxLength</c> ceiling, keeping the caller's value when it
+    /// is already at least as tight (i.e. smaller).
+    /// </summary>
+    public static void TightenMaxLength(OpenApiSchema schema, int ceiling)
+    {
+        if (schema.MaxLength is { } current && current <= ceiling) return;
+        schema.MaxLength = ceiling;
+    }
+
+    /// <summary>
+    /// Applies a <c>maxItems</c> ceiling, keeping the caller's value when it
+    /// is already at least as tight.
+    /// </summary>
+    public static void TightenMaxItems(OpenApiSchema schema, int ceiling)
+    {
+        if (schema.MaxItems is { } current && current <= ceiling) return;
+        schema.MaxItems = ceiling;
+    }
+
+    /// <summary>
+    /// Sets <c>pattern</c> only when the schema doesn't already carry one.
+    /// </summary>
+    public static void SetPatternIfAbsent(OpenApiSchema schema, string pattern)
+    {
+        if (!string.IsNullOrEmpty(schema.Pattern)) return;
+        schema.Pattern = pattern;
+    }
+
+    /// <summary>
     /// Applies a numeric lower-bound floor (inclusive when
     /// <paramref name="floorExclusive"/> is <c>false</c>, exclusive otherwise).
     /// If the caller's effective lower bound is already at least as tight as

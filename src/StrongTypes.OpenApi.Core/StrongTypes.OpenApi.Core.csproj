@@ -11,4 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.OpenApi" Version="2.4.1" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
+  </ItemGroup>
 </Project>

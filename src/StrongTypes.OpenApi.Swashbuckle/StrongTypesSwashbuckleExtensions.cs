@@ -14,6 +14,7 @@ public static class StrongTypesSwashbuckleExtensions
         options.SchemaFilter<NumericStrongTypeSchemaFilter>();
         options.SchemaFilter<NonEmptyEnumerableSchemaFilter>();
         options.SchemaFilter<MaybeSchemaFilter>();
+        options.SchemaFilter<PropertyAnnotationSchemaFilter>();
         return options;
     }
 }

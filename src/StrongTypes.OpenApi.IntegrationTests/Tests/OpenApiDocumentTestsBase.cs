@@ -478,4 +478,228 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         Assert.Equal("int32", StringOrNull(inner, "format"));
         AssertExclusiveLowerBound(inner, 0m);
     }
+
+    // ───────────────────────────────────────────────────────────────────
+    // Annotation propagation — when a property annotated with
+    // [StringLength], [RegularExpression], [Range], [MaxLength] has a
+    // strong-type wrapper as its CLR type, the caller's bounds must
+    // reach the wire. Without help, the generators describe the property
+    // as just `{ "$ref": ".../NonEmptyString" }` and drop every
+    // annotation on the floor — the very thing this whole package
+    // exists to prevent.
+    //
+    // The property-level pass each pipeline runs is allowed to either
+    // inline the merged schema on the property or layer the caller's
+    // bounds via `$ref` + `allOf`. The collectors below walk both forms
+    // and report the tightest applicable bound, so the assertions here
+    // pin only the externally observable contract — not which encoding
+    // the pipeline happens to use.
+    // ───────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Property_NonEmptyString_With_StringLength_And_Pattern_Carries_All_Three()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var username = Property(body, "username");
+
+        Assert.Equal(3, CollectMaxInt(doc, username, "minLength"));
+        Assert.Equal(50, CollectMinInt(doc, username, "maxLength"));
+        Assert.Equal("^[a-zA-Z0-9_]+$", CollectFirstString(doc, username, "pattern"));
+    }
+
+    [Fact]
+    public async Task Property_NonEmptyString_With_StringLength_Floors_To_Wrapper_MinLength()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var email = Property(body, "email");
+
+        // [StringLength(254)] sets only an upper bound; the wrapper's
+        // floor of 1 must remain.
+        Assert.Equal(1, CollectMaxInt(doc, email, "minLength"));
+        Assert.Equal(254, CollectMinInt(doc, email, "maxLength"));
+        Assert.Equal("^[^@]+@[^@]+$", CollectFirstString(doc, email, "pattern"));
+    }
+
+    [Fact]
+    public async Task Property_NonEmptyString_Without_Annotations_Renders_Plain_Wrapper()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var description = Property(body, "description");
+
+        Assert.Equal(1, CollectMaxInt(doc, description, "minLength"));
+        Assert.Null(CollectMinInt(doc, description, "maxLength"));
+        Assert.Null(CollectFirstString(doc, description, "pattern"));
+    }
+
+    [Fact]
+    public async Task Property_Positive_Int_With_Range_Carries_Both_Bounds()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-numbers"));
+        var age = Property(body, "age");
+
+        Assert.Equal(18m, CollectMaxLowerBound(doc, age));
+        Assert.Equal(120m, CollectMinUpperBound(doc, age));
+    }
+
+    [Fact]
+    public async Task Property_Positive_Int_With_Range_Across_Floor_Lets_Wrapper_Floor_Win()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-numbers"));
+        var range = Property(body, "rangeAcrossFloor");
+
+        // [Range(-5, 5)] would loosen the lower bound to -5, but the
+        // wrapper's exclusiveMinimum:0 floor wins. Upper bound 5 stays.
+        AssertExclusiveLowerBoundReachable(doc, range, 0m);
+        Assert.Equal(5m, CollectMinUpperBound(doc, range));
+    }
+
+    [Fact]
+    public async Task Property_NonEmptyEnumerable_With_MaxLength_Carries_Min_And_MaxItems()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-tags"));
+        var tags = Property(body, "tags");
+
+        Assert.Equal(1, CollectMaxInt(doc, tags, "minItems"));
+        Assert.Equal(10, CollectMinInt(doc, tags, "maxItems"));
+    }
+
+    // Walk a property schema across $ref, allOf, oneOf, anyOf and yield
+    // each schema layer along the way (skipping the null-branches that
+    // encode `T?`). The annotation-propagation assertions don't care
+    // whether the pipeline inlined the merged schema or layered the
+    // caller's bounds via $ref + allOf — they care that the bounds are
+    // reachable somewhere in the chain.
+    private static IEnumerable<JsonElement> WalkSchemaLayers(JsonElement doc, JsonElement schema)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var queue = new Queue<JsonElement>();
+        queue.Enqueue(schema);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            if (current.ValueKind != JsonValueKind.Object) continue;
+
+            yield return current;
+
+            if (current.TryGetProperty("$ref", out var refProp))
+            {
+                var path = refProp.GetString()!;
+                const string prefix = "#/components/schemas/";
+                if (path.StartsWith(prefix) && seen.Add(path))
+                {
+                    var name = path[prefix.Length..];
+                    queue.Enqueue(doc.GetProperty("components").GetProperty("schemas").GetProperty(name));
+                }
+            }
+
+            foreach (var key in new[] { "allOf", "oneOf", "anyOf" })
+            {
+                if (!current.TryGetProperty(key, out var arr) || arr.ValueKind != JsonValueKind.Array) continue;
+                foreach (var branch in arr.EnumerateArray())
+                {
+                    if (branch.ValueKind == JsonValueKind.Object && IsNullBranch(branch)) continue;
+                    queue.Enqueue(branch);
+                }
+            }
+        }
+    }
+
+    private static int? CollectMaxInt(JsonElement doc, JsonElement schema, string keyword)
+    {
+        int? best = null;
+        foreach (var layer in WalkSchemaLayers(doc, schema))
+        {
+            if (!layer.TryGetProperty(keyword, out var v) || v.ValueKind != JsonValueKind.Number) continue;
+            var i = v.GetInt32();
+            if (best is null || i > best) best = i;
+        }
+        return best;
+    }
+
+    private static int? CollectMinInt(JsonElement doc, JsonElement schema, string keyword)
+    {
+        int? best = null;
+        foreach (var layer in WalkSchemaLayers(doc, schema))
+        {
+            if (!layer.TryGetProperty(keyword, out var v) || v.ValueKind != JsonValueKind.Number) continue;
+            var i = v.GetInt32();
+            if (best is null || i < best) best = i;
+        }
+        return best;
+    }
+
+    private static string? CollectFirstString(JsonElement doc, JsonElement schema, string keyword)
+    {
+        foreach (var layer in WalkSchemaLayers(doc, schema))
+        {
+            if (layer.TryGetProperty(keyword, out var v) && v.ValueKind == JsonValueKind.String)
+                return v.GetString();
+        }
+        return null;
+    }
+
+    private static decimal? CollectMaxLowerBound(JsonElement doc, JsonElement schema)
+    {
+        decimal? best = null;
+        foreach (var layer in WalkSchemaLayers(doc, schema))
+        {
+            if (TryReadInclusiveLower(layer, out var v) && (best is null || v > best)) best = v;
+        }
+        return best;
+    }
+
+    private static decimal? CollectMinUpperBound(JsonElement doc, JsonElement schema)
+    {
+        decimal? best = null;
+        foreach (var layer in WalkSchemaLayers(doc, schema))
+        {
+            if (TryReadInclusiveUpper(layer, out var v) && (best is null || v < best)) best = v;
+        }
+        return best;
+    }
+
+    private static bool TryReadInclusiveLower(JsonElement layer, out decimal value)
+    {
+        value = 0m;
+        if (layer.TryGetProperty("minimum", out var min) && min.ValueKind == JsonValueKind.Number)
+        {
+            value = min.GetDecimal();
+            return true;
+        }
+        return false;
+    }
+
+    private static bool TryReadInclusiveUpper(JsonElement layer, out decimal value)
+    {
+        value = 0m;
+        if (layer.TryGetProperty("maximum", out var max) && max.ValueKind == JsonValueKind.Number)
+        {
+            value = max.GetDecimal();
+            return true;
+        }
+        return false;
+    }
+
+    private static void AssertExclusiveLowerBoundReachable(JsonElement doc, JsonElement schema, decimal expected)
+    {
+        foreach (var layer in WalkSchemaLayers(doc, schema))
+        {
+            if (!layer.TryGetProperty("exclusiveMinimum", out var ex)) continue;
+
+            if (ex.ValueKind == JsonValueKind.Number && ex.GetDecimal() == expected) return;
+            if (ex.ValueKind == JsonValueKind.True
+                && layer.TryGetProperty("minimum", out var min)
+                && min.ValueKind == JsonValueKind.Number
+                && min.GetDecimal() == expected) return;
+        }
+
+        Assert.Fail($"Expected exclusive lower bound of {expected} reachable from this schema, but none found.");
+    }
 }
