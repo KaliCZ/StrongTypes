@@ -63,56 +63,18 @@ shape before any filter can see it.
 
 ## Data annotations on wrapper-typed properties
 
-Both ASP.NET Core OpenAPI pipelines drop every `ValidationAttribute` on a
-property whose CLR type carries a custom `JsonConverter` — which every
-strong-type wrapper does — collapsing the property to a bare `$ref` to
-the wrapper component. Each adapter re-applies them: every annotation
-the underlying pipeline natively supports on a primitive-typed property
-also works on a wrapper-typed one. Caller bounds compose with the
-wrapper's floor under tighter-wins rules — the wrapper never relaxes a
-caller's constraint, and a caller bound that would loosen the wrapper's
-floor is ignored.
+ASP.NET Core's OpenAPI pipelines drop every `ValidationAttribute`
+(`[StringLength]`, `[Range]`, `[Url]`, …) on a property whose CLR type
+is a strong-type wrapper. Each adapter re-applies them.
 
-```csharp
-public sealed record CreateUserRequest(
-    [StringLength(50, MinimumLength = 3)]
-    [RegularExpression("^[a-zA-Z0-9_]+$")]
-    NonEmptyString Username,
-
-    [Range(18, 120)]
-    Positive<int> Age,
-
-    [MaxLength(10)]
-    NonEmptyEnumerable<NonEmptyString> Tags,
-
-    [EmailAddress]
-    NonEmptyString ContactEmail,
-
-    [Url]
-    NonEmptyString Website);
-```
-
-| Property         | Resulting schema                                                                                       |
-| ---------------- | ------------------------------------------------------------------------------------------------------ |
-| `Username`       | `{ "type": "string", "minLength": 3, "maxLength": 50, "pattern": "^[a-zA-Z0-9_]+$" }`                  |
-| `Age`            | `{ "type": "integer", "format": "int32", "minimum": 18, "maximum": 120 }`                              |
-| `Tags`           | `{ "type": "array", "minItems": 1, "maxItems": 10, "items": { "type": "string", "minLength": 1 } }`    |
-| `ContactEmail`   | `{ "type": "string", "minLength": 1, "format": "email" }`                                              |
-| `Website`        | `{ "type": "string", "minLength": 1, "format": "uri" }`                                                |
-
-The two pipelines support different attribute sets — by design, each
-adapter mirrors what its underlying pipeline natively writes for a
-primitive-typed property. `Microsoft.AspNetCore.OpenApi` natively maps
-more attributes (`[Length]`, `[Base64String]`, `[Description]`,
-`[Range(MinimumIsExclusive = …)]`, …) than Swashbuckle's
-`DataAnnotationsSchemaFilter` does. If you need the broader set, the
-Microsoft adapter is the one to install.
-
-`[DefaultValue]` on a wrapper-typed property is **not** supported on
-the Microsoft pipeline — the framework's default-value handler crashes
-when the attribute value's CLR type doesn't match the property's
-declared wrapper type. Apply `[DefaultValue]` to primitive-typed
-properties only.
+- **Swashbuckle** delegates to Swashbuckle's own annotation handling, so
+  whatever Swashbuckle natively writes for a primitive-typed property
+  also surfaces on a wrapper-typed one.
+- **Microsoft** mirrors a hard-coded list of attributes (the framework
+  exposes no public hook). If an attribute you need isn't propagated,
+  open an issue on
+  [KaliCZ/StrongTypes](https://github.com/KaliCZ/StrongTypes/issues)
+  so it can be added.
 
 ## OpenAPI version
 
