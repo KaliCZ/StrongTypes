@@ -12,8 +12,8 @@
     <RootNamespace>StrongTypes.OpenApi.Microsoft</RootNamespace>
     <Authors>KaliCZ</Authors>
     <Copyright>Copyright © 2026 KaliCZ</Copyright>
-    <Description>Schema transformers that wire Kalicz.StrongTypes into Microsoft.AspNetCore.OpenApi (AddOpenApi). Makes the generated OpenAPI document describe each strong-type wrapper with the JSON its converter actually reads and writes (NonEmptyString as string with minLength:1, Positive&lt;T&gt;/NonNegative&lt;T&gt;/Negative&lt;T&gt;/NonPositive&lt;T&gt; as the underlying primitive with the appropriate minimum/maximum, NonEmptyEnumerable&lt;T&gt; as array with minItems:1, Maybe&lt;T&gt; as the wire-format object wrapper). For Swashbuckle (AddSwaggerGen), use Kalicz.StrongTypes.OpenApi.Swashbuckle instead.</Description>
-    <PackageTags>StrongTypes, OpenApi, Swagger, AspNetCore, SchemaTransformer, NonEmptyString, NonEmptyEnumerable, Maybe</PackageTags>
+    <Description>Wires Kalicz.StrongTypes wrappers into Microsoft.AspNetCore.OpenApi (AddOpenApi) so the generated OpenAPI document matches the JSON the converters actually emit. For Swashbuckle (AddSwaggerGen), use Kalicz.StrongTypes.OpenApi.Swashbuckle instead.</Description>
+    <PackageTags>StrongTypes, OpenApi, Swagger, AspNetCore, SchemaTransformer</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/KaliCZ/StrongTypes</PackageProjectUrl>
@@ -22,6 +22,8 @@
     <PackageReadmeFile>readme.md</PackageReadmeFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludePrivateProjectReferences</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -29,9 +31,19 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
-    <ProjectReference Include="..\StrongTypes.OpenApi.Core\StrongTypes.OpenApi.Core.csproj" />
+    <ProjectReference Include="..\StrongTypes.OpenApi.Core\StrongTypes.OpenApi.Core.csproj" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.md" Pack="true" PackagePath="\" />
   </ItemGroup>
+
+  <!-- Embed StrongTypes.OpenApi.Core.dll into the package because Core is
+       IsPackable=false (it's a private helper, not a public NuGet id). -->
+  <Target Name="IncludePrivateProjectReferences" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)"
+        Condition="'%(ReferenceCopyLocalPaths.ReferenceSourceTarget)' == 'ProjectReference'
+                   AND '%(ReferenceCopyLocalPaths.Filename)' == 'StrongTypes.OpenApi.Core'" />
+    </ItemGroup>
+  </Target>
 </Project>
