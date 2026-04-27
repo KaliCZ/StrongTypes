@@ -86,6 +86,15 @@ public static class SchemaPaint
     }
 
     /// <summary>
+    /// Sets <c>format</c> only when the schema doesn't already carry one.
+    /// </summary>
+    public static void SetFormatIfAbsent(OpenApiSchema schema, string format)
+    {
+        if (!string.IsNullOrEmpty(schema.Format)) return;
+        schema.Format = format;
+    }
+
+    /// <summary>
     /// Applies a numeric lower-bound floor (inclusive when
     /// <paramref name="floorExclusive"/> is <c>false</c>, exclusive otherwise).
     /// If the caller's effective lower bound is already at least as tight as

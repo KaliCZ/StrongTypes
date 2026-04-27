@@ -15,6 +15,9 @@ public sealed record AnnotatedTextsRequest(
     [property: RegularExpression(@"^[^@]+@[^@]+$")]
     NonEmptyString Email,
 
+    [property: EmailAddress]
+    NonEmptyString ContactEmail,
+
     NonEmptyString Description);
 
 public sealed record AnnotatedNumbersRequest(

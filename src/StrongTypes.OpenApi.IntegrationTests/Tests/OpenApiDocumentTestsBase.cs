@@ -523,6 +523,17 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     }
 
     [Fact]
+    public async Task Property_NonEmptyString_With_EmailAddress_Carries_Format_Email_And_Wrapper_MinLength()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var contactEmail = Property(body, "contactEmail");
+
+        Assert.Equal(1, CollectMaxInt(doc, contactEmail, "minLength"));
+        Assert.Equal("email", CollectFirstString(doc, contactEmail, "format"));
+    }
+
+    [Fact]
     public async Task Property_NonEmptyString_Without_Annotations_Renders_Plain_Wrapper()
     {
         var doc = await GetDocumentAsync();

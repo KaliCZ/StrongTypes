@@ -71,6 +71,9 @@ public static class WrapperAnnotationApplier
                 case RegularExpressionAttribute re:
                     SchemaPaint.SetPatternIfAbsent(schema, re.Pattern);
                     break;
+                case EmailAddressAttribute:
+                    SchemaPaint.SetFormatIfAbsent(schema, "email");
+                    break;
             }
         }
     }

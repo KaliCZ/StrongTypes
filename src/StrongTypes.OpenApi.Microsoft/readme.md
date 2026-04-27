@@ -45,3 +45,41 @@ app.MapOpenApi();
   `{ "type": "array", "minItems": 1, "items": <T schema> }`
 - `Maybe<T>` &rarr; object wrapper `{ "Value": <T schema, nullable> }` matching the
   converter's on-the-wire format.
+
+## Data annotations
+
+Both ASP.NET Core OpenAPI pipelines drop every `[StringLength]` /
+`[RegularExpression]` / `[Range]` / `[MaxLength]` / `[MinLength]` /
+`[EmailAddress]` on a property whose CLR type carries a custom
+`JsonConverter` &mdash; which every strong-type wrapper does &mdash;
+collapsing the property to a bare `$ref` to the wrapper component.
+
+This package re-applies them. Caller bounds compose with the wrapper's
+floor under tighter-wins rules: the wrapper never relaxes a caller's
+constraint, and a caller bound that would loosen the wrapper's floor is
+ignored.
+
+```csharp
+public sealed record CreateUserRequest(
+    [StringLength(50, MinimumLength = 3)]
+    [RegularExpression("^[a-zA-Z0-9_]+$")]
+    NonEmptyString Username,
+
+    [Range(18, 120)]
+    Positive<int> Age,
+
+    [MaxLength(10)]
+    NonEmptyEnumerable<NonEmptyString> Tags,
+
+    [EmailAddress]
+    NonEmptyString ContactEmail);
+```
+
+On the wire:
+
+| Property | Resulting schema |
+| --- | --- |
+| `Username` | `{ "type": "string", "minLength": 3, "maxLength": 50, "pattern": "^[a-zA-Z0-9_]+$" }` |
+| `Age` | `{ "type": "integer", "format": "int32", "minimum": 18, "maximum": 120 }` |
+| `Tags` | `{ "type": "array", "minItems": 1, "maxItems": 10, "items": { "type": "string", "minLength": 1 } }` |
+| `ContactEmail` | `{ "type": "string", "minLength": 1, "format": "email" }` |
