@@ -75,10 +75,12 @@
   <!-- FsCheck card (bottom-right, under Core) -->
   <rect x="245" y="235" width="215" height="110" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
   <text class="card-title" x="259" y="259">Kalicz.StrongTypes.FsCheck</text>
-  <circle class="sm-bullet" cx="265" cy="284" r="2"/>
-  <text class="card-body" x="273" y="288">FsCheck Arbitrary&lt;T&gt;</text>
-  <circle class="sm-bullet" cx="265" cy="306" r="2"/>
-  <text class="card-body" x="273" y="310">generators</text>
+  <circle class="sm-bullet" cx="265" cy="282" r="2"/>
+  <text class="card-body" x="273" y="286">Property-based (generative) testing</text>
+  <circle class="sm-bullet" cx="265" cy="304" r="2"/>
+  <text class="card-body" x="273" y="308">FsCheck Arbitrary&lt;T&gt;</text>
+  <circle class="sm-bullet" cx="265" cy="326" r="2"/>
+  <text class="card-body" x="273" y="330">generators</text>
 
   <!-- Arrows from satellite cards to core card -->
   <line x1="460" y1="61"  x2="412" y2="61"  stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>

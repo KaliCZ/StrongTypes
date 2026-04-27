@@ -38,6 +38,7 @@ You can also store the types directly in your EF Core entities with the use of t
   - [Prefer nullables: `Map`, `MapTrue`, `MapFalse`](#prefer-nullables-map-maptrue-mapfalse)
   - [`Maybe<T>`](#maybet)
   - [`Result<T, TError>`](#resultt-terror)
+- [Packages](#packages)
 
 ## Use with Claude or Codex
 
@@ -613,6 +614,18 @@ Result<Positive<int>[], string> ParseOrderQuantities(IEnumerable<int> inputs)
         invalidNumbers => $"Some numbers are not positive: [{string.Join(", ", invalidNumbers)}]");
 }
 ```
+
+[↑ Back to contents](#contents)
+
+## Packages
+
+| Package | Purpose | Readme |
+| --- | --- | --- |
+| [`Kalicz.StrongTypes`](https://www.nuget.org/packages/Kalicz.StrongTypes/) | Core types: `NonEmptyString`, `Positive<T>` / `NonNegative<T>` / `Negative<T>` / `NonPositive<T>`, `NonEmptyEnumerable<T>`, `Maybe<T>`, `Result<T, TError>`, plus `System.Text.Json` converters. | (this readme) |
+| [`Kalicz.StrongTypes.EfCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/) | EF Core value converters + `DbContext` extension for round-tripping the wrappers through scalar columns. | [readme](src/StrongTypes.EfCore/readme.md) |
+| [`Kalicz.StrongTypes.FsCheck`](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/) | FsCheck `Arbitrary<T>` generators for property-based (generative) testing of code that takes or returns the wrappers. | [readme](src/StrongTypes.FsCheck/readme.md) |
+| [`Kalicz.StrongTypes.OpenApi.Microsoft`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft/) | Schema transformers for `Microsoft.AspNetCore.OpenApi` (`AddOpenApi()`) so the generated document matches the wire JSON. | [readme](src/StrongTypes.OpenApi.Microsoft/readme.md) |
+| [`Kalicz.StrongTypes.OpenApi.Swashbuckle`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Swashbuckle/) | Schema filters for `Swashbuckle.AspNetCore` (`AddSwaggerGen()`) so the generated Swagger document matches the wire JSON. | [readme](src/StrongTypes.OpenApi.Swashbuckle/readme.md) |
 
 [↑ Back to contents](#contents)
 
