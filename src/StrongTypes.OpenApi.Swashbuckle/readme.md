@@ -90,9 +90,10 @@ On the wire:
 | `ContactEmail` | `{ "type": "string", "minLength": 1, "format": "email" }` |
 | `Website` | `{ "type": "string", "minLength": 1, "format": "uri" }` |
 
-Annotations Swashbuckle's `DataAnnotationsSchemaFilter` doesn't natively map
-on primitive-typed properties &mdash; for example `[Description]`,
-`[DefaultValue]`, `[Length]`, `[Base64String]`, or
-`[Range(MinimumIsExclusive = true)]` &mdash; aren't written here either. If
-you also need those, `Microsoft.AspNetCore.OpenApi` does support them; see
-[`Kalicz.StrongTypes.OpenApi.Microsoft`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft).
+Annotations Swashbuckle's filter doesn't natively map on primitive-typed
+properties &mdash; e.g. `[Description]`, `[DefaultValue]`, `[Length]`,
+`[Base64String]`, `[Range(MinimumIsExclusive = true)]` &mdash; aren't
+written here either, so the wrapper-typed surface stays consistent with
+the primitive-typed one. If you also need those, install
+[`Kalicz.StrongTypes.OpenApi.Microsoft`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft)
+and use `Microsoft.AspNetCore.OpenApi`.

@@ -25,6 +25,9 @@ namespace StrongTypes.OpenApi.Swashbuckle;
 /// supports for primitive-typed properties also surfaces here. We then copy
 /// the resulting keywords onto our wrapper position via <see cref="SchemaPaint"/>'s
 /// tighten/set-if-absent helpers, so the wrapper's wire-shape floor still wins.
+/// Attributes Swashbuckle doesn't natively handle on primitive-typed
+/// properties stay unsupported here too — the wrapper-typed surface
+/// matches the primitive-typed surface, by design.
 /// </summary>
 public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
 {

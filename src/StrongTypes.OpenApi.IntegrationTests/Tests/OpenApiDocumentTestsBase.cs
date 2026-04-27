@@ -22,13 +22,14 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 
     /// <summary>
     /// Annotations <see cref="System.ComponentModel.DescriptionAttribute"/>,
-    /// <see cref="System.ComponentModel.DefaultValueAttribute"/>,
     /// <see cref="System.ComponentModel.DataAnnotations.LengthAttribute"/>,
     /// <see cref="System.ComponentModel.DataAnnotations.Base64StringAttribute"/>,
     /// and <see cref="System.ComponentModel.DataAnnotations.RangeAttribute.MinimumIsExclusive"/>
     /// are written by Microsoft.AspNetCore.OpenApi but not by Swashbuckle's
-    /// <c>DataAnnotationsSchemaFilter</c>. Tests pinning their wire output run
-    /// only against the Microsoft pipeline.
+    /// <c>DataAnnotationsSchemaFilter</c> &mdash; not even on primitive-typed
+    /// properties. Tests pinning their wire output run only against the
+    /// Microsoft pipeline, so the wrapper-typed surface stays consistent with
+    /// the primitive-typed surface on each pipeline.
     /// </summary>
     protected virtual bool IsMicrosoftPipeline => false;
 
