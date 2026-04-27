@@ -22,69 +22,67 @@
   <rect width="800" height="360" fill="#FFFFFF"/>
   <rect x="0.5" y="0.5" width="799" height="359" fill="none" stroke="#E5E7EB" rx="10"/>
 
-  <!-- Core card (top, centered) -->
-  <rect x="180" y="15" width="440" height="190" rx="8" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.5"/>
-  <text class="core-title" x="198" y="42">Kalicz.StrongTypes</text>
+  <!-- Core card (top-left) -->
+  <rect x="15" y="15" width="395" height="190" rx="8" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.5"/>
+  <text class="core-title" x="33" y="42">Kalicz.StrongTypes</text>
 
   <!-- Bullet 1: Maybe + JSON Converter -->
-  <circle class="bullet" cx="206" cy="70" r="2.5"/>
-  <text class="body-mono" x="216" y="74">Maybe&lt;T&gt;<tspan class="body" fill="#374151"> + JSON converter</tspan></text>
+  <circle class="bullet" cx="41" cy="70" r="2.5"/>
+  <text class="body-mono" x="51" y="74">Maybe&lt;T&gt;<tspan class="body" fill="#374151"> + JSON converter</tspan></text>
 
   <!-- Bullet 2: Result -->
-  <circle class="bullet" cx="206" cy="93" r="2.5"/>
-  <text class="body-mono" x="216" y="97">Result&lt;T&gt; / Result&lt;T, TError&gt;</text>
+  <circle class="bullet" cx="41" cy="93" r="2.5"/>
+  <text class="body-mono" x="51" y="97">Result&lt;T&gt; / Result&lt;T, TError&gt;</text>
 
-  <!-- Bullet 3: Useful Types with JSON converters -->
-  <circle class="bullet" cx="206" cy="116" r="2.5"/>
-  <text class="body" x="216" y="120">Validated types<tspan fill="#6B7280"> (with JSON converters)</tspan></text>
+  <!-- Bullet 3: Validated types -->
+  <circle class="bullet" cx="41" cy="116" r="2.5"/>
+  <text class="body" x="51" y="120">Validated types<tspan fill="#6B7280"> (with JSON converters)</tspan></text>
 
   <!-- Sub-bullets -->
-  <circle class="sub-bullet" cx="235" cy="139" r="2.3"/>
-  <text class="sub-mono" x="246" y="143">NonEmptyString</text>
+  <circle class="sub-bullet" cx="70" cy="139" r="2.3"/>
+  <text class="sub-mono" x="81" y="143">NonEmptyString</text>
 
-  <circle class="sub-bullet" cx="235" cy="160" r="2.3"/>
-  <text class="sub-mono" x="246" y="164">NonEmptyEnumerable&lt;T&gt;</text>
+  <circle class="sub-bullet" cx="70" cy="160" r="2.3"/>
+  <text class="sub-mono" x="81" y="164">NonEmptyEnumerable&lt;T&gt;</text>
 
-  <circle class="sub-bullet" cx="235" cy="181" r="2.3"/>
-  <text class="sub-body" x="246" y="185">Numeric wrappers <tspan font-family="ui-monospace, Menlo, Consolas, monospace">(Positive&lt;T&gt;, …)</tspan></text>
+  <circle class="sub-bullet" cx="70" cy="181" r="2.3"/>
+  <text class="sub-body" x="81" y="185">Numeric wrappers <tspan font-family="ui-monospace, Menlo, Consolas, monospace">(Positive&lt;T&gt;, …)</tspan></text>
 
-  <!-- Satellite cards: 4 in a row at the bottom -->
+  <!-- OpenApi.Microsoft card (top-right) -->
+  <rect x="425" y="15" width="360" height="92" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text class="card-title" x="439" y="37">Kalicz.StrongTypes.OpenApi.Microsoft</text>
+  <circle class="sm-bullet" cx="445" cy="62" r="2"/>
+  <text class="card-body" x="453" y="66">Schema transformers</text>
+  <circle class="sm-bullet" cx="445" cy="87" r="2"/>
+  <text class="card-body" x="453" y="91">for <tspan font-family="ui-monospace, Menlo, Consolas, monospace">AddOpenApi()</tspan></text>
 
-  <!-- EfCore card -->
-  <rect x="15" y="245" width="185" height="100" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
-  <text class="card-title" x="29" y="269">Kalicz.StrongTypes.EfCore</text>
-  <circle class="sm-bullet" cx="35" cy="294" r="2"/>
-  <text class="card-body" x="43" y="298">EF Core value converters</text>
-  <circle class="sm-bullet" cx="35" cy="316" r="2"/>
-  <text class="card-body" x="43" y="320">DbContext extension</text>
+  <!-- OpenApi.Swashbuckle card (mid-right) -->
+  <rect x="425" y="113" width="360" height="92" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text class="card-title" x="439" y="135">Kalicz.StrongTypes.OpenApi.Swashbuckle</text>
+  <circle class="sm-bullet" cx="445" cy="160" r="2"/>
+  <text class="card-body" x="453" y="164">Schema filters</text>
+  <circle class="sm-bullet" cx="445" cy="185" r="2"/>
+  <text class="card-body" x="453" y="189">for <tspan font-family="ui-monospace, Menlo, Consolas, monospace">AddSwaggerGen()</tspan></text>
 
-  <!-- FsCheck card -->
-  <rect x="210" y="245" width="185" height="100" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
-  <text class="card-title" x="224" y="269">Kalicz.StrongTypes.FsCheck</text>
-  <circle class="sm-bullet" cx="230" cy="294" r="2"/>
-  <text class="card-body" x="238" y="298">FsCheck Arbitrary&lt;T&gt;</text>
-  <circle class="sm-bullet" cx="230" cy="316" r="2"/>
-  <text class="card-body" x="238" y="320">generators</text>
+  <!-- EfCore card (bottom-left) -->
+  <rect x="15" y="235" width="395" height="110" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text class="card-title" x="29" y="259">Kalicz.StrongTypes.EfCore</text>
+  <circle class="sm-bullet" cx="35" cy="284" r="2"/>
+  <text class="card-body" x="43" y="288">EF Core value converters</text>
+  <circle class="sm-bullet" cx="35" cy="306" r="2"/>
+  <text class="card-body" x="43" y="310">DbContext extension</text>
 
-  <!-- OpenApi.Microsoft card -->
-  <rect x="405" y="245" width="185" height="100" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
-  <text class="card-title" x="412" y="269">Kalicz.StrongTypes.OpenApi.Microsoft</text>
-  <circle class="sm-bullet" cx="425" cy="294" r="2"/>
-  <text class="card-body" x="433" y="298">Schema transformers</text>
-  <circle class="sm-bullet" cx="425" cy="316" r="2"/>
-  <text class="card-body" x="433" y="320">for <tspan font-family="ui-monospace, Menlo, Consolas, monospace">AddOpenApi()</tspan></text>
-
-  <!-- OpenApi.Swashbuckle card -->
-  <rect x="600" y="245" width="185" height="100" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
-  <text class="card-title" x="608" y="269">Kalicz.StrongTypes.OpenApi.Swashbuckle</text>
-  <circle class="sm-bullet" cx="620" cy="294" r="2"/>
-  <text class="card-body" x="628" y="298">Schema filters</text>
-  <circle class="sm-bullet" cx="620" cy="316" r="2"/>
-  <text class="card-body" x="628" y="320">for <tspan font-family="ui-monospace, Menlo, Consolas, monospace">AddSwaggerGen()</tspan></text>
+  <!-- FsCheck card (bottom-right) -->
+  <rect x="425" y="235" width="360" height="110" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text class="card-title" x="439" y="259">Kalicz.StrongTypes.FsCheck</text>
+  <circle class="sm-bullet" cx="445" cy="284" r="2"/>
+  <text class="card-body" x="453" y="288">FsCheck Arbitrary&lt;T&gt;</text>
+  <circle class="sm-bullet" cx="445" cy="306" r="2"/>
+  <text class="card-body" x="453" y="310">generators</text>
 
   <!-- Arrows from satellite cards to core card -->
-  <line x1="107"  y1="245" x2="240" y2="207" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
-  <line x1="302"  y1="245" x2="340" y2="207" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
-  <line x1="497"  y1="245" x2="460" y2="207" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
-  <line x1="692"  y1="245" x2="560" y2="207" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
+  <line x1="425" y1="61"  x2="412" y2="61"  stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
+  <line x1="425" y1="159" x2="412" y2="159" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
+  <line x1="212" y1="235" x2="212" y2="210" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
+  <line x1="450" y1="235" x2="400" y2="212" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
 </svg>
