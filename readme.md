@@ -1,14 +1,16 @@
-# StrongTypes for C# [![Build](https://img.shields.io/github/actions/workflow/status/KaliCZ/StrongTypes/build.yml?branch=main&label=build)](https://github.com/KaliCZ/StrongTypes/actions/workflows/build.yml) [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
+# Kalicz.StrongTypes for C# &nbsp;&nbsp;&nbsp;&nbsp; [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
 [![StrongTypes downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
 [![StrongTypes.EfCore downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.EfCore?label=downloads%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)
 [![StrongTypes.FsCheck downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.FsCheck?label=downloads%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
+[![StrongTypes.OpenApi.Microsoft downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.OpenApi.Microsoft?label=downloads%20%28StrongTypes.OpenApi.Microsoft%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft/)
+[![StrongTypes.OpenApi.Swashbuckle downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.OpenApi.Swashbuckle?label=downloads%20%28StrongTypes.OpenApi.Swashbuckle%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Swashbuckle/)
 
 StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive".
 
 Every type ships with `System.Text.Json` converters out of the box (except `Result`), so invalid JSON fails at deserialization — in ASP.NET Core, that's before your endpoint method even runs.
 
-You can also store the types directly in your EF Core entities with the use of the EfCore package.
+You can store the types directly in your EF Core entities with the use of the EfCore package. OpenAPI documentation is supported with the use of the OpenAPI packages for microsoft or Swagger - see [Packages](#packages) below.
 
 > 🤖 Letting Claude Code or Codex write code in a project that uses
 > StrongTypes? See [Use with Claude or Codex](#use-with-claude-or-codex)
@@ -27,6 +29,7 @@ You can also store the types directly in your EF Core entities with the use of t
   - [What you get for free](#what-you-get-for-free)
   - [JSON serialization](#json-serialization)
   - [EF Core persistence](#ef-core-persistence)
+  - [OpenAPI / Swagger schema](#openapi--swagger-schema)
 - [`NonEmptyEnumerable<T>`](#nonemptyenumerablet)
 - [Parsing helpers](#parsing-helpers)
   - [Enums](#enums)
@@ -35,6 +38,7 @@ You can also store the types directly in your EF Core entities with the use of t
   - [Prefer nullables: `Map`, `MapTrue`, `MapFalse`](#prefer-nullables-map-maptrue-mapfalse)
   - [`Maybe<T>`](#maybet)
   - [`Result<T, TError>`](#resultt-terror)
+- [Packages](#packages)
 
 ## Use with Claude or Codex
 
@@ -134,6 +138,17 @@ All strong types ship with `System.Text.Json` converters attached via `[JsonConv
 ### EF Core persistence
 
 If you want to store strong types directly on your EF Core entities, add the companion package [`Kalicz.StrongTypes.EfCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/). It provides the value converters needed to map `NonEmptyString`, `Positive<T>`, and other numeric types to their underlying column types. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md) for setup details.
+
+[↑ Back to contents](#contents)
+
+### OpenAPI / Swagger schema
+
+By default, ASP.NET Core's spec generators describe strong-type wrappers by their CLR shape — `NonEmptyString` becomes an object with a `Value` field, `Positive<int>` a wrapper object, `Maybe<T>` the full union surface — so generated clients see nonsense and validation hints (`minLength`, `minimum`, …) never reach consumers. Two companion packages fix that, one per generator pipeline:
+
+- [`Kalicz.StrongTypes.OpenApi.Microsoft`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft/) for **`Microsoft.AspNetCore.OpenApi`** (`AddOpenApi()`, the default in .NET 9+ templates). Register with `options.AddStrongTypes()`. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.OpenApi.Microsoft/readme.md).
+- [`Kalicz.StrongTypes.OpenApi.Swashbuckle`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Swashbuckle/) for **`Swashbuckle.AspNetCore`** (`AddSwaggerGen()`). Register with `options.AddStrongTypes()`. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.OpenApi.Swashbuckle/readme.md).
+
+Pick the one that matches the generator your app already uses. They're not interchangeable — `Microsoft.AspNetCore.OpenApi` and Swashbuckle have disjoint extension points (`IOpenApiSchemaTransformer` vs `ISchemaFilter`), so the package built for one does nothing for the other.
 
 [↑ Back to contents](#contents)
 
@@ -599,6 +614,18 @@ Result<Positive<int>[], string> ParseOrderQuantities(IEnumerable<int> inputs)
         invalidNumbers => $"Some numbers are not positive: [{string.Join(", ", invalidNumbers)}]");
 }
 ```
+
+[↑ Back to contents](#contents)
+
+## Packages
+
+| Package | Purpose | Readme |
+| --- | --- | --- |
+| [`Kalicz.StrongTypes`](https://www.nuget.org/packages/Kalicz.StrongTypes/) | Core types: `NonEmptyString`, `Positive<T>` / `NonNegative<T>` / `Negative<T>` / `NonPositive<T>`, `NonEmptyEnumerable<T>`, `Maybe<T>`, `Result<T, TError>`, plus `System.Text.Json` converters. | (this readme) |
+| [`Kalicz.StrongTypes.EfCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/) | EF Core value converters + `DbContext` extension for round-tripping the wrappers through scalar columns. | [readme](src/StrongTypes.EfCore/readme.md) |
+| [`Kalicz.StrongTypes.FsCheck`](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/) | FsCheck `Arbitrary<T>` generators for property-based (generative) testing of code that takes or returns the wrappers. | [readme](src/StrongTypes.FsCheck/readme.md) |
+| [`Kalicz.StrongTypes.OpenApi.Microsoft`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft/) | Schema transformers for `Microsoft.AspNetCore.OpenApi` (`AddOpenApi()`) so the generated document matches the wire JSON. | [readme](src/StrongTypes.OpenApi.Microsoft/readme.md) |
+| [`Kalicz.StrongTypes.OpenApi.Swashbuckle`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Swashbuckle/) | Schema filters for `Swashbuckle.AspNetCore` (`AddSwaggerGen()`) so the generated Swagger document matches the wire JSON. | [readme](src/StrongTypes.OpenApi.Swashbuckle/readme.md) |
 
 [↑ Back to contents](#contents)
 

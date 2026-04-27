@@ -72,6 +72,7 @@
       <SourcePath ParameterType="System.String" Required="true" />
       <DestinationPath ParameterType="System.String" Required="true" />
       <RawBaseUrl ParameterType="System.String" Required="true" />
+      <BlobBaseUrl ParameterType="System.String" Required="true" />
       <ReleaseAssetBaseUrl ParameterType="System.String" Required="true" />
     </ParameterGroup>
     <Task>
@@ -79,6 +80,7 @@
         var content = System.IO.File.ReadAllText(SourcePath);
         content = content.Replace("](docs/diagrams/", "](" + RawBaseUrl + "docs/diagrams/");
         content = content.Replace("](Skill/", "](" + RawBaseUrl + "Skill/");
+        content = content.Replace("](src/", "](" + BlobBaseUrl + "src/");
         content = content.Replace("https://github.com/KaliCZ/StrongTypes/releases/latest/download/", ReleaseAssetBaseUrl);
         System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(DestinationPath));
         System.IO.File.WriteAllText(DestinationPath, content);
@@ -92,10 +94,11 @@
       <_ReleaseRef Condition="'$(Version)' != '' and '$(Version)' != '0.0.0-dev'">v$(Version)</_ReleaseRef>
       <_ReleaseRef Condition="'$(_ReleaseRef)' == ''">main</_ReleaseRef>
       <_ReleaseRawBaseUrl>https://raw.githubusercontent.com/KaliCZ/StrongTypes/$(_ReleaseRef)/</_ReleaseRawBaseUrl>
+      <_ReleaseBlobBaseUrl>https://github.com/KaliCZ/StrongTypes/blob/$(_ReleaseRef)/</_ReleaseBlobBaseUrl>
       <_ReleaseAssetBaseUrl Condition="'$(Version)' != '' and '$(Version)' != '0.0.0-dev'">https://github.com/KaliCZ/StrongTypes/releases/download/v$(Version)/</_ReleaseAssetBaseUrl>
       <_ReleaseAssetBaseUrl Condition="'$(_ReleaseAssetBaseUrl)' == ''">https://github.com/KaliCZ/StrongTypes/releases/latest/download/</_ReleaseAssetBaseUrl>
     </PropertyGroup>
-    <_RewriteReleaseUrls SourcePath="$(_ReadmeSourcePath)" DestinationPath="$(_PackedReadmePath)" RawBaseUrl="$(_ReleaseRawBaseUrl)" ReleaseAssetBaseUrl="$(_ReleaseAssetBaseUrl)" />
+    <_RewriteReleaseUrls SourcePath="$(_ReadmeSourcePath)" DestinationPath="$(_PackedReadmePath)" RawBaseUrl="$(_ReleaseRawBaseUrl)" BlobBaseUrl="$(_ReleaseBlobBaseUrl)" ReleaseAssetBaseUrl="$(_ReleaseAssetBaseUrl)" />
     <ItemGroup>
       <None Include="$(_PackedReadmePath)" Pack="true" PackagePath="\" Visible="false" />
     </ItemGroup>
