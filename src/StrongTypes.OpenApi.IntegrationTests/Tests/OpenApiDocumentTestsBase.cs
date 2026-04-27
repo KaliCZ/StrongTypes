@@ -30,11 +30,13 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     }
 
     // Resolves a schema node against the document. Follows $ref (components
-    // lookup), the single-element allOf wrapper older OpenAPI writers emit for
-    // nullable $ref positions (`{ "allOf": [{ "$ref": ... }], "nullable": true }`),
-    // and the oneOf wrapper the newer Microsoft.OpenApi 2.x writer emits
-    // (`{ "oneOf": [{ "nullable": true }, { "$ref": ... }] }`), so the tests
-    // stay focused on the underlying schema contract.
+    // lookup) and the various wrappers the OpenAPI writers emit for nullable
+    // positions:
+    //   3.0  `{ "allOf": [{ "$ref": ... }], "nullable": true }`
+    //   3.0  `{ "oneOf": [{ "nullable": true }, { "$ref": ... }] }`
+    //   3.1  `{ "anyOf": [{ "type": "null" }, { "$ref": ... }] }`
+    // so the tests stay focused on the underlying schema contract regardless
+    // of which version of OpenAPI emits them.
     private static JsonElement Resolve(JsonElement doc, JsonElement schema)
     {
         while (true)
@@ -59,41 +61,58 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
                 continue;
             }
 
-            if (schema.TryGetProperty("oneOf", out var oneOf)
-                && oneOf.ValueKind == JsonValueKind.Array)
+            if (TryUnwrapNullableUnion(schema, "oneOf", out var unwrappedOneOf))
             {
-                JsonElement? nonNull = null;
-                var allBranchesNullableOrUnderlying = true;
-                foreach (var branch in oneOf.EnumerateArray())
-                {
-                    if (branch.ValueKind == JsonValueKind.Object
-                        && branch.TryGetProperty("nullable", out var n)
-                        && n.ValueKind == JsonValueKind.True
-                        && branch.EnumerateObject().Count() == 1)
-                    {
-                        continue;
-                    }
+                schema = unwrappedOneOf;
+                continue;
+            }
 
-                    if (nonNull is null)
-                    {
-                        nonNull = branch;
-                    }
-                    else
-                    {
-                        allBranchesNullableOrUnderlying = false;
-                        break;
-                    }
-                }
-
-                if (allBranchesNullableOrUnderlying && nonNull is { } single)
-                {
-                    schema = single;
-                    continue;
-                }
+            if (TryUnwrapNullableUnion(schema, "anyOf", out var unwrappedAnyOf))
+            {
+                schema = unwrappedAnyOf;
+                continue;
             }
 
             return schema;
         }
+    }
+
+    private static bool TryUnwrapNullableUnion(JsonElement schema, string keyword, out JsonElement underlying)
+    {
+        underlying = default;
+        if (!schema.TryGetProperty(keyword, out var union) || union.ValueKind != JsonValueKind.Array)
+            return false;
+
+        JsonElement? nonNull = null;
+        foreach (var branch in union.EnumerateArray())
+        {
+            if (branch.ValueKind != JsonValueKind.Object) return false;
+            if (IsNullBranch(branch)) continue;
+            if (nonNull is not null) return false;
+            nonNull = branch;
+        }
+
+        if (nonNull is not { } single) return false;
+        underlying = single;
+        return true;
+    }
+
+    private static bool IsNullBranch(JsonElement branch)
+    {
+        // 3.0 form: `{ "nullable": true }`
+        if (branch.TryGetProperty("nullable", out var n)
+            && n.ValueKind == JsonValueKind.True
+            && branch.EnumerateObject().Count() == 1)
+            return true;
+
+        // 3.1 form: `{ "type": "null" }`
+        if (branch.TryGetProperty("type", out var t)
+            && t.ValueKind == JsonValueKind.String
+            && t.GetString() == "null"
+            && branch.EnumerateObject().Count() == 1)
+            return true;
+
+        return false;
     }
 
     private static JsonElement RequestSchema(JsonElement doc, string path, string method = "post")
@@ -121,6 +140,44 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 
     private static bool BoolOrFalse(JsonElement schema, string propertyName) =>
         schema.TryGetProperty(propertyName, out var v) && v.ValueKind == JsonValueKind.True;
+
+    // The two OpenAPI versions encode an exclusive bound differently:
+    //   3.0 → `minimum: <n>` paired with `exclusiveMinimum: true` (boolean)
+    //   3.1 → `exclusiveMinimum: <n>` (numeric value, no companion `minimum`)
+    // The wrapper contract is "exclusive lower bound at 0" regardless; these
+    // helpers normalise both encodings so the shared assertions stay version-
+    // agnostic. Same for the upper-bound pair.
+    private static void AssertExclusiveLowerBound(JsonElement schema, decimal expected)
+    {
+        Assert.True(
+            schema.TryGetProperty("exclusiveMinimum", out var ex),
+            "exclusiveMinimum is missing");
+
+        if (ex.ValueKind == JsonValueKind.Number)
+        {
+            Assert.Equal(expected, ex.GetDecimal());
+            return;
+        }
+
+        Assert.Equal(JsonValueKind.True, ex.ValueKind);
+        Assert.Equal(expected, DecimalOrNull(schema, "minimum"));
+    }
+
+    private static void AssertExclusiveUpperBound(JsonElement schema, decimal expected)
+    {
+        Assert.True(
+            schema.TryGetProperty("exclusiveMaximum", out var ex),
+            "exclusiveMaximum is missing");
+
+        if (ex.ValueKind == JsonValueKind.Number)
+        {
+            Assert.Equal(expected, ex.GetDecimal());
+            return;
+        }
+
+        Assert.Equal(JsonValueKind.True, ex.ValueKind);
+        Assert.Equal(expected, DecimalOrNull(schema, "maximum"));
+    }
 
     [Fact]
     public async Task Document_IsServed()
@@ -151,8 +208,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 
         Assert.Equal("integer", StringOrNull(value, "type"));
         Assert.Equal("int32", StringOrNull(value, "format"));
-        Assert.Equal(0m, DecimalOrNull(value, "minimum"));
-        Assert.True(BoolOrFalse(value, "exclusiveMinimum"));
+        AssertExclusiveLowerBound(value, 0m);
     }
 
     [Fact]
@@ -177,8 +233,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 
         Assert.Equal("number", StringOrNull(value, "type"));
         Assert.Equal("double", StringOrNull(value, "format"));
-        Assert.Equal(0m, DecimalOrNull(value, "maximum"));
-        Assert.True(BoolOrFalse(value, "exclusiveMaximum"));
+        AssertExclusiveUpperBound(value, 0m);
     }
 
     [Fact]
@@ -236,8 +291,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var items = Resolve(doc, nonEmpty.GetProperty("items"));
         Assert.Equal("integer", StringOrNull(items, "type"));
         Assert.Equal("int32", StringOrNull(items, "format"));
-        Assert.Equal(0m, DecimalOrNull(items, "minimum"));
-        Assert.True(BoolOrFalse(items, "exclusiveMinimum"));
+        AssertExclusiveLowerBound(items, 0m);
     }
 
     // ───────────────────────────────────────────────────────────────────
@@ -268,8 +322,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 
         Assert.Equal("integer", StringOrNull(nullableValue, "type"));
         Assert.Equal("int32", StringOrNull(nullableValue, "format"));
-        Assert.Equal(0m, DecimalOrNull(nullableValue, "minimum"));
-        Assert.True(BoolOrFalse(nullableValue, "exclusiveMinimum"));
+        AssertExclusiveLowerBound(nullableValue, 0m);
     }
 
     [Fact]
@@ -300,8 +353,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var items = Resolve(doc, nullableArray.GetProperty("items"));
         Assert.Equal("integer", StringOrNull(items, "type"));
         Assert.Equal("int32", StringOrNull(items, "format"));
-        Assert.Equal(0m, DecimalOrNull(items, "minimum"));
-        Assert.True(BoolOrFalse(items, "exclusiveMinimum"));
+        AssertExclusiveLowerBound(items, 0m);
     }
 
     [Fact]
@@ -324,8 +376,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 
         Assert.Equal("integer", StringOrNull(value, "type"));
         Assert.Equal("int32", StringOrNull(value, "format"));
-        Assert.Equal(0m, DecimalOrNull(value, "minimum"));
-        Assert.True(BoolOrFalse(value, "exclusiveMinimum"));
+        AssertExclusiveLowerBound(value, 0m);
     }
 
     [Fact]
@@ -374,8 +425,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var inner = Resolve(doc, maybe.GetProperty("properties").GetProperty("Value"));
         Assert.Equal("integer", StringOrNull(inner, "type"));
         Assert.Equal("int32", StringOrNull(inner, "format"));
-        Assert.Equal(0m, DecimalOrNull(inner, "minimum"));
-        Assert.True(BoolOrFalse(inner, "exclusiveMinimum"));
+        AssertExclusiveLowerBound(inner, 0m);
     }
 
     [Fact]
@@ -426,8 +476,6 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var inner = Resolve(doc, maybe.GetProperty("properties").GetProperty("Value"));
         Assert.Equal("integer", StringOrNull(inner, "type"));
         Assert.Equal("int32", StringOrNull(inner, "format"));
-        Assert.Equal(0m, DecimalOrNull(inner, "minimum"));
-        Assert.True(BoolOrFalse(inner, "exclusiveMinimum"));
+        AssertExclusiveLowerBound(inner, 0m);
     }
-
 }
