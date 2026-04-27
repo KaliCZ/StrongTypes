@@ -48,19 +48,13 @@ app.UseSwaggerUI();
 | C# type                                                           | OpenAPI schema                                                                  |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | `NonEmptyString`                                                  | `{ "type": "string", "minLength": 1 }`                                          |
-| `Positive<T>`                                                     | underlying primitive with `exclusiveMinimum: 0`                                 |
+| `Positive<T>`                                                     | underlying primitive with `exclusiveMinimum: 0` (3.1) or `minimum: 0, exclusiveMinimum: true` (3.0) |
 | `NonNegative<T>`                                                  | underlying primitive with `minimum: 0`                                          |
-| `Negative<T>`                                                     | underlying primitive with `exclusiveMaximum: 0`                                 |
+| `Negative<T>`                                                     | underlying primitive with `exclusiveMaximum: 0` (3.1) or `maximum: 0, exclusiveMaximum: true` (3.0) |
 | `NonPositive<T>`                                                  | underlying primitive with `maximum: 0`                                          |
 | `NonEmptyEnumerable<T>` / `INonEmptyEnumerable<T>`                | `{ "type": "array", "minItems": 1, "items": <T schema> }`                       |
 | `Maybe<T>`                                                        | `{ "type": "object", "properties": { "Value": <T schema> } }`                   |
 | `IEnumerable<T>` where `T` is a strong-type wrapper               | `{ "type": "array", "items": <T schema> }` (no `minItems` — element schema only) |
-
-The `exclusiveMinimum` / `exclusiveMaximum` rows above show the OpenAPI
-3.1 encoding (numeric value). In 3.0 the same constraint emits as a
-boolean paired with `minimum` / `maximum` — e.g. `Positive<T>` becomes
-`{ "minimum": 0, "exclusiveMinimum": true }`. Both packages produce
-the correct form for whichever version the surrounding pipeline emits.
 
 The `Maybe<T>` filter unwraps `Nullable<Maybe<T>>` internally — that
 matters because `Maybe<T>` implements `IEnumerable<T>`, so a
