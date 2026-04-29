@@ -20,22 +20,17 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 
     protected abstract string DocumentUrl { get; }
 
-    /// <summary>
-    /// The two pipelines support overlapping but not identical attribute sets,
-    /// so a few tests run on only one. Microsoft.AspNetCore.OpenApi natively
-    /// honors <see cref="System.ComponentModel.DescriptionAttribute"/>,
-    /// <see cref="System.ComponentModel.DataAnnotations.LengthAttribute"/>,
-    /// <see cref="System.ComponentModel.DataAnnotations.Base64StringAttribute"/>,
-    /// and <see cref="System.ComponentModel.DataAnnotations.RangeAttribute.MinimumIsExclusive"/>;
-    /// Swashbuckle's <c>DataAnnotationsSchemaFilter</c> does not.
-    /// Conversely, Swashbuckle honors
-    /// <see cref="System.ComponentModel.DataAnnotations.EmailAddressAttribute"/>
-    /// (writes <c>format: "email"</c>); Microsoft does not. Tests pinning a
-    /// wire keyword that one pipeline doesn't natively write skip on that
-    /// pipeline, so the wrapper-typed surface stays consistent with the
-    /// primitive-typed surface on each pipeline.
-    /// </summary>
-    protected virtual bool IsMicrosoftPipeline => false;
+    // Per-feature flags below name a specific keyword the underlying
+    // pipeline doesn't natively write for the matching annotation, even
+    // on a primitive-typed property. Tests that pin such a keyword call
+    // Assert.SkipWhen on the corresponding flag, so the wrapper-typed
+    // surface stays consistent with the primitive-typed surface on each
+    // pipeline. Each flag is set in the per-pipeline subclass.
+    protected virtual bool IsEmailStringFormatBroken => false;
+    protected virtual bool IsLengthAttributeBroken => false;
+    protected virtual bool IsBase64StringFormatBroken => false;
+    protected virtual bool IsDescriptionAttributeBroken => false;
+    protected virtual bool IsExclusiveRangeBroken => false;
 
     private async Task<JsonElement> GetDocumentAsync()
     {
@@ -542,7 +537,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     [Fact]
     public async Task Property_NonEmptyString_With_EmailAddress_Carries_Format_Email_And_Wrapper_MinLength()
     {
-        Assert.SkipWhen(IsMicrosoftPipeline, "Microsoft.AspNetCore.OpenApi does not honor [EmailAddress] — format: \"email\" is not written even on primitive-typed properties.");
+        Assert.SkipWhen(IsEmailStringFormatBroken, "Pipeline does not honor [EmailAddress] — format: \"email\" is not written even on primitive-typed properties.");
         var doc = await GetDocumentAsync();
         var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
         var contactEmail = Property(body, "contactEmail");
@@ -577,7 +572,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     [Fact]
     public async Task Property_NonEmptyString_With_Length_Tightens_Both_Bounds_Above_Wrapper_Floor()
     {
-        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not handle [Length].");
+        Assert.SkipWhen(IsLengthAttributeBroken, "Pipeline does not honor [Length].");
         var doc = await GetDocumentAsync();
         var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
         var slug = Property(body, "slug");
@@ -589,7 +584,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     [Fact]
     public async Task Property_NonEmptyString_With_Base64String_Carries_Format_Byte_And_Wrapper_MinLength()
     {
-        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not handle [Base64String].");
+        Assert.SkipWhen(IsBase64StringFormatBroken, "Pipeline does not honor [Base64String] — format: \"byte\" is not written.");
         var doc = await GetDocumentAsync();
         var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
         var encodedBlob = Property(body, "encodedBlob");
@@ -601,7 +596,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     [Fact]
     public async Task Property_NonEmptyString_With_Description_Carries_Description()
     {
-        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not handle [Description]; it sources description from XML doc comments instead.");
+        Assert.SkipWhen(IsDescriptionAttributeBroken, "Pipeline does not honor [Description].");
         var doc = await GetDocumentAsync();
         var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
         var tagline = Property(body, "tagline");
@@ -623,7 +618,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     [Fact]
     public async Task Property_Positive_Int_With_Range_MinimumIsExclusive_Carries_Exclusive_Lower_Bound()
     {
-        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not honor RangeAttribute.MinimumIsExclusive.");
+        Assert.SkipWhen(IsExclusiveRangeBroken, "Pipeline does not honor RangeAttribute.MinimumIsExclusive.");
         var doc = await GetDocumentAsync();
         var body = Resolve(doc, RequestSchema(doc, "/annotated-numbers"));
         var exclusive = Property(body, "exclusiveLowerAge");
@@ -659,6 +654,10 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
         var emailRaw = Property(body, "emailRaw");
 
+        // [StringLength(254)] sets only an upper bound; both pipelines write
+        // minLength: 0 verbatim from the attribute. The wrapper sibling
+        // floors that to its own minLength: 1 (asserted on the wrapper test).
+        Assert.Equal(0, CollectMaxInt(doc, emailRaw, "minLength"));
         Assert.Equal(254, CollectMinInt(doc, emailRaw, "maxLength"));
         Assert.Equal("^[^@]+@[^@]+$", CollectFirstString(doc, emailRaw, "pattern"));
     }
@@ -666,7 +665,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     [Fact]
     public async Task Property_String_With_EmailAddress_Carries_Format_Email()
     {
-        Assert.SkipWhen(IsMicrosoftPipeline, "Microsoft.AspNetCore.OpenApi does not honor [EmailAddress] — format: \"email\" is not written even on primitive-typed properties.");
+        Assert.SkipWhen(IsEmailStringFormatBroken, "Pipeline does not honor [EmailAddress] — format: \"email\" is not written even on primitive-typed properties.");
         var doc = await GetDocumentAsync();
         var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
         var contactEmailRaw = Property(body, "contactEmailRaw");
@@ -687,7 +686,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     [Fact]
     public async Task Property_String_With_Length_Tightens_Both_Bounds()
     {
-        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not handle [Length].");
+        Assert.SkipWhen(IsLengthAttributeBroken, "Pipeline does not honor [Length].");
         var doc = await GetDocumentAsync();
         var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
         var slugRaw = Property(body, "slugRaw");
@@ -699,7 +698,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     [Fact]
     public async Task Property_String_With_Base64String_Carries_Format_Byte()
     {
-        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not handle [Base64String].");
+        Assert.SkipWhen(IsBase64StringFormatBroken, "Pipeline does not honor [Base64String] — format: \"byte\" is not written.");
         var doc = await GetDocumentAsync();
         var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
         var encodedBlobRaw = Property(body, "encodedBlobRaw");
@@ -710,7 +709,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     [Fact]
     public async Task Property_String_With_Description_Carries_Description()
     {
-        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not handle [Description]; it sources description from XML doc comments instead.");
+        Assert.SkipWhen(IsDescriptionAttributeBroken, "Pipeline does not honor [Description].");
         var doc = await GetDocumentAsync();
         var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
         var taglineRaw = Property(body, "taglineRaw");
@@ -732,7 +731,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     [Fact]
     public async Task Property_Int_With_Range_MinimumIsExclusive_Carries_Exclusive_Lower_Bound()
     {
-        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not honor RangeAttribute.MinimumIsExclusive.");
+        Assert.SkipWhen(IsExclusiveRangeBroken, "Pipeline does not honor RangeAttribute.MinimumIsExclusive.");
         var doc = await GetDocumentAsync();
         var body = Resolve(doc, RequestSchema(doc, "/annotated-numbers"));
         var exclusiveRaw = Property(body, "exclusiveLowerAgeRaw");

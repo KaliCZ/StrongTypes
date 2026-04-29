@@ -12,4 +12,8 @@ public sealed class SwashbuckleOpenApiDocumentTests(SwashbuckleTestApiFactory fa
     : OpenApiDocumentTestsBase(factory.CreateClient()), IClassFixture<SwashbuckleTestApiFactory>
 {
     protected override string DocumentUrl => "/swagger/v1/swagger.json";
+    protected override bool IsLengthAttributeBroken => true;
+    protected override bool IsBase64StringFormatBroken => true;
+    protected override bool IsDescriptionAttributeBroken => true;
+    protected override bool IsExclusiveRangeBroken => true;
 }

@@ -12,5 +12,5 @@ public sealed class MicrosoftOpenApiDocumentTests(MicrosoftTestApiFactory factor
     : OpenApiDocumentTestsBase(factory.CreateClient()), IClassFixture<MicrosoftTestApiFactory>
 {
     protected override string DocumentUrl => "/openapi/v1.json";
-    protected override bool IsMicrosoftPipeline => true;
+    protected override bool IsEmailStringFormatBroken => true;
 }
