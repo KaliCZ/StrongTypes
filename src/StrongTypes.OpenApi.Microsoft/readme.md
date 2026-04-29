@@ -72,9 +72,6 @@ public sealed record CreateUserRequest(
     [MaxLength(10)]
     NonEmptyEnumerable<NonEmptyString> Tags,
 
-    [EmailAddress]
-    NonEmptyString ContactEmail,
-
     [Url]
     NonEmptyString Website,
 
@@ -89,12 +86,18 @@ On the wire:
 | `Username` | `{ "type": "string", "minLength": 3, "maxLength": 50, "pattern": "^[a-zA-Z0-9_]+$" }` |
 | `Age` | `{ "type": "integer", "format": "int32", "minimum": 18, "maximum": 120 }` |
 | `Tags` | `{ "type": "array", "minItems": 1, "maxItems": 10, "items": { "type": "string", "minLength": 1 } }` |
-| `ContactEmail` | `{ "type": "string", "minLength": 1, "format": "email" }` |
 | `Website` | `{ "type": "string", "minLength": 1, "format": "uri" }` |
 | `Tagline` | `{ "type": "string", "minLength": 1, "description": "Short user tagline" }` |
 
-`[DefaultValue]` is **not** supported on wrapper-typed properties &mdash; the
-framework's own default-value handler crashes when the attribute's underlying
-value (e.g. `string`) doesn't match the property's declared wrapper type
-(e.g. `NonEmptyString`). Apply `[DefaultValue]` only to primitive-typed
-properties.
+A few attributes are intentionally not propagated because the underlying
+pipeline doesn't honor them on a primitive-typed property either, and the
+wrapper-typed surface stays consistent with the primitive-typed surface
+on each pipeline:
+
+- `[EmailAddress]` &mdash; `Microsoft.AspNetCore.OpenApi` doesn't write
+  `format: "email"` for it. The Swashbuckle adapter does propagate it
+  (because Swashbuckle's `DataAnnotationsSchemaFilter` does).
+- `[DefaultValue]` &mdash; the framework's own default-value handler
+  crashes when the attribute's underlying value (e.g. `string`) doesn't
+  match the property's declared wrapper type (e.g. `NonEmptyString`).
+  Apply `[DefaultValue]` only to primitive-typed properties.

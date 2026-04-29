@@ -21,15 +21,19 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     protected abstract string DocumentUrl { get; }
 
     /// <summary>
-    /// Annotations <see cref="System.ComponentModel.DescriptionAttribute"/>,
+    /// The two pipelines support overlapping but not identical attribute sets,
+    /// so a few tests run on only one. Microsoft.AspNetCore.OpenApi natively
+    /// honors <see cref="System.ComponentModel.DescriptionAttribute"/>,
     /// <see cref="System.ComponentModel.DataAnnotations.LengthAttribute"/>,
     /// <see cref="System.ComponentModel.DataAnnotations.Base64StringAttribute"/>,
-    /// and <see cref="System.ComponentModel.DataAnnotations.RangeAttribute.MinimumIsExclusive"/>
-    /// are written by Microsoft.AspNetCore.OpenApi but not by Swashbuckle's
-    /// <c>DataAnnotationsSchemaFilter</c> &mdash; not even on primitive-typed
-    /// properties. Tests pinning their wire output run only against the
-    /// Microsoft pipeline, so the wrapper-typed surface stays consistent with
-    /// the primitive-typed surface on each pipeline.
+    /// and <see cref="System.ComponentModel.DataAnnotations.RangeAttribute.MinimumIsExclusive"/>;
+    /// Swashbuckle's <c>DataAnnotationsSchemaFilter</c> does not.
+    /// Conversely, Swashbuckle honors
+    /// <see cref="System.ComponentModel.DataAnnotations.EmailAddressAttribute"/>
+    /// (writes <c>format: "email"</c>); Microsoft does not. Tests pinning a
+    /// wire keyword that one pipeline doesn't natively write skip on that
+    /// pipeline, so the wrapper-typed surface stays consistent with the
+    /// primitive-typed surface on each pipeline.
     /// </summary>
     protected virtual bool IsMicrosoftPipeline => false;
 
@@ -538,6 +542,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     [Fact]
     public async Task Property_NonEmptyString_With_EmailAddress_Carries_Format_Email_And_Wrapper_MinLength()
     {
+        Assert.SkipWhen(IsMicrosoftPipeline, "Microsoft.AspNetCore.OpenApi does not honor [EmailAddress] — format: \"email\" is not written even on primitive-typed properties.");
         var doc = await GetDocumentAsync();
         var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
         var contactEmail = Property(body, "contactEmail");
@@ -625,6 +630,125 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 
         AssertExclusiveLowerBoundReachable(doc, exclusive, 1m);
         Assert.Equal(10m, CollectMinUpperBound(doc, exclusive));
+    }
+
+    // The primitive-typed siblings below pin the same wire keywords on a
+    // plain `string` / `int` / `string[]` carrying the same annotations.
+    // They serve as a baseline: each pipeline's underlying annotation
+    // handling must natively produce these keywords on a primitive-typed
+    // property for the matching wrapper-typed assertion above to be
+    // meaningful. If a primitive-typed test fails, the failure is in the
+    // pipeline's own annotation-mapping step, not in our wrapper paint.
+
+    [Fact]
+    public async Task Property_String_With_StringLength_And_Pattern_Carries_All_Three()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var usernameRaw = Property(body, "usernameRaw");
+
+        Assert.Equal(3, CollectMaxInt(doc, usernameRaw, "minLength"));
+        Assert.Equal(50, CollectMinInt(doc, usernameRaw, "maxLength"));
+        Assert.Equal("^[a-zA-Z0-9_]+$", CollectFirstString(doc, usernameRaw, "pattern"));
+    }
+
+    [Fact]
+    public async Task Property_String_With_StringLength_Only_Carries_MaxLength_And_Pattern()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var emailRaw = Property(body, "emailRaw");
+
+        Assert.Equal(254, CollectMinInt(doc, emailRaw, "maxLength"));
+        Assert.Equal("^[^@]+@[^@]+$", CollectFirstString(doc, emailRaw, "pattern"));
+    }
+
+    [Fact]
+    public async Task Property_String_With_EmailAddress_Carries_Format_Email()
+    {
+        Assert.SkipWhen(IsMicrosoftPipeline, "Microsoft.AspNetCore.OpenApi does not honor [EmailAddress] — format: \"email\" is not written even on primitive-typed properties.");
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var contactEmailRaw = Property(body, "contactEmailRaw");
+
+        Assert.Equal("email", CollectFirstString(doc, contactEmailRaw, "format"));
+    }
+
+    [Fact]
+    public async Task Property_String_With_Url_Carries_Format_Uri()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var websiteUrlRaw = Property(body, "websiteUrlRaw");
+
+        Assert.Equal("uri", CollectFirstString(doc, websiteUrlRaw, "format"));
+    }
+
+    [Fact]
+    public async Task Property_String_With_Length_Tightens_Both_Bounds()
+    {
+        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not handle [Length].");
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var slugRaw = Property(body, "slugRaw");
+
+        Assert.Equal(2, CollectMaxInt(doc, slugRaw, "minLength"));
+        Assert.Equal(8, CollectMinInt(doc, slugRaw, "maxLength"));
+    }
+
+    [Fact]
+    public async Task Property_String_With_Base64String_Carries_Format_Byte()
+    {
+        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not handle [Base64String].");
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var encodedBlobRaw = Property(body, "encodedBlobRaw");
+
+        Assert.Equal("byte", CollectFirstString(doc, encodedBlobRaw, "format"));
+    }
+
+    [Fact]
+    public async Task Property_String_With_Description_Carries_Description()
+    {
+        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not handle [Description]; it sources description from XML doc comments instead.");
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var taglineRaw = Property(body, "taglineRaw");
+
+        Assert.Equal("Short user tagline", CollectFirstString(doc, taglineRaw, "description"));
+    }
+
+    [Fact]
+    public async Task Property_Int_With_Range_Carries_Both_Bounds()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-numbers"));
+        var ageRaw = Property(body, "ageRaw");
+
+        Assert.Equal(18m, CollectMaxLowerBound(doc, ageRaw));
+        Assert.Equal(120m, CollectMinUpperBound(doc, ageRaw));
+    }
+
+    [Fact]
+    public async Task Property_Int_With_Range_MinimumIsExclusive_Carries_Exclusive_Lower_Bound()
+    {
+        Assert.SkipUnless(IsMicrosoftPipeline, "Swashbuckle's DataAnnotationsSchemaFilter does not honor RangeAttribute.MinimumIsExclusive.");
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-numbers"));
+        var exclusiveRaw = Property(body, "exclusiveLowerAgeRaw");
+
+        AssertExclusiveLowerBoundReachable(doc, exclusiveRaw, 1m);
+        Assert.Equal(10m, CollectMinUpperBound(doc, exclusiveRaw));
+    }
+
+    [Fact]
+    public async Task Property_StringArray_With_MaxLength_Carries_MaxItems()
+    {
+        var doc = await GetDocumentAsync();
+        var body = Resolve(doc, RequestSchema(doc, "/annotated-tags"));
+        var tagsRaw = Property(body, "tagsRaw");
+
+        Assert.Equal(10, CollectMinInt(doc, tagsRaw, "maxItems"));
     }
 
     [Fact]
