@@ -207,6 +207,15 @@ commit message where it's searchable via `git log` / `git blame`.
 - **Always assign the person running the session** when opening a PR.
   Use the GitHub `get_me` tool to discover the authenticated user.
 
+## Worktrees
+
+When the working directory is a git worktree (path under
+`.claude/worktrees/`), commit and push at the end of every request — don't
+leave changes uncommitted between turns. The worktree exists to back a PR;
+the remote branch should always reflect the latest agreed-on state so the
+PR review surface stays current and the work survives if the worktree is
+discarded.
+
 ## Style
 
 - Prefer `Edit` over rewriting whole files.
