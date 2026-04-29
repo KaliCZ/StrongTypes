@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.OpenApi;
 using StrongTypes.OpenApi.Core;
