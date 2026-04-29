@@ -20,6 +20,17 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 
     protected abstract string DocumentUrl { get; }
 
+    protected enum OpenApiVersion { V3_0, V3_1 }
+
+    /// <summary>
+    /// The OpenAPI spec version the pipeline under test emits. Exclusive-bound
+    /// helpers below pin the version's encoding strictly: 3.0 must emit
+    /// <c>minimum: &lt;n&gt;</c> + <c>exclusiveMinimum: true</c> (boolean
+    /// pair), 3.1 must emit <c>exclusiveMinimum: &lt;n&gt;</c> (numeric).
+    /// Cross-version output fails the test rather than silently passing.
+    /// </summary>
+    protected abstract OpenApiVersion Version { get; }
+
     // Per-feature flags below name a specific keyword the underlying
     // pipeline doesn't natively write for the matching annotation, even
     // on a primitive-typed property. Tests that pin such a keyword call
@@ -155,40 +166,43 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 
     // The two OpenAPI versions encode an exclusive bound differently:
     //   3.0 → `minimum: <n>` paired with `exclusiveMinimum: true` (boolean)
-    //   3.1 → `exclusiveMinimum: <n>` (numeric value, no companion `minimum`)
-    // The wrapper contract is "exclusive lower bound at 0" regardless; these
-    // helpers normalise both encodings so the shared assertions stay version-
-    // agnostic. Same for the upper-bound pair.
-    private static void AssertExclusiveLowerBound(JsonElement schema, decimal expected)
+    //   3.1 → `exclusiveMinimum: <n>` (numeric, no companion `minimum`)
+    // The helpers below pin the encoding for the version under test; an
+    // emission in the other version's form fails the assertion.
+    private void AssertExclusiveLowerBound(JsonElement schema, decimal expected)
     {
         Assert.True(
             schema.TryGetProperty("exclusiveMinimum", out var ex),
             "exclusiveMinimum is missing");
 
-        if (ex.ValueKind == JsonValueKind.Number)
+        if (Version == OpenApiVersion.V3_1)
         {
+            Assert.Equal(JsonValueKind.Number, ex.ValueKind);
             Assert.Equal(expected, ex.GetDecimal());
-            return;
         }
-
-        Assert.Equal(JsonValueKind.True, ex.ValueKind);
-        Assert.Equal(expected, DecimalOrNull(schema, "minimum"));
+        else
+        {
+            Assert.Equal(JsonValueKind.True, ex.ValueKind);
+            Assert.Equal(expected, DecimalOrNull(schema, "minimum"));
+        }
     }
 
-    private static void AssertExclusiveUpperBound(JsonElement schema, decimal expected)
+    private void AssertExclusiveUpperBound(JsonElement schema, decimal expected)
     {
         Assert.True(
             schema.TryGetProperty("exclusiveMaximum", out var ex),
             "exclusiveMaximum is missing");
 
-        if (ex.ValueKind == JsonValueKind.Number)
+        if (Version == OpenApiVersion.V3_1)
         {
+            Assert.Equal(JsonValueKind.Number, ex.ValueKind);
             Assert.Equal(expected, ex.GetDecimal());
-            return;
         }
-
-        Assert.Equal(JsonValueKind.True, ex.ValueKind);
-        Assert.Equal(expected, DecimalOrNull(schema, "maximum"));
+        else
+        {
+            Assert.Equal(JsonValueKind.True, ex.ValueKind);
+            Assert.Equal(expected, DecimalOrNull(schema, "maximum"));
+        }
     }
 
     [Fact]
@@ -929,19 +943,25 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         return false;
     }
 
-    private static void AssertExclusiveLowerBoundReachable(JsonElement doc, JsonElement schema, decimal expected)
+    private void AssertExclusiveLowerBoundReachable(JsonElement doc, JsonElement schema, decimal expected)
     {
         foreach (var layer in WalkSchemaLayers(doc, schema))
         {
             if (!layer.TryGetProperty("exclusiveMinimum", out var ex)) continue;
 
-            if (ex.ValueKind == JsonValueKind.Number && ex.GetDecimal() == expected) return;
-            if (ex.ValueKind == JsonValueKind.True
-                && layer.TryGetProperty("minimum", out var min)
-                && min.ValueKind == JsonValueKind.Number
-                && min.GetDecimal() == expected) return;
+            if (Version == OpenApiVersion.V3_1)
+            {
+                if (ex.ValueKind == JsonValueKind.Number && ex.GetDecimal() == expected) return;
+            }
+            else
+            {
+                if (ex.ValueKind == JsonValueKind.True
+                    && layer.TryGetProperty("minimum", out var min)
+                    && min.ValueKind == JsonValueKind.Number
+                    && min.GetDecimal() == expected) return;
+            }
         }
 
-        Assert.Fail($"Expected exclusive lower bound of {expected} reachable from this schema, but none found.");
+        Assert.Fail($"Expected {Version} exclusive lower bound of {expected} reachable from this schema, but none found.");
     }
 }
