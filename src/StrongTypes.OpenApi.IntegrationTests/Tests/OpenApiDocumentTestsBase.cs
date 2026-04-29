@@ -52,27 +52,36 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         return await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
     }
 
-    // Resolves a schema node against the document. Follows $ref (components
-    // lookup) and the various wrappers the OpenAPI writers emit for nullable
-    // positions:
-    //   3.0  `{ "allOf": [{ "$ref": ... }], "nullable": true }`
-    //   3.0  `{ "oneOf": [{ "nullable": true }, { "$ref": ... }] }`
-    //   3.1  `{ "anyOf": [{ "type": "null" }, { "$ref": ... }] }`
-    // so the tests stay focused on the underlying schema contract regardless
-    // of which version of OpenAPI emits them.
+    // Schema-navigation primitives. Each method asserts a specific shape and
+    // returns the inner layer; the choice of method at the call site is itself
+    // an assertion. Composing them (e.g. FollowRef(doc, UnwrapNullableProperty(x)))
+    // expresses the full expected wire structure of a property's schema.
+    //
+    // FollowRef strictly requires $ref. Resolve walks shape-agnostic positions
+    // (array items, Maybe.Value) where a pipeline may emit either a $ref to a
+    // component or an inlined schema; it follows $ref + single-element allOf,
+    // but never a nullable union — those are version-specific and pinned by
+    // UnwrapNullableProperty instead.
+    private static JsonElement FollowRef(JsonElement doc, JsonElement schema)
+    {
+        Assert.Equal(JsonValueKind.Object, schema.ValueKind);
+        Assert.True(schema.TryGetProperty("$ref", out var refProp), "$ref is missing");
+        var path = refProp.GetString()!;
+        const string prefix = "#/components/schemas/";
+        Assert.StartsWith(prefix, path);
+        var name = path[prefix.Length..];
+        return doc.GetProperty("components").GetProperty("schemas").GetProperty(name);
+    }
+
     private static JsonElement Resolve(JsonElement doc, JsonElement schema)
     {
         while (true)
         {
             if (schema.ValueKind != JsonValueKind.Object) return schema;
 
-            if (schema.TryGetProperty("$ref", out var refProp))
+            if (schema.TryGetProperty("$ref", out _))
             {
-                var path = refProp.GetString()!;
-                const string prefix = "#/components/schemas/";
-                Assert.StartsWith(prefix, path);
-                var name = path[prefix.Length..];
-                schema = doc.GetProperty("components").GetProperty("schemas").GetProperty(name);
+                schema = FollowRef(doc, schema);
                 continue;
             }
 
@@ -84,59 +93,113 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
                 continue;
             }
 
-            if (TryUnwrapNullableUnion(schema, "oneOf", out var unwrappedOneOf))
-            {
-                schema = unwrappedOneOf;
-                continue;
-            }
-
-            if (TryUnwrapNullableUnion(schema, "anyOf", out var unwrappedAnyOf))
-            {
-                schema = unwrappedAnyOf;
-                continue;
-            }
-
             return schema;
         }
     }
 
-    private static bool TryUnwrapNullableUnion(JsonElement schema, string keyword, out JsonElement underlying)
+    private static JsonElement UnwrapSingleAllOf(JsonElement schema)
     {
-        underlying = default;
-        if (!schema.TryGetProperty(keyword, out var union) || union.ValueKind != JsonValueKind.Array)
-            return false;
+        Assert.True(schema.TryGetProperty("allOf", out var allOf), "allOf is missing");
+        Assert.Equal(JsonValueKind.Array, allOf.ValueKind);
+        Assert.Equal(1, allOf.GetArrayLength());
+        return allOf[0];
+    }
+
+    private JsonElement UnwrapOneOfNullable(JsonElement schema)
+        => UnwrapNullableUnion(schema, "oneOf", VersionNullBranch);
+
+    private JsonElement UnwrapAnyOfNullable(JsonElement schema)
+        => UnwrapNullableUnion(schema, "anyOf", VersionNullBranch);
+
+    private Func<JsonElement, bool> VersionNullBranch
+        => Version == OpenApiVersion.V3_1 ? Is3_1NullBranch : Is3_0NullBranch;
+
+    private static JsonElement UnwrapNullableUnion(JsonElement schema, string keyword, Func<JsonElement, bool> isNullBranch)
+    {
+        Assert.True(schema.TryGetProperty(keyword, out var union), $"{keyword} is missing");
+        Assert.Equal(JsonValueKind.Array, union.ValueKind);
 
         JsonElement? nonNull = null;
         foreach (var branch in union.EnumerateArray())
         {
-            if (branch.ValueKind != JsonValueKind.Object) return false;
-            if (IsNullBranch(branch)) continue;
-            if (nonNull is not null) return false;
+            Assert.Equal(JsonValueKind.Object, branch.ValueKind);
+            if (isNullBranch(branch)) continue;
+            Assert.True(nonNull is null, $"{keyword} must have exactly one non-null branch");
             nonNull = branch;
         }
 
-        if (nonNull is not { } single) return false;
-        underlying = single;
-        return true;
+        Assert.True(nonNull.HasValue, $"{keyword} has no non-null branch");
+        return nonNull.Value;
     }
 
-    private static bool IsNullBranch(JsonElement branch)
+    // Version-strict unwrap for a property whose CLR type is nullable. Each
+    // pipeline emits a different wrapper shape (oneOf+nullable:true,
+    // anyOf with {type:"null"}, allOf, or even no wrapper at all when the
+    // pipeline relies solely on `required` to mark optionality), but the
+    // 3.0/3.1 markers are strictly partitioned:
+    //   - 3.0 must NOT carry {"type":"null"} branches anywhere (3.1 marker)
+    //   - 3.1 must NOT carry the nullable:true keyword (3.0 marker)
+    // Cross-version output fails the assertion. After the version-marker
+    // check, this method walks past the wrapper layer (whichever form the
+    // pipeline used) and returns the inner schema for downstream
+    // navigation/assertion.
+    protected JsonElement UnwrapNullableProperty(JsonElement schema)
     {
-        // 3.0 form: `{ "nullable": true }`
-        if (branch.TryGetProperty("nullable", out var n)
-            && n.ValueKind == JsonValueKind.True
-            && branch.EnumerateObject().Count() == 1)
-            return true;
+        AssertVersionMarkers(schema);
 
-        // 3.1 form: `{ "type": "null" }`
-        if (branch.TryGetProperty("type", out var t)
-            && t.ValueKind == JsonValueKind.String
-            && t.GetString() == "null"
-            && branch.EnumerateObject().Count() == 1)
-            return true;
+        if (schema.TryGetProperty("oneOf", out var oneOf) && oneOf.ValueKind == JsonValueKind.Array)
+            return UnwrapNullableUnion(schema, "oneOf", VersionNullBranch);
+        if (schema.TryGetProperty("anyOf", out var anyOf) && anyOf.ValueKind == JsonValueKind.Array)
+            return UnwrapNullableUnion(schema, "anyOf", VersionNullBranch);
+        if (schema.TryGetProperty("allOf", out var allOf) && allOf.ValueKind == JsonValueKind.Array
+            && allOf.GetArrayLength() == 1)
+            return allOf[0];
 
-        return false;
+        // No nullable wrapper layer — pipeline encoded the property's
+        // nullability solely via `required` (Swashbuckle's typical form for
+        // value-typed and same-shape-as-non-nullable cases). The schema is
+        // already the leaf; return it.
+        return schema;
     }
+
+    private void AssertVersionMarkers(JsonElement schema)
+    {
+        if (Version == OpenApiVersion.V3_1)
+        {
+            Assert.False(
+                schema.TryGetProperty("nullable", out _),
+                "3.1 schemas must not use the nullable:true marker (3.0 form)");
+            return;
+        }
+        // V3_0: forbid {"type":"null"} branches in any union.
+        foreach (var key in new[] { "oneOf", "anyOf" })
+        {
+            if (!schema.TryGetProperty(key, out var union) || union.ValueKind != JsonValueKind.Array) continue;
+            foreach (var branch in union.EnumerateArray())
+            {
+                Assert.False(
+                    Is3_1NullBranch(branch),
+                    $"3.0 schemas must not contain a {{\"type\":\"null\"}} branch ({key}); that's the 3.1 form");
+            }
+        }
+    }
+
+    private static bool Is3_0NullBranch(JsonElement branch) =>
+        branch.TryGetProperty("nullable", out var n)
+        && n.ValueKind == JsonValueKind.True
+        && branch.EnumerateObject().Count() == 1;
+
+    private static bool Is3_1NullBranch(JsonElement branch) =>
+        branch.TryGetProperty("type", out var t)
+        && t.ValueKind == JsonValueKind.String
+        && t.GetString() == "null"
+        && branch.EnumerateObject().Count() == 1;
+
+    // Loose null-branch check used by WalkSchemaLayers — keyword collection
+    // doesn't care about the version's encoding, only about skipping the
+    // branch that represents the absent value.
+    private static bool IsNullBranch(JsonElement branch)
+        => Is3_0NullBranch(branch) || Is3_1NullBranch(branch);
 
     private static JsonElement RequestSchema(JsonElement doc, string path, string method = "post")
         => doc.GetProperty("paths").GetProperty(path).GetProperty(method)
@@ -217,8 +280,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task NonEmptyString_Renders_As_String_With_MinLength_1()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/non-empty-string-entities"));
-        var value = Resolve(doc, Property(body, "value"));
+        var body = FollowRef(doc, RequestSchema(doc, "/non-empty-string-entities"));
+        var value = FollowRef(doc, Property(body, "value"));
 
         Assert.Equal("string", StringOrNull(value, "type"));
         Assert.Equal(1, IntOrNull(value, "minLength"));
@@ -229,8 +292,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Positive_Int_Renders_As_Integer_With_ExclusiveMinimum_Zero()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/positive-int-entities"));
-        var value = Resolve(doc, Property(body, "value"));
+        var body = FollowRef(doc, RequestSchema(doc, "/positive-int-entities"));
+        var value = FollowRef(doc, Property(body, "value"));
 
         Assert.Equal("integer", StringOrNull(value, "type"));
         Assert.Equal("int32", StringOrNull(value, "format"));
@@ -241,8 +304,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task NonNegative_Long_Renders_As_Integer_Int64_With_Minimum_Zero()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/non-negative-long-entities"));
-        var value = Resolve(doc, Property(body, "value"));
+        var body = FollowRef(doc, RequestSchema(doc, "/non-negative-long-entities"));
+        var value = FollowRef(doc, Property(body, "value"));
 
         Assert.Equal("integer", StringOrNull(value, "type"));
         Assert.Equal("int64", StringOrNull(value, "format"));
@@ -254,8 +317,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Negative_Double_Renders_As_Number_Double_With_ExclusiveMaximum_Zero()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/negative-double-entities"));
-        var value = Resolve(doc, Property(body, "value"));
+        var body = FollowRef(doc, RequestSchema(doc, "/negative-double-entities"));
+        var value = FollowRef(doc, Property(body, "value"));
 
         Assert.Equal("number", StringOrNull(value, "type"));
         Assert.Equal("double", StringOrNull(value, "format"));
@@ -266,8 +329,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task NonPositive_Decimal_Renders_With_Maximum_Zero()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/non-positive-decimal-entities"));
-        var value = Resolve(doc, Property(body, "value"));
+        var body = FollowRef(doc, RequestSchema(doc, "/non-positive-decimal-entities"));
+        var value = FollowRef(doc, Property(body, "value"));
 
         Assert.Equal("number", StringOrNull(value, "type"));
         Assert.Equal(0m, DecimalOrNull(value, "maximum"));
@@ -278,7 +341,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task NonEmptyEnumerable_Renders_As_Array_With_MinItems_And_Items_Schema()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/collections/non-empty-string"));
+        var body = FollowRef(doc, RequestSchema(doc, "/collections/non-empty-string"));
         var nonEmpty = Resolve(doc, Property(body, "nonEmpty"));
 
         Assert.Equal("array", StringOrNull(nonEmpty, "type"));
@@ -293,7 +356,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Enumerable_Of_NonEmptyString_Has_No_MinItems_But_String_Items()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/collections/non-empty-string"));
+        var body = FollowRef(doc, RequestSchema(doc, "/collections/non-empty-string"));
         var enumerable = Resolve(doc, Property(body, "enumerable"));
 
         Assert.Equal("array", StringOrNull(enumerable, "type"));
@@ -308,7 +371,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task NonEmptyEnumerable_Of_Positive_Int_Composes_With_Numeric_Transformer()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/collections/positive-int"));
+        var body = FollowRef(doc, RequestSchema(doc, "/collections/positive-int"));
         var nonEmpty = Resolve(doc, Property(body, "nonEmpty"));
 
         Assert.Equal("array", StringOrNull(nonEmpty, "type"));
@@ -332,8 +395,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Nullable_NonEmptyString_Property_Still_Renders_As_String_With_MinLength_1()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/non-empty-string-entities"));
-        var nullableValue = Resolve(doc, Property(body, "nullableValue"));
+        var body = FollowRef(doc, RequestSchema(doc, "/non-empty-string-entities"));
+        var nullableValue = FollowRef(doc, UnwrapNullableProperty(Property(body, "nullableValue")));
 
         Assert.Equal("string", StringOrNull(nullableValue, "type"));
         Assert.Equal(1, IntOrNull(nullableValue, "minLength"));
@@ -343,8 +406,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Nullable_Positive_Int_Property_Still_Renders_As_Integer_With_ExclusiveMinimum_Zero()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/positive-int-entities"));
-        var nullableValue = Resolve(doc, Property(body, "nullableValue"));
+        var body = FollowRef(doc, RequestSchema(doc, "/positive-int-entities"));
+        var nullableValue = FollowRef(doc, UnwrapNullableProperty(Property(body, "nullableValue")));
 
         Assert.Equal("integer", StringOrNull(nullableValue, "type"));
         Assert.Equal("int32", StringOrNull(nullableValue, "format"));
@@ -355,8 +418,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Nullable_NonEmptyEnumerable_Of_NonEmptyString_Still_Renders_As_Array_With_String_Items()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/nullable-strong-types"));
-        var nullableArray = Resolve(doc, Property(body, "nullableNonEmptyStringArray"));
+        var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
+        var nullableArray = Resolve(doc, UnwrapNullableProperty(Property(body, "nullableNonEmptyStringArray")));
 
         Assert.Equal("array", StringOrNull(nullableArray, "type"));
         Assert.Equal(1, IntOrNull(nullableArray, "minItems"));
@@ -370,8 +433,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Nullable_NonEmptyEnumerable_Of_Positive_Int_Still_Renders_As_Array_With_Integer_Items()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/nullable-strong-types"));
-        var nullableArray = Resolve(doc, Property(body, "nullableNonEmptyPositiveIntArray"));
+        var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
+        var nullableArray = Resolve(doc, UnwrapNullableProperty(Property(body, "nullableNonEmptyPositiveIntArray")));
 
         Assert.Equal("array", StringOrNull(nullableArray, "type"));
         Assert.Equal(1, IntOrNull(nullableArray, "minItems"));
@@ -386,8 +449,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Nullable_NonEmptyString_On_Dedicated_Nullables_Endpoint_Renders_As_String_With_MinLength_1()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/nullable-strong-types"));
-        var value = Resolve(doc, Property(body, "nullableNonEmptyString"));
+        var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
+        var value = FollowRef(doc, UnwrapNullableProperty(Property(body, "nullableNonEmptyString")));
 
         Assert.Equal("string", StringOrNull(value, "type"));
         Assert.Equal(1, IntOrNull(value, "minLength"));
@@ -397,8 +460,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Nullable_Positive_Int_On_Dedicated_Nullables_Endpoint_Renders_As_Integer_With_ExclusiveMinimum_Zero()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/nullable-strong-types"));
-        var value = Resolve(doc, Property(body, "nullablePositiveInt"));
+        var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
+        var value = FollowRef(doc, UnwrapNullableProperty(Property(body, "nullablePositiveInt")));
 
         Assert.Equal("integer", StringOrNull(value, "type"));
         Assert.Equal("int32", StringOrNull(value, "format"));
@@ -412,8 +475,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         // The converter writes {"Value": x} or {"Value": null} and reads {} as None,
         // so the schema must describe an object with a non-required Value property.
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/positive-int-entities/{id}", method: "patch"));
-        var nullableValue = Resolve(doc, Property(body, "nullableValue"));
+        var body = FollowRef(doc, RequestSchema(doc, "/positive-int-entities/{id}", method: "patch"));
+        var nullableValue = Resolve(doc, UnwrapNullableProperty(Property(body, "nullableValue")));
 
         Assert.Equal("object", StringOrNull(nullableValue, "type"));
         Assert.True(nullableValue.TryGetProperty("properties", out var props));
@@ -443,7 +506,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Maybe_Of_Positive_Int_Carries_Inner_Minimum_Zero_And_ExclusiveMinimum()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/nested-strong-types"));
+        var body = FollowRef(doc, RequestSchema(doc, "/nested-strong-types"));
         var maybe = Resolve(doc, Property(body, "maybePositiveInt"));
 
         Assert.Equal("object", StringOrNull(maybe, "type"));
@@ -458,7 +521,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Maybe_Of_NonEmptyString_Carries_Inner_MinLength_1()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/nested-strong-types"));
+        var body = FollowRef(doc, RequestSchema(doc, "/nested-strong-types"));
         var maybe = Resolve(doc, Property(body, "maybeNonEmptyString"));
 
         Assert.Equal("object", StringOrNull(maybe, "type"));
@@ -472,7 +535,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Maybe_Of_NonEmptyEnumerable_Carries_Inner_MinItems_And_Element_Bound()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/nested-strong-types"));
+        var body = FollowRef(doc, RequestSchema(doc, "/nested-strong-types"));
         var maybe = Resolve(doc, Property(body, "maybeNonEmptyStringArray"));
 
         Assert.Equal("object", StringOrNull(maybe, "type"));
@@ -490,7 +553,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task NonEmptyEnumerable_Of_Maybe_Of_Positive_Int_Carries_Every_Bound()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/nested-strong-types"));
+        var body = FollowRef(doc, RequestSchema(doc, "/nested-strong-types"));
         var array = Resolve(doc, Property(body, "nonEmptyArrayOfMaybePositiveInt"));
 
         Assert.Equal("array", StringOrNull(array, "type"));
@@ -526,7 +589,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Property_NonEmptyString_With_StringLength_And_Pattern_Carries_All_Three()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var username = Property(body, "username");
 
         Assert.Equal(3, CollectMaxInt(doc, username, "minLength"));
@@ -538,7 +601,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Property_NonEmptyString_With_StringLength_Floors_To_Wrapper_MinLength()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var email = Property(body, "email");
 
         // [StringLength(254)] sets only an upper bound; the wrapper's
@@ -553,7 +616,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     {
         Assert.SkipWhen(IsEmailStringFormatBroken, "Pipeline does not honor [EmailAddress] — format: \"email\" is not written even on primitive-typed properties.");
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var contactEmail = Property(body, "contactEmail");
 
         Assert.Equal(1, CollectMaxInt(doc, contactEmail, "minLength"));
@@ -564,7 +627,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Property_NonEmptyString_Without_Annotations_Renders_Plain_Wrapper()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var description = Property(body, "description");
 
         Assert.Equal(1, CollectMaxInt(doc, description, "minLength"));
@@ -576,7 +639,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Property_NonEmptyString_With_Url_Carries_Format_Uri_And_Wrapper_MinLength()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var websiteUrl = Property(body, "websiteUrl");
 
         Assert.Equal(1, CollectMaxInt(doc, websiteUrl, "minLength"));
@@ -588,7 +651,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     {
         Assert.SkipWhen(IsLengthAttributeBroken, "Pipeline does not honor [Length].");
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var slug = Property(body, "slug");
 
         Assert.Equal(2, CollectMaxInt(doc, slug, "minLength"));
@@ -600,7 +663,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     {
         Assert.SkipWhen(IsBase64StringFormatBroken, "Pipeline does not honor [Base64String] — format: \"byte\" is not written.");
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var encodedBlob = Property(body, "encodedBlob");
 
         Assert.Equal(1, CollectMaxInt(doc, encodedBlob, "minLength"));
@@ -612,7 +675,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     {
         Assert.SkipWhen(IsDescriptionAttributeBroken, "Pipeline does not honor [Description].");
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var tagline = Property(body, "tagline");
 
         Assert.Equal("Short user tagline", CollectFirstString(doc, tagline, "description"));
@@ -622,7 +685,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Property_Positive_Int_With_Range_Carries_Both_Bounds()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-numbers"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var age = Property(body, "age");
 
         Assert.Equal(18m, CollectMaxLowerBound(doc, age));
@@ -634,7 +697,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     {
         Assert.SkipWhen(IsExclusiveRangeBroken, "Pipeline does not honor RangeAttribute.MinimumIsExclusive.");
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-numbers"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var exclusive = Property(body, "exclusiveLowerAge");
 
         AssertExclusiveLowerBoundReachable(doc, exclusive, 1m);
@@ -653,7 +716,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Property_String_With_StringLength_And_Pattern_Carries_All_Three()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var usernameRaw = Property(body, "usernameRaw");
 
         Assert.Equal(3, CollectMaxInt(doc, usernameRaw, "minLength"));
@@ -665,7 +728,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Property_String_With_StringLength_Only_Carries_MaxLength_And_Pattern()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var emailRaw = Property(body, "emailRaw");
 
         // [StringLength(254)] sets only an upper bound; both pipelines write
@@ -681,7 +744,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     {
         Assert.SkipWhen(IsEmailStringFormatBroken, "Pipeline does not honor [EmailAddress] — format: \"email\" is not written even on primitive-typed properties.");
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var contactEmailRaw = Property(body, "contactEmailRaw");
 
         Assert.Equal("email", CollectFirstString(doc, contactEmailRaw, "format"));
@@ -691,7 +754,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Property_String_With_Url_Carries_Format_Uri()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var websiteUrlRaw = Property(body, "websiteUrlRaw");
 
         Assert.Equal("uri", CollectFirstString(doc, websiteUrlRaw, "format"));
@@ -702,7 +765,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     {
         Assert.SkipWhen(IsLengthAttributeBroken, "Pipeline does not honor [Length].");
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var slugRaw = Property(body, "slugRaw");
 
         Assert.Equal(2, CollectMaxInt(doc, slugRaw, "minLength"));
@@ -714,7 +777,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     {
         Assert.SkipWhen(IsBase64StringFormatBroken, "Pipeline does not honor [Base64String] — format: \"byte\" is not written.");
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var encodedBlobRaw = Property(body, "encodedBlobRaw");
 
         Assert.Equal("byte", CollectFirstString(doc, encodedBlobRaw, "format"));
@@ -725,7 +788,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     {
         Assert.SkipWhen(IsDescriptionAttributeBroken, "Pipeline does not honor [Description].");
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-texts"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var taglineRaw = Property(body, "taglineRaw");
 
         Assert.Equal("Short user tagline", CollectFirstString(doc, taglineRaw, "description"));
@@ -735,7 +798,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Property_Int_With_Range_Carries_Both_Bounds()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-numbers"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var ageRaw = Property(body, "ageRaw");
 
         Assert.Equal(18m, CollectMaxLowerBound(doc, ageRaw));
@@ -747,7 +810,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     {
         Assert.SkipWhen(IsExclusiveRangeBroken, "Pipeline does not honor RangeAttribute.MinimumIsExclusive.");
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-numbers"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var exclusiveRaw = Property(body, "exclusiveLowerAgeRaw");
 
         AssertExclusiveLowerBoundReachable(doc, exclusiveRaw, 1m);
@@ -758,7 +821,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Property_StringArray_With_MaxLength_Carries_MaxItems()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-tags"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-tags"));
         var tagsRaw = Property(body, "tagsRaw");
 
         Assert.Equal(10, CollectMinInt(doc, tagsRaw, "maxItems"));
@@ -768,7 +831,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Property_Positive_Int_With_Range_Across_Floor_Lets_Wrapper_Floor_Win()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-numbers"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var range = Property(body, "rangeAcrossFloor");
 
         // [Range(-5, 5)] would loosen the lower bound to -5, but the
@@ -789,7 +852,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Required_Reference_NonNullable_Is_Listed_Nullable_Is_Not()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/non-empty-string-entities"));
+        var body = FollowRef(doc, RequestSchema(doc, "/non-empty-string-entities"));
         var required = ReadRequiredArray(body);
 
         Assert.Contains("value", required);
@@ -800,7 +863,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Required_Struct_NonNullable_Is_Listed_Nullable_Is_Not()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/positive-int-entities"));
+        var body = FollowRef(doc, RequestSchema(doc, "/positive-int-entities"));
         var required = ReadRequiredArray(body);
 
         Assert.Contains("value", required);
@@ -818,7 +881,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     public async Task Property_NonEmptyEnumerable_With_MaxLength_Carries_Min_And_MaxItems()
     {
         var doc = await GetDocumentAsync();
-        var body = Resolve(doc, RequestSchema(doc, "/annotated-tags"));
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-tags"));
         var tags = Property(body, "tags");
 
         Assert.Equal(1, CollectMaxInt(doc, tags, "minItems"));
