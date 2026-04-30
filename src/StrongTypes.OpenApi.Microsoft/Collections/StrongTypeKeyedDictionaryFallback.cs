@@ -6,16 +6,17 @@ using Microsoft.OpenApi;
 
 namespace StrongTypes.OpenApi.Microsoft;
 
-// Fallback for one specific gap in Microsoft.AspNetCore.OpenApi: when a
-// dictionary's *key* is a strong type (e.g. `Dictionary<NonEmptyString,
-// int>`), the framework inlines a broken `additionalProperties` schema on
-// the parent record's property AND never invokes schema-level transformers
-// on the dictionary type — so StrongTypeCollectionShapeTransformer never
-// gets a chance to fix it. Every other dictionary shape — including
-// strong-typed *values* — flows through the schema-transformer hook
-// normally and does not need this fallback. We patch the broken position
-// here at document level by walking parent components and rebuilding
-// `additionalProperties` from the CLR value type.
+// Fallback for a single Microsoft.AspNetCore.OpenApi gap: a dictionary
+// keyed by a strong type (e.g. `Dictionary<NonEmptyString, int>`) is
+// inlined directly on the parent property and bypasses every schema-level
+// transformer, so the value position arrives as garbage. The framework
+// emits, for an `int` value:
+//     "additionalProperties": { "format": "int32", "pattern": "^-?(?:0|[1-9]\\d*)$" }
+// We rewrite it from the CLR value type to:
+//     "additionalProperties": { "type": "integer", "format": "int32" }
+// All other dictionary shapes (including strong-typed *values*) flow
+// through the schema-transformer hook normally; this transformer leaves
+// them untouched.
 internal sealed class StrongTypeKeyedDictionaryFallback : IOpenApiDocumentTransformer
 {
     public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
