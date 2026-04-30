@@ -37,8 +37,6 @@ public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
         if (concrete.Properties is null || concrete.Properties.Count == 0) return;
         if (context.MemberInfo is not null || context.ParameterInfo is not null) return;
 
-        NormaliseRequired(concrete, context.Type);
-
         var clrProperties = context.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
         foreach (var clrProperty in clrProperties)
         {
@@ -112,14 +110,6 @@ public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
             return true;
         result = 0m;
         return false;
-    }
-
-    private static void NormaliseRequired(OpenApiSchema parent, Type parentType)
-    {
-        var required = RequiredSet.ComputeJsonNames(parentType);
-        if (parent.Properties is { } props)
-            required.IntersectWith(props.Keys);
-        parent.Required = required;
     }
 
     private static string ResolveJsonName(PropertyInfo property)

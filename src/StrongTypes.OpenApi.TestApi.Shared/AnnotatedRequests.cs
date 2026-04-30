@@ -69,3 +69,32 @@ public sealed record AnnotatedNumbersRequest(
 public sealed record AnnotatedTagsRequest(
     [property: MaxLength(10)] NonEmptyEnumerable<NonEmptyString> Tags,
     [property: MaxLength(10)] string[] TagsRaw);
+
+// Required-array parity contract. Each row pairs a strong-type variant
+// with its primitive equivalent across the four "is this property
+// required?" inputs the framework cares about: plain non-nullable, plain
+// nullable, [Required], the C# `required` keyword. Tests assert each
+// strong-type's `required` membership matches its primitive twin —
+// whatever the underlying pipeline emits, the wrapper must mirror it.
+#pragma warning disable CS8618 // Non-nullable property is uninitialized — STJ assigns it.
+public sealed record RequiredVariantsRequest
+{
+    public NonEmptyString Plain { get; init; }
+    public string PlainRaw { get; init; }
+
+    public NonEmptyString? Nullable { get; init; }
+    public string? NullableRaw { get; init; }
+
+    [Required] public NonEmptyString WithAttribute { get; init; }
+    [Required] public string WithAttributeRaw { get; init; }
+
+    [Required] public NonEmptyString? AttributeNullable { get; init; }
+    [Required] public string? AttributeNullableRaw { get; init; }
+
+    public required NonEmptyString WithKeyword { get; init; }
+    public required string WithKeywordRaw { get; init; }
+
+    public required NonEmptyString? KeywordNullable { get; init; }
+    public required string? KeywordNullableRaw { get; init; }
+}
+#pragma warning restore CS8618

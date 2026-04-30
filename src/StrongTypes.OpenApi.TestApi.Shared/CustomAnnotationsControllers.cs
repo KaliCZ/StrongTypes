@@ -26,3 +26,11 @@ public sealed class AnnotatedTagsController : ControllerBase
     [HttpPost]
     public IActionResult Echo(AnnotatedTagsRequest request) => Ok(request);
 }
+
+[ApiController]
+[Route("required-variants")]
+public sealed class RequiredVariantsController : ControllerBase
+{
+    [HttpPost]
+    public IActionResult Echo(RequiredVariantsRequest request) => Ok(request);
+}

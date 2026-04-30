@@ -45,18 +45,9 @@ internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTran
             if (!componentNameToType.TryGetValue(componentName, out var parentType)) continue;
 
             ApplyToParent(parent, parentType);
-            NormaliseRequired(parent, parentType);
         }
 
         return Task.CompletedTask;
-    }
-
-    private static void NormaliseRequired(OpenApiSchema parent, Type parentType)
-    {
-        var required = RequiredSet.ComputeJsonNames(parentType);
-        if (parent.Properties is { } props)
-            required.IntersectWith(props.Keys);
-        parent.Required = required;
     }
 
     private static void ApplyToParent(OpenApiSchema parent, Type parentType)

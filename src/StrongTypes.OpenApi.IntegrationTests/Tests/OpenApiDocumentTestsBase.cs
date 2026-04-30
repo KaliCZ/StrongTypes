@@ -977,33 +977,27 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     }
 
     // ───────────────────────────────────────────────────────────────────
-    // Required-array contract — non-nullable C# properties are required,
-    // nullable C# properties are not. Microsoft and Swashbuckle disagree
-    // by default (Microsoft puts everything in required including
-    // nullable refs; Swashbuckle puts nothing); the wrapper-paint passes
-    // normalise both pipelines to the OpenAPI semantic.
+    // Required-array contract — strong-type wrapper properties land in
+    // the `required` array iff their primitive equivalent does. Whatever
+    // the underlying pipeline produces for `string`, `int`, `string?`,
+    // `[Required] string`, `required string` etc. is what it must produce
+    // for the matching `NonEmptyString` / `Positive<int>` property.
     // ───────────────────────────────────────────────────────────────────
 
-    [Fact]
-    public async Task Required_Reference_NonNullable_Is_Listed_Nullable_Is_Not()
+    [Theory]
+    [InlineData("plain",            "plainRaw")]
+    [InlineData("nullable",         "nullableRaw")]
+    [InlineData("withAttribute",    "withAttributeRaw")]
+    [InlineData("attributeNullable","attributeNullableRaw")]
+    [InlineData("withKeyword",      "withKeywordRaw")]
+    [InlineData("keywordNullable",  "keywordNullableRaw")]
+    public async Task Required_Membership_Matches_Underlying_Primitive(string strongName, string rawName)
     {
         var doc = await GetDocumentAsync();
-        var body = FollowRef(doc, RequestSchema(doc, "/non-empty-string-entities"));
+        var body = FollowRef(doc, RequestSchema(doc, "/required-variants"));
         var required = ReadRequiredArray(body);
 
-        Assert.Contains("value", required);
-        Assert.DoesNotContain("nullableValue", required);
-    }
-
-    [Fact]
-    public async Task Required_Struct_NonNullable_Is_Listed_Nullable_Is_Not()
-    {
-        var doc = await GetDocumentAsync();
-        var body = FollowRef(doc, RequestSchema(doc, "/positive-int-entities"));
-        var required = ReadRequiredArray(body);
-
-        Assert.Contains("value", required);
-        Assert.DoesNotContain("nullableValue", required);
+        Assert.Equal(required.Contains(rawName), required.Contains(strongName));
     }
 
     private static string[] ReadRequiredArray(JsonElement schema)
