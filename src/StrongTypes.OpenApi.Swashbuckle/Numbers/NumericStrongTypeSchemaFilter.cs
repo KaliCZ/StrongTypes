@@ -4,7 +4,18 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace StrongTypes.OpenApi.Swashbuckle;
 
-/// <summary>Rewrites the schema for the numeric strong-type wrappers <see cref="Positive{T}"/>, <see cref="NonNegative{T}"/>, <see cref="Negative{T}"/>, and <see cref="NonPositive{T}"/> to the underlying primitive type with the appropriate minimum/maximum floor. Caller-supplied <c>[Range]</c> annotations are preserved when at least as tight as the wrapper's floor.</summary>
+/// <summary>
+/// Rewrites the schema for the numeric strong-type wrappers
+/// <see cref="Positive{T}"/>, <see cref="NonNegative{T}"/>,
+/// <see cref="Negative{T}"/>, and <see cref="NonPositive{T}"/> to the
+/// underlying primitive with the appropriate bound — e.g. for
+/// <c>Positive&lt;int&gt;</c>:
+/// <code>
+/// { "type": "integer", "format": "int32", "exclusiveMinimum": "0" }
+/// </code>
+/// Caller-supplied <c>[Range]</c> annotations are preserved when at least
+/// as tight as the wrapper's floor.
+/// </summary>
 public sealed class NumericStrongTypeSchemaFilter : ISchemaFilter
 {
     private static readonly Dictionary<Type, (JsonSchemaType Type, string? Format)> s_primitiveMap = new()
@@ -32,13 +43,13 @@ public sealed class NumericStrongTypeSchemaFilter : ISchemaFilter
         var underlying = type.GetGenericArguments()[0];
 
         if (definition == typeof(Positive<>))
-            Paint(concrete, underlying, lowerFloor: (0m, true));
+            Paint(concrete, underlying, lowerFloor: (Value: 0m, Exclusive: true));
         else if (definition == typeof(NonNegative<>))
-            Paint(concrete, underlying, lowerFloor: (0m, false));
+            Paint(concrete, underlying, lowerFloor: (Value: 0m, Exclusive: false));
         else if (definition == typeof(Negative<>))
-            Paint(concrete, underlying, upperFloor: (0m, true));
+            Paint(concrete, underlying, upperFloor: (Value: 0m, Exclusive: true));
         else if (definition == typeof(NonPositive<>))
-            Paint(concrete, underlying, upperFloor: (0m, false));
+            Paint(concrete, underlying, upperFloor: (Value: 0m, Exclusive: false));
     }
 
     private static void Paint(

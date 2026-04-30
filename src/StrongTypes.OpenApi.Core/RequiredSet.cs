@@ -5,13 +5,12 @@ using System.Text.Json.Serialization;
 namespace StrongTypes.OpenApi.Core;
 
 /// <summary>
-/// Computes the OpenAPI <c>required</c> set for a CLR record / class —
-/// non-nullable properties are required, nullable properties are not.
-/// The two ASP.NET Core OpenAPI pipelines disagree on the default
-/// (Microsoft.AspNetCore.OpenApi puts every property in <c>required</c>
-/// regardless of nullability; Swashbuckle puts none); calling this from
-/// each pipeline's property-level pass aligns both with the standard
-/// "non-nullable C# → required" semantic.
+/// Computes the OpenAPI <c>required</c> set for a CLR type from C# nullability:
+/// non-nullable properties are required, nullable ones are not. The two
+/// ASP.NET Core OpenAPI pipelines disagree on the default — Microsoft puts
+/// every property in <c>required</c>, Swashbuckle puts none — so each
+/// adapter calls this to enforce the same "non-nullable C# → required"
+/// mapping.
 /// </summary>
 public static class RequiredSet
 {

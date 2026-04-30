@@ -8,18 +8,26 @@ using StrongTypes.OpenApi.Core;
 namespace StrongTypes.OpenApi.Microsoft;
 
 /// <summary>
-/// Re-applies caller-supplied data-annotations to property positions whose
-/// CLR type is a strong-type wrapper. Without this pass the Microsoft
-/// pipeline would render the property as a bare <c>$ref</c> to the wrapper
-/// component and silently drop every caller annotation — the very contract
-/// this package exists to preserve.
-///
-/// Implemented as a <see cref="IOpenApiDocumentTransformer"/> rather than a
-/// schema transformer because the framework's deduplication pass rewrites
-/// inline property schemas back into <c>$ref</c>s based on CLR type
-/// equality. By the time this transformer runs (document-level, after all
-/// schema-level transforms and the dedup pass), the parent-schema property
-/// entries we want to rewrite are stable.
+/// Re-applies caller-supplied data-annotations (<c>[StringLength]</c>,
+/// <c>[Range]</c>, <c>[RegularExpression]</c>, <c>[Description]</c>, …)
+/// to properties whose CLR type is a strong-type wrapper. Without this
+/// pass, a property like <c>[StringLength(50)] NonEmptyString Name</c>
+/// renders as a bare <c>$ref</c> to the <c>NonEmptyString</c> component
+/// and silently drops the caller's <c>maxLength: 50</c>. We layer the
+/// caller's bound onto the property position via <c>allOf</c>:
+/// <code>
+/// "name": {
+///   "allOf": [ { "$ref": "#/components/schemas/NonEmptyString" } ],
+///   "maxLength": 50
+/// }
+/// </code>
+/// The component schema (<c>{ "type": "string", "minLength": 1 }</c>) is
+/// painted by <see cref="NonEmptyStringSchemaTransformer"/> and is not
+/// touched here — only the property position is. After ref-resolution the
+/// merged shape on the wire is
+/// <c>{ type: string, minLength: 1, maxLength: 50 }</c>. Also normalises
+/// each parent schema's <c>required</c> set to the C# nullability of its
+/// properties.
 /// </summary>
 internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTransformer
 {

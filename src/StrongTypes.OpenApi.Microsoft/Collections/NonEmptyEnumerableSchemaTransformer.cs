@@ -4,7 +4,14 @@ using StrongTypes.OpenApi.Core;
 
 namespace StrongTypes.OpenApi.Microsoft;
 
-/// <summary>Rewrites the schema for <see cref="NonEmptyEnumerable{T}"/> and <see cref="INonEmptyEnumerable{T}"/> to <c>{ "type": "array", "minItems": 1, "items": &lt;T schema&gt; }</c>.</summary>
+/// <summary>
+/// Rewrites the schema for <see cref="NonEmptyEnumerable{T}"/> and
+/// <see cref="INonEmptyEnumerable{T}"/> to the array shape the JSON
+/// converter emits:
+/// <code>
+/// { "type": "array", "minItems": 1, "items": &lt;T schema&gt; }
+/// </code>
+/// </summary>
 public sealed class NonEmptyEnumerableSchemaTransformer : IOpenApiSchemaTransformer
 {
     public async Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)

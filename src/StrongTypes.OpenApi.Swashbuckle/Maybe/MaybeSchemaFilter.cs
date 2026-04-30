@@ -4,7 +4,15 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace StrongTypes.OpenApi.Swashbuckle;
 
-/// <summary>Rewrites the schema for <see cref="Maybe{T}"/> to the on-the-wire wrapper object the JSON converter emits: <c>{ "Value": &lt;T schema&gt; }</c>. The <c>Value</c> property is not required — omitting it is how the converter encodes <c>None</c>.</summary>
+/// <summary>
+/// Rewrites the schema for <see cref="Maybe{T}"/> to the on-the-wire
+/// wrapper object the JSON converter emits:
+/// <code>
+/// { "type": "object", "properties": { "Value": &lt;T schema&gt; } }
+/// </code>
+/// The <c>Value</c> property is not required — omitting it is how the
+/// converter encodes <c>None</c>.
+/// </summary>
 public sealed class MaybeSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)

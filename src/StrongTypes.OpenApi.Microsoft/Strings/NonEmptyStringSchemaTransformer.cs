@@ -4,7 +4,16 @@ using StrongTypes.OpenApi.Core;
 
 namespace StrongTypes.OpenApi.Microsoft;
 
-/// <summary>Rewrites the <see cref="NonEmptyString"/> schema to <c>{ "type": "string", "minLength": 1 }</c> so it matches the JSON the converter reads and writes. Caller-supplied annotations (e.g. <c>[StringLength]</c>, <c>[RegularExpression]</c>) are preserved; <c>minLength</c> is only strengthened toward the floor of <c>1</c>, never weakened.</summary>
+/// <summary>
+/// Rewrites the schema for <see cref="NonEmptyString"/> to:
+/// <code>
+/// { "type": "string", "minLength": 1 }
+/// </code>
+/// matching the JSON the converter reads and writes. Caller-supplied
+/// annotations (e.g. <c>[StringLength]</c>, <c>[RegularExpression]</c>)
+/// are preserved; <c>minLength</c> is only strengthened toward the floor
+/// of <c>1</c>, never weakened.
+/// </summary>
 public sealed class NonEmptyStringSchemaTransformer : IOpenApiSchemaTransformer
 {
     public Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
