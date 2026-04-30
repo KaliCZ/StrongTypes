@@ -70,9 +70,6 @@ public sealed class CollectionsController : ControllerBase
     [HttpPost("dictionary-shapes")]
     public IActionResult DictionaryShapes(DictionaryShapesRequest request) => Ok();
 
-    [HttpPost("dictionary-primitive-value-shapes")]
-    public IActionResult DictionaryPrimitiveValueShapes(DictionaryPrimitiveValueShapesRequest request) => Ok();
-
     [HttpPost("modern-collections")]
     public IActionResult ModernCollections(ModernCollectionsRequest request) => Ok();
 }

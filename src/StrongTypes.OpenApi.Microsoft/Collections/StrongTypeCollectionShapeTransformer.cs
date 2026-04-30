@@ -12,10 +12,10 @@ namespace StrongTypes.OpenApi.Microsoft;
 // recognises as Enumerable or Dictionary, regardless of the concrete CLR
 // shape (`List<T>`, `T[]`, `FrozenSet<T>`, `IDictionary<,>`,
 // `FrozenDictionary<,>`, `SortedList<,>`, …). Dictionaries whose value
-// type is a primitive never reach this hook (the framework inlines a
-// degenerate schema for them without invoking schema transformers); see
-// <see cref="PrimitiveValueDictionaryFallback"/> for the document-level
-// patch that handles them.
+// type is a primitive bypass this hook — the framework inlines a
+// (broken) schema for them directly. That is a Microsoft.AspNetCore
+// .OpenApi defect, not a strong-types concern, and is left to upstream
+// to fix.
 public sealed class StrongTypeCollectionShapeTransformer : IOpenApiSchemaTransformer
 {
     public async Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)

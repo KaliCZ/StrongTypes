@@ -47,12 +47,6 @@ public sealed record DictionaryShapesRequest(
     Dictionary<int, Positive<int>> AsDictionaryIntKey,
     IReadOnlyDictionary<string, Positive<int>> AsIReadOnlyDictionary);
 
-public sealed record DictionaryPrimitiveValueShapesRequest(
-    Dictionary<NonEmptyString, int> AsNonEmptyStringKey,
-    Dictionary<Positive<int>, int> AsPositiveIntKey,
-    IReadOnlyDictionary<NonEmptyString, int> AsIReadOnlyNonEmptyStringKey,
-    Dictionary<string, int> AsPlainStringKey);
-
 public sealed record ModernCollectionsRequest(
     FrozenSet<Positive<int>> AsFrozenSet,
     FrozenDictionary<string, Positive<int>> AsFrozenDictionary,

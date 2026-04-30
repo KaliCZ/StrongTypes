@@ -441,31 +441,6 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         AssertExclusiveLowerBound(valueSchema, 0m);
     }
 
-    // Dictionaries with a primitive value (`int`) — Microsoft.AspNetCore.OpenApi
-    // inlines a broken `additionalProperties` that's missing `"type"`,
-    // regardless of whether the key is a plain `string`, a strong-type
-    // string (`NonEmptyString`), or a strong-type numeric (`Positive<int>`).
-    // These rows pin that the value schema is intact for every key shape.
-    [Theory]
-    [InlineData("asNonEmptyStringKey")]
-    [InlineData("asPositiveIntKey")]
-    [InlineData("asIReadOnlyNonEmptyStringKey")]
-    [InlineData("asPlainStringKey")]
-    public async Task Dictionary_With_Primitive_Int_Value_Renders_As_Object_With_Integer_AdditionalProperties(string propertyName)
-    {
-        var doc = await GetDocumentAsync();
-        var body = FollowRef(doc, RequestSchema(doc, "/collections/dictionary-primitive-value-shapes"));
-        var dict = Resolve(doc, Property(body, propertyName));
-
-        Assert.Equal("object", StringOrNull(dict, "type"));
-
-        Assert.True(dict.TryGetProperty("additionalProperties", out var values),
-            "additionalProperties is missing on the dictionary schema");
-        var valueSchema = Resolve(doc, values);
-        Assert.Equal("integer", StringOrNull(valueSchema, "type"));
-        Assert.Equal("int32", StringOrNull(valueSchema, "format"));
-    }
-
     // ───────────────────────────────────────────────────────────────────
     // Modern collection shapes — FrozenSet<T>, FrozenDictionary<K,V>,
     // SortedList<K,V> are recent BCL additions whose serializer mappings
