@@ -6,13 +6,16 @@ using Microsoft.OpenApi;
 
 namespace StrongTypes.OpenApi.Microsoft;
 
-// Dictionaries keyed by a strong type (e.g. `Dictionary<NonEmptyString, int>`)
-// bypass schema-level transformers entirely. The framework inlines a broken
-// `additionalProperties` on the parent property — for an `int` value:
+// Microsoft.AspNetCore.OpenApi inlines a broken `additionalProperties`
+// for dictionaries whose value is a primitive (e.g. `Dictionary<string,
+// int>`, `Dictionary<NonEmptyString, int>`) — the value position lacks
+// `"type"` and carries a regex meant for the property name:
 //     { "format": "int32", "pattern": "^-?(?:0|[1-9]\\d*)$" }
-// We rewrite it from the CLR value type to:
+// Dictionaries with a strong-typed value (`Dictionary<X, Positive<int>>`)
+// reach the schema-transformer hook and stay correct; primitive-valued
+// ones bypass it. We rewrite the broken position from the CLR value type:
 //     { "type": "integer", "format": "int32" }
-internal sealed class StrongTypeKeyedDictionaryFallback : IOpenApiDocumentTransformer
+internal sealed class PrimitiveValueDictionaryFallback : IOpenApiDocumentTransformer
 {
     public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
     {

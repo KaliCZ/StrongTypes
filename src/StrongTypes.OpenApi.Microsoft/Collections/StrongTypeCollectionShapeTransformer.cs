@@ -11,11 +11,11 @@ namespace StrongTypes.OpenApi.Microsoft;
 // This transformer fills those positions in for any type the serializer
 // recognises as Enumerable or Dictionary, regardless of the concrete CLR
 // shape (`List<T>`, `T[]`, `FrozenSet<T>`, `IDictionary<,>`,
-// `FrozenDictionary<,>`, `SortedList<,>`, …). The strong-typed-key
-// dictionary case never reaches this hook (the framework inlines a
-// degenerate schema for it without invoking schema transformers); see
-// <see cref="StrongTypeKeyedDictionaryFallback"/> for the document-level
-// patch that handles it.
+// `FrozenDictionary<,>`, `SortedList<,>`, …). Dictionaries whose value
+// type is a primitive never reach this hook (the framework inlines a
+// degenerate schema for them without invoking schema transformers); see
+// <see cref="PrimitiveValueDictionaryFallback"/> for the document-level
+// patch that handles them.
 public sealed class StrongTypeCollectionShapeTransformer : IOpenApiSchemaTransformer
 {
     public async Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
