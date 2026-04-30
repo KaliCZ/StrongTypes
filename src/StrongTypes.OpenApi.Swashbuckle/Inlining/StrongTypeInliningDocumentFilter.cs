@@ -15,6 +15,5 @@ namespace StrongTypes.OpenApi.Swashbuckle;
 /// </summary>
 public sealed class StrongTypeInliningDocumentFilter : IDocumentFilter
 {
-    public void Apply(OpenApiDocument document, DocumentFilterContext context)
-        => StrongTypeInliner.Inline(document);
+    public void Apply(OpenApiDocument document, DocumentFilterContext context) => StrongTypeInliner.Inline(document);
 }

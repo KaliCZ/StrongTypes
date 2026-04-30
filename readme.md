@@ -150,6 +150,9 @@ By default, ASP.NET Core's spec generators describe strong-type wrappers by thei
 
 Pick the one that matches the generator your app already uses. They're not interchangeable — `Microsoft.AspNetCore.OpenApi` and Swashbuckle have disjoint extension points (`IOpenApiSchemaTransformer` vs `ISchemaFilter`), so the package built for one does nothing for the other.
 
+> [!TIP]
+> If you have a free choice, prefer Swashbuckle. `Microsoft.AspNetCore.OpenApi` has a few rough edges that the framework gives no public hook to fix — for example `[EmailAddress]` doesn't surface as `format: email`, and strong-type keys on dictionaries aren't always honored. Swashbuckle exposes richer extension points and produces a faithful document in cases where the Microsoft pipeline silently drops the bound.
+
 [↑ Back to contents](#contents)
 
 ## `NonEmptyEnumerable<T>`

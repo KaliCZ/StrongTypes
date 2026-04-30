@@ -23,8 +23,9 @@ namespace StrongTypes.OpenApi.Swashbuckle;
 /// </code>
 /// The component schema (<c>{ "type": "string", "minLength": 1 }</c>) is
 /// painted by <see cref="NonEmptyStringSchemaFilter"/> and is not touched
-/// here — only the property position is. After ref-resolution the merged
-/// shape on the wire is <c>{ type: string, minLength: 1, maxLength: 50 }</c>.
+/// here — only the property position is. After
+/// <see cref="StrongTypeInliner"/> collapses the <c>allOf+ref</c>, the
+/// merged shape on the wire is <c>{ type: string, minLength: 1, maxLength: 50 }</c>.
 /// The wrapper-typed surface matches whatever Swashbuckle natively supports
 /// for the equivalent primitive-typed property — no more, no less.
 /// </summary>

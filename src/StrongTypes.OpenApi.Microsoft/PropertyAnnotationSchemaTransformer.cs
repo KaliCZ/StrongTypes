@@ -23,7 +23,8 @@ namespace StrongTypes.OpenApi.Microsoft;
 /// </code>
 /// The component schema (<c>{ "type": "string", "minLength": 1 }</c>) is
 /// painted by <see cref="NonEmptyStringSchemaTransformer"/> and is not
-/// touched here — only the property position is. After ref-resolution the
+/// touched here — only the property position is. After
+/// <see cref="StrongTypeInliner"/> collapses the <c>allOf+ref</c>, the
 /// merged shape on the wire is
 /// <c>{ type: string, minLength: 1, maxLength: 50 }</c>. Also normalises
 /// each parent schema's <c>required</c> set to the C# nullability of its
@@ -156,8 +157,7 @@ internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTran
     //                      up in component names like "PositiveOfint".
     private static string ComputeSchemaName(Type type)
     {
-        var keyword = GetPrimitiveKeyword(type);
-        if (keyword is not null) return keyword;
+        if (MicrosoftSchemaNaming.GetPrimitiveKeyword(type) is { } keyword) return keyword;
 
         if (!type.IsGenericType) return type.Name;
 
@@ -168,24 +168,5 @@ internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTran
         var args = type.GetGenericArguments();
         var argNames = string.Concat(args.Select(ComputeSchemaName));
         return $"{baseName}Of{argNames}";
-    }
-
-    private static string? GetPrimitiveKeyword(Type type)
-    {
-        if (type == typeof(byte)) return "byte";
-        if (type == typeof(sbyte)) return "sbyte";
-        if (type == typeof(short)) return "short";
-        if (type == typeof(ushort)) return "ushort";
-        if (type == typeof(int)) return "int";
-        if (type == typeof(uint)) return "uint";
-        if (type == typeof(long)) return "long";
-        if (type == typeof(ulong)) return "ulong";
-        if (type == typeof(float)) return "float";
-        if (type == typeof(double)) return "double";
-        if (type == typeof(decimal)) return "decimal";
-        if (type == typeof(bool)) return "bool";
-        if (type == typeof(string)) return "string";
-        if (type == typeof(char)) return "char";
-        return null;
     }
 }

@@ -6,6 +6,15 @@ they are not interchangeable, because the two pipelines use disjoint
 extension points (`IOpenApiSchemaTransformer` vs `ISchemaFilter`), so
 hooks built for one do nothing for the other.
 
+> **Recommendation:** prefer Swashbuckle when you have a free choice.
+> `Microsoft.AspNetCore.OpenApi` has rough edges the framework exposes
+> no public hook to fix — `[EmailAddress]` doesn't propagate as
+> `format: email`, strong-type keys on dictionaries aren't always
+> honored, and the framework's deduplication pass silently strips
+> bounds the transformer placed earlier (the Microsoft adapter has to
+> repaint components after the fact). Swashbuckle's filter pipeline
+> hits all of these cleanly.
+
 | Spec generator                          | Package                                    | Configured on             |
 | --------------------------------------- | ------------------------------------------ | ------------------------- |
 | `Microsoft.AspNetCore.OpenApi` (`AddOpenApi()`) | `Kalicz.StrongTypes.OpenApi.Microsoft`   | `OpenApiOptions`          |
