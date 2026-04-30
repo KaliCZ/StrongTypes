@@ -284,7 +284,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/non-empty-string-entities"));
         var value = Property(body, "value");
 
-        AssertNoRefOrAllOf(value);
+        AssertInlineSchema(value);
         Assert.Equal("string", StringOrNull(value, "type"));
         Assert.Equal(1, IntOrNull(value, "minLength"));
         Assert.False(value.TryGetProperty("properties", out _));
@@ -297,7 +297,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/positive-int-entities"));
         var value = Property(body, "value");
 
-        AssertNoRefOrAllOf(value);
+        AssertInlineSchema(value);
         Assert.Equal("integer", StringOrNull(value, "type"));
         Assert.Equal("int32", StringOrNull(value, "format"));
         AssertExclusiveLowerBound(value, 0m);
@@ -310,7 +310,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/non-negative-long-entities"));
         var value = Property(body, "value");
 
-        AssertNoRefOrAllOf(value);
+        AssertInlineSchema(value);
         Assert.Equal("integer", StringOrNull(value, "type"));
         Assert.Equal("int64", StringOrNull(value, "format"));
         Assert.Equal(0m, DecimalOrNull(value, "minimum"));
@@ -324,7 +324,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/negative-double-entities"));
         var value = Property(body, "value");
 
-        AssertNoRefOrAllOf(value);
+        AssertInlineSchema(value);
         Assert.Equal("number", StringOrNull(value, "type"));
         Assert.Equal("double", StringOrNull(value, "format"));
         AssertExclusiveUpperBound(value, 0m);
@@ -337,7 +337,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/non-positive-decimal-entities"));
         var value = Property(body, "value");
 
-        AssertNoRefOrAllOf(value);
+        AssertInlineSchema(value);
         Assert.Equal("number", StringOrNull(value, "type"));
         Assert.Equal(0m, DecimalOrNull(value, "maximum"));
         Assert.False(BoolOrFalse(value, "exclusiveMaximum"));
@@ -350,12 +350,12 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/collections/non-empty-string"));
         var nonEmpty = Property(body, "nonEmpty");
 
-        AssertNoRefOrAllOf(nonEmpty);
+        AssertInlineSchema(nonEmpty);
         Assert.Equal("array", StringOrNull(nonEmpty, "type"));
         Assert.Equal(1, IntOrNull(nonEmpty, "minItems"));
 
         var items = nonEmpty.GetProperty("items");
-        AssertNoRefOrAllOf(items);
+        AssertInlineSchema(items);
         Assert.Equal("string", StringOrNull(items, "type"));
         Assert.Equal(1, IntOrNull(items, "minLength"));
     }
@@ -367,12 +367,12 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/collections/non-empty-string"));
         var enumerable = Property(body, "enumerable");
 
-        AssertNoRefOrAllOf(enumerable);
+        AssertInlineSchema(enumerable);
         Assert.Equal("array", StringOrNull(enumerable, "type"));
         Assert.Null(IntOrNull(enumerable, "minItems"));
 
         var items = enumerable.GetProperty("items");
-        AssertNoRefOrAllOf(items);
+        AssertInlineSchema(items);
         Assert.Equal("string", StringOrNull(items, "type"));
         Assert.Equal(1, IntOrNull(items, "minLength"));
     }
@@ -384,12 +384,12 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/collections/positive-int"));
         var nonEmpty = Property(body, "nonEmpty");
 
-        AssertNoRefOrAllOf(nonEmpty);
+        AssertInlineSchema(nonEmpty);
         Assert.Equal("array", StringOrNull(nonEmpty, "type"));
         Assert.Equal(1, IntOrNull(nonEmpty, "minItems"));
 
         var items = nonEmpty.GetProperty("items");
-        AssertNoRefOrAllOf(items);
+        AssertInlineSchema(items);
         Assert.Equal("integer", StringOrNull(items, "type"));
         Assert.Equal("int32", StringOrNull(items, "format"));
         AssertExclusiveLowerBound(items, 0m);
@@ -418,11 +418,11 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/collections/shapes"));
         var array = Property(body, propertyName);
 
-        AssertNoRefOrAllOf(array);
+        AssertInlineSchema(array);
         Assert.Equal("array", StringOrNull(array, "type"));
 
         var items = array.GetProperty("items");
-        AssertNoRefOrAllOf(items);
+        AssertInlineSchema(items);
         Assert.Equal("integer", StringOrNull(items, "type"));
         Assert.Equal("int32", StringOrNull(items, "format"));
         AssertExclusiveLowerBound(items, 0m);
@@ -445,12 +445,12 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/collections/dictionary-shapes"));
         var dict = Property(body, propertyName);
 
-        AssertNoRefOrAllOf(dict);
+        AssertInlineSchema(dict);
         Assert.Equal("object", StringOrNull(dict, "type"));
 
         Assert.True(dict.TryGetProperty("additionalProperties", out var values),
             "additionalProperties is missing on the dictionary schema");
-        AssertNoRefOrAllOf(values);
+        AssertInlineSchema(values);
         Assert.Equal("integer", StringOrNull(values, "type"));
         Assert.Equal("int32", StringOrNull(values, "format"));
         AssertExclusiveLowerBound(values, 0m);
@@ -470,11 +470,11 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/collections/modern-collections"));
         var array = Property(body, "asFrozenSet");
 
-        AssertNoRefOrAllOf(array);
+        AssertInlineSchema(array);
         Assert.Equal("array", StringOrNull(array, "type"));
 
         var items = array.GetProperty("items");
-        AssertNoRefOrAllOf(items);
+        AssertInlineSchema(items);
         Assert.Equal("integer", StringOrNull(items, "type"));
         Assert.Equal("int32", StringOrNull(items, "format"));
         AssertExclusiveLowerBound(items, 0m);
@@ -489,12 +489,12 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/collections/modern-collections"));
         var dict = Property(body, propertyName);
 
-        AssertNoRefOrAllOf(dict);
+        AssertInlineSchema(dict);
         Assert.Equal("object", StringOrNull(dict, "type"));
 
         Assert.True(dict.TryGetProperty("additionalProperties", out var values),
             "additionalProperties is missing on the dictionary schema");
-        AssertNoRefOrAllOf(values);
+        AssertInlineSchema(values);
         Assert.Equal("integer", StringOrNull(values, "type"));
         Assert.Equal("int32", StringOrNull(values, "format"));
         AssertExclusiveLowerBound(values, 0m);
@@ -515,7 +515,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/non-empty-string-entities"));
         var nullableValue = UnwrapNullableProperty(Property(body, "nullableValue"));
 
-        AssertNoRefOrAllOf(nullableValue);
+        AssertInlineSchema(nullableValue);
         Assert.Equal("string", StringOrNull(nullableValue, "type"));
         Assert.Equal(1, IntOrNull(nullableValue, "minLength"));
     }
@@ -527,7 +527,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/positive-int-entities"));
         var nullableValue = UnwrapNullableProperty(Property(body, "nullableValue"));
 
-        AssertNoRefOrAllOf(nullableValue);
+        AssertInlineSchema(nullableValue);
         Assert.Equal("integer", StringOrNull(nullableValue, "type"));
         Assert.Equal("int32", StringOrNull(nullableValue, "format"));
         AssertExclusiveLowerBound(nullableValue, 0m);
@@ -540,12 +540,12 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
         var nullableArray = UnwrapNullableProperty(Property(body, "nullableNonEmptyStringArray"));
 
-        AssertNoRefOrAllOf(nullableArray);
+        AssertInlineSchema(nullableArray);
         Assert.Equal("array", StringOrNull(nullableArray, "type"));
         Assert.Equal(1, IntOrNull(nullableArray, "minItems"));
 
         var items = nullableArray.GetProperty("items");
-        AssertNoRefOrAllOf(items);
+        AssertInlineSchema(items);
         Assert.Equal("string", StringOrNull(items, "type"));
         Assert.Equal(1, IntOrNull(items, "minLength"));
     }
@@ -557,12 +557,12 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
         var nullableArray = UnwrapNullableProperty(Property(body, "nullableNonEmptyPositiveIntArray"));
 
-        AssertNoRefOrAllOf(nullableArray);
+        AssertInlineSchema(nullableArray);
         Assert.Equal("array", StringOrNull(nullableArray, "type"));
         Assert.Equal(1, IntOrNull(nullableArray, "minItems"));
 
         var items = nullableArray.GetProperty("items");
-        AssertNoRefOrAllOf(items);
+        AssertInlineSchema(items);
         Assert.Equal("integer", StringOrNull(items, "type"));
         Assert.Equal("int32", StringOrNull(items, "format"));
         AssertExclusiveLowerBound(items, 0m);
@@ -575,7 +575,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
         var value = UnwrapNullableProperty(Property(body, "nullableNonEmptyString"));
 
-        AssertNoRefOrAllOf(value);
+        AssertInlineSchema(value);
         Assert.Equal("string", StringOrNull(value, "type"));
         Assert.Equal(1, IntOrNull(value, "minLength"));
     }
@@ -587,7 +587,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
         var value = UnwrapNullableProperty(Property(body, "nullablePositiveInt"));
 
-        AssertNoRefOrAllOf(value);
+        AssertInlineSchema(value);
         Assert.Equal("integer", StringOrNull(value, "type"));
         Assert.Equal("int32", StringOrNull(value, "format"));
         AssertExclusiveLowerBound(value, 0m);
@@ -607,7 +607,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         Assert.True(nullableValue.TryGetProperty("properties", out var props));
         Assert.True(props.TryGetProperty("Value", out var inner));
 
-        AssertNoRefOrAllOf(inner);
+        AssertInlineSchema(inner);
         Assert.Equal("integer", StringOrNull(inner, "type"));
 
         // Value is not listed under `required` — that's how the converter
@@ -637,7 +637,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         Assert.Equal("object", StringOrNull(maybe, "type"));
 
         var inner = maybe.GetProperty("properties").GetProperty("Value");
-        AssertNoRefOrAllOf(inner);
+        AssertInlineSchema(inner);
         Assert.Equal("integer", StringOrNull(inner, "type"));
         Assert.Equal("int32", StringOrNull(inner, "format"));
         AssertExclusiveLowerBound(inner, 0m);
@@ -653,7 +653,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         Assert.Equal("object", StringOrNull(maybe, "type"));
 
         var inner = maybe.GetProperty("properties").GetProperty("Value");
-        AssertNoRefOrAllOf(inner);
+        AssertInlineSchema(inner);
         Assert.Equal("string", StringOrNull(inner, "type"));
         Assert.Equal(1, IntOrNull(inner, "minLength"));
     }
@@ -668,12 +668,12 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         Assert.Equal("object", StringOrNull(maybe, "type"));
 
         var inner = maybe.GetProperty("properties").GetProperty("Value");
-        AssertNoRefOrAllOf(inner);
+        AssertInlineSchema(inner);
         Assert.Equal("array", StringOrNull(inner, "type"));
         Assert.Equal(1, IntOrNull(inner, "minItems"));
 
         var items = inner.GetProperty("items");
-        AssertNoRefOrAllOf(items);
+        AssertInlineSchema(items);
         Assert.Equal("string", StringOrNull(items, "type"));
         Assert.Equal(1, IntOrNull(items, "minLength"));
     }
@@ -685,7 +685,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/nested-strong-types"));
         var array = Property(body, "nonEmptyArrayOfMaybePositiveInt");
 
-        AssertNoRefOrAllOf(array);
+        AssertInlineSchema(array);
         Assert.Equal("array", StringOrNull(array, "type"));
         Assert.Equal(1, IntOrNull(array, "minItems"));
 
@@ -693,7 +693,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         Assert.Equal("object", StringOrNull(maybe, "type"));
 
         var inner = maybe.GetProperty("properties").GetProperty("Value");
-        AssertNoRefOrAllOf(inner);
+        AssertInlineSchema(inner);
         Assert.Equal("integer", StringOrNull(inner, "type"));
         Assert.Equal("int32", StringOrNull(inner, "format"));
         AssertExclusiveLowerBound(inner, 0m);
@@ -1142,20 +1142,17 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         return false;
     }
 
-    // Pins that the schema is fully inlined: no $ref, no allOf-wrapping a
-    // single $ref. Tests for primitive strong-type wrappers
-    // (NonEmptyString, Positive<T>, …) call this to enforce that the
-    // wrapper component disappeared and the wire keywords landed directly
-    // at the property position.
-    protected static void AssertNoRefOrAllOf(JsonElement schema)
+    // Pins that the schema is fully inlined: keywords sit directly on the
+    // schema object, not behind a $ref or an allOf. Tests for primitive
+    // and array strong-type wrappers (NonEmptyString, Positive<T>,
+    // NonEmptyEnumerable<T>, …) call this to enforce that the wrapper
+    // component disappeared and the wire keywords landed directly at the
+    // property position.
+    protected static void AssertInlineSchema(JsonElement schema)
     {
         Assert.Equal(JsonValueKind.Object, schema.ValueKind);
-        Assert.False(schema.TryGetProperty("$ref", out _), "expected inlined schema, found $ref");
-        if (schema.TryGetProperty("allOf", out var allOf))
-        {
-            foreach (var entry in allOf.EnumerateArray())
-                Assert.False(entry.TryGetProperty("$ref", out _), "expected inlined schema, found allOf $ref to wrapper component");
-        }
+        Assert.False(schema.TryGetProperty("$ref", out _), "expected inline schema, found $ref");
+        Assert.False(schema.TryGetProperty("allOf", out _), "expected inline schema, found allOf");
     }
 
     protected void AssertExclusiveLowerBoundReachable(JsonElement doc, JsonElement schema, decimal expected)
