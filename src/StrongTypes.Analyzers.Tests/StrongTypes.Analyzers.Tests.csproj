@@ -27,5 +27,9 @@
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
     <!-- Needed to test the "silent when StrongTypes.EfCore is referenced" case. -->
     <ProjectReference Include="..\StrongTypes.EfCore\StrongTypes.EfCore.csproj" />
+    <!-- Needed to test the OpenAPI analyzers (ST0002 / ST0003) under both the
+         "generator referenced, adapter missing" and "adapter referenced" cases. -->
+    <ProjectReference Include="..\StrongTypes.OpenApi.Microsoft\StrongTypes.OpenApi.Microsoft.csproj" />
+    <ProjectReference Include="..\StrongTypes.OpenApi.Swashbuckle\StrongTypes.OpenApi.Swashbuckle.csproj" />
   </ItemGroup>
 </Project>
