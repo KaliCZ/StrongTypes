@@ -1007,6 +1007,59 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         return req.EnumerateArray().Select(e => e.GetString() ?? string.Empty).ToArray();
     }
 
+    // ───────────────────────────────────────────────────────────────────
+    // Components cleanup — every inlineable wrapper (NonEmptyString and
+    // the numeric/array generics) must be removed from
+    // components.schemas after the inliner runs. Maybe<T> is the one
+    // intentional exception: its object-shaped wire form is worth
+    // keeping as a named component.
+    // ───────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Inlineable_Wrapper_Components_Are_Removed_From_Components_Schemas()
+    {
+        var doc = await GetDocumentAsync();
+        var schemaNames = ReadComponentSchemaNames(doc);
+
+        Assert.DoesNotContain("NonEmptyString", schemaNames);
+
+        // Microsoft prefix style and Swashbuckle suffix style: any name
+        // that begins or ends with one of the wrapper roots must be gone.
+        foreach (var name in schemaNames)
+        {
+            Assert.False(
+                IsInlineableWrapperName(name),
+                $"Inlineable wrapper component '{name}' should have been removed from components.schemas.");
+        }
+    }
+
+    private static string[] ReadComponentSchemaNames(JsonElement doc)
+    {
+        if (!doc.TryGetProperty("components", out var components)) return [];
+        if (!components.TryGetProperty("schemas", out var schemas)) return [];
+        return schemas.EnumerateObject().Select(p => p.Name).ToArray();
+    }
+
+    private static bool IsInlineableWrapperName(string name)
+    {
+        if (string.Equals(name, "NonEmptyString", StringComparison.Ordinal)) return true;
+
+        if (name.StartsWith("PositiveOf", StringComparison.Ordinal)
+            || name.StartsWith("NonNegativeOf", StringComparison.Ordinal)
+            || name.StartsWith("NegativeOf", StringComparison.Ordinal)
+            || name.StartsWith("NonPositiveOf", StringComparison.Ordinal)
+            || name.StartsWith("NonEmptyEnumerableOf", StringComparison.Ordinal)
+            || name.StartsWith("MaybeOf", StringComparison.Ordinal))
+            return true;
+
+        return name.EndsWith("Positive", StringComparison.Ordinal)
+            || name.EndsWith("Negative", StringComparison.Ordinal)
+            || name.EndsWith("NonNegative", StringComparison.Ordinal)
+            || name.EndsWith("NonPositive", StringComparison.Ordinal)
+            || name.EndsWith("NonEmptyEnumerable", StringComparison.Ordinal)
+            || name.EndsWith("Maybe", StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task Property_NonEmptyEnumerable_With_MaxLength_Carries_Min_And_MaxItems()
     {

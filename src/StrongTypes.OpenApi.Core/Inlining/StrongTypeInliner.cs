@@ -4,20 +4,15 @@ namespace StrongTypes.OpenApi.Core;
 
 /// <summary>
 /// Walks an <see cref="OpenApiDocument"/> and replaces every <c>$ref</c> to
-/// a strong-type wrapper component whose wire shape is a primitive or an
-/// array (<c>NonEmptyString</c>, <c>PositiveOf*</c>, <c>NonNegativeOf*</c>,
-/// <c>NegativeOf*</c>, <c>NonPositiveOf*</c>, <c>NonEmptyEnumerableOf*</c>,
-/// plus Swashbuckle's suffix-style equivalents) with the wrapper's wire
-/// body, merging any caller-supplied annotations attached at the use site
-/// (the <c>allOf:[ref]</c> + <c>maxLength</c>/<c>maxItems</c>/etc. shape
-/// that <see cref="SchemaPaint"/>'s tighten helpers produce). After all
+/// a strong-type wrapper component (<c>NonEmptyString</c>, <c>PositiveOf*</c>,
+/// <c>NonNegativeOf*</c>, <c>NegativeOf*</c>, <c>NonPositiveOf*</c>,
+/// <c>NonEmptyEnumerableOf*</c>, <c>MaybeOf*</c>, plus Swashbuckle's
+/// suffix-style equivalents) with the wrapper's wire body, merging any
+/// caller-supplied annotations attached at the use site (the
+/// <c>allOf:[ref]</c> + <c>maxLength</c>/<c>maxItems</c>/etc. shape that
+/// <see cref="SchemaPaint"/>'s tighten helpers produce). After all
 /// references are inlined, the wrapper components themselves are dropped
 /// from <c>components.schemas</c>.
-/// <para>
-/// <see cref="Maybe{T}"/> is <em>not</em> inlined — its wire shape is an
-/// object with a <c>Value</c> property, which has a real type identity
-/// worth keeping as a named component.
-/// </para>
 /// </summary>
 public static class StrongTypeInliner
 {
@@ -58,33 +53,41 @@ public static class StrongTypeInliner
     {
         if (string.Equals(name, "NonEmptyString", StringComparison.Ordinal)) return true;
 
-        // Microsoft.AspNetCore.OpenApi: PositiveOfint, NonEmptyEnumerableOfNonEmptyString, …
+        // Microsoft.AspNetCore.OpenApi: PositiveOfint, NonEmptyEnumerableOfNonEmptyString,
+        // MaybeOfNonEmptyString, …
         if (name.StartsWith("PositiveOf", StringComparison.Ordinal)
             || name.StartsWith("NonNegativeOf", StringComparison.Ordinal)
             || name.StartsWith("NegativeOf", StringComparison.Ordinal)
             || name.StartsWith("NonPositiveOf", StringComparison.Ordinal)
-            || name.StartsWith("NonEmptyEnumerableOf", StringComparison.Ordinal))
+            || name.StartsWith("NonEmptyEnumerableOf", StringComparison.Ordinal)
+            || name.StartsWith("MaybeOf", StringComparison.Ordinal))
             return true;
 
         // Swashbuckle suffix style: Int32Positive, Int64NonNegative, DoubleNegative,
-        // DecimalNonPositive, Int32NonEmptyEnumerable, …
+        // DecimalNonPositive, Int32NonEmptyEnumerable, NonEmptyStringMaybe, …
         return name.EndsWith("Positive", StringComparison.Ordinal)
             || name.EndsWith("Negative", StringComparison.Ordinal)
             || name.EndsWith("NonNegative", StringComparison.Ordinal)
             || name.EndsWith("NonPositive", StringComparison.Ordinal)
-            || name.EndsWith("NonEmptyEnumerable", StringComparison.Ordinal);
+            || name.EndsWith("NonEmptyEnumerable", StringComparison.Ordinal)
+            || name.EndsWith("Maybe", StringComparison.Ordinal);
     }
 
     private static bool IsInlineableShape(OpenApiSchema schema)
     {
-        if (schema.Properties is { Count: > 0 }) return false;
         if (schema.AdditionalProperties is not null) return false;
         if (schema.AllOf is { Count: > 0 }) return false;
         if (schema.OneOf is { Count: > 0 }) return false;
         if (schema.AnyOf is { Count: > 0 }) return false;
 
         if (schema.Type == JsonSchemaType.Array)
-            return schema.Items is not null;
+            return schema.Items is not null && schema.Properties is not { Count: > 0 };
+
+        // Maybe<T>'s wire shape: { object, properties: { Value: <T> } }.
+        if (schema.Type == JsonSchemaType.Object)
+            return schema.Properties is { Count: > 0 };
+
+        if (schema.Properties is { Count: > 0 }) return false;
 
         return schema.Type == JsonSchemaType.String
             || schema.Type == JsonSchemaType.Integer
@@ -232,6 +235,9 @@ public static class StrongTypeInliner
             Pattern = source.Pattern,
             Description = source.Description,
             Default = source.Default,
+            Properties = source.Properties is null
+                ? null
+                : new Dictionary<string, IOpenApiSchema>(source.Properties, StringComparer.Ordinal),
         };
         return clone;
     }
