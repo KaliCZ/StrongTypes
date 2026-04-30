@@ -6,15 +6,17 @@ using Microsoft.OpenApi;
 
 namespace StrongTypes.OpenApi.Microsoft;
 
-// When a request DTO declares a dictionary-typed property whose key carries
-// a strong-type JsonConverter (or whose key is a strong-typed numeric),
-// Microsoft.AspNetCore.OpenApi inlines a degenerate `additionalProperties`
-// schema for the property — and never invokes schema-level transformers on
-// it. This document transformer runs after schema generation, walks every
-// component schema's properties, and rewrites the `additionalProperties`
-// position from the CLR value type so the wire schema matches the JSON
-// the converter actually emits.
-internal sealed class StrongTypeDictionaryPropertyTransformer : IOpenApiDocumentTransformer
+// Fallback for one specific gap in Microsoft.AspNetCore.OpenApi: when a
+// dictionary's *key* is a strong type (e.g. `Dictionary<NonEmptyString,
+// int>`), the framework inlines a broken `additionalProperties` schema on
+// the parent record's property AND never invokes schema-level transformers
+// on the dictionary type — so StrongTypeCollectionShapeTransformer never
+// gets a chance to fix it. Every other dictionary shape — including
+// strong-typed *values* — flows through the schema-transformer hook
+// normally and does not need this fallback. We patch the broken position
+// here at document level by walking parent components and rebuilding
+// `additionalProperties` from the CLR value type.
+internal sealed class StrongTypeKeyedDictionaryFallback : IOpenApiDocumentTransformer
 {
     public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
     {

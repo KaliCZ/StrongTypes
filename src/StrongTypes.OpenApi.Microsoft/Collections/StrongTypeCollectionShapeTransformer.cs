@@ -14,8 +14,8 @@ namespace StrongTypes.OpenApi.Microsoft;
 // `FrozenDictionary<,>`, `SortedList<,>`, …). The strong-typed-key
 // dictionary case never reaches this hook (the framework inlines a
 // degenerate schema for it without invoking schema transformers); see
-// <see cref="StrongTypeDictionaryPropertyTransformer"/> for the
-// document-level patch that handles it.
+// <see cref="StrongTypeKeyedDictionaryFallback"/> for the document-level
+// patch that handles it.
 public sealed class StrongTypeCollectionShapeTransformer : IOpenApiSchemaTransformer
 {
     public async Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
