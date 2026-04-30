@@ -33,10 +33,11 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 
     // Per-feature flags below name a specific keyword the underlying
     // pipeline doesn't natively write for the matching annotation, even
-    // on a primitive-typed property. Tests that pin such a keyword call
-    // Assert.SkipWhen on the corresponding flag, so the wrapper-typed
-    // surface stays consistent with the primitive-typed surface on each
-    // pipeline. Each flag is set in the per-pipeline subclass.
+    // on a primitive-typed property. The corresponding tests run on every
+    // pipeline; when the flag is set, they assert the keyword is *absent*
+    // rather than skipping — so the suite documents the framework's
+    // actual behaviour and catches it if the framework starts honouring
+    // the annotation. Each flag is set in the per-pipeline subclass.
     protected virtual bool IsEmailStringFormatBroken => false;
     protected virtual bool IsLengthAttributeBroken => false;
     protected virtual bool IsBase64StringFormatBroken => false;
@@ -62,7 +63,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     // component or an inlined schema; it follows $ref + single-element allOf,
     // but never a nullable union — those are version-specific and pinned by
     // UnwrapNullableProperty instead.
-    private static JsonElement FollowRef(JsonElement doc, JsonElement schema)
+    protected static JsonElement FollowRef(JsonElement doc, JsonElement schema)
     {
         Assert.Equal(JsonValueKind.Object, schema.ValueKind);
         Assert.True(schema.TryGetProperty("$ref", out var refProp), "$ref is missing");
@@ -201,12 +202,12 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     private static bool IsNullBranch(JsonElement branch)
         => Is3_0NullBranch(branch) || Is3_1NullBranch(branch);
 
-    private static JsonElement RequestSchema(JsonElement doc, string path, string method = "post")
+    protected static JsonElement RequestSchema(JsonElement doc, string path, string method = "post")
         => doc.GetProperty("paths").GetProperty(path).GetProperty(method)
             .GetProperty("requestBody").GetProperty("content")
             .GetProperty("application/json").GetProperty("schema");
 
-    private static JsonElement Property(JsonElement schema, string propertyName)
+    protected static JsonElement Property(JsonElement schema, string propertyName)
         => schema.GetProperty("properties").GetProperty(propertyName);
 
     private static string? StringOrNull(JsonElement schema, string propertyName) =>
@@ -711,15 +712,17 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     }
 
     [Fact]
-    public async Task Property_NonEmptyString_With_EmailAddress_Carries_Format_Email_And_Wrapper_MinLength()
+    public async Task Property_NonEmptyString_With_EmailAddress_Carries_Wrapper_MinLength_And_Format_Email_When_Honored()
     {
-        Assert.SkipWhen(IsEmailStringFormatBroken, "Pipeline does not honor [EmailAddress] — format: \"email\" is not written even on primitive-typed properties.");
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var contactEmail = Property(body, "contactEmail");
 
+        // Wrapper's minLength: 1 always reaches the wire. The [EmailAddress]
+        // format keyword only reaches it on pipelines that honour the
+        // attribute on plain primitives.
         Assert.Equal(1, CollectMaxInt(doc, contactEmail, "minLength"));
-        Assert.Equal("email", CollectFirstString(doc, contactEmail, "format"));
+        Assert.Equal(IsEmailStringFormatBroken ? null : "email", CollectFirstString(doc, contactEmail, "format"));
     }
 
     [Fact]
@@ -746,38 +749,38 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     }
 
     [Fact]
-    public async Task Property_NonEmptyString_With_Length_Tightens_Both_Bounds_Above_Wrapper_Floor()
+    public async Task Property_NonEmptyString_With_Length_Tightens_Both_Bounds_When_Honored()
     {
-        Assert.SkipWhen(IsLengthAttributeBroken, "Pipeline does not honor [Length].");
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var slug = Property(body, "slug");
 
-        Assert.Equal(2, CollectMaxInt(doc, slug, "minLength"));
-        Assert.Equal(8, CollectMinInt(doc, slug, "maxLength"));
+        // [Length(2, 8)] tightens both bounds when honoured. When dropped,
+        // only the wrapper's own minLength: 1 floor reaches the wire and
+        // there is no maxLength.
+        Assert.Equal(IsLengthAttributeBroken ? 1 : 2, CollectMaxInt(doc, slug, "minLength"));
+        Assert.Equal(IsLengthAttributeBroken ? null : 8, CollectMinInt(doc, slug, "maxLength"));
     }
 
     [Fact]
-    public async Task Property_NonEmptyString_With_Base64String_Carries_Format_Byte_And_Wrapper_MinLength()
+    public async Task Property_NonEmptyString_With_Base64String_Carries_Wrapper_MinLength_And_Format_Byte_When_Honored()
     {
-        Assert.SkipWhen(IsBase64StringFormatBroken, "Pipeline does not honor [Base64String] — format: \"byte\" is not written.");
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var encodedBlob = Property(body, "encodedBlob");
 
         Assert.Equal(1, CollectMaxInt(doc, encodedBlob, "minLength"));
-        Assert.Equal("byte", CollectFirstString(doc, encodedBlob, "format"));
+        Assert.Equal(IsBase64StringFormatBroken ? null : "byte", CollectFirstString(doc, encodedBlob, "format"));
     }
 
     [Fact]
-    public async Task Property_NonEmptyString_With_Description_Carries_Description()
+    public async Task Property_NonEmptyString_With_Description_Carries_Description_When_Honored()
     {
-        Assert.SkipWhen(IsDescriptionAttributeBroken, "Pipeline does not honor [Description].");
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var tagline = Property(body, "tagline");
 
-        Assert.Equal("Short user tagline", CollectFirstString(doc, tagline, "description"));
+        Assert.Equal(IsDescriptionAttributeBroken ? null : "Short user tagline", CollectFirstString(doc, tagline, "description"));
     }
 
     [Fact]
@@ -792,15 +795,20 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     }
 
     [Fact]
-    public async Task Property_Positive_Int_With_Range_MinimumIsExclusive_Carries_Exclusive_Lower_Bound()
+    public async Task Property_Positive_Int_With_Range_MinimumIsExclusive_Carries_Exclusive_Lower_Bound_When_Honored()
     {
-        Assert.SkipWhen(IsExclusiveRangeBroken, "Pipeline does not honor RangeAttribute.MinimumIsExclusive.");
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var exclusive = Property(body, "exclusiveLowerAge");
 
-        AssertExclusiveLowerBoundReachable(doc, exclusive, 1m);
+        // [Range(1, 10, MinimumIsExclusive = true)] degrades to plain
+        // [Range(1, 10)] when MinimumIsExclusive is dropped — minimum
+        // becomes inclusive 1.
         Assert.Equal(10m, CollectMinUpperBound(doc, exclusive));
+        if (IsExclusiveRangeBroken)
+            Assert.Equal(1m, CollectMaxLowerBound(doc, exclusive));
+        else
+            AssertExclusiveLowerBoundReachable(doc, exclusive, 1m);
     }
 
     // The primitive-typed siblings below pin the same wire keywords on a
@@ -839,14 +847,13 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     }
 
     [Fact]
-    public async Task Property_String_With_EmailAddress_Carries_Format_Email()
+    public async Task Property_String_With_EmailAddress_Carries_Format_Email_When_Honored()
     {
-        Assert.SkipWhen(IsEmailStringFormatBroken, "Pipeline does not honor [EmailAddress] — format: \"email\" is not written even on primitive-typed properties.");
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var contactEmailRaw = Property(body, "contactEmailRaw");
 
-        Assert.Equal("email", CollectFirstString(doc, contactEmailRaw, "format"));
+        Assert.Equal(IsEmailStringFormatBroken ? null : "email", CollectFirstString(doc, contactEmailRaw, "format"));
     }
 
     [Fact]
@@ -860,37 +867,34 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     }
 
     [Fact]
-    public async Task Property_String_With_Length_Tightens_Both_Bounds()
+    public async Task Property_String_With_Length_Tightens_Both_Bounds_When_Honored()
     {
-        Assert.SkipWhen(IsLengthAttributeBroken, "Pipeline does not honor [Length].");
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var slugRaw = Property(body, "slugRaw");
 
-        Assert.Equal(2, CollectMaxInt(doc, slugRaw, "minLength"));
-        Assert.Equal(8, CollectMinInt(doc, slugRaw, "maxLength"));
+        Assert.Equal(IsLengthAttributeBroken ? null : 2, CollectMaxInt(doc, slugRaw, "minLength"));
+        Assert.Equal(IsLengthAttributeBroken ? null : 8, CollectMinInt(doc, slugRaw, "maxLength"));
     }
 
     [Fact]
-    public async Task Property_String_With_Base64String_Carries_Format_Byte()
+    public async Task Property_String_With_Base64String_Carries_Format_Byte_When_Honored()
     {
-        Assert.SkipWhen(IsBase64StringFormatBroken, "Pipeline does not honor [Base64String] — format: \"byte\" is not written.");
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var encodedBlobRaw = Property(body, "encodedBlobRaw");
 
-        Assert.Equal("byte", CollectFirstString(doc, encodedBlobRaw, "format"));
+        Assert.Equal(IsBase64StringFormatBroken ? null : "byte", CollectFirstString(doc, encodedBlobRaw, "format"));
     }
 
     [Fact]
-    public async Task Property_String_With_Description_Carries_Description()
+    public async Task Property_String_With_Description_Carries_Description_When_Honored()
     {
-        Assert.SkipWhen(IsDescriptionAttributeBroken, "Pipeline does not honor [Description].");
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var taglineRaw = Property(body, "taglineRaw");
 
-        Assert.Equal("Short user tagline", CollectFirstString(doc, taglineRaw, "description"));
+        Assert.Equal(IsDescriptionAttributeBroken ? null : "Short user tagline", CollectFirstString(doc, taglineRaw, "description"));
     }
 
     [Fact]
@@ -905,15 +909,17 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     }
 
     [Fact]
-    public async Task Property_Int_With_Range_MinimumIsExclusive_Carries_Exclusive_Lower_Bound()
+    public async Task Property_Int_With_Range_MinimumIsExclusive_Carries_Exclusive_Lower_Bound_When_Honored()
     {
-        Assert.SkipWhen(IsExclusiveRangeBroken, "Pipeline does not honor RangeAttribute.MinimumIsExclusive.");
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var exclusiveRaw = Property(body, "exclusiveLowerAgeRaw");
 
-        AssertExclusiveLowerBoundReachable(doc, exclusiveRaw, 1m);
         Assert.Equal(10m, CollectMinUpperBound(doc, exclusiveRaw));
+        if (IsExclusiveRangeBroken)
+            Assert.Equal(1m, CollectMaxLowerBound(doc, exclusiveRaw));
+        else
+            AssertExclusiveLowerBoundReachable(doc, exclusiveRaw, 1m);
     }
 
     [Fact]
@@ -1029,7 +1035,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         }
     }
 
-    private static int? CollectMaxInt(JsonElement doc, JsonElement schema, string keyword)
+    protected static int? CollectMaxInt(JsonElement doc, JsonElement schema, string keyword)
     {
         int? best = null;
         foreach (var layer in WalkSchemaLayers(doc, schema))
@@ -1041,7 +1047,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         return best;
     }
 
-    private static int? CollectMinInt(JsonElement doc, JsonElement schema, string keyword)
+    protected static int? CollectMinInt(JsonElement doc, JsonElement schema, string keyword)
     {
         int? best = null;
         foreach (var layer in WalkSchemaLayers(doc, schema))
@@ -1053,7 +1059,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         return best;
     }
 
-    private static string? CollectFirstString(JsonElement doc, JsonElement schema, string keyword)
+    protected static string? CollectFirstString(JsonElement doc, JsonElement schema, string keyword)
     {
         foreach (var layer in WalkSchemaLayers(doc, schema))
         {
@@ -1073,7 +1079,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         return best;
     }
 
-    private static decimal? CollectMinUpperBound(JsonElement doc, JsonElement schema)
+    protected static decimal? CollectMinUpperBound(JsonElement doc, JsonElement schema)
     {
         decimal? best = null;
         foreach (var layer in WalkSchemaLayers(doc, schema))
@@ -1105,7 +1111,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         return false;
     }
 
-    private void AssertExclusiveLowerBoundReachable(JsonElement doc, JsonElement schema, decimal expected)
+    protected void AssertExclusiveLowerBoundReachable(JsonElement doc, JsonElement schema, decimal expected)
     {
         foreach (var layer in WalkSchemaLayers(doc, schema))
         {
