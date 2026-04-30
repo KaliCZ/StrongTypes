@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 namespace StrongTypes.OpenApi.TestApi.Shared;
 
 public sealed record StructEntityRequest<T>(T Value, T? NullableValue) where T : struct;
@@ -31,6 +33,29 @@ public sealed record NullableStrongTypesRequest(
     Positive<int>? NullablePositiveInt,
     NonEmptyEnumerable<NonEmptyString>? NullableNonEmptyStringArray,
     NonEmptyEnumerable<Positive<int>>? NullableNonEmptyPositiveIntArray);
+
+public sealed record CollectionShapesRequest(
+    IEnumerable<Positive<int>> AsEnumerable,
+    IList<Positive<int>> AsIList,
+    IReadOnlyList<Positive<int>> AsIReadOnlyList,
+    List<Positive<int>> AsList,
+    Positive<int>[] AsArray,
+    NonEmptyEnumerable<Positive<int>> AsNonEmpty);
+
+public sealed record DictionaryShapesRequest(
+    IDictionary<string, Positive<int>> AsIDictionary,
+    Dictionary<int, Positive<int>> AsDictionaryIntKey,
+    IReadOnlyDictionary<string, Positive<int>> AsIReadOnlyDictionary);
+
+public sealed record DictionaryStrongKeyShapesRequest(
+    Dictionary<NonEmptyString, int> AsNonEmptyStringKey,
+    Dictionary<Positive<int>, int> AsPositiveIntKey,
+    IReadOnlyDictionary<NonEmptyString, int> AsIReadOnlyNonEmptyStringKey);
+
+public sealed record ModernCollectionsRequest(
+    FrozenSet<Positive<int>> AsFrozenSet,
+    FrozenDictionary<string, Positive<int>> AsFrozenDictionary,
+    SortedList<string, Positive<int>> AsSortedList);
 
 public sealed record NestedStrongTypesRequest(
     Maybe<Positive<int>> MaybePositiveInt,

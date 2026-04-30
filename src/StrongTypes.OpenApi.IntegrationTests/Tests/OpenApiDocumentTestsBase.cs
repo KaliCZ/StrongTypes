@@ -384,6 +384,129 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     }
 
     // ───────────────────────────────────────────────────────────────────
+    // Collection shapes — every CLR collection shape carrying a strong-type
+    // element must expose `items` with the element's wire schema. The
+    // `/collections/shapes` endpoint declares one property per shape, all
+    // typed as `Positive<int>` so the items schema must carry
+    // `exclusiveMinimum: 0`. Each shape is asserted independently so the
+    // failure surface tells us which shapes the underlying pipeline (and
+    // any items-backfill transformer it relies on) actually covers.
+    // ───────────────────────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData("asEnumerable")]
+    [InlineData("asIList")]
+    [InlineData("asIReadOnlyList")]
+    [InlineData("asList")]
+    [InlineData("asArray")]
+    [InlineData("asNonEmpty")]
+    public async Task Collection_Shape_Of_Positive_Int_Renders_As_Array_With_Integer_Items(string propertyName)
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/collections/shapes"));
+        var array = Resolve(doc, Property(body, propertyName));
+
+        Assert.Equal("array", StringOrNull(array, "type"));
+
+        var items = Resolve(doc, array.GetProperty("items"));
+        Assert.Equal("integer", StringOrNull(items, "type"));
+        Assert.Equal("int32", StringOrNull(items, "format"));
+        AssertExclusiveLowerBound(items, 0m);
+    }
+
+    // ───────────────────────────────────────────────────────────────────
+    // Dictionary shapes — the wire form for a CLR dictionary keyed by a
+    // primitive is an OpenAPI object with `additionalProperties`. Each
+    // dictionary property below carries a `Positive<int>` value, so the
+    // value-schema position must encode `exclusiveMinimum: 0`.
+    // ───────────────────────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData("asIDictionary")]
+    [InlineData("asDictionaryIntKey")]
+    [InlineData("asIReadOnlyDictionary")]
+    public async Task Dictionary_Shape_Of_Positive_Int_Renders_With_Integer_AdditionalProperties(string propertyName)
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/collections/dictionary-shapes"));
+        var dict = Resolve(doc, Property(body, propertyName));
+
+        Assert.Equal("object", StringOrNull(dict, "type"));
+
+        Assert.True(dict.TryGetProperty("additionalProperties", out var values),
+            "additionalProperties is missing on the dictionary schema");
+        var valueSchema = Resolve(doc, values);
+        Assert.Equal("integer", StringOrNull(valueSchema, "type"));
+        Assert.Equal("int32", StringOrNull(valueSchema, "format"));
+        AssertExclusiveLowerBound(valueSchema, 0m);
+    }
+
+    // Strong-type *keys* — JSON keys are always strings on the wire, so the
+    // schema's `additionalProperties` still describes the value, not the key.
+    // These rows pin that the property even renders (the pipeline doesn't
+    // bail when it sees a strong-typed dictionary key) and that the value
+    // schema is intact: int with no bound.
+    [Theory]
+    [InlineData("asNonEmptyStringKey")]
+    [InlineData("asPositiveIntKey")]
+    [InlineData("asIReadOnlyNonEmptyStringKey")]
+    public async Task Dictionary_With_StrongType_Key_Renders_As_Object_With_Plain_Int_Values(string propertyName)
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/collections/dictionary-strong-key-shapes"));
+        var dict = Resolve(doc, Property(body, propertyName));
+
+        Assert.Equal("object", StringOrNull(dict, "type"));
+
+        Assert.True(dict.TryGetProperty("additionalProperties", out var values),
+            "additionalProperties is missing on the dictionary schema");
+        var valueSchema = Resolve(doc, values);
+        Assert.Equal("integer", StringOrNull(valueSchema, "type"));
+        Assert.Equal("int32", StringOrNull(valueSchema, "format"));
+    }
+
+    // ───────────────────────────────────────────────────────────────────
+    // Modern collection shapes — FrozenSet<T>, FrozenDictionary<K,V>,
+    // SortedList<K,V> are recent BCL additions whose serializer mappings
+    // are array (set) and object/additionalProperties (dictionary). The
+    // strong-typed value position must reach the wire schema in each.
+    // ───────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task FrozenSet_Of_Positive_Int_Renders_As_Array_With_Integer_Items()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/collections/modern-collections"));
+        var array = Resolve(doc, Property(body, "asFrozenSet"));
+
+        Assert.Equal("array", StringOrNull(array, "type"));
+
+        var items = Resolve(doc, array.GetProperty("items"));
+        Assert.Equal("integer", StringOrNull(items, "type"));
+        Assert.Equal("int32", StringOrNull(items, "format"));
+        AssertExclusiveLowerBound(items, 0m);
+    }
+
+    [Theory]
+    [InlineData("asFrozenDictionary")]
+    [InlineData("asSortedList")]
+    public async Task Modern_Dictionary_Shape_Of_Positive_Int_Renders_With_Integer_AdditionalProperties(string propertyName)
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/collections/modern-collections"));
+        var dict = Resolve(doc, Property(body, propertyName));
+
+        Assert.Equal("object", StringOrNull(dict, "type"));
+
+        Assert.True(dict.TryGetProperty("additionalProperties", out var values),
+            "additionalProperties is missing on the dictionary schema");
+        var valueSchema = Resolve(doc, values);
+        Assert.Equal("integer", StringOrNull(valueSchema, "type"));
+        Assert.Equal("int32", StringOrNull(valueSchema, "format"));
+        AssertExclusiveLowerBound(valueSchema, 0m);
+    }
+
+    // ───────────────────────────────────────────────────────────────────
     // Nullable variants — a `NullableValue: NonEmptyString?`, a nullable
     // `Positive<int>?`, a nullable `NonEmptyEnumerable<T>?` must still expose
     // the underlying type contract. Property-level nullability is ASP.NET's

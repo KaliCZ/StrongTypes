@@ -63,6 +63,18 @@ public sealed class CollectionsController : ControllerBase
 
     [HttpPost("non-empty-string")]
     public IActionResult NonEmptyString(NonEmptyStringCollectionsRequest request) => Ok();
+
+    [HttpPost("shapes")]
+    public IActionResult Shapes(CollectionShapesRequest request) => Ok();
+
+    [HttpPost("dictionary-shapes")]
+    public IActionResult DictionaryShapes(DictionaryShapesRequest request) => Ok();
+
+    [HttpPost("dictionary-strong-key-shapes")]
+    public IActionResult DictionaryStrongKeyShapes(DictionaryStrongKeyShapesRequest request) => Ok();
+
+    [HttpPost("modern-collections")]
+    public IActionResult ModernCollections(ModernCollectionsRequest request) => Ok();
 }
 
 [ApiController]

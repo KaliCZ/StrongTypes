@@ -13,9 +13,10 @@ public static class StrongTypesOpenApiExtensions
         options.AddSchemaTransformer<NumericStrongTypeSchemaTransformer>();
         options.AddSchemaTransformer<NonEmptyEnumerableSchemaTransformer>();
         options.AddSchemaTransformer<MaybeSchemaTransformer>();
-        options.AddSchemaTransformer<StrongTypeEnumerableItemsTransformer>();
+        options.AddSchemaTransformer<StrongTypeCollectionShapeTransformer>();
         options.AddDocumentTransformer<StrongTypesComponentSchemaFiller>();
         options.AddDocumentTransformer<PropertyAnnotationSchemaTransformer>();
+        options.AddDocumentTransformer<StrongTypeDictionaryPropertyTransformer>();
         return options;
     }
 }
