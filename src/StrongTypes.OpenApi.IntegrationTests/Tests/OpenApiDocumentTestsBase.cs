@@ -45,9 +45,6 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     // actual behaviour and catches it if the framework starts honouring
     // the annotation. Each flag is set in the per-pipeline subclass.
     protected virtual bool IsEmailStringFormatBroken => false;
-    protected virtual bool IsLengthAttributeBroken => false;
-    protected virtual bool IsBase64StringFormatBroken => false;
-    protected virtual bool IsDescriptionAttributeBroken => false;
     protected virtual bool IsExclusiveRangeBroken => false;
 
     private async Task<JsonElement> GetDocumentAsync()
@@ -576,11 +573,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var slug = Property(body, "slug");
 
-        // [Length(2, 8)] tightens both bounds when honoured. When dropped,
-        // only the wrapper's own minLength: 1 floor reaches the wire and
-        // there is no maxLength.
-        Assert.Equal(IsLengthAttributeBroken ? 1 : 2, CollectMaxInt(doc, slug, "minLength", Version));
-        Assert.Equal(IsLengthAttributeBroken ? null : 8, CollectMinInt(doc, slug, "maxLength", Version));
+        Assert.Equal(2, CollectMaxInt(doc, slug, "minLength", Version));
+        Assert.Equal(8, CollectMinInt(doc, slug, "maxLength", Version));
     }
 
     [Fact]
@@ -591,7 +585,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var encodedBlob = Property(body, "encodedBlob");
 
         Assert.Equal(1, CollectMaxInt(doc, encodedBlob, "minLength", Version));
-        Assert.Equal(IsBase64StringFormatBroken ? null : "byte", CollectFirstString(doc, encodedBlob, "format", Version));
+        Assert.Equal("byte", CollectFirstString(doc, encodedBlob, "format", Version));
     }
 
     [Fact]
@@ -601,7 +595,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var tagline = Property(body, "tagline");
 
-        Assert.Equal(IsDescriptionAttributeBroken ? null : "Short user tagline", CollectFirstString(doc, tagline, "description", Version));
+        Assert.Equal("Short user tagline", CollectFirstString(doc, tagline, "description", Version));
     }
 
     [Fact]
@@ -694,8 +688,8 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var slugRaw = Property(body, "slugRaw");
 
-        Assert.Equal(IsLengthAttributeBroken ? null : 2, CollectMaxInt(doc, slugRaw, "minLength", Version));
-        Assert.Equal(IsLengthAttributeBroken ? null : 8, CollectMinInt(doc, slugRaw, "maxLength", Version));
+        Assert.Equal(2, CollectMaxInt(doc, slugRaw, "minLength", Version));
+        Assert.Equal(8, CollectMinInt(doc, slugRaw, "maxLength", Version));
     }
 
     [Fact]
@@ -705,7 +699,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var encodedBlobRaw = Property(body, "encodedBlobRaw");
 
-        Assert.Equal(IsBase64StringFormatBroken ? null : "byte", CollectFirstString(doc, encodedBlobRaw, "format", Version));
+        Assert.Equal("byte", CollectFirstString(doc, encodedBlobRaw, "format", Version));
     }
 
     [Fact]
@@ -715,7 +709,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var taglineRaw = Property(body, "taglineRaw");
 
-        Assert.Equal(IsDescriptionAttributeBroken ? null : "Short user tagline", CollectFirstString(doc, taglineRaw, "description", Version));
+        Assert.Equal("Short user tagline", CollectFirstString(doc, taglineRaw, "description", Version));
     }
 
     [Fact]
