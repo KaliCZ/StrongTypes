@@ -1,3 +1,4 @@
+using StrongTypes.OpenApi.IntegrationTests.Helpers;
 using StrongTypes.OpenApi.IntegrationTests.Infrastructure;
 using Xunit;
 
