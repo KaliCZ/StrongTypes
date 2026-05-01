@@ -199,6 +199,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     [InlineData("asList")]
     [InlineData("asArray")]
     [InlineData("asNonEmpty")]
+    [InlineData("asFrozenSet")]
     public async Task Collection_Shape_Of_Positive_Int_Renders_As_Array_With_Integer_Items(string propertyName)
     {
         var doc = await GetDocumentAsync();
@@ -226,54 +227,12 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     [InlineData("asIDictionary")]
     [InlineData("asDictionaryIntKey")]
     [InlineData("asIReadOnlyDictionary")]
+    [InlineData("asFrozenDictionary")]
+    [InlineData("asSortedList")]
     public async Task Dictionary_Shape_Of_Positive_Int_Renders_With_Integer_AdditionalProperties(string propertyName)
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/collections/dictionary-shapes"));
-        var dict = Property(body, propertyName);
-
-        AssertInlineSchema(dict);
-        Assert.Equal("object", StringOrNull(dict, "type"));
-
-        Assert.True(dict.TryGetProperty("additionalProperties", out var values),
-            "additionalProperties is missing on the dictionary schema");
-        AssertInlineSchema(values);
-        Assert.Equal("integer", StringOrNull(values, "type"));
-        Assert.Equal("int32", StringOrNull(values, "format"));
-        AssertExclusiveLowerBound(values, 0m, Version);
-    }
-
-    // ───────────────────────────────────────────────────────────────────
-    // Modern collection shapes — FrozenSet<T>, FrozenDictionary<K,V>,
-    // SortedList<K,V> are recent BCL additions whose serializer mappings
-    // are array (set) and object/additionalProperties (dictionary). The
-    // strong-typed value position must reach the wire schema in each.
-    // ───────────────────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task FrozenSet_Of_Positive_Int_Renders_As_Array_With_Integer_Items()
-    {
-        var doc = await GetDocumentAsync();
-        var body = FollowRef(doc, RequestSchema(doc, "/collections/modern-collections"));
-        var array = Property(body, "asFrozenSet");
-
-        AssertInlineSchema(array);
-        Assert.Equal("array", StringOrNull(array, "type"));
-
-        var items = array.GetProperty("items");
-        AssertInlineSchema(items);
-        Assert.Equal("integer", StringOrNull(items, "type"));
-        Assert.Equal("int32", StringOrNull(items, "format"));
-        AssertExclusiveLowerBound(items, 0m, Version);
-    }
-
-    [Theory]
-    [InlineData("asFrozenDictionary")]
-    [InlineData("asSortedList")]
-    public async Task Modern_Dictionary_Shape_Of_Positive_Int_Renders_With_Integer_AdditionalProperties(string propertyName)
-    {
-        var doc = await GetDocumentAsync();
-        var body = FollowRef(doc, RequestSchema(doc, "/collections/modern-collections"));
         var dict = Property(body, propertyName);
 
         AssertInlineSchema(dict);

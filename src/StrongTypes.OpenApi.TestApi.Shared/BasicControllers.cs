@@ -69,9 +69,6 @@ public sealed class CollectionsController : ControllerBase
 
     [HttpPost("dictionary-shapes")]
     public IActionResult DictionaryShapes(DictionaryShapesRequest request) => Ok();
-
-    [HttpPost("modern-collections")]
-    public IActionResult ModernCollections(ModernCollectionsRequest request) => Ok();
 }
 
 [ApiController]

@@ -40,15 +40,13 @@ public sealed record CollectionShapesRequest(
     IReadOnlyList<Positive<int>> AsIReadOnlyList,
     List<Positive<int>> AsList,
     Positive<int>[] AsArray,
-    NonEmptyEnumerable<Positive<int>> AsNonEmpty);
+    NonEmptyEnumerable<Positive<int>> AsNonEmpty,
+    FrozenSet<Positive<int>> AsFrozenSet);
 
 public sealed record DictionaryShapesRequest(
     IDictionary<string, Positive<int>> AsIDictionary,
     Dictionary<int, Positive<int>> AsDictionaryIntKey,
-    IReadOnlyDictionary<string, Positive<int>> AsIReadOnlyDictionary);
-
-public sealed record ModernCollectionsRequest(
-    FrozenSet<Positive<int>> AsFrozenSet,
+    IReadOnlyDictionary<string, Positive<int>> AsIReadOnlyDictionary,
     FrozenDictionary<string, Positive<int>> AsFrozenDictionary,
     SortedList<string, Positive<int>> AsSortedList);
 
