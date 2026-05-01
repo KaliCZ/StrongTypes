@@ -1,6 +1,9 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using Xunit;
+using static StrongTypes.OpenApi.IntegrationTests.Helpers.ComponentSchemas;
+using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaNavigation;
+using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaValueReader;
 
 namespace StrongTypes.OpenApi.IntegrationTests.Tests;
 
@@ -53,69 +56,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         return await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
     }
 
-    // Schema-navigation primitives. Each method asserts a specific shape and
-    // returns the inner layer; the choice of method at the call site is itself
-    // an assertion. Composing them (e.g. FollowRef(doc, UnwrapNullableProperty(x)))
-    // expresses the full expected wire structure of a property's schema.
-    //
-    // FollowRef strictly requires $ref. Resolve walks shape-agnostic positions
-    // (array items, Maybe.Value) where a pipeline may emit either a $ref to a
-    // component or an inlined schema; it follows $ref + single-element allOf,
-    // but never a nullable union — those are version-specific and pinned by
-    // UnwrapNullableProperty instead.
-    protected static JsonElement FollowRef(JsonElement doc, JsonElement schema)
-    {
-        Assert.Equal(JsonValueKind.Object, schema.ValueKind);
-        Assert.True(schema.TryGetProperty("$ref", out var refProp), "$ref is missing");
-        var path = refProp.GetString()!;
-        const string prefix = "#/components/schemas/";
-        Assert.StartsWith(prefix, path);
-        var name = path[prefix.Length..];
-        return doc.GetProperty("components").GetProperty("schemas").GetProperty(name);
-    }
-
-    private static JsonElement Resolve(JsonElement doc, JsonElement schema)
-    {
-        while (true)
-        {
-            if (schema.ValueKind != JsonValueKind.Object) return schema;
-
-            if (schema.TryGetProperty("$ref", out _))
-            {
-                schema = FollowRef(doc, schema);
-                continue;
-            }
-
-            if (schema.TryGetProperty("allOf", out var allOf)
-                && allOf.ValueKind == JsonValueKind.Array
-                && allOf.GetArrayLength() == 1)
-            {
-                schema = allOf[0];
-                continue;
-            }
-
-            return schema;
-        }
-    }
-
-    private static JsonElement UnwrapSingleAllOf(JsonElement schema)
-    {
-        Assert.True(schema.TryGetProperty("allOf", out var allOf), "allOf is missing");
-        Assert.Equal(JsonValueKind.Array, allOf.ValueKind);
-        Assert.Equal(1, allOf.GetArrayLength());
-        return allOf[0];
-    }
-
-    private JsonElement UnwrapOneOfNullable(JsonElement schema)
-        => UnwrapNullableUnion(schema, "oneOf", VersionNullBranch);
-
-    private JsonElement UnwrapAnyOfNullable(JsonElement schema)
-        => UnwrapNullableUnion(schema, "anyOf", VersionNullBranch);
-
-    private Func<JsonElement, bool> VersionNullBranch
-        => Version == OpenApiVersion.V3_1 ? Is3_1NullBranch : Is3_0NullBranch;
-
-    private static JsonElement UnwrapNullableUnion(JsonElement schema, string keyword, Func<JsonElement, bool> isNullBranch)
+    private JsonElement UnwrapNullableUnion(JsonElement schema, string keyword)
     {
         Assert.True(schema.TryGetProperty(keyword, out var union), $"{keyword} is missing");
         Assert.Equal(JsonValueKind.Array, union.ValueKind);
@@ -124,7 +65,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         foreach (var branch in union.EnumerateArray())
         {
             Assert.Equal(JsonValueKind.Object, branch.ValueKind);
-            if (isNullBranch(branch)) continue;
+            if (IsNullBranch(branch)) continue;
             Assert.True(nonNull is null, $"{keyword} must have exactly one non-null branch");
             nonNull = branch;
         }
@@ -149,9 +90,9 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         AssertVersionMarkers(schema);
 
         if (schema.TryGetProperty("oneOf", out var oneOf) && oneOf.ValueKind == JsonValueKind.Array)
-            return UnwrapNullableUnion(schema, "oneOf", VersionNullBranch);
+            return UnwrapNullableUnion(schema, "oneOf");
         if (schema.TryGetProperty("anyOf", out var anyOf) && anyOf.ValueKind == JsonValueKind.Array)
-            return UnwrapNullableUnion(schema, "anyOf", VersionNullBranch);
+            return UnwrapNullableUnion(schema, "anyOf");
         if (schema.TryGetProperty("allOf", out var allOf) && allOf.ValueKind == JsonValueKind.Array
             && allOf.GetArrayLength() == 1)
             return allOf[0];
@@ -179,54 +120,45 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
             foreach (var branch in union.EnumerateArray())
             {
                 Assert.False(
-                    Is3_1NullBranch(branch),
+                    IsNullBranch3_1(branch),
                     $"3.0 schemas must not contain a {{\"type\":\"null\"}} branch ({key}); that's the 3.1 form");
             }
         }
     }
 
-    private static bool Is3_0NullBranch(JsonElement branch) =>
+    /// <summary>
+    /// True iff <paramref name="branch"/> is the OpenAPI 3.0 null marker:
+    /// a singleton object <c>{ "nullable": true }</c> with no other
+    /// keywords. Pins the branch as encoding "or null" inside a
+    /// <c>oneOf</c>/<c>anyOf</c> union; the singleton check excludes
+    /// nullable schemas that also carry their own constraints.
+    /// </summary>
+    private static bool IsNullBranch3_0(JsonElement branch) =>
         branch.TryGetProperty("nullable", out var n)
         && n.ValueKind == JsonValueKind.True
         && branch.EnumerateObject().Count() == 1;
 
-    private static bool Is3_1NullBranch(JsonElement branch) =>
+    /// <summary>
+    /// True iff <paramref name="branch"/> is the OpenAPI 3.1 null marker:
+    /// a singleton object <c>{ "type": "null" }</c> with no other
+    /// keywords. The 3.1 spec dropped the <c>nullable</c> keyword and
+    /// uses a <c>null</c>-typed branch instead.
+    /// </summary>
+    private static bool IsNullBranch3_1(JsonElement branch) =>
         branch.TryGetProperty("type", out var t)
         && t.ValueKind == JsonValueKind.String
         && t.GetString() == "null"
         && branch.EnumerateObject().Count() == 1;
 
-    // Loose null-branch check used by WalkSchemaLayers — keyword collection
-    // doesn't care about the version's encoding, only about skipping the
-    // branch that represents the absent value.
-    private static bool IsNullBranch(JsonElement branch)
-        => Is3_0NullBranch(branch) || Is3_1NullBranch(branch);
-
-    protected static JsonElement RequestSchema(JsonElement doc, string path, string method = "post")
-        => doc.GetProperty("paths").GetProperty(path).GetProperty(method)
-            .GetProperty("requestBody").GetProperty("content")
-            .GetProperty("application/json").GetProperty("schema");
-
-    protected static JsonElement Property(JsonElement schema, string propertyName)
-        => schema.GetProperty("properties").GetProperty(propertyName);
-
-    private static string? StringOrNull(JsonElement schema, string propertyName) =>
-        schema.TryGetProperty(propertyName, out var v) && v.ValueKind == JsonValueKind.String
-            ? v.GetString()
-            : null;
-
-    private static int? IntOrNull(JsonElement schema, string propertyName) =>
-        schema.TryGetProperty(propertyName, out var v) && v.ValueKind == JsonValueKind.Number
-            ? v.GetInt32()
-            : null;
-
-    private static decimal? DecimalOrNull(JsonElement schema, string propertyName) =>
-        schema.TryGetProperty(propertyName, out var v) && v.ValueKind == JsonValueKind.Number
-            ? v.GetDecimal()
-            : null;
-
-    private static bool BoolOrFalse(JsonElement schema, string propertyName) =>
-        schema.TryGetProperty(propertyName, out var v) && v.ValueKind == JsonValueKind.True;
+    /// <summary>
+    /// True iff <paramref name="branch"/> is the null marker for the
+    /// document's declared OpenAPI version. Dispatches strictly: a 3.0
+    /// document accepts only the 3.0 marker, a 3.1 document accepts
+    /// only the 3.1 marker, so cross-version contamination surfaces as
+    /// an unhandled branch rather than silently passing through.
+    /// </summary>
+    private bool IsNullBranch(JsonElement branch) =>
+        Version == OpenApiVersion.V3_1 ? IsNullBranch3_1(branch) : IsNullBranch3_0(branch);
 
     // The two OpenAPI versions encode an exclusive bound differently:
     //   3.0 → `minimum: <n>` paired with `exclusiveMinimum: true` (boolean)
@@ -1000,13 +932,6 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         Assert.Equal(required.Contains(rawName), required.Contains(strongName));
     }
 
-    private static string[] ReadRequiredArray(JsonElement schema)
-    {
-        if (!schema.TryGetProperty("required", out var req) || req.ValueKind != JsonValueKind.Array)
-            return [];
-        return req.EnumerateArray().Select(e => e.GetString() ?? string.Empty).ToArray();
-    }
-
     // ───────────────────────────────────────────────────────────────────
     // Components cleanup — every inlineable wrapper (NonEmptyString and
     // the numeric/array generics) must be removed from
@@ -1033,33 +958,6 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         }
     }
 
-    private static string[] ReadComponentSchemaNames(JsonElement doc)
-    {
-        if (!doc.TryGetProperty("components", out var components)) return [];
-        if (!components.TryGetProperty("schemas", out var schemas)) return [];
-        return schemas.EnumerateObject().Select(p => p.Name).ToArray();
-    }
-
-    private static bool IsInlineableWrapperName(string name)
-    {
-        if (string.Equals(name, "NonEmptyString", StringComparison.Ordinal)) return true;
-
-        if (name.StartsWith("PositiveOf", StringComparison.Ordinal)
-            || name.StartsWith("NonNegativeOf", StringComparison.Ordinal)
-            || name.StartsWith("NegativeOf", StringComparison.Ordinal)
-            || name.StartsWith("NonPositiveOf", StringComparison.Ordinal)
-            || name.StartsWith("NonEmptyEnumerableOf", StringComparison.Ordinal)
-            || name.StartsWith("MaybeOf", StringComparison.Ordinal))
-            return true;
-
-        return name.EndsWith("Positive", StringComparison.Ordinal)
-            || name.EndsWith("Negative", StringComparison.Ordinal)
-            || name.EndsWith("NonNegative", StringComparison.Ordinal)
-            || name.EndsWith("NonPositive", StringComparison.Ordinal)
-            || name.EndsWith("NonEmptyEnumerable", StringComparison.Ordinal)
-            || name.EndsWith("Maybe", StringComparison.Ordinal);
-    }
-
     [Fact]
     public async Task Property_NonEmptyEnumerable_With_MaxLength_Carries_Min_And_MaxItems()
     {
@@ -1077,7 +975,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
     // whether the pipeline inlined the merged schema or layered the
     // caller's bounds via $ref + allOf — they care that the bounds are
     // reachable somewhere in the chain.
-    private static IEnumerable<JsonElement> WalkSchemaLayers(JsonElement doc, JsonElement schema)
+    private IEnumerable<JsonElement> WalkSchemaLayers(JsonElement doc, JsonElement schema)
     {
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var queue = new Queue<JsonElement>();
@@ -1113,7 +1011,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         }
     }
 
-    protected static int? CollectMaxInt(JsonElement doc, JsonElement schema, string keyword)
+    protected int? CollectMaxInt(JsonElement doc, JsonElement schema, string keyword)
     {
         int? best = null;
         foreach (var layer in WalkSchemaLayers(doc, schema))
@@ -1125,7 +1023,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         return best;
     }
 
-    protected static int? CollectMinInt(JsonElement doc, JsonElement schema, string keyword)
+    protected int? CollectMinInt(JsonElement doc, JsonElement schema, string keyword)
     {
         int? best = null;
         foreach (var layer in WalkSchemaLayers(doc, schema))
@@ -1137,7 +1035,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         return best;
     }
 
-    protected static string? CollectFirstString(JsonElement doc, JsonElement schema, string keyword)
+    protected string? CollectFirstString(JsonElement doc, JsonElement schema, string keyword)
     {
         foreach (var layer in WalkSchemaLayers(doc, schema))
         {
@@ -1147,7 +1045,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         return null;
     }
 
-    private static decimal? CollectMaxLowerBound(JsonElement doc, JsonElement schema)
+    private decimal? CollectMaxLowerBound(JsonElement doc, JsonElement schema)
     {
         decimal? best = null;
         foreach (var layer in WalkSchemaLayers(doc, schema))
@@ -1157,7 +1055,7 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
         return best;
     }
 
-    protected static decimal? CollectMinUpperBound(JsonElement doc, JsonElement schema)
+    protected decimal? CollectMinUpperBound(JsonElement doc, JsonElement schema)
     {
         decimal? best = null;
         foreach (var layer in WalkSchemaLayers(doc, schema))
@@ -1187,19 +1085,6 @@ public abstract class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
             return true;
         }
         return false;
-    }
-
-    // Pins that the schema is fully inlined: keywords sit directly on the
-    // schema object, not behind a $ref or an allOf. Tests for primitive
-    // and array strong-type wrappers (NonEmptyString, Positive<T>,
-    // NonEmptyEnumerable<T>, …) call this to enforce that the wrapper
-    // component disappeared and the wire keywords landed directly at the
-    // property position.
-    protected static void AssertInlineSchema(JsonElement schema)
-    {
-        Assert.Equal(JsonValueKind.Object, schema.ValueKind);
-        Assert.False(schema.TryGetProperty("$ref", out _), "expected inline schema, found $ref");
-        Assert.False(schema.TryGetProperty("allOf", out _), "expected inline schema, found allOf");
     }
 
     protected void AssertExclusiveLowerBoundReachable(JsonElement doc, JsonElement schema, decimal expected)
