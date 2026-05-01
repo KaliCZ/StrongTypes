@@ -92,8 +92,8 @@ On the wire:
 
 Annotations Swashbuckle's filter doesn't natively map on primitive-typed
 properties &mdash; e.g. `[Description]`, `[DefaultValue]`, `[Length]`,
-`[Base64String]`, `[Range(MinimumIsExclusive = true)]` &mdash; aren't
-written here either, so the wrapper-typed surface stays consistent with
-the primitive-typed one. If you also need those, install
+`[Base64String]` &mdash; aren't written here either, so the wrapper-typed
+surface stays consistent with the primitive-typed one. If you also need
+those, install
 [`Kalicz.StrongTypes.OpenApi.Microsoft`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft)
 and use `Microsoft.AspNetCore.OpenApi`.

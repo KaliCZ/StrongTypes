@@ -44,7 +44,6 @@ public abstract partial class OpenApiDocumentTestsBase(HttpClient client) : IDis
     // actual behaviour and catches it if the framework starts honouring
     // the annotation. Each flag is set in the per-pipeline subclass.
     protected virtual bool IsEmailStringFormatBroken => false;
-    protected virtual bool IsExclusiveRangeBroken => false;
 
     private async Task<JsonElement> GetDocumentAsync()
     {

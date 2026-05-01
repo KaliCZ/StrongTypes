@@ -137,20 +137,14 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     [Fact]
-    public async Task Property_Positive_Int_With_Range_MinimumIsExclusive_Carries_Exclusive_Lower_Bound_When_Honored()
+    public async Task Property_Positive_Int_With_Range_MinimumIsExclusive_Carries_Exclusive_Lower_Bound()
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var exclusive = Property(body, "exclusiveLowerAge");
 
-        // [Range(2, 10, MinimumIsExclusive = true)] degrades to plain
-        // [Range(2, 10)] when MinimumIsExclusive is dropped — minimum
-        // becomes inclusive 2.
         Assert.Equal(10m, CollectMinUpperBound(doc, exclusive, Version));
-        if (IsExclusiveRangeBroken)
-            Assert.Equal(2m, CollectMaxLowerBound(doc, exclusive, Version));
-        else
-            AssertExclusiveLowerBoundReachable(doc, exclusive, 2m, Version);
+        AssertExclusiveLowerBoundReachable(doc, exclusive, 2m, Version);
     }
 
     [Fact]
@@ -267,17 +261,14 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     [Fact]
-    public async Task Property_Int_With_Range_MinimumIsExclusive_Carries_Exclusive_Lower_Bound_When_Honored()
+    public async Task Property_Int_With_Range_MinimumIsExclusive_Carries_Exclusive_Lower_Bound()
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var exclusiveRaw = Property(body, "exclusiveLowerAgeRaw");
 
         Assert.Equal(10m, CollectMinUpperBound(doc, exclusiveRaw, Version));
-        if (IsExclusiveRangeBroken)
-            Assert.Equal(2m, CollectMaxLowerBound(doc, exclusiveRaw, Version));
-        else
-            AssertExclusiveLowerBoundReachable(doc, exclusiveRaw, 2m, Version);
+        AssertExclusiveLowerBoundReachable(doc, exclusiveRaw, 2m, Version);
     }
 
     [Fact]
