@@ -1,34 +1,34 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi;
 
 namespace StrongTypes.OpenApi.Core;
 
 /// <summary>
 /// Walks an <see cref="OpenApiDocument"/> and replaces every <c>$ref</c> to
-/// a strong-type wrapper component (<c>NonEmptyString</c>, <c>PositiveOf*</c>,
-/// <c>NonNegativeOf*</c>, <c>NegativeOf*</c>, <c>NonPositiveOf*</c>,
-/// <c>NonEmptyEnumerableOf*</c>, <c>MaybeOf*</c>, plus Swashbuckle's
-/// suffix-style equivalents) with the wrapper's wire body, merging any
-/// caller-supplied annotations attached at the use site (the
-/// <c>allOf:[ref]</c> + <c>maxLength</c>/<c>maxItems</c>/etc. shape that
-/// <see cref="SchemaPaint"/>'s tighten helpers produce). After all
-/// references are inlined, the wrapper components themselves are dropped
-/// from <c>components.schemas</c>.
+/// a strong-type wrapper component with the wrapper's wire body, merging any
+/// caller-supplied annotations attached at the use site (the <c>allOf:[ref]</c>
+/// + <c>maxLength</c>/<c>maxItems</c>/etc. shape that the property-annotation
+/// transformers emit). Both wrapper components and use-site allOf wrappers
+/// are identified by the <see cref="StrongTypeInlineMarker"/> vendor extension
+/// — the inliner does not match on schema names. After all references are
+/// inlined, the wrapper components themselves are dropped from
+/// <c>components.schemas</c>.
 /// </summary>
 public static class StrongTypeInliner
 {
-    public static void Inline(OpenApiDocument document)
+    public static void Inline(OpenApiDocument document, ILogger? logger = null)
     {
         if (document.Components?.Schemas is not { } schemas) return;
 
         var inlineable = new Dictionary<string, OpenApiSchema>(StringComparer.Ordinal);
         foreach (var (name, schema) in schemas)
         {
-            if (schema is OpenApiSchema concrete
-                && IsInlineableName(name)
-                && IsInlineableShape(concrete))
+            if (schema is OpenApiSchema concrete && StrongTypeInlineMarker.Has(concrete))
                 inlineable[name] = concrete;
         }
         if (inlineable.Count == 0) return;
+
+        var ctx = new RewriteContext(inlineable, logger);
 
         // Walk every component (including the inlineable bodies themselves)
         // so refs to other inlineable wrappers nested inside an array
@@ -36,91 +36,48 @@ public static class StrongTypeInliner
         // template at use sites.
         foreach (var (_, schema) in schemas)
         {
-            if (schema is OpenApiSchema concrete) RewriteSchema(concrete, inlineable);
+            if (schema is OpenApiSchema concrete) RewriteSchema(concrete, ctx);
         }
 
         if (document.Paths is not null)
         {
             foreach (var (_, pathItem) in document.Paths)
-                RewritePathItem(pathItem, inlineable);
+                RewritePathItem(pathItem, ctx);
         }
 
         foreach (var name in inlineable.Keys)
             schemas.Remove(name);
     }
 
-    private static bool IsInlineableName(string name)
-    {
-        if (string.Equals(name, "NonEmptyString", StringComparison.Ordinal)) return true;
+    private readonly record struct RewriteContext(IReadOnlyDictionary<string, OpenApiSchema> Inlineable, ILogger? Logger);
 
-        // Microsoft.AspNetCore.OpenApi: PositiveOfint, NonEmptyEnumerableOfNonEmptyString,
-        // MaybeOfNonEmptyString, …
-        if (name.StartsWith("PositiveOf", StringComparison.Ordinal)
-            || name.StartsWith("NonNegativeOf", StringComparison.Ordinal)
-            || name.StartsWith("NegativeOf", StringComparison.Ordinal)
-            || name.StartsWith("NonPositiveOf", StringComparison.Ordinal)
-            || name.StartsWith("NonEmptyEnumerableOf", StringComparison.Ordinal)
-            || name.StartsWith("MaybeOf", StringComparison.Ordinal))
-            return true;
-
-        // Swashbuckle suffix style: Int32Positive, Int64NonNegative, DoubleNegative,
-        // DecimalNonPositive, Int32NonEmptyEnumerable, NonEmptyStringMaybe, …
-        return name.EndsWith("Positive", StringComparison.Ordinal)
-            || name.EndsWith("Negative", StringComparison.Ordinal)
-            || name.EndsWith("NonNegative", StringComparison.Ordinal)
-            || name.EndsWith("NonPositive", StringComparison.Ordinal)
-            || name.EndsWith("NonEmptyEnumerable", StringComparison.Ordinal)
-            || name.EndsWith("Maybe", StringComparison.Ordinal);
-    }
-
-    private static bool IsInlineableShape(OpenApiSchema schema)
-    {
-        if (schema.AdditionalProperties is not null) return false;
-        if (schema.AllOf is { Count: > 0 }) return false;
-        if (schema.OneOf is { Count: > 0 }) return false;
-        if (schema.AnyOf is { Count: > 0 }) return false;
-
-        if (schema.Type == JsonSchemaType.Array)
-            return schema.Items is not null && schema.Properties is not { Count: > 0 };
-
-        // Maybe<T>'s wire shape: { object, properties: { Value: <T> } }.
-        if (schema.Type == JsonSchemaType.Object)
-            return schema.Properties is { Count: > 0 };
-
-        if (schema.Properties is { Count: > 0 }) return false;
-
-        return schema.Type == JsonSchemaType.String
-            || schema.Type == JsonSchemaType.Integer
-            || schema.Type == JsonSchemaType.Number;
-    }
-
-    private static void RewritePathItem(IOpenApiPathItem pathItem, IReadOnlyDictionary<string, OpenApiSchema> inlineable)
+    private static void RewritePathItem(IOpenApiPathItem pathItem, RewriteContext ctx)
     {
         if (pathItem.Operations is { } operations)
         {
             foreach (var (_, operation) in operations)
-                RewriteOperation(operation, inlineable);
+                RewriteOperation(operation, ctx);
         }
 
         if (pathItem.Parameters is { } pathParams)
         {
             foreach (var p in pathParams)
-                RewriteParameter(p, inlineable);
+                RewriteParameter(p, ctx);
         }
     }
 
-    private static void RewriteOperation(OpenApiOperation operation, IReadOnlyDictionary<string, OpenApiSchema> inlineable)
+    private static void RewriteOperation(OpenApiOperation operation, RewriteContext ctx)
     {
         if (operation.Parameters is { } parameters)
         {
             foreach (var p in parameters)
-                RewriteParameter(p, inlineable);
+                RewriteParameter(p, ctx);
         }
 
         if (operation.RequestBody is { Content: { } reqContent })
         {
             foreach (var (_, media) in reqContent)
-                RewriteMediaType(media, inlineable);
+                RewriteMediaType(media, ctx);
         }
 
         if (operation.Responses is { } responses)
@@ -130,91 +87,103 @@ public static class StrongTypeInliner
                 if (response.Content is { } respContent)
                 {
                     foreach (var (_, media) in respContent)
-                        RewriteMediaType(media, inlineable);
+                        RewriteMediaType(media, ctx);
                 }
                 if (response.Headers is { } headers)
                 {
                     foreach (var (_, header) in headers)
                     {
                         if (header is OpenApiHeader concreteHeader && concreteHeader.Schema is { } headerSchema)
-                            concreteHeader.Schema = RewriteSlot(headerSchema, inlineable);
+                            concreteHeader.Schema = RewriteSlot(headerSchema, ctx);
                     }
                 }
             }
         }
     }
 
-    private static void RewriteParameter(IOpenApiParameter parameter, IReadOnlyDictionary<string, OpenApiSchema> inlineable)
+    private static void RewriteParameter(IOpenApiParameter parameter, RewriteContext ctx)
     {
         if (parameter is OpenApiParameter concrete && concrete.Schema is { } schema)
-            concrete.Schema = RewriteSlot(schema, inlineable);
+            concrete.Schema = RewriteSlot(schema, ctx);
 
         if (parameter.Content is { } content)
         {
             foreach (var (_, media) in content)
-                RewriteMediaType(media, inlineable);
+                RewriteMediaType(media, ctx);
         }
     }
 
-    private static void RewriteMediaType(OpenApiMediaType media, IReadOnlyDictionary<string, OpenApiSchema> inlineable)
+    private static void RewriteMediaType(OpenApiMediaType media, RewriteContext ctx)
     {
         if (media.Schema is { } schema)
-            media.Schema = RewriteSlot(schema, inlineable);
+            media.Schema = RewriteSlot(schema, ctx);
     }
 
-    private static void RewriteSchema(OpenApiSchema schema, IReadOnlyDictionary<string, OpenApiSchema> inlineable)
+    private static void RewriteSchema(OpenApiSchema schema, RewriteContext ctx)
     {
         if (schema.Properties is { } properties)
         {
             foreach (var key in properties.Keys.ToList())
-                properties[key] = RewriteSlot(properties[key], inlineable);
+                properties[key] = RewriteSlot(properties[key], ctx);
         }
 
         if (schema.Items is { } items)
-            schema.Items = RewriteSlot(items, inlineable);
+            schema.Items = RewriteSlot(items, ctx);
 
         if (schema.AdditionalProperties is { } addProps)
-            schema.AdditionalProperties = RewriteSlot(addProps, inlineable);
+            schema.AdditionalProperties = RewriteSlot(addProps, ctx);
 
-        RewriteVariantList(schema.AllOf, inlineable);
-        RewriteVariantList(schema.OneOf, inlineable);
-        RewriteVariantList(schema.AnyOf, inlineable);
+        RewriteVariantList(schema.AllOf, ctx);
+        RewriteVariantList(schema.OneOf, ctx);
+        RewriteVariantList(schema.AnyOf, ctx);
 
         if (schema.Not is { } not)
-            schema.Not = RewriteSlot(not, inlineable);
+            schema.Not = RewriteSlot(not, ctx);
     }
 
-    private static void RewriteVariantList(IList<IOpenApiSchema>? variants, IReadOnlyDictionary<string, OpenApiSchema> inlineable)
+    private static void RewriteVariantList(IList<IOpenApiSchema>? variants, RewriteContext ctx)
     {
         if (variants is null) return;
         for (var i = 0; i < variants.Count; i++)
-            variants[i] = RewriteSlot(variants[i], inlineable);
+            variants[i] = RewriteSlot(variants[i], ctx);
     }
 
-    private static IOpenApiSchema RewriteSlot(IOpenApiSchema slot, IReadOnlyDictionary<string, OpenApiSchema> inlineable)
+    private static IOpenApiSchema RewriteSlot(IOpenApiSchema slot, RewriteContext ctx)
     {
-        if (slot is OpenApiSchemaReference sref && inlineable.TryGetValue(sref.Reference?.Id ?? string.Empty, out var refTarget))
+        if (slot is OpenApiSchemaReference sref && ctx.Inlineable.TryGetValue(sref.Reference?.Id ?? string.Empty, out var refTarget))
             return CloneWireShape(refTarget);
 
         if (slot is OpenApiSchema concrete)
         {
-            if (TryFindInlineableAllOfRef(concrete, inlineable, out var wrapper))
+            if (TryFindInlineableAllOfRef(concrete, ctx, out var wrapper))
                 return MergeUseSiteWithWrapper(concrete, wrapper);
 
-            RewriteSchema(concrete, inlineable);
+            RewriteSchema(concrete, ctx);
             return concrete;
         }
 
         return slot;
     }
 
-    private static bool TryFindInlineableAllOfRef(OpenApiSchema schema, IReadOnlyDictionary<string, OpenApiSchema> inlineable, out OpenApiSchema wrapper)
+    private static bool TryFindInlineableAllOfRef(OpenApiSchema schema, RewriteContext ctx, out OpenApiSchema wrapper)
     {
         wrapper = null!;
-        if (schema.AllOf is not { Count: 1 } allOf) return false;
-        if (allOf[0] is not OpenApiSchemaReference sref) return false;
-        if (sref.Reference?.Id is not { } id) return false;
-        return inlineable.TryGetValue(id, out wrapper!);
+        if (!StrongTypeInlineMarker.Has(schema)) return false;
+
+        if (schema.AllOf is not { Count: 1 } allOf
+            || allOf[0] is not OpenApiSchemaReference sref
+            || sref.Reference?.Id is not { } id)
+        {
+            ctx.Logger?.LogError(
+                "StrongTypes-marked use-site wrapper has unexpected shape (AllOf.Count={Count}, FirstIsRef={IsRef}). " +
+                "Another OpenAPI transformer or filter likely mutated a schema produced by Kalicz.StrongTypes after our adapter ran. " +
+                "Caller annotations on this slot will not be merged with the wrapper's wire form.",
+                schema.AllOf?.Count ?? 0,
+                schema.AllOf is { Count: > 0 } && schema.AllOf[0] is OpenApiSchemaReference);
+            return false;
+        }
+
+        return ctx.Inlineable.TryGetValue(id, out wrapper!);
     }
 
     private static OpenApiSchema CloneWireShape(OpenApiSchema source)

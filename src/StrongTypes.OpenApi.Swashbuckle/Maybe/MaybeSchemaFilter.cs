@@ -38,5 +38,6 @@ public sealed class MaybeSchemaFilter : ISchemaFilter
         {
             ["Value"] = innerSchema,
         };
+        StrongTypeInlineMarker.Set(concrete);
     }
 }

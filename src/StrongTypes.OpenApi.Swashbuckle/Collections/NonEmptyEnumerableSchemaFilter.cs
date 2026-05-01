@@ -23,5 +23,6 @@ public sealed class NonEmptyEnumerableSchemaFilter : ISchemaFilter
             return;
 
         SchemaPaint.TightenMinItems(concrete, 1);
+        StrongTypeInlineMarker.Set(concrete);
     }
 }

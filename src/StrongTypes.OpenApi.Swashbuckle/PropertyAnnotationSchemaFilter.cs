@@ -60,6 +60,7 @@ public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
 
             var wrapper = new OpenApiSchema { AllOf = [propSchema] };
             CopyAnnotationKeywords(source, wrapper);
+            StrongTypeInlineMarker.Set(wrapper);
             concrete.Properties[jsonName] = wrapper;
         }
     }

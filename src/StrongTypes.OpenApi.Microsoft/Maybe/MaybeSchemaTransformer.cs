@@ -30,5 +30,6 @@ public sealed class MaybeSchemaTransformer : IOpenApiSchemaTransformer
         {
             ["Value"] = innerSchema,
         };
+        StrongTypeInlineMarker.Set(schema);
     }
 }

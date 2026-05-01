@@ -65,7 +65,10 @@ internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTran
             {
                 var wrapper = new OpenApiSchema { AllOf = [propSchema] };
                 if (WrapperAnnotationApplier.TryApply(wrapper, clrProperty.PropertyType, attrs))
+                {
+                    StrongTypeInlineMarker.Set(wrapper);
                     parent.Properties[jsonName] = wrapper;
+                }
                 continue;
             }
 
@@ -79,7 +82,10 @@ internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTran
             // wrap it so we can layer the bounds on top.
             var refWrapper = new OpenApiSchema { AllOf = [propSchema] };
             if (WrapperAnnotationApplier.TryApply(refWrapper, clrProperty.PropertyType, attrs))
+            {
+                StrongTypeInlineMarker.Set(refWrapper);
                 parent.Properties[jsonName] = refWrapper;
+            }
         }
     }
 

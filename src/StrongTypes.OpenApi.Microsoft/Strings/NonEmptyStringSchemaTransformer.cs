@@ -24,6 +24,7 @@ public sealed class NonEmptyStringSchemaTransformer : IOpenApiSchemaTransformer
         SchemaPaint.ClearWrapperShape(schema);
         schema.Type = JsonSchemaType.String;
         SchemaPaint.TightenMinLength(schema, 1);
+        StrongTypeInlineMarker.Set(schema);
         return Task.CompletedTask;
     }
 }

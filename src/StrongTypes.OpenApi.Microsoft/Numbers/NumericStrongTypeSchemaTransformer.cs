@@ -24,7 +24,10 @@ public sealed class NumericStrongTypeSchemaTransformer : IOpenApiSchemaTransform
         if (!type.IsGenericType) return Task.CompletedTask;
 
         if (NumericWrapperKinds.TryGetBound(type.GetGenericTypeDefinition(), out var bound))
+        {
             NumericWrapperPainter.Paint(schema, type.GetGenericArguments()[0], bound);
+            StrongTypeInlineMarker.Set(schema);
+        }
 
         return Task.CompletedTask;
     }

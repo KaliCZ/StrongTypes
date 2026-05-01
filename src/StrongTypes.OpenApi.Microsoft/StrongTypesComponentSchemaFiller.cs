@@ -33,6 +33,7 @@ internal sealed class StrongTypesComponentSchemaFiller : IOpenApiDocumentTransfo
 
         SchemaPaint.ClearWrapperShape(schema);
         CopyInto(schema, painted);
+        StrongTypeInlineMarker.Set(schema);
         return true;
     }
 

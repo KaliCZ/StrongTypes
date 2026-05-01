@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.OpenApi;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi;
 using StrongTypes.OpenApi.Core;
 
@@ -17,7 +19,10 @@ internal sealed class StrongTypeInliningDocumentTransformer : IOpenApiDocumentTr
 {
     public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
     {
-        StrongTypeInliner.Inline(document);
+        var logger = context.ApplicationServices
+            .GetService<ILoggerFactory>()
+            ?.CreateLogger<StrongTypeInliningDocumentTransformer>();
+        StrongTypeInliner.Inline(document, logger);
         return Task.CompletedTask;
     }
 }

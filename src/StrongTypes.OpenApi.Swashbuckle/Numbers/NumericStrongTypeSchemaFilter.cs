@@ -25,6 +25,9 @@ public sealed class NumericStrongTypeSchemaFilter : ISchemaFilter
         if (schema is not OpenApiSchema concrete) return;
 
         if (NumericWrapperKinds.TryGetBound(type.GetGenericTypeDefinition(), out var bound))
+        {
             NumericWrapperPainter.Paint(concrete, type.GetGenericArguments()[0], bound);
+            StrongTypeInlineMarker.Set(concrete);
+        }
     }
 }

@@ -24,5 +24,6 @@ public sealed class NonEmptyStringSchemaFilter : ISchemaFilter
         SchemaPaint.ClearWrapperShape(concrete);
         concrete.Type = JsonSchemaType.String;
         SchemaPaint.TightenMinLength(concrete, 1);
+        StrongTypeInlineMarker.Set(concrete);
     }
 }

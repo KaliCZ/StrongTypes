@@ -30,5 +30,6 @@ public sealed class NonEmptyEnumerableSchemaTransformer : IOpenApiSchemaTransfor
         schema.Type = JsonSchemaType.Array;
         SchemaPaint.TightenMinItems(schema, 1);
         schema.Items = itemsSchema;
+        StrongTypeInlineMarker.Set(schema);
     }
 }
