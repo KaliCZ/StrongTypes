@@ -143,14 +143,14 @@ public abstract partial class OpenApiDocumentTestsBase
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var exclusive = Property(body, "exclusiveLowerAge");
 
-        // [Range(1, 10, MinimumIsExclusive = true)] degrades to plain
-        // [Range(1, 10)] when MinimumIsExclusive is dropped — minimum
-        // becomes inclusive 1.
+        // [Range(2, 10, MinimumIsExclusive = true)] degrades to plain
+        // [Range(2, 10)] when MinimumIsExclusive is dropped — minimum
+        // becomes inclusive 2.
         Assert.Equal(10m, CollectMinUpperBound(doc, exclusive, Version));
         if (IsExclusiveRangeBroken)
-            Assert.Equal(1m, CollectMaxLowerBound(doc, exclusive, Version));
+            Assert.Equal(2m, CollectMaxLowerBound(doc, exclusive, Version));
         else
-            AssertExclusiveLowerBoundReachable(doc, exclusive, 1m, Version);
+            AssertExclusiveLowerBoundReachable(doc, exclusive, 2m, Version);
     }
 
     [Fact]
@@ -275,9 +275,9 @@ public abstract partial class OpenApiDocumentTestsBase
 
         Assert.Equal(10m, CollectMinUpperBound(doc, exclusiveRaw, Version));
         if (IsExclusiveRangeBroken)
-            Assert.Equal(1m, CollectMaxLowerBound(doc, exclusiveRaw, Version));
+            Assert.Equal(2m, CollectMaxLowerBound(doc, exclusiveRaw, Version));
         else
-            AssertExclusiveLowerBoundReachable(doc, exclusiveRaw, 1m, Version);
+            AssertExclusiveLowerBoundReachable(doc, exclusiveRaw, 2m, Version);
     }
 
     [Fact]
