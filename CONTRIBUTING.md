@@ -114,6 +114,26 @@ a "code fix produces the expected output" test. Follow the existing
 patterns in
 [`StrongTypes.Analyzers.Tests`](src/StrongTypes.Analyzers.Tests).
 
+## Documentation
+
+When you add a new type or change visible behavior, update the readmes
+as part of the same PR.
+
+- **Main [`readme.md`](readme.md)** — keep it concise. It is the first
+  thing a new user sees on NuGet and GitHub, so prefer a short, runnable
+  example over a full API reference. If a section is growing into a
+  spec, move the long form into the type's XML docs and leave a tight
+  example in the readme.
+- **Package readmes** — each package that ships its own readme
+  ([`StrongTypes.EfCore`](src/StrongTypes.EfCore/readme.md),
+  [`StrongTypes.FsCheck`](src/StrongTypes.FsCheck/readme.md),
+  [`StrongTypes.OpenApi.Microsoft`](src/StrongTypes.OpenApi.Microsoft/readme.md),
+  [`StrongTypes.OpenApi.Swashbuckle`](src/StrongTypes.OpenApi.Swashbuckle/readme.md))
+  should reflect what the package actually does after your change. Update
+  the one that matches.
+- **Examples must be real.** Copy them from a passing test if you can —
+  examples that drift from the API age into bug reports.
+
 ## Code of conduct
 
 Be respectful. Assume good faith. Keep discussion focused on the code.
