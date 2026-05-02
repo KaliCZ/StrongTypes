@@ -1,7 +1,5 @@
 using System;
 using System.Globalization;
-using FsCheck;
-using FsCheck.Fluent;
 using FsCheck.Xunit;
 using Xunit;
 

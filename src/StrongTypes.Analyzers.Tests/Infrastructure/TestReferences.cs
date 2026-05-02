@@ -1,4 +1,3 @@
-using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +18,8 @@ internal static class TestReferences
     private static readonly string[] _hostOnlyPrefixes =
     {
         "Microsoft.EntityFrameworkCore",
+        "Microsoft.AspNetCore.OpenApi",
+        "Swashbuckle",
         "StrongTypes",
         "Kalicz.StrongTypes",
     };
@@ -33,6 +34,18 @@ internal static class TestReferences
 
     public static readonly MetadataReference StrongTypesEfCore =
         MetadataReference.CreateFromFile(typeof(global::StrongTypes.EfCore.StrongTypesDbContextOptionsExtension).Assembly.Location);
+
+    public static readonly MetadataReference MicrosoftAspNetCoreOpenApi =
+        MetadataReference.CreateFromFile(typeof(global::Microsoft.AspNetCore.OpenApi.IOpenApiSchemaTransformer).Assembly.Location);
+
+    public static readonly MetadataReference SwashbuckleAspNetCoreSwaggerGen =
+        MetadataReference.CreateFromFile(typeof(global::Swashbuckle.AspNetCore.SwaggerGen.ISchemaFilter).Assembly.Location);
+
+    public static readonly MetadataReference StrongTypesOpenApiMicrosoft =
+        MetadataReference.CreateFromFile(typeof(global::StrongTypes.OpenApi.Microsoft.StrongTypesOpenApiExtensions).Assembly.Location);
+
+    public static readonly MetadataReference StrongTypesOpenApiSwashbuckle =
+        MetadataReference.CreateFromFile(typeof(global::StrongTypes.OpenApi.Swashbuckle.StrongTypesSwashbuckleExtensions).Assembly.Location);
 
     private static IReadOnlyList<MetadataReference> BuildCoreReferences()
     {
