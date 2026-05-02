@@ -172,6 +172,50 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     [Fact]
+    public async Task Property_Positive_Int_With_Exclusive_Range_At_Wrapper_Floor_Stays_Exclusive_At_Zero()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
+        var atFloor = Property(body, "exclusiveAtFloor");
+
+        // [Range(0, 5, MinimumIsExclusive = true)] and the wrapper both
+        // describe `> 0`; the merged shape is a single exclusive 0,
+        // never over-tightened to `> 1` or similar.
+        AssertExclusiveLowerBoundReachable(doc, atFloor, 0m, Version);
+        Assert.Equal(5m, CollectMinUpperBound(doc, atFloor, Version));
+    }
+
+    [Fact]
+    public async Task Property_Positive_Int_With_Inclusive_Range_Just_Above_Wrapper_Floor_Tightens_To_Inclusive_One()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
+        var aboveFloor = Property(body, "inclusiveJustAboveFloor");
+
+        // [Range(1, 5)] is `>= 1`, strictly tighter than the wrapper's
+        // `> 0` numerically (the schema language doesn't know int and
+        // would admit 0.5 under `> 0`), so the inclusive 1 wins and the
+        // exclusive form drops out.
+        Assert.Equal(1m, CollectMaxLowerBound(doc, aboveFloor, Version));
+        Assert.Equal(5m, CollectMinUpperBound(doc, aboveFloor, Version));
+    }
+
+    [Fact]
+    public async Task Property_Positive_Int_With_Range_Below_Wrapper_Floor_Keeps_Wrapper_Floor_And_Caller_Maximum()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
+        var below = Property(body, "rangeBelowFloor");
+
+        // [Range(-10, -5)] on Positive<int> is unsatisfiable: the wrapper's
+        // exclusive 0 floor and the caller's upper bound -5 carve out an
+        // empty set. Both bounds reach the wire as-is — the pipeline does
+        // not detect or reject the contradiction.
+        AssertExclusiveLowerBoundReachable(doc, below, 0m, Version);
+        Assert.Equal(-5m, CollectMinUpperBound(doc, below, Version));
+    }
+
+    [Fact]
     public async Task Property_String_With_StringLength_And_Pattern_Carries_All_Three()
     {
         var doc = await GetDocumentAsync();

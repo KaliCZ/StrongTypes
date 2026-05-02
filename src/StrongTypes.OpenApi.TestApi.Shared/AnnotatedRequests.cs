@@ -64,7 +64,10 @@ public sealed record AnnotatedNumbersRequest(
     [property: Range(18, 120)] int AgeRaw,
     [property: Range(-5, 5)] Positive<int> RangeAcrossFloor,
     [property: Range(2, 10, MinimumIsExclusive = true)] Positive<int> ExclusiveLowerAge,
-    [property: Range(2, 10, MinimumIsExclusive = true)] int ExclusiveLowerAgeRaw);
+    [property: Range(2, 10, MinimumIsExclusive = true)] int ExclusiveLowerAgeRaw,
+    [property: Range(0, 5, MinimumIsExclusive = true)] Positive<int> ExclusiveAtFloor,
+    [property: Range(1, 5)] Positive<int> InclusiveJustAboveFloor,
+    [property: Range(-10, -5)] Positive<int> RangeBelowFloor);
 
 public sealed record AnnotatedTagsRequest(
     [property: MaxLength(10)] NonEmptyEnumerable<NonEmptyString> Tags,
