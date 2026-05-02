@@ -1,12 +1,20 @@
 # Testing
 
 This is the single source of truth for how tests are written in this
-repo. It is imported into [`CLAUDE.md`](CLAUDE.md) so AI agents read it
-every session, and linked from [`CONTRIBUTING.md`](CONTRIBUTING.md) so
-human contributors see the same rules.
+repo. [`CLAUDE.md`](CLAUDE.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md)
+both point here — anything testing-related lives in this file so it
+can't drift out of sync.
 
-The repo has four test projects. Which ones a change needs to touch
-depends on what the type does — see the matrix in `CONTRIBUTING.md`.
+**Every new type must ship with tests.** Which test projects a change
+needs to touch depends on what the type does:
+
+| The new type… | Required test projects |
+|---|---|
+| Has any behavior at all | `StrongTypes.Tests` |
+| Has a `System.Text.Json` converter | `StrongTypes.Tests` + `StrongTypes.Api.IntegrationTests` |
+| Is meant to be stored in a database | `StrongTypes.Api.IntegrationTests` (covers both SQL Server and PostgreSQL) |
+| Appears in an ASP.NET Core request/response | `StrongTypes.OpenApi.IntegrationTests` |
+| Ships an analyzer or code fix | `StrongTypes.Analyzers.Tests` |
 
 ## Unit tests — `StrongTypes.Tests`
 

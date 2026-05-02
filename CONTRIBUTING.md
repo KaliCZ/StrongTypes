@@ -25,21 +25,12 @@ wasted work if the design needs to change.
   wrapping rules. Those rules apply to every contributor.
 - PRs are squash-merged.
 
-## Testing — the rules for new types
+## Testing
 
-**Every new type must ship with tests.** What kinds of tests depend on
-where the type travels — the matrix below maps capabilities to the test
-projects that must be touched. The full conventions for writing each
-kind of test live in [`testing.md`](testing.md); read that before
-writing tests or production code that will need them.
-
-| The new type… | Required test projects |
-|---|---|
-| Has any behavior at all | `StrongTypes.Tests` |
-| Has a `System.Text.Json` converter | `StrongTypes.Tests` + `StrongTypes.Api.IntegrationTests` |
-| Is meant to be stored in a database | `StrongTypes.Api.IntegrationTests` (covers both SQL Server and PostgreSQL) |
-| Appears in an ASP.NET Core request/response | `StrongTypes.OpenApi.IntegrationTests` |
-| Ships an analyzer or code fix | `StrongTypes.Analyzers.Tests` |
+Every new type must ship with tests. All testing rules — which projects
+to touch, what to cover, how to write each kind of test — live in
+[`testing.md`](testing.md). Read it before writing tests or production
+code that will need them.
 
 ## Documentation
 
