@@ -93,58 +93,12 @@ Rules:
 
 ## Tests
 
-**Default to FsCheck property tests.** Generative coverage is the first
-thing to reach for — it surfaces edge cases a handful of hand-picked rows
-will miss, and it keeps test bodies focused on a single invariant across
-the whole input space.
-
-- Write `[Property]` tests from `FsCheck.Xunit` and let an `Arbitrary<T>`
-  cover the input space. Register arbitraries on a test class via
-  `[Properties(Arbitrary = new[] { typeof(Generators) })]`.
-- All shared arbitraries live in a single `Generators` class at
-  `src/StrongTypes.Tests/Generators.cs`. Add new arbitraries there rather
-  than creating per-feature generator classes — one shelf so tests can
-  grab anything with a single `[Properties(Arbitrary = new[] { typeof(Generators) })]`
-  attribute. Weight branches with `Gen.Frequency` when one branch is the
-  common case and the other needs only occasional coverage (e.g. 90%
-  populated, 10% null).
-- When a custom generator is non-trivial, pair it with a one-off `[Fact]`
-  that samples it a few hundred times and asserts every partition branch
-  appears, so a regression in the generator can't silently mask missing
-  coverage.
-
-**Fall back to `[Theory]` + `[InlineData]` (or `[MemberData]`) only when
-property tests don't fit** — e.g. the input space doesn't generate cleanly,
-the invariant you want to express is really a small fixed set of worked
-examples, or the generator/shrinker would be more work than the test is
-worth. When you do use `[Theory]`, still prefer one parameterized method
-with several data rows over duplicated `[Fact]` methods whose bodies
-differ only in input or expected value.
-
-Use separate `[Fact]` methods when the test body genuinely differs — e.g.
-asserting a side effect like "the factory was invoked exactly once".
-
-## Integration tests (StrongTypes.Api)
-
-- **Requests** — always use anonymous objects (e.g. `new { Value = "x",
-  NullableValue = (string?)null }`), never the typed request records from
-  the API project. The tests should verify the on-the-wire JSON contract
-  the client actually sends, not the C# type graph.
-- **Responses** — for simple ID-only responses, deserializing into the
-  typed response record (e.g. `StringEntityResponse`) is fine. For richer
-  payloads (full entity bodies, `ValidationProblemDetails`, etc.) parse as
-  `JsonElement` and pull fields by name — that verifies the on-the-wire
-  HTTP contract directly.
-- **Test base class** — inherit from `IntegrationTestBase(factory)` to get
-  `Client`, `SqlDb`, `PgDb`, `Ct` (the current test's `CancellationToken`),
-  route constants/builders, HTTP wrappers (`Post`/`Put`/`Get`) that capture
-  `Client` and `Ct` implicitly and bake in `StringEntityResponse` on the
-  success path, `Body<T>(value, nullableValue)`, and `AssertStringEntity`.
-- **CancellationTokens** — xunit.v3's `xUnit1051` analyzer requires
-  `TestContext.Current.CancellationToken` be threaded into every async
-  call that accepts one (`PostAsJsonAsync`, `PutAsJsonAsync`,
-  `ReadFromJsonAsync`, `FindAsync([id], ct)`, `GetAsync`, …). Grab it at
-  the top of each test: `var ct = TestContext.Current.CancellationToken;`.
+All testing rules — unit, API integration, OpenAPI integration, and
+analyzer tests — live in [`testing.md`](testing.md). **Read that file
+before writing or modifying a test, and before writing any code that
+will need tests** (a new strong type, a converter, an analyzer, an API
+endpoint, …). It is the single source of truth; do not infer testing
+conventions from existing tests without checking it first.
 
 ## StrongTypes.Api — purpose
 
