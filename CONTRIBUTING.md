@@ -41,11 +41,15 @@ The matrix below tells you which test projects you need to touch.
 | Appears in an ASP.NET Core request/response | `StrongTypes.OpenApi.IntegrationTests` |
 | Ships an analyzer or code fix | `StrongTypes.Analyzers.Tests` |
 
+All test-writing rules (unit, API, OpenAPI, analyzer) live in
+[`testing.md`](testing.md) — that's the single source of truth, read it
+before writing tests. The subsections below only describe **what to
+cover** when you add a new type.
+
 ### 1. Unit tests — `StrongTypes.Tests`
 
-Default to **FsCheck property tests**. See the **Tests** section of
-[`CLAUDE.md`](CLAUDE.md) for the rules — that's the single source of
-truth.
+Cover the type's behaviour with FsCheck property tests. `testing.md`
+explains the conventions.
 
 ### 2. JSON + EF Core integration — `StrongTypes.Api.IntegrationTests`
 
