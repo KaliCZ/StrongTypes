@@ -94,10 +94,10 @@ Rules:
 ## Tests
 
 All testing rules — unit, API integration, OpenAPI integration, and
-analyzer tests — live in [`testing.md`](testing.md). Read it before
-writing or modifying any test.
-
-@testing.md
+analyzer tests — live in [`testing.md`](testing.md). **Read that file
+before writing or modifying any test in this repo.** It is the single
+source of truth; do not infer testing conventions from existing tests
+without checking it first.
 
 ## StrongTypes.Api — purpose
 
