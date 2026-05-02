@@ -43,20 +43,9 @@ The matrix below tells you which test projects you need to touch.
 
 ### 1. Unit tests — `StrongTypes.Tests`
 
-Default to **FsCheck property tests** (`[Property]` from
-`FsCheck.Xunit`). Hand-picked `[Theory]` rows are a fallback for cases
-the generators don't cover cleanly. See the testing section in
-[`CLAUDE.md`](CLAUDE.md) for the details.
-
-For a validated type, at minimum cover:
-- `TryCreate` returns `null` for invalid input and wraps valid input.
-- `Create` throws for invalid input and wraps valid input.
-- Equality / comparison / `ToString` / implicit conversions, where they exist.
-- Any extension methods in the same feature folder.
-
-If you add a new `Arbitrary<T>`, register it on
-[`Generators`](src/StrongTypes.Tests/Generators.cs) and pair it with a
-sampling `[Fact]` that asserts each branch of the generator is reachable.
+Default to **FsCheck property tests**. See the **Tests** section of
+[`CLAUDE.md`](CLAUDE.md) for the rules — that's the single source of
+truth.
 
 ### 2. JSON + EF Core integration — `StrongTypes.Api.IntegrationTests`
 
