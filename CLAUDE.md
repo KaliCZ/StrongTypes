@@ -95,9 +95,10 @@ Rules:
 
 All testing rules — unit, API integration, OpenAPI integration, and
 analyzer tests — live in [`testing.md`](testing.md). **Read that file
-before writing or modifying any test in this repo.** It is the single
-source of truth; do not infer testing conventions from existing tests
-without checking it first.
+before writing or modifying a test, and before writing any code that
+will need tests** (a new strong type, a converter, an analyzer, an API
+endpoint, …). It is the single source of truth; do not infer testing
+conventions from existing tests without checking it first.
 
 ## StrongTypes.Api — purpose
 
