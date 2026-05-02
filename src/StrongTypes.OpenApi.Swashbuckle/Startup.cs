@@ -20,6 +20,7 @@ public static class StrongTypesSwashbuckleExtensions
     public static SwaggerGenOptions AddStrongTypes(this SwaggerGenOptions options)
     {
         options.SchemaFilter<NonEmptyStringSchemaFilter>();
+        options.SchemaFilter<EmailSchemaFilter>();
         options.SchemaFilter<NumericStrongTypeSchemaFilter>();
         options.SchemaFilter<NonEmptyEnumerableSchemaFilter>();
         options.SchemaFilter<MaybeSchemaFilter>();

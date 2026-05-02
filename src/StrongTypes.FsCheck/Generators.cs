@@ -29,6 +29,30 @@ public static class Generators
 
     #endregion
 
+    #region Email
+
+    /// <summary>Arbitrary <see cref="Email"/> values shaped <c>local@domain.tld</c> with ASCII letters/digits, capped well under <see cref="Email.MaxLength"/>.</summary>
+    public static Arbitrary<Email> Email { get; } =
+        Arb.From(
+            from local in Gen.NonEmptyListOf(Gen.Elements("abcdefghijklmnopqrstuvwxyz0123456789".ToCharArray())).Resize(12)
+            from domain in Gen.NonEmptyListOf(Gen.Elements("abcdefghijklmnopqrstuvwxyz0123456789".ToCharArray())).Resize(12)
+            from tld in Gen.Elements("com", "net", "org", "io", "dev")
+            select StrongTypes.Email.Create($"{new string(System.Linq.Enumerable.ToArray(local))}@{new string(System.Linq.Enumerable.ToArray(domain))}.{tld}"));
+
+    /// <summary>Arbitrary <see cref="Email"/> or <c>null</c>, with ~5% <c>null</c>.</summary>
+    public static Arbitrary<Email?> NullableEmail { get; } =
+        Arb.From(Gen.Frequency(
+            (1, Gen.Constant<Email?>(null)),
+            (19, Email.Generator.Select(e => (Email?)e))));
+
+    /// <summary>Arbitrary <see cref="Maybe{T}"/> of <see cref="Email"/>, with ~5% <c>None</c>.</summary>
+    public static Arbitrary<Maybe<Email>> MaybeEmail { get; } =
+        Arb.From(Gen.Frequency(
+            (1, Gen.Constant(Maybe<Email>.None)),
+            (19, Email.Generator.Select(Maybe.Some))));
+
+    #endregion
+
     #region Digit
 
     /// <summary>Arbitrary <see cref="Digit"/> values, uniformly over <c>0</c>–<c>9</c>.</summary>

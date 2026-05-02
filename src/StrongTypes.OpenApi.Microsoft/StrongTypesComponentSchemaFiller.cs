@@ -42,6 +42,15 @@ internal sealed class StrongTypesComponentSchemaFiller : IOpenApiDocumentTransfo
         if (name == "NonEmptyString")
             return new OpenApiSchema { Type = JsonSchemaType.String, MinLength = 1 };
 
+        if (name == "Email")
+            return new OpenApiSchema
+            {
+                Type = JsonSchemaType.String,
+                Format = "email",
+                MinLength = 1,
+                MaxLength = Email.MaxLength,
+            };
+
         if (MicrosoftSchemaNaming.TryMatchNumericComponent(name, out var numericInner, out var numericBound))
             return BuildNumeric(numericInner, numericBound);
 

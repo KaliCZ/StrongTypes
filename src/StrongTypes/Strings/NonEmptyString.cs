@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 namespace StrongTypes;
 
 /// <summary>A string guaranteed to be non-null, non-empty, and not consisting solely of whitespace.</summary>
-/// <remarks>Comparison uses the current culture (it delegates to <see cref="string.CompareTo(string?)"/>).</remarks>
+/// <remarks>Comparison uses the current culture (it delegates to <see cref="string.CompareTo(string?)"/>). Exposes <c>Count</c> and a char indexer for parity with <see cref="string"/>; <c>Count</c> in particular makes the BCL <c>[MaxLength]</c> attribute work without a custom shim.</remarks>
 [JsonConverter(typeof(NonEmptyStringJsonConverter))]
 public sealed class NonEmptyString :
     IEquatable<NonEmptyString>,
@@ -23,6 +23,10 @@ public sealed class NonEmptyString :
     public string Value { get; }
 
     public int Length => Value.Length;
+
+    public int Count => Value.Length;
+
+    public char this[int index] => Value[index];
 
     public static implicit operator string(NonEmptyString s) => s.Value;
 

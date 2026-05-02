@@ -6,6 +6,7 @@ namespace StrongTypes.Api.Data;
 public class SqlServerDbContext(DbContextOptions<SqlServerDbContext> options) : DbContext(options)
 {
     public DbSet<NonEmptyStringEntity> NonEmptyStringEntities { get; set; }
+    public DbSet<EmailEntity> EmailEntities { get; set; }
 
     public DbSet<PositiveIntEntity> PositiveIntEntities { get; set; }
     public DbSet<NonNegativeIntEntity> NonNegativeIntEntities { get; set; }
