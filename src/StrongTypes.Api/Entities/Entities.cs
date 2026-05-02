@@ -1,8 +1,10 @@
+using System.Net.Mail;
+
 namespace StrongTypes.Api.Entities;
 
 public sealed class NonEmptyStringEntity : EntityBase<NonEmptyStringEntity, NonEmptyString, NonEmptyString?>;
 
-public sealed class EmailEntity : EntityBase<EmailEntity, Email, Email?>;
+public sealed class EmailEntity : EntityBase<EmailEntity, MailAddress, MailAddress?>;
 
 public sealed class PositiveIntEntity : EntityBase<PositiveIntEntity, Positive<int>, Positive<int>?>;
 public sealed class NonNegativeIntEntity : EntityBase<NonNegativeIntEntity, NonNegative<int>, NonNegative<int>?>;

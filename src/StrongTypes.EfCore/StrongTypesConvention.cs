@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
@@ -41,7 +42,7 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention
     private static bool IsStrongType(Type clrType)
     {
         var unwrapped = Nullable.GetUnderlyingType(clrType) ?? clrType;
-        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(Email))
+        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(Email) || unwrapped == typeof(MailAddress))
         {
             return true;
         }
@@ -66,9 +67,9 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention
         {
             return new NonEmptyStringValueConverter();
         }
-        if (unwrapped == typeof(Email))
+        if (unwrapped == typeof(MailAddress))
         {
-            return new EmailValueConverter();
+            return new MailAddressValueConverter();
         }
         if (unwrapped.IsGenericType)
         {
