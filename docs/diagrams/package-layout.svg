@@ -11,6 +11,36 @@
     .bullet     { fill: #6366F1; }
     .sub-bullet { fill: none; stroke: #9CA3AF; stroke-width: 1.2; }
     .sm-bullet  { fill: #9CA3AF; }
+
+    .canvas-bg     { fill: #FFFFFF; }
+    .canvas-border { fill: none; stroke: #E5E7EB; }
+    .core-bg       { fill: #EEF2FF; }
+    .core-border   { stroke: #6366F1; }
+    .card-bg       { fill: #FFFFFF; }
+    .card-border   { stroke: #E5E7EB; }
+    .arrow-line    { stroke: #6B7280; }
+
+    @media (prefers-color-scheme: dark) {
+      .canvas-bg     { fill: #0d1117; }
+      .canvas-border { stroke: #30363d; }
+      .core-bg       { fill: #1a1d40; }
+      .core-border   { stroke: #818CF8; }
+      .card-bg       { fill: #161b22; }
+      .card-border   { stroke: #30363d; }
+      .arrow-line    { stroke: #8b949e; }
+
+      .card-title { fill: #e6edf3; }
+      .core-title { fill: #e6edf3; }
+      .body       { fill: #c9d1d9; }
+      .body-mono  { fill: #c9d1d9; }
+      .sub-body   { fill: #8b949e; }
+      .sub-mono   { fill: #8b949e; }
+      .card-body  { fill: #c9d1d9; }
+      .card-mono  { fill: #c9d1d9; }
+      .bullet     { fill: #A5B4FC; }
+      .sub-bullet { stroke: #6e7681; }
+      .sm-bullet  { fill: #8b949e; }
+    }
   </style>
 
   <defs>
@@ -19,16 +49,16 @@
     </marker>
   </defs>
 
-  <rect width="800" height="360" fill="#FFFFFF"/>
-  <rect x="0.5" y="0.5" width="799" height="359" fill="none" stroke="#E5E7EB" rx="10"/>
+  <rect class="canvas-bg" width="800" height="360"/>
+  <rect class="canvas-border" x="0.5" y="0.5" width="799" height="359" rx="10"/>
 
   <!-- Core card (top-left) -->
-  <rect x="15" y="15" width="395" height="190" rx="8" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.5"/>
+  <rect class="core-bg core-border" x="15" y="15" width="395" height="190" rx="8" stroke-width="1.5"/>
   <text class="core-title" x="33" y="42">Kalicz.StrongTypes</text>
 
   <!-- Bullet 1: Maybe + JSON Converter -->
   <circle class="bullet" cx="41" cy="70" r="2.5"/>
-  <text class="body-mono" x="51" y="74">Maybe&lt;T&gt;<tspan class="body" fill="#374151"> + JSON converter</tspan></text>
+  <text class="body-mono" x="51" y="74">Maybe&lt;T&gt;<tspan class="body"> + JSON converter</tspan></text>
 
   <!-- Bullet 2: Result -->
   <circle class="bullet" cx="41" cy="93" r="2.5"/>
@@ -36,7 +66,7 @@
 
   <!-- Bullet 3: Validated types -->
   <circle class="bullet" cx="41" cy="116" r="2.5"/>
-  <text class="body" x="51" y="120">Validated types<tspan fill="#6B7280"> (with JSON converters)</tspan></text>
+  <text class="body" x="51" y="120">Validated types<tspan class="sub-body"> (with JSON converters)</tspan></text>
 
   <!-- Sub-bullets -->
   <circle class="sub-bullet" cx="70" cy="139" r="2.3"/>
@@ -49,7 +79,7 @@
   <text class="sub-body" x="81" y="185">Numeric wrappers <tspan font-family="ui-monospace, Menlo, Consolas, monospace">(Positive&lt;T&gt;, …)</tspan></text>
 
   <!-- OpenApi.Microsoft card (top-right) -->
-  <rect x="460" y="15" width="320" height="92" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <rect class="card-bg card-border" x="460" y="15" width="320" height="92" rx="8" stroke-width="1.5"/>
   <text class="card-title" x="474" y="37">Kalicz.StrongTypes.OpenApi.Microsoft</text>
   <circle class="sm-bullet" cx="480" cy="62" r="2"/>
   <text class="card-body" x="488" y="66">Schema transformers</text>
@@ -57,7 +87,7 @@
   <text class="card-body" x="488" y="91">for <tspan font-family="ui-monospace, Menlo, Consolas, monospace">AddOpenApi()</tspan></text>
 
   <!-- OpenApi.Swashbuckle card (mid-right) -->
-  <rect x="460" y="113" width="320" height="92" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <rect class="card-bg card-border" x="460" y="113" width="320" height="92" rx="8" stroke-width="1.5"/>
   <text class="card-title" x="474" y="135">Kalicz.StrongTypes.OpenApi.Swashbuckle</text>
   <circle class="sm-bullet" cx="480" cy="160" r="2"/>
   <text class="card-body" x="488" y="164">Schema filters</text>
@@ -65,7 +95,7 @@
   <text class="card-body" x="488" y="189">for <tspan font-family="ui-monospace, Menlo, Consolas, monospace">AddSwaggerGen()</tspan></text>
 
   <!-- EfCore card (bottom-left, under Core) -->
-  <rect x="15" y="235" width="215" height="110" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <rect class="card-bg card-border" x="15" y="235" width="215" height="110" rx="8" stroke-width="1.5"/>
   <text class="card-title" x="29" y="259">Kalicz.StrongTypes.EfCore</text>
   <circle class="sm-bullet" cx="35" cy="284" r="2"/>
   <text class="card-body" x="43" y="288">EF Core value converters</text>
@@ -73,7 +103,7 @@
   <text class="card-body" x="43" y="310">DbContext extension</text>
 
   <!-- FsCheck card (bottom-right, under Core) -->
-  <rect x="245" y="235" width="215" height="110" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <rect class="card-bg card-border" x="245" y="235" width="215" height="110" rx="8" stroke-width="1.5"/>
   <text class="card-title" x="259" y="259">Kalicz.StrongTypes.FsCheck</text>
   <circle class="sm-bullet" cx="265" cy="282" r="2"/>
   <text class="card-body" x="273" y="286">Property-based (generative) testing</text>
@@ -83,8 +113,8 @@
   <text class="card-body" x="273" y="330">generators</text>
 
   <!-- Arrows from satellite cards to core card -->
-  <line x1="460" y1="61"  x2="412" y2="61"  stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
-  <line x1="460" y1="159" x2="412" y2="159" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
-  <line x1="122" y1="235" x2="122" y2="210" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
-  <line x1="352" y1="235" x2="352" y2="210" stroke="#6B7280" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
+  <line class="arrow-line" x1="460" y1="61"  x2="412" y2="61"  stroke-width="1.5" marker-end="url(#pl-arrow)"/>
+  <line class="arrow-line" x1="460" y1="159" x2="412" y2="159" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
+  <line class="arrow-line" x1="122" y1="235" x2="122" y2="210" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
+  <line class="arrow-line" x1="352" y1="235" x2="352" y2="210" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
 </svg>

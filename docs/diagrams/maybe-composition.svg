@@ -7,6 +7,52 @@
     .mono      { font: 13px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; }
     .op-label  { font: 600 12px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #111827; }
     .note      { font: 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #6B7280; }
+
+    .canvas-bg     { fill: #FFFFFF; }
+    .canvas-border { fill: none; stroke: #E5E7EB; }
+    .section-rule  { stroke: #E5E7EB; }
+
+    .green-bg      { fill: #ECFDF5; }
+    .green-border  { stroke: #10B981; }
+    .green-text    { fill: #065F46; }
+    .green-tag     { fill: #047857; }
+
+    .none-bg       { fill: #F9FAFB; }
+    .none-border   { stroke: #9CA3AF; }
+    .none-text     { fill: #374151; }
+    .none-tag      { fill: #6B7280; }
+
+    .pill-bg       { fill: #FFFFFF; }
+    .pill-border   { stroke: #6366F1; }
+    .pill-text     { fill: #4338CA; }
+
+    .op-label-muted { fill: #6B7280; }
+
+    @media (prefers-color-scheme: dark) {
+      .canvas-bg     { fill: #0d1117; }
+      .canvas-border { stroke: #30363d; }
+      .section-rule  { stroke: #30363d; }
+
+      .green-bg      { fill: #0a2618; }
+      .green-text    { fill: #6EE7B7; }
+      .green-tag     { fill: #34D399; }
+
+      .none-bg       { fill: #161b22; }
+      .none-border   { stroke: #6e7681; }
+      .none-text     { fill: #c9d1d9; }
+      .none-tag      { fill: #8b949e; }
+
+      .pill-bg       { fill: #161b22; }
+      .pill-border   { stroke: #818CF8; }
+      .pill-text     { fill: #C7D2FE; }
+
+      .op-name       { fill: #e6edf3; }
+      .op-sig        { fill: #8b949e; }
+      .op-hint       { fill: #8b949e; }
+      .op-label      { fill: #e6edf3; }
+      .op-label-muted { fill: #8b949e; }
+      .note          { fill: #8b949e; }
+    }
   </style>
 
   <defs>
@@ -18,34 +64,34 @@
     </marker>
   </defs>
 
-  <rect width="900" height="640" fill="#FFFFFF"/>
-  <rect x="0.5" y="0.5" width="899" height="639" fill="none" stroke="#E5E7EB" rx="10"/>
+  <rect class="canvas-bg" width="900" height="640"/>
+  <rect class="canvas-border" x="0.5" y="0.5" width="899" height="639" rx="10"/>
 
   <!-- ═══════════════════ SECTION 1: Map ═══════════════════ -->
   <g>
     <text class="op-name" x="30" y="40">Map</text>
     <text class="op-sig"  x="85" y="40">f : T → U</text>
     <text class="op-hint" x="870" y="40" text-anchor="end">result is auto-wrapped back into Maybe</text>
-    <line x1="30" y1="52" x2="870" y2="52" stroke="#E5E7EB" stroke-dasharray="3 3"/>
+    <line class="section-rule" x1="30" y1="52" x2="870" y2="52" stroke-dasharray="3 3"/>
 
     <!-- Some track -->
-    <text class="track-tag" x="30" y="90" fill="#047857">Some</text>
-    <rect x="90"  y="74" width="130" height="32" rx="16" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
-    <text class="mono" x="155" y="95" text-anchor="middle" fill="#065F46">Some(x)</text>
+    <text class="track-tag green-tag" x="30" y="90">Some</text>
+    <rect class="green-bg green-border" x="90"  y="74" width="130" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono green-text" x="155" y="95" text-anchor="middle">Some(x)</text>
     <line x1="220" y1="90" x2="400" y2="90" stroke="#10B981" stroke-width="1.5" marker-end="url(#mc-g)"/>
     <text class="op-label" x="310" y="82" text-anchor="middle">Map(f)</text>
-    <rect x="400" y="74" width="160" height="32" rx="16" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
-    <text class="mono" x="480" y="95" text-anchor="middle" fill="#065F46">Some(f(x))</text>
+    <rect class="green-bg green-border" x="400" y="74" width="160" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono green-text" x="480" y="95" text-anchor="middle">Some(f(x))</text>
     <text class="note" x="580" y="95">f returned a T; Maybe wraps it automatically</text>
 
     <!-- None track -->
-    <text class="track-tag" x="30" y="140" fill="#6B7280">None</text>
-    <rect x="90"  y="124" width="130" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <text class="mono" x="155" y="145" text-anchor="middle" fill="#374151">None</text>
+    <text class="track-tag none-tag" x="30" y="140">None</text>
+    <rect class="none-bg none-border" x="90"  y="124" width="130" height="32" rx="16" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono none-text" x="155" y="145" text-anchor="middle">None</text>
     <line x1="220" y1="140" x2="400" y2="140" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#mc-n)"/>
-    <text class="op-label" x="310" y="132" text-anchor="middle" fill="#6B7280">Map(f)</text>
-    <rect x="400" y="124" width="160" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <text class="mono" x="480" y="145" text-anchor="middle" fill="#374151">None</text>
+    <text class="op-label op-label-muted" x="310" y="132" text-anchor="middle">Map(f)</text>
+    <rect class="none-bg none-border" x="400" y="124" width="160" height="32" rx="16" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono none-text" x="480" y="145" text-anchor="middle">None</text>
     <text class="note" x="580" y="145">f never called — short-circuits</text>
   </g>
 
@@ -54,42 +100,42 @@
     <text class="op-name" x="30" y="40">FlatMap</text>
     <text class="op-sig"  x="125" y="40">f : T → Maybe&lt;U&gt;</text>
     <text class="op-hint" x="870" y="40" text-anchor="end">f already returns Maybe&lt;U&gt; — unwrapped directly to avoid Maybe&lt;Maybe&lt;U&gt;&gt;</text>
-    <line x1="30" y1="52" x2="870" y2="52" stroke="#E5E7EB" stroke-dasharray="3 3"/>
+    <line class="section-rule" x1="30" y1="52" x2="870" y2="52" stroke-dasharray="3 3"/>
 
     <!-- Some track: branches -->
-    <text class="track-tag" x="30" y="107" fill="#047857">Some</text>
-    <rect x="90"  y="91" width="130" height="32" rx="16" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
-    <text class="mono" x="155" y="112" text-anchor="middle" fill="#065F46">Some(x)</text>
+    <text class="track-tag green-tag" x="30" y="107">Some</text>
+    <rect class="green-bg green-border" x="90"  y="91" width="130" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono green-text" x="155" y="112" text-anchor="middle">Some(x)</text>
 
     <!-- Arrow to intermediate -->
     <line x1="220" y1="107" x2="290" y2="107" stroke="#10B981" stroke-width="1.5" marker-end="url(#mc-g)"/>
     <text class="op-label" x="255" y="99" text-anchor="middle">FlatMap(f)</text>
 
     <!-- Intermediate "f(x) : Maybe<U>" -->
-    <rect x="290" y="91" width="170" height="32" rx="8" fill="#FFFFFF" stroke="#6366F1" stroke-width="1.5" stroke-dasharray="5 3"/>
-    <text class="mono" x="375" y="112" text-anchor="middle" fill="#4338CA">f(x) : Maybe&lt;U&gt;</text>
+    <rect class="pill-bg pill-border" x="290" y="91" width="170" height="32" rx="8" stroke-width="1.5" stroke-dasharray="5 3"/>
+    <text class="mono pill-text" x="375" y="112" text-anchor="middle">f(x) : Maybe&lt;U&gt;</text>
 
     <!-- Branch arrows out of intermediate -->
     <path d="M 460 100 C 495 95, 505 82, 540 80" fill="none" stroke="#10B981" stroke-width="1.5" marker-end="url(#mc-g)"/>
     <path d="M 460 115 C 495 120, 505 133, 540 135" fill="none" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#mc-n)"/>
 
     <!-- Outcome pills (top: Some, bottom: None) -->
-    <rect x="540" y="64" width="140" height="32" rx="16" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
-    <text class="mono" x="610" y="85" text-anchor="middle" fill="#065F46">Some(y)</text>
+    <rect class="green-bg green-border" x="540" y="64" width="140" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono green-text" x="610" y="85" text-anchor="middle">Some(y)</text>
     <text class="note" x="690" y="85">f returned Some</text>
 
-    <rect x="540" y="120" width="140" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <text class="mono" x="610" y="141" text-anchor="middle" fill="#374151">None</text>
+    <rect class="none-bg none-border" x="540" y="120" width="140" height="32" rx="16" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono none-text" x="610" y="141" text-anchor="middle">None</text>
     <text class="note" x="690" y="141">f returned None</text>
 
     <!-- None track -->
-    <text class="track-tag" x="30" y="185" fill="#6B7280">None</text>
-    <rect x="90"  y="169" width="130" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <text class="mono" x="155" y="190" text-anchor="middle" fill="#374151">None</text>
+    <text class="track-tag none-tag" x="30" y="185">None</text>
+    <rect class="none-bg none-border" x="90"  y="169" width="130" height="32" rx="16" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono none-text" x="155" y="190" text-anchor="middle">None</text>
     <line x1="220" y1="185" x2="540" y2="185" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#mc-n)"/>
-    <text class="op-label" x="380" y="177" text-anchor="middle" fill="#6B7280">FlatMap(f)</text>
-    <rect x="540" y="169" width="140" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <text class="mono" x="610" y="190" text-anchor="middle" fill="#374151">None</text>
+    <text class="op-label op-label-muted" x="380" y="177" text-anchor="middle">FlatMap(f)</text>
+    <rect class="none-bg none-border" x="540" y="169" width="140" height="32" rx="16" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono none-text" x="610" y="190" text-anchor="middle">None</text>
     <text class="note" x="690" y="190">f never called — short-circuits</text>
   </g>
 
@@ -98,12 +144,12 @@
     <text class="op-name" x="30" y="40">Where</text>
     <text class="op-sig"  x="110" y="40">p : T → bool</text>
     <text class="op-hint" x="870" y="40" text-anchor="end">predicate decides whether to keep the value</text>
-    <line x1="30" y1="52" x2="870" y2="52" stroke="#E5E7EB" stroke-dasharray="3 3"/>
+    <line class="section-rule" x1="30" y1="52" x2="870" y2="52" stroke-dasharray="3 3"/>
 
     <!-- Some track: branches -->
-    <text class="track-tag" x="30" y="107" fill="#047857">Some</text>
-    <rect x="90"  y="91" width="130" height="32" rx="16" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
-    <text class="mono" x="155" y="112" text-anchor="middle" fill="#065F46">Some(x)</text>
+    <text class="track-tag green-tag" x="30" y="107">Some</text>
+    <rect class="green-bg green-border" x="90"  y="91" width="130" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono green-text" x="155" y="112" text-anchor="middle">Some(x)</text>
 
     <!-- Arrow with "Where(p)" label, splits -->
     <path d="M 220 100 C 300 95, 340 82, 400 80" fill="none" stroke="#10B981" stroke-width="1.5" marker-end="url(#mc-g)"/>
@@ -111,22 +157,22 @@
     <text class="op-label" x="290" y="112" text-anchor="middle">Where(p)</text>
 
     <!-- Outcome pills -->
-    <rect x="400" y="64" width="140" height="32" rx="16" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
-    <text class="mono" x="470" y="85" text-anchor="middle" fill="#065F46">Some(x)</text>
+    <rect class="green-bg green-border" x="400" y="64" width="140" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono green-text" x="470" y="85" text-anchor="middle">Some(x)</text>
     <text class="note" x="550" y="85">p(x) = true</text>
 
-    <rect x="400" y="120" width="140" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <text class="mono" x="470" y="141" text-anchor="middle" fill="#374151">None</text>
+    <rect class="none-bg none-border" x="400" y="120" width="140" height="32" rx="16" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono none-text" x="470" y="141" text-anchor="middle">None</text>
     <text class="note" x="550" y="141">p(x) = false</text>
 
     <!-- None track -->
-    <text class="track-tag" x="30" y="185" fill="#6B7280">None</text>
-    <rect x="90"  y="169" width="130" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <text class="mono" x="155" y="190" text-anchor="middle" fill="#374151">None</text>
+    <text class="track-tag none-tag" x="30" y="185">None</text>
+    <rect class="none-bg none-border" x="90"  y="169" width="130" height="32" rx="16" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono none-text" x="155" y="190" text-anchor="middle">None</text>
     <line x1="220" y1="185" x2="400" y2="185" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#mc-n)"/>
-    <text class="op-label" x="310" y="177" text-anchor="middle" fill="#6B7280">Where(p)</text>
-    <rect x="400" y="169" width="140" height="32" rx="16" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <text class="mono" x="470" y="190" text-anchor="middle" fill="#374151">None</text>
+    <text class="op-label op-label-muted" x="310" y="177" text-anchor="middle">Where(p)</text>
+    <rect class="none-bg none-border" x="400" y="169" width="140" height="32" rx="16" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono none-text" x="470" y="190" text-anchor="middle">None</text>
     <text class="note" x="550" y="190">p never called — short-circuits</text>
   </g>
 </svg>

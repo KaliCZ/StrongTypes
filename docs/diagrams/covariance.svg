@@ -7,6 +7,47 @@
     .tag        { font: 600 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: 0.04em; text-transform: uppercase; }
     .edge-label { font: 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #374151; }
     .hint       { font: 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #6B7280; }
+
+    .canvas-bg     { fill: #FFFFFF; }
+    .canvas-border { fill: none; stroke: #E5E7EB; }
+
+    .concrete-bg     { fill: #FFFFFF; }
+    .concrete-border { stroke: #E5E7EB; }
+    .concrete-tag    { fill: #6B7280; }
+
+    .interface-bg     { fill: #EEF2FF; }
+    .interface-border { stroke: #6366F1; }
+    .interface-tag    { fill: #4338CA; }
+
+    .accent-cyan      { fill: #0EA5E9; }
+    .edge-label-indigo { fill: #4338CA; }
+    .mono-strong      { fill: #111827; }
+    .mono-indigo      { fill: #6366F1; }
+
+    @media (prefers-color-scheme: dark) {
+      .canvas-bg     { fill: #0d1117; }
+      .canvas-border { stroke: #30363d; }
+
+      .concrete-bg     { fill: #161b22; }
+      .concrete-border { stroke: #30363d; }
+      .concrete-tag    { fill: #8b949e; }
+
+      .interface-bg     { fill: #1a1d40; }
+      .interface-border { stroke: #818CF8; }
+      .interface-tag    { fill: #C7D2FE; }
+
+      .accent-cyan      { fill: #38BDF8; }
+      .edge-label-indigo { fill: #C7D2FE; }
+      .mono-out         { fill: #A5B4FC; }
+      .mono-indigo      { fill: #A5B4FC; }
+      .mono-strong      { fill: #e6edf3; }
+
+      .title-text { fill: #e6edf3; }
+      .subtitle   { fill: #8b949e; }
+      .mono       { fill: #e6edf3; }
+      .edge-label { fill: #c9d1d9; }
+      .hint       { fill: #8b949e; }
+    }
   </style>
 
   <defs>
@@ -15,31 +56,31 @@
     </marker>
   </defs>
 
-  <rect width="900" height="300" fill="#FFFFFF"/>
-  <rect x="0.5" y="0.5" width="899" height="299" fill="none" stroke="#E5E7EB" rx="12"/>
+  <rect class="canvas-bg" width="900" height="300"/>
+  <rect class="canvas-border" x="0.5" y="0.5" width="899" height="299" rx="12"/>
 
   <text class="title-text" x="40" y="38">Covariant interface: out T</text>
   <text class="subtitle"   x="40" y="58">A more-derived element type flows upward to a less-derived interface.</text>
 
   <!-- Concrete card (left) -->
-  <rect x="60" y="110" width="320" height="110" rx="10" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
-  <text class="tag" x="80" y="135" fill="#6B7280">concrete collection</text>
-  <text class="mono" x="80" y="172">NonEmptyEnumerable&lt;<tspan font-weight="700" fill="#0EA5E9">Dog</tspan>&gt;</text>
+  <rect class="concrete-bg concrete-border" x="60" y="110" width="320" height="110" rx="10" stroke-width="1.5"/>
+  <text class="tag concrete-tag" x="80" y="135">concrete collection</text>
+  <text class="mono" x="80" y="172">NonEmptyEnumerable&lt;<tspan class="accent-cyan" font-weight="700">Dog</tspan>&gt;</text>
   <text class="hint" x="80" y="197">Dog : Animal</text>
 
   <!-- Interface card (right) -->
-  <rect x="520" y="110" width="320" height="110" rx="10" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.5"/>
-  <text class="tag" x="540" y="135" fill="#4338CA">covariant interface</text>
-  <text class="mono" x="540" y="172">INonEmptyEnumerable&lt;<tspan font-weight="700" fill="#0EA5E9">Animal</tspan>&gt;</text>
+  <rect class="interface-bg interface-border" x="520" y="110" width="320" height="110" rx="10" stroke-width="1.5"/>
+  <text class="tag interface-tag" x="540" y="135">covariant interface</text>
+  <text class="mono" x="540" y="172">INonEmptyEnumerable&lt;<tspan class="accent-cyan" font-weight="700">Animal</tspan>&gt;</text>
   <text class="mono-out" x="540" y="197">out T</text>
 
   <!-- Arrow with label -->
   <path d="M 380 165 L 520 165" stroke="#6366F1" stroke-width="2" marker-end="url(#cv-arrow)"/>
-  <text class="edge-label" x="450" y="155" text-anchor="middle" fill="#4338CA">implicit upcast</text>
+  <text class="edge-label edge-label-indigo" x="450" y="155" text-anchor="middle">implicit upcast</text>
   <text class="hint" x="450" y="185" text-anchor="middle">(no conversion needed)</text>
 
   <!-- Bottom explanation -->
   <text class="hint" x="450" y="260" text-anchor="middle">
-    Because <tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#111827">T</tspan> is declared <tspan font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#6366F1">out</tspan>, every <tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#111827">NonEmptyEnumerable&lt;TDerived&gt;</tspan> is assignable to <tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#111827">INonEmptyEnumerable&lt;TBase&gt;</tspan>.
+    Because <tspan class="mono-strong" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">T</tspan> is declared <tspan class="mono-indigo" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">out</tspan>, every <tspan class="mono-strong" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">NonEmptyEnumerable&lt;TDerived&gt;</tspan> is assignable to <tspan class="mono-strong" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">INonEmptyEnumerable&lt;TBase&gt;</tspan>.
   </text>
 </svg>
