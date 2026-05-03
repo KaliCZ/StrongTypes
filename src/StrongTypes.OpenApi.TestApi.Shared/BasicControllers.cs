@@ -12,6 +12,15 @@ public sealed class NonEmptyStringEntityController : ControllerBase
 }
 
 [ApiController]
+[Route("email-entities")]
+public sealed class EmailEntityController : ControllerBase
+{
+    [HttpPost]
+    public IActionResult Create(ReferenceEntityRequest<Email> request)
+        => Ok(new EntityResponse(Guid.NewGuid()));
+}
+
+[ApiController]
 [Route("positive-int-entities")]
 public sealed class PositiveIntEntityController : ControllerBase
 {

@@ -14,10 +14,21 @@ public abstract class EntityBase<TSelf, T, TNullable> : IEntity<TSelf, T, TNulla
     public T Value { get; set; } = default!;
     public TNullable NullableValue { get; set; } = default!;
 
+    /// <summary>
+    /// Public surface for the interface's default <c>Update</c>: lets callers
+    /// invoke <c>entity.Update(...)</c> directly on a concrete type without
+    /// casting through <see cref="IEntity{TSelf, T, TNullable}"/>.
+    /// </summary>
+    public void Update(T value, TNullable nullableValue)
+    {
+        Value = value;
+        NullableValue = nullableValue;
+    }
+
     public static TSelf Create(T value, TNullable nullableValue)
     {
         var entity = new TSelf { Id = Guid.NewGuid() };
-        ((IEntity<TSelf, T, TNullable>)entity).Update(value, nullableValue);
+        entity.Update(value, nullableValue);
         return entity;
     }
 }

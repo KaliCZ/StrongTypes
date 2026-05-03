@@ -29,6 +29,7 @@ internal static class ComponentSchemas
     internal static bool IsInlineableWrapperName(string name)
     {
         if (string.Equals(name, "NonEmptyString", StringComparison.Ordinal)) return true;
+        if (string.Equals(name, "Email", StringComparison.Ordinal)) return true;
 
         if (name.StartsWith("PositiveOf", StringComparison.Ordinal)
             || name.StartsWith("NonNegativeOf", StringComparison.Ordinal)

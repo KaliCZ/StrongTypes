@@ -19,6 +19,7 @@ public static class StrongTypesOpenApiExtensions
     public static OpenApiOptions AddStrongTypes(this OpenApiOptions options)
     {
         options.AddSchemaTransformer<NonEmptyStringSchemaTransformer>();
+        options.AddSchemaTransformer<EmailSchemaTransformer>();
         options.AddSchemaTransformer<NumericStrongTypeSchemaTransformer>();
         options.AddSchemaTransformer<NonEmptyEnumerableSchemaTransformer>();
         options.AddSchemaTransformer<MaybeSchemaTransformer>();

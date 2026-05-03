@@ -39,8 +39,30 @@ internal sealed class StrongTypesComponentSchemaFiller : IOpenApiDocumentTransfo
 
     private static OpenApiSchema? TryBuild(string name, IDictionary<string, IOpenApiSchema> components)
     {
+        // Name-only matching would happily trample a user DTO that happens
+        // to be called `Email` or `MaybeOfInt32`. Every wrapper we paint is
+        // a primitive (string / integer / number / array) or — for
+        // `MaybeOf<T>` — an object with a single `Value` property. An object
+        // schema with multiple/non-`Value` properties under our reserved
+        // name is a user DTO, not ours; bail. Returning null also makes
+        // ResolveInner fall through to a `$ref` so nested references to a
+        // colliding user DTO point at their schema instead of ours.
+        if (components.TryGetValue(name, out var existing)
+            && existing is OpenApiSchema concrete
+            && LooksLikeUserDto(concrete))
+            return null;
+
         if (name == "NonEmptyString")
             return new OpenApiSchema { Type = JsonSchemaType.String, MinLength = 1 };
+
+        if (name == "Email")
+            return new OpenApiSchema
+            {
+                Type = JsonSchemaType.String,
+                Format = "email",
+                MinLength = 1,
+                MaxLength = Email.MaxLength,
+            };
 
         if (MicrosoftSchemaNaming.TryMatchNumericComponent(name, out var numericInner, out var numericBound))
             return BuildNumeric(numericInner, numericBound);
@@ -68,6 +90,14 @@ internal sealed class StrongTypesComponentSchemaFiller : IOpenApiDocumentTransfo
         }
 
         return null;
+    }
+
+    private static bool LooksLikeUserDto(OpenApiSchema schema)
+    {
+        if (schema.Type != JsonSchemaType.Object) return false;
+        if (schema.Properties is not { Count: > 0 } props) return false;
+        if (props.Count == 1 && props.ContainsKey("Value")) return false;
+        return true;
     }
 
     private static IOpenApiSchema ResolveInner(string innerName, IDictionary<string, IOpenApiSchema> components)

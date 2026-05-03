@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 namespace StrongTypes;
 
 /// <summary>A string guaranteed to be non-null, non-empty, and not consisting solely of whitespace.</summary>
-/// <remarks>Comparison uses the current culture (it delegates to <see cref="string.CompareTo(string?)"/>).</remarks>
+/// <remarks>Comparison uses the current culture (it delegates to <see cref="string.CompareTo(string?)"/>). Exposes <c>Count</c> and a char indexer for parity with <see cref="string"/>; <c>Count</c> in particular makes the BCL <c>[MaxLength]</c> attribute work without a custom shim.</remarks>
 [JsonConverter(typeof(NonEmptyStringJsonConverter))]
 public sealed class NonEmptyString :
     IEquatable<NonEmptyString>,
@@ -23,6 +23,10 @@ public sealed class NonEmptyString :
     public string Value { get; }
 
     public int Length => Value.Length;
+
+    public int Count => Value.Length;
+
+    public char this[int index] => Value[index];
 
     public static implicit operator string(NonEmptyString s) => s.Value;
 
@@ -159,6 +163,15 @@ public sealed class NonEmptyString :
         left is null ? right is null : left.Equals(right);
 
     public static bool operator !=(NonEmptyString? left, NonEmptyString? right) => !(left == right);
+
+    public static bool operator ==(NonEmptyString? left, string? right) =>
+        left is null ? right is null : left.Equals(right);
+
+    public static bool operator !=(NonEmptyString? left, string? right) => !(left == right);
+
+    public static bool operator ==(string? left, NonEmptyString? right) => right == left;
+
+    public static bool operator !=(string? left, NonEmptyString? right) => !(right == left);
 
     #endregion Equality
 
