@@ -26,7 +26,7 @@
     .green-dot     { fill: #10B981; }
     .green-text    { fill: #047857; }
 
-    @media (prefers-color-scheme: dark) {
+    :where(.dark) {
       .canvas-bg     { fill: #0d1117; }
       .canvas-border { stroke: #30363d; }
 

@@ -41,7 +41,7 @@
     .divider-mid   { stroke: #E5E7EB; }
     .muted-text    { fill: #9CA3AF; }
 
-    @media (prefers-color-scheme: dark) {
+    :where(.dark) {
       .canvas-bg     { fill: #0d1117; }
       .canvas-border { stroke: #30363d; }
       .pill-bg       { fill: #161b22; }

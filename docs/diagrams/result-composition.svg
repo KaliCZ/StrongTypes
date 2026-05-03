@@ -28,7 +28,7 @@
     .pill-border   { stroke: #6366F1; }
     .pill-text     { fill: #4338CA; }
 
-    @media (prefers-color-scheme: dark) {
+    :where(.dark) {
       .canvas-bg     { fill: #0d1117; }
       .canvas-border { stroke: #30363d; }
       .section-rule  { stroke: #30363d; }

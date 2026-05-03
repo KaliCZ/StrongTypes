@@ -20,7 +20,7 @@
     .card-border   { stroke: #E5E7EB; }
     .arrow-line    { stroke: #6B7280; }
 
-    @media (prefers-color-scheme: dark) {
+    :where(.dark) {
       .canvas-bg     { fill: #0d1117; }
       .canvas-border { stroke: #30363d; }
       .core-bg       { fill: #1a1d40; }

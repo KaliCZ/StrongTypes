@@ -47,7 +47,7 @@
 
     .method-name-muted { fill: #9CA3AF; }
 
-    @media (prefers-color-scheme: dark) {
+    :where(.dark) {
       .canvas-bg     { fill: #0d1117; }
       .canvas-border { stroke: #30363d; }
       .divider-line  { stroke: #30363d; }
