@@ -18,16 +18,6 @@ public static class StrongTypesOpenApiExtensions
     /// <param name="options">The OpenAPI options being configured.</param>
     public static OpenApiOptions AddStrongTypes(this OpenApiOptions options)
     {
-        var inner = options.CreateSchemaReferenceId ?? OpenApiOptions.CreateDefaultSchemaReferenceId;
-        options.CreateSchemaReferenceId = jsonTypeInfo =>
-        {
-            var name = inner(jsonTypeInfo);
-            if (name is null) return null;
-            return MicrosoftSchemaNaming.IsStrongTypeWrapper(jsonTypeInfo.Type)
-                ? MicrosoftSchemaNaming.WrapperPrefix + name
-                : name;
-        };
-
         options.AddSchemaTransformer<NonEmptyStringSchemaTransformer>();
         options.AddSchemaTransformer<EmailSchemaTransformer>();
         options.AddSchemaTransformer<NumericStrongTypeSchemaTransformer>();

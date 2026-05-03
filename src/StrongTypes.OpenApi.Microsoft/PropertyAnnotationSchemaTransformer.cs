@@ -146,25 +146,18 @@ internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTran
             Visit(p.PropertyType, map, seen);
     }
 
-    // Mirrors the schema-id strategy AddStrongTypes installs on top of
-    // Microsoft.AspNetCore.OpenApi's default: primitives are C# keywords
-    // ("int", "string", …), generic wrappers compose with an "Of" infix,
-    // and StrongTypes' own wrapper types receive the "StrongTypes" prefix
-    // we add via CreateSchemaReferenceId. So `Positive<int>` produces
-    // "StrongTypesPositiveOfint" and `Maybe<NonEmptyString>` produces
-    // "StrongTypesMaybeOfStrongTypesNonEmptyString".
+    // Mimics Microsoft.AspNetCore.OpenApi's default schema-id strategy:
+    //   `Foo`            → "Foo"
+    //   `Foo<Bar>`       → "FooOfBar"
+    //   `Foo<Bar<Baz>>`  → "FooOfBarOfBaz"
+    //   primitive types  → C# keyword (int, string, …) — that's what shows
+    //                      up in component names like "PositiveOfint".
     private static string ComputeSchemaName(Type type)
     {
         if (MicrosoftSchemaNaming.GetPrimitiveKeyword(type) is { } keyword) return keyword;
 
-        var raw = type.IsGenericType ? ComputeGenericName(type) : type.Name;
-        return MicrosoftSchemaNaming.IsStrongTypeWrapper(type)
-            ? MicrosoftSchemaNaming.WrapperPrefix + raw
-            : raw;
-    }
+        if (!type.IsGenericType) return type.Name;
 
-    private static string ComputeGenericName(Type type)
-    {
         var raw = type.Name;
         var backtick = raw.IndexOf('`');
         var baseName = backtick < 0 ? raw : raw[..backtick];

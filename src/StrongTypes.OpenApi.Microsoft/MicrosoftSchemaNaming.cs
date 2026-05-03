@@ -3,23 +3,15 @@ using StrongTypes.OpenApi.Core;
 
 namespace StrongTypes.OpenApi.Microsoft;
 
-// Microsoft.AspNetCore.OpenApi's default schema-id strategy: primitives are
+// Microsoft.AspNetCore.OpenApi's default schema-id strategy. Primitives are
 // named by their C# keyword ("int", "long", "decimal", …) and generic
-// wrappers compose with an "Of" infix. We layer a "StrongTypes" prefix on
-// top of the default for our own wrapper types — see Startup.AddStrongTypes
-// — so `Positive<int>` produces "StrongTypesPositiveOfint" rather than the
-// ambiguous "PositiveOfint". The prefix shrinks the chance that a user DTO
-// accidentally collides with a wrapper component name. Both the document-
-// time component filler and the property-annotation transformer parse or
-// rebuild these names; they all read the prefix from here.
+// wrappers compose with an "Of" infix — so `Positive<int>` becomes the
+// component name "PositiveOfint". Both the document-time component filler
+// (which parses these names back into wire schemas) and the property-
+// annotation transformer (which rebuilds component names from CLR types
+// to find the parent type) depend on this convention.
 internal static class MicrosoftSchemaNaming
 {
-    public const string WrapperPrefix = "StrongTypes";
-
-    // Un-prefixed forms. The component filler strips the optional
-    // "StrongTypes" prefix before calling TryMatchNumericComponent, so
-    // these patterns recognise both the prefixed and un-prefixed names
-    // the framework emits.
     private static readonly Dictionary<Type, string> s_numericPrefixByDefinition = new()
     {
         [typeof(Positive<>)]    = "PositiveOf",
@@ -27,25 +19,6 @@ internal static class MicrosoftSchemaNaming
         [typeof(Negative<>)]    = "NegativeOf",
         [typeof(NonPositive<>)] = "NonPositiveOf",
     };
-
-    private static readonly HashSet<Type> s_genericWrapperDefinitions =
-    [
-        typeof(Positive<>),
-        typeof(NonNegative<>),
-        typeof(Negative<>),
-        typeof(NonPositive<>),
-        typeof(NonEmptyEnumerable<>),
-        typeof(INonEmptyEnumerable<>),
-        typeof(Maybe<>),
-    ];
-
-    public static bool IsStrongTypeWrapper(Type type)
-    {
-        if (type == typeof(NonEmptyString)) return true;
-        if (type == typeof(Email)) return true;
-        if (!type.IsGenericType) return false;
-        return s_genericWrapperDefinitions.Contains(type.GetGenericTypeDefinition());
-    }
 
     private static readonly (string Prefix, NumericBound Bound)[] s_numericPrefixesWithBounds =
         NumericWrapperKinds.All
