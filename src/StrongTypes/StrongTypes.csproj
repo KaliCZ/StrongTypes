@@ -79,6 +79,8 @@
       <Code Type="Fragment" Language="cs"><![CDATA[
         var content = System.IO.File.ReadAllText(SourcePath);
         content = content.Replace("](docs/diagrams/", "](" + RawBaseUrl + "docs/diagrams/");
+        content = content.Replace("src=\"docs/diagrams/", "src=\"" + RawBaseUrl + "docs/diagrams/");
+        content = content.Replace("srcset=\"docs/diagrams/", "srcset=\"" + RawBaseUrl + "docs/diagrams/");
         content = content.Replace("](Skill/", "](" + RawBaseUrl + "Skill/");
         content = content.Replace("](src/", "](" + BlobBaseUrl + "src/");
         content = content.Replace("https://github.com/KaliCZ/StrongTypes/releases/latest/download/", ReleaseAssetBaseUrl);
