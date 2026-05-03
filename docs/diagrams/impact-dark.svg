@@ -1,0 +1,307 @@
+<svg class="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 990 760" role="img" aria-label="Impact of StrongTypes on application validation boundaries">
+  <style>
+    .panel-title  { font: 700 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .panel-sub    { font: 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .layer-title  { font: 700 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #111827; }
+    .layer-title-sm { font: 700 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #111827; }
+    .mono         { font: 12px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #374151; }
+    .mono-sm      { font: 11px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #4B5563; }
+    .mono-xs      { font: 10px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #4B5563; }
+    .external     { font: 600 10px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #6B7280; letter-spacing: 0.08em; text-transform: uppercase; }
+    .flow-tag     { font: 700 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #6B7280; letter-spacing: 0.1em; text-transform: uppercase; }
+    .type-label   { font: 600 12px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; }
+    .type-label-sm { font: 600 11px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; }
+    .badge-head   { font: 700 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #FFFFFF; }
+    .badge-sub    { font: 10px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #FFFFFF; opacity: 0.9; }
+    .note         { font: 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #4B5563; }
+
+    /* Semantic shape classes — override inline presentation attributes via the cascade */
+    .canvas-bg     { fill: #FFFFFF; }
+    .canvas-border { fill: none; stroke: #E5E7EB; }
+    .pill-bg       { fill: #FFFFFF; }
+    .pill-border   { stroke: #E5E7EB; }
+
+    .amber-bg      { fill: #FFFBEB; }
+    .amber-border  { stroke: #F59E0B; }
+    .amber-solid   { fill: #F59E0B; }
+    .amber-line    { stroke: #FCD34D; }
+    .amber-text    { fill: #B45309; }
+    .amber-text-strong { fill: #92400E; }
+
+    .green-bg      { fill: #ECFDF5; }
+    .green-border  { stroke: #10B981; }
+    .green-solid   { fill: #10B981; }
+    .green-line    { stroke: #6EE7B7; }
+    .green-line-soft { stroke: #D1FAE5; }
+    .green-text    { fill: #047857; }
+    .green-text-strong { fill: #065F46; }
+    .green-muted   { fill: #6EE7B7; }
+
+    .divider-soft  { stroke: #F3F4F6; }
+    .divider-mid   { stroke: #E5E7EB; }
+    .muted-text    { fill: #9CA3AF; }
+
+    :where(.dark) {
+      .canvas-bg     { fill: #0d1117; }
+      .canvas-border { stroke: #30363d; }
+      .pill-bg       { fill: #161b22; }
+      .pill-border   { stroke: #30363d; }
+
+      .amber-bg      { fill: #2a1f0a; }
+      .amber-line    { stroke: #78350F; }
+      .amber-text    { fill: #FCD34D; }
+      .amber-text-strong { fill: #FDE68A; }
+
+      .green-bg      { fill: #0a2618; }
+      .green-line    { stroke: #065F46; }
+      .green-line-soft { stroke: #064E3B; }
+      .green-text    { fill: #34D399; }
+      .green-text-strong { fill: #6EE7B7; }
+      .green-muted   { fill: #065F46; }
+
+      .divider-soft  { stroke: #21262d; }
+      .divider-mid   { stroke: #30363d; }
+      .muted-text    { fill: #6e7681; }
+
+      .layer-title    { fill: #e6edf3; }
+      .layer-title-sm { fill: #e6edf3; }
+      .mono           { fill: #c9d1d9; }
+      .mono-sm        { fill: #8b949e; }
+      .mono-xs        { fill: #8b949e; }
+      .external       { fill: #8b949e; }
+      .flow-tag       { fill: #8b949e; }
+      .note           { fill: #8b949e; }
+    }
+  </style>
+
+  <defs>
+    <marker id="imp-arrow-amber" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0,0 L 9,3 L 0,6 z" fill="#F59E0B"/>
+    </marker>
+    <marker id="imp-arrow-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0,0 L 9,3 L 0,6 z" fill="#10B981"/>
+    </marker>
+  </defs>
+
+  <rect class="canvas-bg" width="990" height="760"/>
+  <rect class="canvas-border" x="0.5" y="0.5" width="989" height="759" rx="10"/>
+
+  <!-- ═══════════════════ PANEL 1: Without StrongTypes ═══════════════════ -->
+  <g>
+    <!-- Header bar -->
+    <rect class="amber-bg amber-border" x="15" y="15" width="960" height="32" rx="6" stroke-width="1.5"/>
+    <text class="panel-title amber-text" x="35" y="36">Without StrongTypes</text>
+    <text class="panel-sub amber-text-strong" x="970" y="36" text-anchor="end">every layer has to validate — the type carries no guarantee</text>
+
+    <!-- Write flow tag -->
+    <text class="flow-tag" x="35" y="65">Write ↓</text>
+
+    <!-- ───── JSON in column ───── -->
+    <text class="external" x="25" y="82">JSON in</text>
+    <rect class="pill-bg pill-border" x="20" y="89" width="155" height="34" rx="6" stroke-width="1.2"/>
+    <text class="mono" x="30" y="111">{ "name": "Alice" }</text>
+    <text class="mono-sm" x="97" y="138" text-anchor="middle">parses to ↓</text>
+
+    <rect class="pill-bg pill-border" x="20" y="146" width="155" height="55" rx="6" stroke-width="1.2"/>
+    <text class="mono" x="30" y="163">class Request {</text>
+    <text class="mono" x="42" y="180"><tspan class="amber-text" font-weight="600">string</tspan> Name;</text>
+    <text class="mono" x="30" y="197">}</text>
+
+    <!-- ───── Badge: Custom validation code (above Controller) ───── -->
+    <rect class="amber-solid" x="195" y="78" width="155" height="32" rx="16"/>
+    <text class="badge-head" x="272" y="92" text-anchor="middle">✓ Custom validation code</text>
+    <text class="badge-sub" x="272" y="105" text-anchor="middle">you write the if-check</text>
+
+    <!-- Arrow 1: JSON → Controller -->
+    <line x1="175" y1="170" x2="195" y2="170" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#imp-arrow-amber)"/>
+
+    <!-- ───── Controller box ───── -->
+    <rect class="amber-bg amber-border" x="195" y="125" width="235" height="80" rx="8" stroke-width="1.5"/>
+    <text class="layer-title amber-text" x="312" y="146" text-anchor="middle">Controller</text>
+    <line class="amber-line" x1="210" y1="158" x2="415" y2="158" stroke-width="1"/>
+    <text class="mono-xs" x="210" y="178">if (string.IsNullOrWhiteSpace(name))</text>
+    <text class="mono-xs" x="210" y="195" xml:space="preserve">    return BadRequest();</text>
+
+    <!-- ───── Badge: Multiple custom validations in code (above Services) ───── -->
+    <rect class="amber-solid" x="482" y="78" width="240" height="32" rx="16"/>
+    <text class="badge-head" x="602" y="92" text-anchor="middle">✓ Multiple custom validations in code</text>
+    <text class="badge-sub" x="602" y="105" text-anchor="middle">every service that touches the value re-validates</text>
+
+    <!-- Arrow 2: Controller → Services -->
+    <line x1="430" y1="170" x2="485" y2="170" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#imp-arrow-amber)"/>
+    <text class="type-label amber-text" x="457" y="160" text-anchor="middle">string</text>
+
+    <!-- ───── Services box (with shadow stack) ───── -->
+    <rect class="amber-bg amber-border" x="497" y="113" width="235" height="80" rx="8" stroke-width="1.5" opacity="0.45"/>
+    <rect class="amber-bg amber-border" x="491" y="119" width="235" height="80" rx="8" stroke-width="1.5" opacity="0.7"/>
+    <rect class="amber-bg amber-border" x="485" y="125" width="235" height="80" rx="8" stroke-width="1.5"/>
+    <text class="layer-title amber-text" x="602" y="146" text-anchor="middle">Services</text>
+    <line class="amber-line" x1="500" y1="158" x2="705" y2="158" stroke-width="1"/>
+    <text class="mono-xs" x="500" y="178">if (string.IsNullOrWhiteSpace(name))</text>
+    <text class="mono-xs" x="500" y="195" xml:space="preserve">    throw ...;</text>
+
+    <!-- Arrow 3: Services → Entity -->
+    <line x1="720" y1="170" x2="775" y2="170" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#imp-arrow-amber)"/>
+    <text class="type-label amber-text" x="747" y="160" text-anchor="middle">string</text>
+
+    <!-- ───── Entity box ───── -->
+    <rect class="amber-bg amber-border" x="775" y="125" width="200" height="80" rx="8" stroke-width="1.5"/>
+    <text class="layer-title amber-text" x="875" y="146" text-anchor="middle">Entity / DB</text>
+    <line class="amber-line" x1="790" y1="158" x2="960" y2="158" stroke-width="1"/>
+    <text class="mono-sm" x="790" y="186">public <tspan class="amber-text" font-weight="600">string</tspan> Name</text>
+
+    <!-- ─────── Light divider between Write and Usage ─────── -->
+    <line class="divider-soft" x1="35" y1="217" x2="955" y2="217" stroke-width="1"/>
+
+    <!-- ────────── Usage row ────────── -->
+    <text class="flow-tag" x="35" y="234">Usage ↑</text>
+
+    <!-- Re-validate badge -->
+    <rect class="amber-solid" x="482" y="242" width="240" height="32" rx="16"/>
+    <text class="badge-head" x="602" y="256" text-anchor="middle">✓ Re-validate before using the value</text>
+    <text class="badge-sub" x="602" y="269" text-anchor="middle">e.g. background jobs, business rules</text>
+
+    <!-- ─── Response box (Usage row, left) ─── -->
+    <text class="external" x="25" y="292">JSON out</text>
+    <rect class="pill-bg pill-border" x="20" y="299" width="155" height="55" rx="6" stroke-width="1.2"/>
+    <text class="mono" x="30" y="316">class Response {</text>
+    <text class="mono" x="42" y="333"><tspan class="amber-text" font-weight="600">string</tspan> Name;</text>
+    <text class="mono" x="30" y="350">}</text>
+
+    <!-- ─── Controller box (Usage row, empty) ─── -->
+    <rect class="amber-bg amber-border" x="195" y="299" width="235" height="55" rx="8" stroke-width="1.5"/>
+    <text class="layer-title-sm amber-text" x="312" y="320" text-anchor="middle">Controller</text>
+    <text class="mono-xs muted-text" x="312" y="340" text-anchor="middle" font-style="italic">maps to Response</text>
+
+    <!-- ─── Services box (Usage row, with shadow stack) ─── -->
+    <rect class="amber-bg amber-border" x="497" y="287" width="235" height="55" rx="8" stroke-width="1.5" opacity="0.45"/>
+    <rect class="amber-bg amber-border" x="491" y="293" width="235" height="55" rx="8" stroke-width="1.5" opacity="0.7"/>
+    <rect class="amber-bg amber-border" x="485" y="299" width="235" height="55" rx="8" stroke-width="1.5"/>
+    <text class="layer-title-sm amber-text" x="602" y="320" text-anchor="middle">Services</text>
+    <text class="mono-xs" x="602" y="340" text-anchor="middle">re-check before use</text>
+
+    <!-- ─── Entity box (Usage row) ─── -->
+    <rect class="amber-bg amber-border" x="775" y="299" width="200" height="55" rx="8" stroke-width="1.5"/>
+    <text class="layer-title-sm amber-text" x="875" y="320" text-anchor="middle">Entity / DB</text>
+    <text class="mono-sm" x="875" y="342" text-anchor="middle">public <tspan class="amber-text" font-weight="600">string</tspan> Name</text>
+
+    <!-- Usage arrow: Entity → Services -->
+    <line x1="775" y1="326" x2="720" y2="326" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#imp-arrow-amber)"/>
+    <text class="type-label-sm amber-text" x="747" y="317" text-anchor="middle">string</text>
+
+    <!-- Usage arrow: Services → Controller -->
+    <line x1="485" y1="326" x2="430" y2="326" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#imp-arrow-amber)"/>
+    <text class="type-label-sm amber-text" x="457" y="317" text-anchor="middle">string</text>
+
+    <!-- Usage arrow: Controller → Response -->
+    <line x1="195" y1="326" x2="175" y2="326" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#imp-arrow-amber)"/>
+
+    <!-- Note -->
+    <text class="note" x="35" y="375">Even on the way out, the response DTO is still <tspan class="amber-text" font-family="ui-monospace, Menlo, Consolas, monospace">string</tspan> — and any internal use of the entity must re-check.</text>
+  </g>
+
+  <!-- Divider between panels -->
+  <line class="divider-mid" x1="50" y1="392" x2="940" y2="392" stroke-width="1" stroke-dasharray="5 4"/>
+
+  <!-- ═══════════════════ PANEL 2: With StrongTypes ═══════════════════ -->
+  <g transform="translate(0, 390)">
+    <!-- Header bar -->
+    <rect class="green-bg green-border" x="15" y="15" width="960" height="32" rx="6" stroke-width="1.5"/>
+    <text class="panel-title green-text" x="35" y="36">With StrongTypes</text>
+    <text class="panel-sub green-text-strong" x="970" y="36" text-anchor="end">validated once when receiving the value; the type guarantee is understood by every layer</text>
+
+    <!-- Write flow tag -->
+    <text class="flow-tag" x="35" y="65">Write ↓</text>
+
+    <!-- ───── JSON in column ───── -->
+    <text class="external" x="25" y="82">JSON in</text>
+    <rect class="pill-bg pill-border" x="20" y="89" width="155" height="34" rx="6" stroke-width="1.2"/>
+    <text class="mono" x="30" y="111">{ "name": "Alice" }</text>
+    <text class="mono-sm" x="97" y="138" text-anchor="middle">parses to ↓</text>
+
+    <rect class="pill-bg pill-border" x="20" y="146" width="155" height="55" rx="6" stroke-width="1.2"/>
+    <text class="mono" x="30" y="163">class Request {</text>
+    <text class="mono" x="42" y="180"><tspan class="green-text" font-weight="600">NonEmptyString</tspan> Name;</text>
+    <text class="mono" x="30" y="197">}</text>
+
+    <!-- ───── Badge: Automatic JSON validation ───── -->
+    <rect class="green-solid" x="195" y="78" width="180" height="32" rx="16"/>
+    <text class="badge-head" x="285" y="92" text-anchor="middle">✓ Automatic JSON validation</text>
+    <text class="badge-sub" x="285" y="105" text-anchor="middle">ASP.NET + JsonConverter</text>
+
+    <!-- Arrow 1: JSON → Controller -->
+    <line x1="175" y1="170" x2="195" y2="170" stroke="#10B981" stroke-width="1.5" marker-end="url(#imp-arrow-green)"/>
+
+    <!-- ───── Controller box ───── -->
+    <rect class="green-bg green-border" x="195" y="125" width="180" height="80" rx="8" stroke-width="1.5"/>
+    <text class="layer-title green-text" x="285" y="146" text-anchor="middle">Controller</text>
+    <line class="green-line" x1="210" y1="158" x2="360" y2="158" stroke-width="1"/>
+    <text class="mono-sm green-text" x="285" y="186" text-anchor="middle">trusts NonEmptyString</text>
+
+    <!-- Arrow 2: Controller → Services -->
+    <line x1="375" y1="170" x2="485" y2="170" stroke="#10B981" stroke-width="1.5" marker-end="url(#imp-arrow-green)"/>
+    <text class="type-label green-text" x="430" y="160" text-anchor="middle">NonEmptyString</text>
+
+    <!-- ───── Services box (with shadow stack) ───── -->
+    <rect class="green-bg green-border" x="497" y="113" width="180" height="80" rx="8" stroke-width="1.5" opacity="0.45"/>
+    <rect class="green-bg green-border" x="491" y="119" width="180" height="80" rx="8" stroke-width="1.5" opacity="0.7"/>
+    <rect class="green-bg green-border" x="485" y="125" width="180" height="80" rx="8" stroke-width="1.5"/>
+    <text class="layer-title green-text" x="575" y="146" text-anchor="middle">Services</text>
+    <line class="green-line" x1="500" y1="158" x2="650" y2="158" stroke-width="1"/>
+    <text class="mono-sm green-text" x="575" y="186" text-anchor="middle">trusts NonEmptyString</text>
+
+    <!-- Arrow 3: Services → Entity -->
+    <line x1="665" y1="170" x2="775" y2="170" stroke="#10B981" stroke-width="1.5" marker-end="url(#imp-arrow-green)"/>
+    <text class="type-label green-text" x="720" y="160" text-anchor="middle">NonEmptyString</text>
+
+    <!-- ───── Entity box ───── -->
+    <rect class="green-bg green-border" x="775" y="125" width="200" height="80" rx="8" stroke-width="1.5"/>
+    <text class="layer-title green-text" x="875" y="146" text-anchor="middle">Entity / DB</text>
+    <line class="green-line" x1="790" y1="158" x2="960" y2="158" stroke-width="1"/>
+    <text class="mono-sm" x="790" y="186">public <tspan class="green-text" font-weight="600">NonEmptyString</tspan> Name</text>
+
+    <!-- ─────── Light divider between Write and Usage ─────── -->
+    <line class="green-line-soft" x1="35" y1="217" x2="955" y2="217" stroke-width="1"/>
+
+    <!-- ────────── Usage row ────────── -->
+    <text class="flow-tag" x="35" y="234">Usage ↑</text>
+
+    <!-- ─── Response box (Usage row, left) ─── -->
+    <text class="external" x="25" y="257">JSON out</text>
+    <rect class="pill-bg pill-border" x="20" y="264" width="155" height="55" rx="6" stroke-width="1.2"/>
+    <text class="mono-sm" x="30" y="282">class Response {</text>
+    <text class="mono-sm" x="42" y="298"><tspan class="green-text" font-weight="600">NonEmptyString</tspan> Name;</text>
+    <text class="mono-sm" x="30" y="314">}</text>
+
+    <!-- ─── Controller box (Usage row, empty) ─── -->
+    <rect class="green-bg green-border" x="195" y="264" width="180" height="55" rx="8" stroke-width="1.5"/>
+    <text class="layer-title-sm green-text" x="285" y="285" text-anchor="middle">Controller</text>
+    <text class="mono-xs green-muted" x="285" y="305" text-anchor="middle" font-style="italic">maps to Response</text>
+
+    <!-- ─── Services box (Usage row, with shadow stack) ─── -->
+    <rect class="green-bg green-border" x="497" y="252" width="180" height="55" rx="8" stroke-width="1.5" opacity="0.45"/>
+    <rect class="green-bg green-border" x="491" y="258" width="180" height="55" rx="8" stroke-width="1.5" opacity="0.7"/>
+    <rect class="green-bg green-border" x="485" y="264" width="180" height="55" rx="8" stroke-width="1.5"/>
+    <text class="layer-title-sm green-text" x="575" y="285" text-anchor="middle">Services</text>
+    <text class="mono-xs green-text" x="575" y="305" text-anchor="middle">trusts NonEmptyString</text>
+
+    <!-- ─── Entity box (Usage row) ─── -->
+    <rect class="green-bg green-border" x="775" y="264" width="200" height="55" rx="8" stroke-width="1.5"/>
+    <text class="layer-title-sm green-text" x="875" y="285" text-anchor="middle">Entity / DB</text>
+    <text class="mono-sm" x="875" y="307" text-anchor="middle">public <tspan class="green-text" font-weight="600">NonEmptyString</tspan> Name</text>
+
+    <!-- Usage arrow: Entity → Services -->
+    <line x1="775" y1="291" x2="665" y2="291" stroke="#10B981" stroke-width="1.5" marker-end="url(#imp-arrow-green)"/>
+    <text class="type-label-sm green-text" x="720" y="282" text-anchor="middle">NonEmptyString</text>
+
+    <!-- Usage arrow: Services → Controller -->
+    <line x1="485" y1="291" x2="375" y2="291" stroke="#10B981" stroke-width="1.5" marker-end="url(#imp-arrow-green)"/>
+    <text class="type-label-sm green-text" x="430" y="282" text-anchor="middle">NonEmptyString</text>
+
+    <!-- Usage arrow: Controller → Response -->
+    <line x1="195" y1="291" x2="175" y2="291" stroke="#10B981" stroke-width="1.5" marker-end="url(#imp-arrow-green)"/>
+
+    <!-- Note -->
+    <text class="note" x="35" y="342">The type travels all the way back out — the response DTO is still <tspan class="green-text" font-family="ui-monospace, Menlo, Consolas, monospace">NonEmptyString</tspan>, so any downstream consumer already knows it's non-empty.</text>
+  </g>
+</svg>

@@ -1,0 +1,168 @@
+<svg class="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="Result composition: Map, MapError, FlatMap">
+  <style>
+    .op-name   { font: 700 16px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #111827; }
+    .op-sig    { font: 14px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #6B7280; }
+    .op-hint   { font: 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #6B7280; }
+    .track-tag { font: 600 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; }
+    .mono      { font: 13px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; }
+    .op-label  { font: 600 12px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #111827; }
+    .note      { font: 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #6B7280; }
+
+    .canvas-bg     { fill: #FFFFFF; }
+    .canvas-border { fill: none; stroke: #E5E7EB; }
+    .section-rule  { stroke: #E5E7EB; }
+
+    .green-bg      { fill: #ECFDF5; }
+    .green-bg-soft { fill: #F0FDF4; }
+    .green-border  { stroke: #10B981; }
+    .green-text    { fill: #065F46; }
+    .green-tag     { fill: #047857; }
+
+    .red-bg        { fill: #FEF2F2; }
+    .red-bg-soft   { fill: #FEF7F7; }
+    .red-border    { stroke: #EF4444; }
+    .red-text      { fill: #991B1B; }
+    .red-tag       { fill: #B91C1C; }
+
+    .pill-bg       { fill: #FFFFFF; }
+    .pill-border   { stroke: #6366F1; }
+    .pill-text     { fill: #4338CA; }
+
+    :where(.dark) {
+      .canvas-bg     { fill: #0d1117; }
+      .canvas-border { stroke: #30363d; }
+      .section-rule  { stroke: #30363d; }
+
+      .green-bg      { fill: #0a2618; }
+      .green-bg-soft { fill: #0a1f15; }
+      .green-text    { fill: #6EE7B7; }
+      .green-tag     { fill: #34D399; }
+
+      .red-bg        { fill: #2a0a0a; }
+      .red-bg-soft   { fill: #1f0808; }
+      .red-border    { stroke: #F87171; }
+      .red-text      { fill: #FCA5A5; }
+      .red-tag       { fill: #FCA5A5; }
+
+      .pill-bg       { fill: #161b22; }
+      .pill-border   { stroke: #818CF8; }
+      .pill-text     { fill: #C7D2FE; }
+
+      .op-name       { fill: #e6edf3; }
+      .op-sig        { fill: #8b949e; }
+      .op-hint       { fill: #8b949e; }
+      .op-label      { fill: #e6edf3; }
+      .note          { fill: #8b949e; }
+    }
+  </style>
+
+  <defs>
+    <marker id="rc-g" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0,0 L 9,3 L 0,6 z" fill="#10B981"/>
+    </marker>
+    <marker id="rc-r" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0,0 L 9,3 L 0,6 z" fill="#EF4444"/>
+    </marker>
+  </defs>
+
+  <rect class="canvas-bg" width="900" height="600"/>
+  <rect class="canvas-border" x="0.5" y="0.5" width="899" height="599" rx="10"/>
+
+  <!-- ═══════════════════ SECTION 1: Map ═══════════════════ -->
+  <g>
+    <text class="op-name" x="30" y="40">Map</text>
+    <text class="op-sig"  x="85" y="40">f : T → U</text>
+    <text class="op-hint" x="870" y="40" text-anchor="end">transforms Success; Error passes through unchanged</text>
+    <line class="section-rule" x1="30" y1="52" x2="870" y2="52" stroke-dasharray="3 3"/>
+
+    <!-- Success track -->
+    <text class="track-tag green-tag" x="30" y="90">Success</text>
+    <rect class="green-bg green-border" x="90"  y="74" width="140" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono green-text" x="160" y="95" text-anchor="middle">Success(x)</text>
+    <line x1="230" y1="90" x2="410" y2="90" stroke="#10B981" stroke-width="1.5" marker-end="url(#rc-g)"/>
+    <text class="op-label" x="320" y="82" text-anchor="middle">Map(f)</text>
+    <rect class="green-bg green-border" x="410" y="74" width="170" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono green-text" x="495" y="95" text-anchor="middle">Success(f(x))</text>
+    <text class="note" x="600" y="95">f returned a T; Result wraps it automatically</text>
+
+    <!-- Error track -->
+    <text class="track-tag red-tag" x="30" y="140">Error</text>
+    <rect class="red-bg red-border" x="90"  y="124" width="140" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono red-text" x="160" y="145" text-anchor="middle">Error(e)</text>
+    <line x1="230" y1="140" x2="410" y2="140" stroke="#EF4444" stroke-width="1.5" marker-end="url(#rc-r)"/>
+    <text class="op-label red-tag" x="320" y="132" text-anchor="middle">Map(f)</text>
+    <rect class="red-bg-soft red-border" x="410" y="124" width="170" height="32" rx="16" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono red-text" x="495" y="145" text-anchor="middle">Error(e)</text>
+    <text class="note" x="600" y="145">f never called — pass-through</text>
+  </g>
+
+  <!-- ═══════════════════ SECTION 2: MapError ═══════════════════ -->
+  <g transform="translate(0, 180)">
+    <text class="op-name" x="30" y="40">MapError</text>
+    <text class="op-sig"  x="135" y="40">g : TError → TError2</text>
+    <text class="op-hint" x="870" y="40" text-anchor="end">transforms Error; Success passes through unchanged</text>
+    <line class="section-rule" x1="30" y1="52" x2="870" y2="52" stroke-dasharray="3 3"/>
+
+    <!-- Success track (pass-through) -->
+    <text class="track-tag green-tag" x="30" y="90">Success</text>
+    <rect class="green-bg green-border" x="90"  y="74" width="140" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono green-text" x="160" y="95" text-anchor="middle">Success(x)</text>
+    <line x1="230" y1="90" x2="410" y2="90" stroke="#10B981" stroke-width="1.5" marker-end="url(#rc-g)"/>
+    <text class="op-label green-tag" x="320" y="82" text-anchor="middle">MapError(g)</text>
+    <rect class="green-bg-soft green-border" x="410" y="74" width="170" height="32" rx="16" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono green-text" x="495" y="95" text-anchor="middle">Success(x)</text>
+    <text class="note" x="600" y="95">g never called — pass-through</text>
+
+    <!-- Error track (transformed) -->
+    <text class="track-tag red-tag" x="30" y="140">Error</text>
+    <rect class="red-bg red-border" x="90"  y="124" width="140" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono red-text" x="160" y="145" text-anchor="middle">Error(e)</text>
+    <line x1="230" y1="140" x2="410" y2="140" stroke="#EF4444" stroke-width="1.5" marker-end="url(#rc-r)"/>
+    <text class="op-label red-tag" x="320" y="132" text-anchor="middle">MapError(g)</text>
+    <rect class="red-bg red-border" x="410" y="124" width="170" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono red-text" x="495" y="145" text-anchor="middle">Error(g(e))</text>
+    <text class="note" x="600" y="145">g returned a TError2; Result wraps it</text>
+  </g>
+
+  <!-- ═══════════════════ SECTION 3: FlatMap ═══════════════════ -->
+  <g transform="translate(0, 360)">
+    <text class="op-name" x="30" y="40">FlatMap</text>
+    <text class="op-sig"  x="125" y="40">f : T → Result&lt;U, TError&gt;</text>
+    <text class="op-hint" x="870" y="40" text-anchor="end">f already returns Result&lt;U, TError&gt; — unwrapped directly to avoid nested Result&lt;Result&lt;U, TError&gt;, TError&gt;</text>
+    <line class="section-rule" x1="30" y1="52" x2="870" y2="52" stroke-dasharray="3 3"/>
+
+    <!-- Success track: branches -->
+    <text class="track-tag green-tag" x="30" y="107">Success</text>
+    <rect class="green-bg green-border" x="90"  y="91" width="140" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono green-text" x="160" y="112" text-anchor="middle">Success(x)</text>
+
+    <line x1="230" y1="107" x2="310" y2="107" stroke="#10B981" stroke-width="1.5" marker-end="url(#rc-g)"/>
+    <text class="op-label" x="270" y="99" text-anchor="middle">FlatMap(f)</text>
+
+    <!-- Intermediate: f(x) : Result<U, TError> -->
+    <rect class="pill-bg pill-border" x="310" y="91" width="200" height="32" rx="8" stroke-width="1.5" stroke-dasharray="5 3"/>
+    <text class="mono pill-text" x="410" y="112" text-anchor="middle">f(x) : Result&lt;U, TError&gt;</text>
+
+    <!-- Branches from intermediate -->
+    <path d="M 510 100 C 545 95, 555 82, 590 80" fill="none" stroke="#10B981" stroke-width="1.5" marker-end="url(#rc-g)"/>
+    <path d="M 510 115 C 545 120, 555 133, 590 135" fill="none" stroke="#EF4444" stroke-width="1.5" marker-end="url(#rc-r)"/>
+
+    <rect class="green-bg green-border" x="590" y="64" width="140" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono green-text" x="660" y="85" text-anchor="middle">Success(y)</text>
+    <text class="note" x="740" y="85">f returned Success</text>
+
+    <rect class="red-bg red-border" x="590" y="120" width="140" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono red-text" x="660" y="141" text-anchor="middle">Error(e′)</text>
+    <text class="note" x="740" y="141">f returned Error</text>
+
+    <!-- Error track -->
+    <text class="track-tag red-tag" x="30" y="185">Error</text>
+    <rect class="red-bg red-border" x="90"  y="169" width="140" height="32" rx="16" stroke-width="1.5"/>
+    <text class="mono red-text" x="160" y="190" text-anchor="middle">Error(e)</text>
+    <line x1="230" y1="185" x2="590" y2="185" stroke="#EF4444" stroke-width="1.5" marker-end="url(#rc-r)"/>
+    <text class="op-label red-tag" x="410" y="177" text-anchor="middle">FlatMap(f)</text>
+    <rect class="red-bg-soft red-border" x="590" y="169" width="140" height="32" rx="16" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="mono red-text" x="660" y="190" text-anchor="middle">Error(e)</text>
+    <text class="note" x="740" y="190">f never called — short-circuits</text>
+  </g>
+</svg>

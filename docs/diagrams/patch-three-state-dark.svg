@@ -1,0 +1,122 @@
+<svg class="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 440" role="img" aria-label="HTTP PATCH three-state model with Maybe">
+  <style>
+    .title-text { font: 600 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #111827; }
+    .subtitle   { font: 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #6B7280; }
+    .col-head   { font: 600 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #6B7280; letter-spacing: 0.06em; text-transform: uppercase; }
+    .mono       { font: 13px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #111827; }
+    .mono-lg    { font: 600 14px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #111827; }
+    .intent     { font: 600 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+    .canvas-bg     { fill: #FFFFFF; }
+    .canvas-border { fill: none; stroke: #E5E7EB; }
+
+    .gray-bg       { fill: #F9FAFB; }
+    .gray-border   { stroke: #E5E7EB; }
+    .gray-strong-border { stroke: #9CA3AF; }
+    .gray-dot      { fill: #9CA3AF; }
+    .gray-text     { fill: #374151; }
+
+    .amber-bg      { fill: #FFFBEB; }
+    .amber-border  { stroke: #F59E0B; }
+    .amber-dot     { fill: #F59E0B; }
+    .amber-text    { fill: #B45309; }
+
+    .green-bg      { fill: #ECFDF5; }
+    .green-border  { stroke: #10B981; }
+    .green-dot     { fill: #10B981; }
+    .green-text    { fill: #047857; }
+
+    :where(.dark) {
+      .canvas-bg     { fill: #0d1117; }
+      .canvas-border { stroke: #30363d; }
+
+      .gray-bg       { fill: #161b22; }
+      .gray-border   { stroke: #30363d; }
+      .gray-strong-border { stroke: #6e7681; }
+      .gray-dot      { fill: #8b949e; }
+      .gray-text     { fill: #c9d1d9; }
+
+      .amber-bg      { fill: #2a1f0a; }
+      .amber-text    { fill: #FCD34D; }
+
+      .green-bg      { fill: #0a2618; }
+      .green-text    { fill: #34D399; }
+
+      .title-text { fill: #e6edf3; }
+      .subtitle   { fill: #8b949e; }
+      .col-head   { fill: #8b949e; }
+      .mono       { fill: #e6edf3; }
+      .mono-lg    { fill: #e6edf3; }
+    }
+  </style>
+
+  <defs>
+    <marker id="p3-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0,0 L 9,3 L 0,6 z" fill="#9CA3AF"/>
+    </marker>
+  </defs>
+
+  <rect class="canvas-bg" width="900" height="440"/>
+  <rect class="canvas-border" x="0.5" y="0.5" width="899" height="439" rx="12"/>
+
+  <!-- Title -->
+  <text class="title-text" x="40" y="38">PATCH three-state model</text>
+  <text class="subtitle"   x="40" y="58">Wrapping <tspan font-family="ui-monospace, Menlo, monospace">Maybe&lt;T&gt;</tspan> in <tspan font-family="ui-monospace, Menlo, monospace">T?</tspan> distinguishes <tspan font-style="italic">untouched</tspan> from <tspan font-style="italic">explicitly cleared</tspan>.</text>
+
+  <!-- Column headers -->
+  <text class="col-head" x="40"  y="105">Incoming JSON</text>
+  <text class="col-head" x="330" y="105">Property value</text>
+  <text class="col-head" x="640" y="105">Intent</text>
+
+  <!-- Row 1: Untouched (gray) -->
+  <rect class="gray-bg gray-border" x="40"  y="125" width="260" height="70" rx="10" stroke-width="1.5"/>
+  <text class="mono" x="60" y="152">field omitted</text>
+  <text class="mono" x="60" y="172">— or —</text>
+  <text class="mono" x="60" y="188">"field": null</text>
+
+  <line x1="300" y1="160" x2="330" y2="160" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#p3-arrow)"/>
+
+  <rect class="gray-bg gray-border" x="330" y="125" width="260" height="70" rx="10" stroke-width="1.5"/>
+  <text class="mono-lg" x="460" y="168" text-anchor="middle">(Maybe&lt;T&gt;?)null</text>
+
+  <line x1="590" y1="160" x2="620" y2="160" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#p3-arrow)"/>
+
+  <rect class="gray-bg gray-strong-border" x="620" y="125" width="240" height="70" rx="10" stroke-width="1.5"/>
+  <circle class="gray-dot" cx="640" cy="160" r="6"/>
+  <text class="intent gray-text" x="656" y="166">leave untouched</text>
+
+  <!-- Row 2: Clear to null (amber) -->
+  <rect class="amber-bg amber-border" x="40"  y="210" width="260" height="70" rx="10" stroke-width="1.5"/>
+  <text class="mono" x="60" y="237">"field": {}</text>
+  <text class="mono" x="60" y="257">— or —</text>
+  <text class="mono" x="60" y="273">"field": { "Value": null }</text>
+
+  <line x1="300" y1="245" x2="330" y2="245" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#p3-arrow)"/>
+
+  <rect class="amber-bg amber-border" x="330" y="210" width="260" height="70" rx="10" stroke-width="1.5"/>
+  <text class="mono-lg" x="460" y="253" text-anchor="middle">Maybe&lt;T&gt;.None</text>
+
+  <line x1="590" y1="245" x2="620" y2="245" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#p3-arrow)"/>
+
+  <rect class="amber-bg amber-border" x="620" y="210" width="240" height="70" rx="10" stroke-width="1.5"/>
+  <circle class="amber-dot" cx="640" cy="245" r="6"/>
+  <text class="intent amber-text" x="656" y="251">clear to null</text>
+
+  <!-- Row 3: Set to value (green) -->
+  <rect class="green-bg green-border" x="40"  y="295" width="260" height="70" rx="10" stroke-width="1.5"/>
+  <text class="mono" x="60" y="338" text-anchor="start">"field": { "Value": x }</text>
+
+  <line x1="300" y1="330" x2="330" y2="330" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#p3-arrow)"/>
+
+  <rect class="green-bg green-border" x="330" y="295" width="260" height="70" rx="10" stroke-width="1.5"/>
+  <text class="mono-lg" x="460" y="338" text-anchor="middle">Maybe&lt;T&gt;.Some(x)</text>
+
+  <line x1="590" y1="330" x2="620" y2="330" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#p3-arrow)"/>
+
+  <rect class="green-bg green-border" x="620" y="295" width="240" height="70" rx="10" stroke-width="1.5"/>
+  <circle class="green-dot" cx="640" cy="330" r="6"/>
+  <text class="intent green-text" x="656" y="336">set to x</text>
+
+  <!-- Footer note -->
+  <text class="subtitle" x="40" y="410">A plain <tspan font-family="ui-monospace, Menlo, monospace">T?</tspan> collapses rows 1 and 2 into a single <tspan font-family="ui-monospace, Menlo, monospace">null</tspan> — the outer <tspan font-family="ui-monospace, Menlo, monospace">?</tspan> around <tspan font-family="ui-monospace, Menlo, monospace">Maybe&lt;T&gt;</tspan> is what buys the third state.</text>
+</svg>

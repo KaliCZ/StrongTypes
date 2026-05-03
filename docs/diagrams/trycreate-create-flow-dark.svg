@@ -1,0 +1,201 @@
+<svg class="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 410" role="img" aria-label="TryCreate vs Create factory flows">
+  <style>
+    .col-header       { font: 600 14px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; }
+    .node-label       { font: 600 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .mono             { font: 13px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; }
+    .mono-outcome     { font: 700 14px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; }
+    .branch-label     { font: 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #374151; }
+    .methods-head     { font: 600 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #6B7280; letter-spacing: 0.06em; text-transform: uppercase; }
+    .method-name      { font: 13px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #6B7280; }
+    .bullet           { fill: #D1D5DB; }
+
+    .canvas-bg     { fill: #FFFFFF; }
+    .canvas-border { fill: none; stroke: #E5E7EB; }
+    .divider-line  { stroke: #E5E7EB; }
+
+    .left-header-bg     { fill: #F3F4F6; }
+    .left-header-border { stroke: #D1D5DB; }
+    .left-header-text   { fill: #374151; }
+
+    .right-header-bg     { fill: #FEF2F2; }
+    .right-header-border { stroke: #FCA5A5; }
+    .right-header-text   { fill: #991B1B; }
+
+    .input-pill-bg     { fill: #F9FAFB; }
+    .input-pill-border { stroke: #9CA3AF; }
+    .input-pill-text   { fill: #111827; }
+
+    .decision-bg     { fill: #FFFFFF; }
+    .decision-border { stroke: #6366F1; }
+    .decision-text   { fill: #4338CA; }
+
+    .yes-text { fill: #047857; }
+    .no-text-muted { fill: #6B7280; }
+    .no-text-red   { fill: #B91C1C; }
+
+    .green-bg     { fill: #ECFDF5; }
+    .green-border { stroke: #10B981; }
+    .green-text   { fill: #065F46; }
+
+    .gray-bg     { fill: #F3F4F6; }
+    .gray-border { stroke: #9CA3AF; }
+    .gray-text   { fill: #374151; }
+
+    .red-bg     { fill: #FEF2F2; }
+    .red-border { stroke: #EF4444; }
+    .red-text   { fill: #991B1B; }
+
+    .method-name-muted { fill: #9CA3AF; }
+
+    :where(.dark) {
+      .canvas-bg     { fill: #0d1117; }
+      .canvas-border { stroke: #30363d; }
+      .divider-line  { stroke: #30363d; }
+
+      .left-header-bg     { fill: #161b22; }
+      .left-header-border { stroke: #6e7681; }
+      .left-header-text   { fill: #c9d1d9; }
+
+      .right-header-bg     { fill: #2a0a0a; }
+      .right-header-border { stroke: #F87171; }
+      .right-header-text   { fill: #FCA5A5; }
+
+      .input-pill-bg     { fill: #161b22; }
+      .input-pill-border { stroke: #6e7681; }
+      .input-pill-text   { fill: #e6edf3; }
+
+      .decision-bg     { fill: #161b22; }
+      .decision-border { stroke: #818CF8; }
+      .decision-text   { fill: #C7D2FE; }
+
+      .branch-label  { fill: #c9d1d9; }
+      .yes-text      { fill: #34D399; }
+      .no-text-muted { fill: #8b949e; }
+      .no-text-red   { fill: #FCA5A5; }
+
+      .green-bg     { fill: #0a2618; }
+      .green-text   { fill: #6EE7B7; }
+
+      .gray-bg     { fill: #161b22; }
+      .gray-border { stroke: #6e7681; }
+      .gray-text   { fill: #c9d1d9; }
+
+      .red-bg     { fill: #2a0a0a; }
+      .red-border { stroke: #F87171; }
+      .red-text   { fill: #FCA5A5; }
+
+      .methods-head { fill: #8b949e; }
+      .method-name  { fill: #8b949e; }
+      .method-name-muted { fill: #6e7681; }
+      .bullet       { fill: #6e7681; }
+    }
+  </style>
+
+  <defs>
+    <marker id="tc-arrow-gray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0,0 L 9,3 L 0,6 z" fill="#9CA3AF"/>
+    </marker>
+    <marker id="tc-arrow-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0,0 L 9,3 L 0,6 z" fill="#10B981"/>
+    </marker>
+    <marker id="tc-arrow-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0,0 L 9,3 L 0,6 z" fill="#EF4444"/>
+    </marker>
+    <marker id="tc-arrow-indigo" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0,0 L 9,3 L 0,6 z" fill="#6366F1"/>
+    </marker>
+  </defs>
+
+  <rect class="canvas-bg" width="900" height="410"/>
+  <rect class="canvas-border" x="0.5" y="0.5" width="899" height="409" rx="10"/>
+
+  <!-- ============ LEFT COLUMN: TryCreate / As… ============ -->
+  <g transform="translate(20, 0)">
+    <!-- Column header bar -->
+    <rect class="left-header-bg left-header-border" x="0" y="20" width="420" height="32" rx="6" stroke-width="1.5"/>
+    <text class="col-header left-header-text" x="210" y="41" text-anchor="middle">TryCreate / As…</text>
+
+    <!-- Input pill -->
+    <rect class="input-pill-bg input-pill-border" x="150" y="72" width="120" height="34" rx="17" stroke-width="1.5"/>
+    <text class="node-label input-pill-text" x="210" y="94" text-anchor="middle">input</text>
+
+    <!-- Arrow down to validate -->
+    <line x1="210" y1="108" x2="210" y2="128" stroke="#6366F1" stroke-width="1.5" marker-end="url(#tc-arrow-indigo)"/>
+
+    <!-- Validate box (decision) -->
+    <rect class="decision-bg decision-border" x="150" y="130" width="120" height="38" rx="8" stroke-width="1.5"/>
+    <text class="node-label decision-text" x="210" y="154" text-anchor="middle">valid?</text>
+
+    <!-- Branch arrows -->
+    <path d="M 190 168 C 170 185, 150 195, 130 208" fill="none" stroke="#10B981" stroke-width="1.5" marker-end="url(#tc-arrow-green)"/>
+    <path d="M 230 168 C 250 185, 270 195, 290 208" fill="none" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#tc-arrow-gray)"/>
+
+    <!-- Branch labels -->
+    <text class="branch-label yes-text" x="148" y="185" text-anchor="middle">yes</text>
+    <text class="branch-label no-text-muted" x="272" y="185" text-anchor="middle">no</text>
+
+    <!-- Success outcome -->
+    <rect class="green-bg green-border" x="70" y="210" width="120" height="40" rx="8" stroke-width="1.5"/>
+    <text class="mono-outcome green-text" x="130" y="236" text-anchor="middle">T</text>
+
+    <!-- Failure outcome: null -->
+    <rect class="gray-bg gray-border" x="230" y="210" width="120" height="40" rx="8" stroke-width="1.5"/>
+    <text class="mono-outcome gray-text" x="290" y="236" text-anchor="middle">null</text>
+
+    <!-- Divider -->
+    <line class="divider-line" x1="10" y1="285" x2="410" y2="285" stroke-width="1" stroke-dasharray="4 3"/>
+
+    <!-- Methods list -->
+    <text class="methods-head" x="20" y="310">Methods in this family</text>
+    <g transform="translate(20, 330)">
+      <circle class="bullet" cx="6" cy="6" r="2.5"/><text class="method-name" x="18" y="10">TryCreate / TryParse<tspan class="method-name-muted">  (on any validated type or enum)</tspan></text>
+      <circle class="bullet" cx="6" cy="32" r="2.5"/><text class="method-name" x="18" y="36">AsNonEmpty / AsPositive / AsNegative / AsEnum&lt;T&gt; / …</text>
+      <circle class="bullet" cx="6" cy="58" r="2.5"/><text class="method-name" x="18" y="62">AsInt / AsGuid / AsTimeSpan / …</text>
+    </g>
+  </g>
+
+  <!-- ============ RIGHT COLUMN: Create / To… ============ -->
+  <g transform="translate(460, 0)">
+    <!-- Column header bar -->
+    <rect class="right-header-bg right-header-border" x="0" y="20" width="420" height="32" rx="6" stroke-width="1.5"/>
+    <text class="col-header right-header-text" x="210" y="41" text-anchor="middle">Create / To…</text>
+
+    <!-- Input pill -->
+    <rect class="input-pill-bg input-pill-border" x="150" y="72" width="120" height="34" rx="17" stroke-width="1.5"/>
+    <text class="node-label input-pill-text" x="210" y="94" text-anchor="middle">input</text>
+
+    <!-- Arrow down to validate -->
+    <line x1="210" y1="108" x2="210" y2="128" stroke="#6366F1" stroke-width="1.5" marker-end="url(#tc-arrow-indigo)"/>
+
+    <!-- Validate box (decision) -->
+    <rect class="decision-bg decision-border" x="150" y="130" width="120" height="38" rx="8" stroke-width="1.5"/>
+    <text class="node-label decision-text" x="210" y="154" text-anchor="middle">valid?</text>
+
+    <!-- Branch arrows -->
+    <path d="M 190 168 C 170 185, 150 195, 130 208" fill="none" stroke="#10B981" stroke-width="1.5" marker-end="url(#tc-arrow-green)"/>
+    <path d="M 230 168 C 250 185, 270 195, 290 208" fill="none" stroke="#EF4444" stroke-width="1.5" marker-end="url(#tc-arrow-red)"/>
+
+    <!-- Branch labels -->
+    <text class="branch-label yes-text" x="148" y="185" text-anchor="middle">yes</text>
+    <text class="branch-label no-text-red" x="272" y="185" text-anchor="middle">no</text>
+
+    <!-- Success outcome -->
+    <rect class="green-bg green-border" x="70" y="210" width="120" height="40" rx="8" stroke-width="1.5"/>
+    <text class="mono-outcome green-text" x="130" y="236" text-anchor="middle">T</text>
+
+    <!-- Failure outcome: throws -->
+    <rect class="red-bg red-border" x="230" y="210" width="120" height="40" rx="8" stroke-width="1.5"/>
+    <text class="mono-outcome red-text" x="290" y="236" text-anchor="middle">throws</text>
+
+    <!-- Divider -->
+    <line class="divider-line" x1="10" y1="285" x2="410" y2="285" stroke-width="1" stroke-dasharray="4 3"/>
+
+    <!-- Methods list -->
+    <text class="methods-head" x="20" y="310">Methods in this family</text>
+    <g transform="translate(20, 330)">
+      <circle class="bullet" cx="6" cy="6" r="2.5"/><text class="method-name" x="18" y="10">Create / Parse<tspan class="method-name-muted">  (on any validated type or enum)</tspan></text>
+      <circle class="bullet" cx="6" cy="32" r="2.5"/><text class="method-name" x="18" y="36">ToNonEmpty / ToPositive / ToNegative / ToEnum&lt;T&gt; / …</text>
+      <circle class="bullet" cx="6" cy="58" r="2.5"/><text class="method-name" x="18" y="62">ToInt / ToGuid / ToTimeSpan / …</text>
+    </g>
+  </g>
+</svg>

@@ -16,9 +16,15 @@ You can store the types directly in your EF Core entities with the use of the Ef
 > StrongTypes? See [Use with Claude or Codex](#use-with-claude-or-codex)
 > below.
 
-![Impact of StrongTypes on validation boundaries](docs/diagrams/impact.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/impact-dark.svg">
+  <img alt="Impact of StrongTypes on validation boundaries" src="docs/diagrams/impact.svg">
+</picture>
 
-![Package layout](docs/diagrams/package-layout.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/package-layout-dark.svg">
+  <img alt="Package layout" src="docs/diagrams/package-layout.svg">
+</picture>
 
 ## Contents
 
@@ -60,7 +66,10 @@ curl -L https://github.com/KaliCZ/StrongTypes/releases/latest/download/strongtyp
 
 The `TryCreate` / `Create` split (and the `As…` / `To…` extensions that mirror it) is used across every validated type in the library — pick the factory that matches how you want to handle bad input at the call site:
 
-![TryCreate vs Create flow](docs/diagrams/trycreate-create-flow.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/trycreate-create-flow-dark.svg">
+  <img alt="TryCreate vs Create flow" src="docs/diagrams/trycreate-create-flow.svg">
+</picture>
 
 ### `NonEmptyString`
 
@@ -214,7 +223,10 @@ NonEmptyEnumerable<Dog>      dogs    = [new Dog()];
 INonEmptyEnumerable<Animal>  animals = dogs;  // allowed thanks to `out T`
 ```
 
-![Covariant out T upcast](docs/diagrams/covariance.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/covariance-dark.svg">
+  <img alt="Covariant out T upcast" src="docs/diagrams/covariance.svg">
+</picture>
 
 All extensions (`Select`, `Concat`, `Max`, `Last`, …) have overloads on both the concrete type and the interface, so either receiver type works in a chain.
 
@@ -360,7 +372,10 @@ The generic constraint is `where T : notnull` — `Maybe<int?>` and `Maybe<strin
 
 HTTP `PATCH` has a long-standing modelling problem for nullable fields: a request needs to distinguish three intents — *don't touch this field*, *clear this field to null*, and *set it to a new value*. A plain `T?` collapses the first two cases. `Maybe<T>?` keeps them apart, because `Maybe<T>` itself is a value, so wrapping it in `T?` adds a real third state:
 
-![PATCH three-state model](docs/diagrams/patch-three-state.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/patch-three-state-dark.svg">
+  <img alt="PATCH three-state model" src="docs/diagrams/patch-three-state.svg">
+</picture>
 
 The request DTO and PATCH handler then read straight off pattern matching, with no out-of-band sentinel values:
 
@@ -428,7 +443,10 @@ var label = maybe.Match(
 
 `Maybe<T>` composes monadically through `Map`, `FlatMap`, and `Where`. Each operation is a no-op on `None`, so chains short-circuit cleanly without explicit null checks:
 
-![Maybe composition pipeline](docs/diagrams/maybe-composition.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/maybe-composition-dark.svg">
+  <img alt="Maybe composition pipeline" src="docs/diagrams/maybe-composition.svg">
+</picture>
 
 ```csharp
 // Map — transform the inner value when present.
@@ -543,7 +561,10 @@ public Result<Order, OrderError> CreateOrder(OrderData data)
 
 `Map`, `MapError`, `Match`, and `FlatMap` let you chain without explicit branching. Success and error values flow down independent tracks — `Map` only touches the success side, `MapError` only touches the error side, and `FlatMap` short-circuits on error:
 
-![Result composition pipeline](docs/diagrams/result-composition.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/result-composition-dark.svg">
+  <img alt="Result composition pipeline" src="docs/diagrams/result-composition.svg">
+</picture>
 
 
 ```csharp
