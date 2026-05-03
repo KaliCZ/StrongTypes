@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-label="INonEmptyEnumerable covariance">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="40 38 820 224" role="img" aria-label="INonEmptyEnumerable covariance">
   <style>
     .title-text { font: 600 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #111827; }
     .subtitle   { font: 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #6B7280; }
@@ -8,8 +8,6 @@
     .edge-label { font: 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #374151; }
     .hint       { font: 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #6B7280; }
 
-    .canvas-bg     { fill: #FFFFFF; }
-    .canvas-border { fill: none; stroke: #E5E7EB; }
 
     .concrete-bg     { fill: #FFFFFF; }
     .concrete-border { stroke: #E5E7EB; }
@@ -25,8 +23,6 @@
     .mono-indigo      { fill: #6366F1; }
 
     :where(.dark) {
-      .canvas-bg     { fill: #0d1117; }
-      .canvas-border { stroke: #30363d; }
 
       .concrete-bg     { fill: #161b22; }
       .concrete-border { stroke: #30363d; }
@@ -56,8 +52,6 @@
     </marker>
   </defs>
 
-  <rect class="canvas-bg" width="900" height="300"/>
-  <rect class="canvas-border" x="0.5" y="0.5" width="899" height="299" rx="12"/>
 
   <text class="title-text" x="40" y="38">Covariant interface: out T</text>
   <text class="subtitle"   x="40" y="58">A more-derived element type flows upward to a less-derived interface.</text>

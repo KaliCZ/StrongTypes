@@ -1,4 +1,4 @@
-<svg class="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" role="img" aria-label="StrongTypes NuGet package layout">
+<svg class="dark" xmlns="http://www.w3.org/2000/svg" viewBox="15 15 770 330" role="img" aria-label="StrongTypes NuGet package layout">
   <style>
     .card-title { font: 600 13px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #111827; }
     .core-title { font: 700 15px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #111827; }
@@ -12,8 +12,6 @@
     .sub-bullet { fill: none; stroke: #9CA3AF; stroke-width: 1.2; }
     .sm-bullet  { fill: #9CA3AF; }
 
-    .canvas-bg     { fill: #FFFFFF; }
-    .canvas-border { fill: none; stroke: #E5E7EB; }
     .core-bg       { fill: #EEF2FF; }
     .core-border   { stroke: #6366F1; }
     .card-bg       { fill: #FFFFFF; }
@@ -21,8 +19,6 @@
     .arrow-line    { stroke: #6B7280; }
 
     :where(.dark) {
-      .canvas-bg     { fill: #0d1117; }
-      .canvas-border { stroke: #30363d; }
       .core-bg       { fill: #1a1d40; }
       .core-border   { stroke: #818CF8; }
       .card-bg       { fill: #161b22; }
@@ -49,8 +45,6 @@
     </marker>
   </defs>
 
-  <rect class="canvas-bg" width="800" height="360"/>
-  <rect class="canvas-border" x="0.5" y="0.5" width="799" height="359" rx="10"/>
 
   <!-- Core card (top-left) -->
   <rect class="core-bg core-border" x="15" y="15" width="395" height="190" rx="8" stroke-width="1.5"/>

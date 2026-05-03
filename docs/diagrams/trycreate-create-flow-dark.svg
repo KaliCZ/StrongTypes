@@ -1,4 +1,4 @@
-<svg class="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 410" role="img" aria-label="TryCreate vs Create factory flows">
+<svg class="dark" xmlns="http://www.w3.org/2000/svg" viewBox="20 20 860 370" role="img" aria-label="TryCreate vs Create factory flows">
   <style>
     .col-header       { font: 600 14px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; }
     .node-label       { font: 600 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
@@ -9,8 +9,6 @@
     .method-name      { font: 13px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #6B7280; }
     .bullet           { fill: #D1D5DB; }
 
-    .canvas-bg     { fill: #FFFFFF; }
-    .canvas-border { fill: none; stroke: #E5E7EB; }
     .divider-line  { stroke: #E5E7EB; }
 
     .left-header-bg     { fill: #F3F4F6; }
@@ -48,8 +46,6 @@
     .method-name-muted { fill: #9CA3AF; }
 
     :where(.dark) {
-      .canvas-bg     { fill: #0d1117; }
-      .canvas-border { stroke: #30363d; }
       .divider-line  { stroke: #30363d; }
 
       .left-header-bg     { fill: #161b22; }
@@ -106,8 +102,6 @@
     </marker>
   </defs>
 
-  <rect class="canvas-bg" width="900" height="410"/>
-  <rect class="canvas-border" x="0.5" y="0.5" width="899" height="409" rx="10"/>
 
   <!-- ============ LEFT COLUMN: TryCreate / As… ============ -->
   <g transform="translate(20, 0)">
