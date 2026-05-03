@@ -251,4 +251,55 @@ public class EmailTests
     [Property]
     public void Equals_String_Null_False(Email email) =>
         Assert.False(email.Equals((string?)null));
+
+    // ── Cross-type operators with NonEmptyString ──────────────────────────
+
+    [Property]
+    public void OperatorEquals_NonEmptyString_SameValue_True(Email email)
+    {
+        var nes = NonEmptyString.Create(email.Address);
+        Assert.True(email == nes);
+        Assert.True(nes == email);
+        Assert.False(email != nes);
+        Assert.False(nes != email);
+    }
+
+    [Property]
+    public void OperatorEquals_NonEmptyString_CaseInsensitive(Email email)
+    {
+        var nes = NonEmptyString.Create(email.Address.ToUpperInvariant());
+        Assert.True(email == nes);
+        Assert.True(nes == email);
+    }
+
+    [Property]
+    public void OperatorEquals_NonEmptyString_DifferentValue_False(Email email)
+    {
+        var nes = NonEmptyString.Create(email.Address + "_suffix");
+        Assert.False(email == nes);
+        Assert.False(nes == email);
+        Assert.True(email != nes);
+        Assert.True(nes != email);
+    }
+
+    [Property]
+    public void OperatorEquals_NonEmptyString_Null_False(Email email)
+    {
+        NonEmptyString? nesNull = null;
+        Assert.False(email == nesNull);
+        Assert.False(nesNull == email);
+        Assert.True(email != nesNull);
+        Assert.True(nesNull != email);
+    }
+
+    [Fact]
+    public void OperatorEquals_NonEmptyString_BothNull_True()
+    {
+        Email? emailNull = null;
+        NonEmptyString? nesNull = null;
+        Assert.True(emailNull == nesNull);
+        Assert.True(nesNull == emailNull);
+        Assert.False(emailNull != nesNull);
+        Assert.False(nesNull != emailNull);
+    }
 }

@@ -103,4 +103,13 @@ public sealed class Email :
     public static bool operator ==(string? left, Email? right) => right == left;
 
     public static bool operator !=(string? left, Email? right) => !(right == left);
+
+    public static bool operator ==(Email? left, NonEmptyString? right) =>
+        left == (right is null ? null : right.Value);
+
+    public static bool operator !=(Email? left, NonEmptyString? right) => !(left == right);
+
+    public static bool operator ==(NonEmptyString? left, Email? right) => right == left;
+
+    public static bool operator !=(NonEmptyString? left, Email? right) => !(right == left);
 }
