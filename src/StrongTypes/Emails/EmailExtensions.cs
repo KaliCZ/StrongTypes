@@ -17,6 +17,12 @@ public static class EmailExtensions
     [Pure]
     public static MailAddress ToEmail(this string? s) => Email.Create(s).Value;
 
+    /// <summary>Returns the underlying address string of <paramref name="mailAddress"/>.</summary>
+    /// <param name="mailAddress">The mail address.</param>
+    /// <remarks>StrongTypes.EfCore translates this call in LINQ expressions to the underlying string column, letting callers write <c>e.Email.Unwrap().Contains("alice")</c> against SQL.</remarks>
+    [Pure]
+    public static string Unwrap(this MailAddress mailAddress) => mailAddress.Address;
+
     // C# 14 extension block: lets callers write MailAddress.Create / MailAddress.TryCreate
     // alongside the BCL's existing static surface, matching the Create / TryCreate shape
     // every StrongTypes wrapper uses.

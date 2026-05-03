@@ -118,13 +118,6 @@ public class EmailTests
         Assert.False(string.IsNullOrEmpty(ma.Host));
     }
 
-    [Fact]
-    public void Default_Value_Throws()
-    {
-        Email defaulted = default;
-        Assert.Throws<InvalidOperationException>(() => defaulted.Value);
-    }
-
     // ── String / MailAddress conversions ──────────────────────────────────
 
     [Property]

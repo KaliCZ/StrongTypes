@@ -18,6 +18,7 @@ public sealed class UnwrapMethodCallTranslator(
     private static readonly HashSet<MethodInfo> UnwrapMethodDefinitions =
     [
         UnwrapOn(typeof(NonEmptyStringExtensions)),
+        UnwrapOn(typeof(EmailExtensions)),
         UnwrapOn(typeof(PositiveExtensions)),
         UnwrapOn(typeof(NonNegativeExtensions)),
         UnwrapOn(typeof(NegativeExtensions)),

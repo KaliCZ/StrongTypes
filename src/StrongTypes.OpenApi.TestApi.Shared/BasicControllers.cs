@@ -16,7 +16,7 @@ public sealed class NonEmptyStringEntityController : ControllerBase
 public sealed class EmailEntityController : ControllerBase
 {
     [HttpPost]
-    public IActionResult Create(StructEntityRequest<Email> request)
+    public IActionResult Create(ReferenceEntityRequest<Email> request)
         => Ok(new EntityResponse(Guid.NewGuid()));
 }
 

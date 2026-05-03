@@ -6,24 +6,20 @@ using System.Text.Json.Serialization;
 namespace StrongTypes;
 
 /// <summary>An email address validated by <see cref="MailAddress.TryCreate(string?, out MailAddress?)"/> and capped at the RFC 5321 deliverable length of 254 characters.</summary>
-/// <remarks>The <see cref="Value"/> property hands the caller a <see cref="MailAddress"/> directly so it can be passed straight into APIs that take one (mailers, validators). The wire form on JSON, EF Core columns, and route arguments is the underlying address string. <c>default(Email)</c> is invalid; reading any property on it throws.</remarks>
+/// <remarks>The <see cref="Value"/> property hands the caller a <see cref="MailAddress"/> directly so it can be passed straight into APIs that take one (mailers, validators). The wire form on JSON, EF Core columns, and route arguments is the underlying address string.</remarks>
 [JsonConverter(typeof(EmailJsonConverter))]
-public readonly struct Email : IEquatable<Email>
+public sealed class Email : IEquatable<Email>
 {
     /// <summary>RFC 5321 deliverable cap. The forwarder path can be longer; this is the addr-spec limit clients should enforce on input.</summary>
     public const int MaxLength = 254;
 
-    private readonly MailAddress? _value;
-
     private Email(MailAddress value)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>The parsed address. Use <c>email.Value.Address</c> for the raw string, <c>email.Value.User</c> for the local-part, and <c>email.Value.Host</c> for the domain.</summary>
-    /// <exception cref="InvalidOperationException">The instance is <c>default(Email)</c> and was never initialised.</exception>
-    public MailAddress Value =>
-        _value ?? throw new InvalidOperationException($"{nameof(Email)} is uninitialised; construct it via {nameof(Create)} or {nameof(TryCreate)}.");
+    public MailAddress Value { get; }
 
     /// <summary>The address as it appeared on the wire.</summary>
     public string Address => Value.Address;
@@ -52,10 +48,14 @@ public readonly struct Email : IEquatable<Email>
 
     public static implicit operator MailAddress(Email email) => email.Value;
 
+    /// <summary>Wraps <paramref name="value"/> as an <see cref="Email"/>. Throws when the address exceeds <see cref="MaxLength"/>; for MailAddresses parsed via the BCL directly that's the only way the implicit conversion can fail.</summary>
+    /// <exception cref="ArgumentException">The address is longer than <see cref="MaxLength"/>.</exception>
+    public static implicit operator Email(MailAddress value) => Create(value.Address);
+
     public static explicit operator Email(string value) => Create(value);
 
     [Pure]
-    public bool Equals(Email other) => string.Equals(Address, other.Address, StringComparison.OrdinalIgnoreCase);
+    public bool Equals(Email? other) => other is not null && string.Equals(Address, other.Address, StringComparison.OrdinalIgnoreCase);
 
     [Pure]
     public override bool Equals(object? obj) => obj is Email other && Equals(other);
@@ -66,6 +66,8 @@ public readonly struct Email : IEquatable<Email>
     [Pure]
     public override string ToString() => Address;
 
-    public static bool operator ==(Email left, Email right) => left.Equals(right);
-    public static bool operator !=(Email left, Email right) => !left.Equals(right);
+    public static bool operator ==(Email? left, Email? right) =>
+        left is null ? right is null : left.Equals(right);
+
+    public static bool operator !=(Email? left, Email? right) => !(left == right);
 }

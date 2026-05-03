@@ -33,7 +33,7 @@ public sealed class EmailEntityController(SqlServerDbContext sqlCtx, PostgreSqlD
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(StructEntityRequest<Email> request)
+    public async Task<IActionResult> Create(ReferenceEntityRequest<Email> request)
     {
         var entity = EmailEntity.Create(request.Value, request.NullableValue?.Value);
         SqlSet.Add(entity);
@@ -43,7 +43,7 @@ public sealed class EmailEntityController(SqlServerDbContext sqlCtx, PostgreSqlD
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, StructEntityRequest<Email> request)
+    public async Task<IActionResult> Update(Guid id, ReferenceEntityRequest<Email> request)
     {
         var sqlEntity = await SqlSet.FindAsync(id);
         var pgEntity = await PgSet.FindAsync(id);
@@ -55,7 +55,7 @@ public sealed class EmailEntityController(SqlServerDbContext sqlCtx, PostgreSqlD
     }
 
     [HttpPatch("{id:guid}")]
-    public async Task<IActionResult> Patch(Guid id, StructEntityPatchRequest<Email> request)
+    public async Task<IActionResult> Patch(Guid id, ReferenceEntityPatchRequest<Email> request)
     {
         var sqlEntity = await SqlSet.FindAsync(id);
         var pgEntity = await PgSet.FindAsync(id);
@@ -86,7 +86,5 @@ public sealed class EmailEntityController(SqlServerDbContext sqlCtx, PostgreSqlD
     public sealed record EmailEntityDto(Guid Id, Email Value, Email? NullableValue);
 
     private static EmailEntityDto ToDto(EmailEntity entity) =>
-        new(entity.Id,
-            Email.Create(entity.Value.Address),
-            entity.NullableValue is { } nv ? Email.Create(nv.Address) : null);
+        new(entity.Id, entity.Value, entity.NullableValue is { } nv ? (Email)nv : null);
 }
