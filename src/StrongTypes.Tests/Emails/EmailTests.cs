@@ -201,6 +201,10 @@ public class EmailTests
         var ma = new MailAddress(email.Address);
         Assert.True(email.Equals(ma));
         Assert.True(email.Equals((object)ma));
+        Assert.True(email == ma);
+        Assert.True(ma == email);
+        Assert.False(email != ma);
+        Assert.False(ma != email);
     }
 
     [Property]
@@ -227,6 +231,10 @@ public class EmailTests
     {
         Assert.True(email.Equals(email.Address));
         Assert.True(email.Equals((object)email.Address));
+        Assert.True(email == email.Address);
+        Assert.True(email.Address == email);
+        Assert.False(email != email.Address);
+        Assert.False(email.Address != email);
     }
 
     [Property]

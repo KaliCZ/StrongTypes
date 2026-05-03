@@ -16,7 +16,9 @@ public sealed class Email :
     /// <summary>RFC 5321 deliverable cap. The forwarder path can be longer; this is the addr-spec limit clients should enforce on input.</summary>
     public const int MaxLength = 254;
 
-    private Email(MailAddress value)
+    /// <summary>Wraps an already-parsed <paramref name="value"/> without re-validating. Skips the <see cref="MaxLength"/> check — callers that need the cap enforced should go through <see cref="Create(string?)"/> or <see cref="TryCreate(string?)"/>.</summary>
+    /// <param name="value">The mail address to wrap.</param>
+    public Email(MailAddress value)
     {
         Value = value;
     }
@@ -51,9 +53,7 @@ public sealed class Email :
 
     public static implicit operator MailAddress(Email email) => email.Value;
 
-    /// <summary>Wraps <paramref name="value"/> as an <see cref="Email"/>. Throws when the address exceeds <see cref="MaxLength"/>; for MailAddresses parsed via the BCL directly that's the only way the implicit conversion can fail.</summary>
-    /// <exception cref="ArgumentException">The address is longer than <see cref="MaxLength"/>.</exception>
-    public static implicit operator Email(MailAddress value) => Create(value.Address);
+    public static implicit operator Email(MailAddress value) => new(value);
 
     public static explicit operator Email(string value) => Create(value);
 
@@ -85,4 +85,22 @@ public sealed class Email :
         left is null ? right is null : left.Equals(right);
 
     public static bool operator !=(Email? left, Email? right) => !(left == right);
+
+    public static bool operator ==(Email? left, MailAddress? right) =>
+        left is null ? right is null : left.Equals(right);
+
+    public static bool operator !=(Email? left, MailAddress? right) => !(left == right);
+
+    public static bool operator ==(MailAddress? left, Email? right) => right == left;
+
+    public static bool operator !=(MailAddress? left, Email? right) => !(right == left);
+
+    public static bool operator ==(Email? left, string? right) =>
+        left is null ? right is null : left.Equals(right);
+
+    public static bool operator !=(Email? left, string? right) => !(left == right);
+
+    public static bool operator ==(string? left, Email? right) => right == left;
+
+    public static bool operator !=(string? left, Email? right) => !(right == left);
 }

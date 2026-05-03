@@ -164,6 +164,15 @@ public sealed class NonEmptyString :
 
     public static bool operator !=(NonEmptyString? left, NonEmptyString? right) => !(left == right);
 
+    public static bool operator ==(NonEmptyString? left, string? right) =>
+        left is null ? right is null : left.Equals(right);
+
+    public static bool operator !=(NonEmptyString? left, string? right) => !(left == right);
+
+    public static bool operator ==(string? left, NonEmptyString? right) => right == left;
+
+    public static bool operator !=(string? left, NonEmptyString? right) => !(right == left);
+
     #endregion Equality
 
     #region Comparison

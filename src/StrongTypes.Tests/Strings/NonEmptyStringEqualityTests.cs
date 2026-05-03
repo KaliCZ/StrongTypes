@@ -104,4 +104,44 @@ public class NonEmptyStringEqualityTests
         Assert.True(s != nil);
         Assert.True(nil != s);
     }
+
+    [Property]
+    public void OperatorEquals_String_SameValue_IsTrue(NonEmptyString s)
+    {
+        Assert.True(s == s.Value);
+        Assert.True(s.Value == s);
+        Assert.False(s != s.Value);
+        Assert.False(s.Value != s);
+    }
+
+    [Property]
+    public void OperatorEquals_String_DifferentValue_IsFalse(NonEmptyString s)
+    {
+        var different = s.Value + "_suffix";
+        Assert.False(s == different);
+        Assert.False(different == s);
+        Assert.True(s != different);
+        Assert.True(different != s);
+    }
+
+    [Property]
+    public void OperatorEquals_String_Null_IsFalse(NonEmptyString s)
+    {
+        string? nil = null;
+        Assert.False(s == nil);
+        Assert.False(nil == s);
+        Assert.True(s != nil);
+        Assert.True(nil != s);
+    }
+
+    [Fact]
+    public void OperatorEquals_BothNull_NonEmptyStringAndString_IsTrue()
+    {
+        NonEmptyString? nesNull = null;
+        string? strNull = null;
+        Assert.True(nesNull == strNull);
+        Assert.True(strNull == nesNull);
+        Assert.False(nesNull != strNull);
+        Assert.False(strNull != nesNull);
+    }
 }
