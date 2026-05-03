@@ -28,12 +28,28 @@ internal sealed class StrongTypesComponentSchemaFiller : IOpenApiDocumentTransfo
 
     private static bool TryPaint(string name, OpenApiSchema schema, IDictionary<string, IOpenApiSchema> components)
     {
+        // Name-only matching would happily trample a user DTO that happens
+        // to be called `Email` or `MaybeOfInt32`. Every wrapper we paint is
+        // a primitive (string / integer / number / array) or — for
+        // `MaybeOf<T>` — an object with a single `Value` property. Anything
+        // shaped like a real DTO with multiple object-typed properties is a
+        // user type, not ours; bail without touching it.
+        if (LooksLikeUserDto(schema)) return false;
+
         var painted = TryBuild(name, components);
         if (painted is null) return false;
 
         SchemaPaint.ClearWrapperShape(schema);
         CopyInto(schema, painted);
         StrongTypeInlineMarker.Set(schema);
+        return true;
+    }
+
+    private static bool LooksLikeUserDto(OpenApiSchema schema)
+    {
+        if (schema.Type != JsonSchemaType.Object) return false;
+        if (schema.Properties is not { Count: > 0 } props) return false;
+        if (props.Count == 1 && props.ContainsKey("Value")) return false;
         return true;
     }
 
