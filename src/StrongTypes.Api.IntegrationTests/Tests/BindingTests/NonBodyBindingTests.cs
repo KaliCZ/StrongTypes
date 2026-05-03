@@ -245,6 +245,24 @@ public sealed class NonBodyBindingTests(TestWebApplicationFactory factory) : IDi
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact]
+    public async Task FromHeader_EmptyNullableHeader_ShortCircuitsToNull()
+    {
+        // Confirms the same NullableConverter quirk applies to headers as
+        // it does to query / form: a present-but-empty value on a nullable
+        // parsable type binds to null without invoking TryParse.
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header");
+        request.Headers.Add("X-Name", "Dana");
+        request.Headers.Add("X-Count", "13");
+        request.Headers.TryAddWithoutValidation("X-Nullable-Name", "");
+
+        var response = await _client.SendAsync(request, Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableName").ValueKind);
+    }
+
     // ── [FromForm] ───────────────────────────────────────────────────────
 
     [Fact]
