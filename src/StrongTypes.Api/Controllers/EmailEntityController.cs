@@ -48,10 +48,8 @@ public sealed class EmailEntityController(SqlServerDbContext sqlCtx, PostgreSqlD
         var sqlEntity = await SqlSet.FindAsync(id);
         var pgEntity = await PgSet.FindAsync(id);
         if (sqlEntity is null || pgEntity is null) return NotFound();
-        MailAddress value = request.Value;
-        MailAddress? nullableValue = request.NullableValue?.Value;
-        sqlEntity.Update(value, nullableValue);
-        pgEntity.Update(value, nullableValue);
+        sqlEntity.Update(request.Value, request.NullableValue?.Value);
+        pgEntity.Update(request.Value, request.NullableValue?.Value);
         await SaveAllAsync();
         return Ok(new EntityResponse(id));
     }
