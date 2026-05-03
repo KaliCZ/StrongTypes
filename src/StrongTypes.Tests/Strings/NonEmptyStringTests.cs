@@ -56,4 +56,26 @@ public class NonEmptyStringTests
     [Theory, InlineData(null), InlineData(""), InlineData(" ")]
     public void ExplicitConversionFromString_Throws_OnInvalid(string? input) =>
         Assert.Throws<ArgumentException>(() => (NonEmptyString)input!);
+
+    [Property]
+    public void TryParse_ValidInput_ReturnsTrueAndWrapsValue(NonEmptyString seed)
+    {
+        Assert.True(NonEmptyString.TryParse(seed.Value, provider: null, out var parsed));
+        Assert.Equal(seed.Value, parsed.Value);
+    }
+
+    [Theory, InlineData(null), InlineData(""), InlineData(" "), InlineData("\t\n")]
+    public void TryParse_NullOrWhitespace_ReturnsFalse(string? input)
+    {
+        Assert.False(NonEmptyString.TryParse(input, provider: null, out var parsed));
+        Assert.Null(parsed);
+    }
+
+    [Property]
+    public void Parse_ValidInput_WrapsValue(NonEmptyString seed) =>
+        Assert.Equal(seed.Value, NonEmptyString.Parse(seed.Value, provider: null).Value);
+
+    [Theory, InlineData(""), InlineData(" "), InlineData("\t\n")]
+    public void Parse_Invalid_Throws(string input) =>
+        Assert.Throws<ArgumentException>(() => NonEmptyString.Parse(input, provider: null));
 }

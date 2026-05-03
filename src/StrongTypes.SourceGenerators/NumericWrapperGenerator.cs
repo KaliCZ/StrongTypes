@@ -177,7 +177,8 @@ public sealed class NumericWrapperGenerator : IIncrementalGenerator
             sb.Append("    global::System.IEquatable<").Append(t).AppendLine(">,");
             sb.Append("    global::System.IComparable<").Append(self).AppendLine(">,");
             sb.Append("    global::System.IComparable<").Append(t).AppendLine(">,");
-            sb.AppendLine("    global::System.IComparable");
+            sb.AppendLine("    global::System.IComparable,");
+            sb.Append("    global::System.IParsable<").Append(self).AppendLine(">");
 
             foreach (var c in m.ConstraintClauses)
                 sb.Append("    ").AppendLine(c);
@@ -192,6 +193,22 @@ public sealed class NumericWrapperGenerator : IIncrementalGenerator
             sb.Append("        => TryCreate(value) ?? throw new global::System.ArgumentException($\"Value must be ")
               .Append(m.InvariantDescription)
               .AppendLine(", but was '{value}'.\", nameof(value));");
+            sb.AppendLine();
+
+            sb.Append("    public static ").Append(self).AppendLine(" Parse(string s, global::System.IFormatProvider? provider)");
+            sb.Append("        => Create(").Append(t).AppendLine(".Parse(s, provider));");
+            sb.AppendLine();
+
+            sb.Append("    public static bool TryParse(string? s, global::System.IFormatProvider? provider, out ").Append(self).AppendLine(" result)");
+            sb.AppendLine("    {");
+            sb.Append("        if (").Append(t).AppendLine(".TryParse(s, provider, out var underlying) && TryCreate(underlying) is { } parsed)");
+            sb.AppendLine("        {");
+            sb.AppendLine("            result = parsed;");
+            sb.AppendLine("            return true;");
+            sb.AppendLine("        }");
+            sb.AppendLine("        result = default;");
+            sb.AppendLine("        return false;");
+            sb.AppendLine("    }");
             sb.AppendLine();
 
             sb.AppendLine("    public override int GetHashCode() => Value.GetHashCode();");
