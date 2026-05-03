@@ -50,6 +50,8 @@ public readonly struct Email : IEquatable<Email>
 
     public static implicit operator string(Email email) => email.Address;
 
+    public static implicit operator MailAddress(Email email) => email.Value;
+
     public static explicit operator Email(string value) => Create(value);
 
     [Pure]

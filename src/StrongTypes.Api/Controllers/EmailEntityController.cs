@@ -35,7 +35,7 @@ public sealed class EmailEntityController(SqlServerDbContext sqlCtx, PostgreSqlD
     [HttpPost]
     public async Task<IActionResult> Create(StructEntityRequest<Email> request)
     {
-        var entity = EmailEntity.Create(request.Value.Value, request.NullableValue?.Value);
+        var entity = EmailEntity.Create(request.Value, request.NullableValue?.Value);
         SqlSet.Add(entity);
         PgSet.Add(entity);
         await SaveAllAsync();
@@ -48,10 +48,10 @@ public sealed class EmailEntityController(SqlServerDbContext sqlCtx, PostgreSqlD
         var sqlEntity = await SqlSet.FindAsync(id);
         var pgEntity = await PgSet.FindAsync(id);
         if (sqlEntity is null || pgEntity is null) return NotFound();
-        var value = request.Value.Value;
-        var nullableValue = request.NullableValue?.Value;
-        ((IEntity<EmailEntity, MailAddress, MailAddress?>)sqlEntity).Update(value, nullableValue);
-        ((IEntity<EmailEntity, MailAddress, MailAddress?>)pgEntity).Update(value, nullableValue);
+        MailAddress value = request.Value;
+        MailAddress? nullableValue = request.NullableValue?.Value;
+        sqlEntity.Update(value, nullableValue);
+        pgEntity.Update(value, nullableValue);
         await SaveAllAsync();
         return Ok(new EntityResponse(id));
     }
@@ -65,8 +65,8 @@ public sealed class EmailEntityController(SqlServerDbContext sqlCtx, PostgreSqlD
 
         if (request.Value is { } value)
         {
-            sqlEntity.Value = value.Value;
-            pgEntity.Value = value.Value;
+            sqlEntity.Value = value;
+            pgEntity.Value = value;
         }
 
         if (request.NullableValue is { } nv)

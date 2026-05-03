@@ -78,6 +78,13 @@ public class EmailTests
     }
 
     [Property]
+    public void ImplicitConversion_ToMailAddress_ReturnsUnderlyingValue(Email email)
+    {
+        System.Net.Mail.MailAddress asMailAddress = email;
+        Assert.Same(email.Value, asMailAddress);
+    }
+
+    [Property]
     public void ExplicitConversion_FromString_WrapsValid(Email seed)
     {
         var converted = (Email)seed.Address;

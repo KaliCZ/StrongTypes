@@ -42,7 +42,7 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention
     private static bool IsStrongType(Type clrType)
     {
         var unwrapped = Nullable.GetUnderlyingType(clrType) ?? clrType;
-        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(Email) || unwrapped == typeof(MailAddress))
+        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(MailAddress))
         {
             return true;
         }
