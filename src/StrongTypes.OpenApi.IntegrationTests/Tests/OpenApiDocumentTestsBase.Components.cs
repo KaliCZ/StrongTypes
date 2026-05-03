@@ -40,6 +40,9 @@ public abstract partial class OpenApiDocumentTestsBase
         var schemaNames = ReadComponentSchemaNames(doc);
 
         Assert.DoesNotContain("NonEmptyString", schemaNames);
+        Assert.DoesNotContain("StrongTypesNonEmptyString", schemaNames);
+        Assert.DoesNotContain("Email", schemaNames);
+        Assert.DoesNotContain("StrongTypesEmail", schemaNames);
 
         // Microsoft prefix style and Swashbuckle suffix style: any name
         // that begins or ends with one of the wrapper roots must be gone.

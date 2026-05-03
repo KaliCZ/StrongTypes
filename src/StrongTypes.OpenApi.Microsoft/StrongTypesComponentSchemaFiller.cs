@@ -52,10 +52,20 @@ internal sealed class StrongTypesComponentSchemaFiller : IOpenApiDocumentTransfo
             && LooksLikeUserDto(concrete))
             return null;
 
-        if (name == "NonEmptyString")
+        // The framework's `CreateSchemaReferenceId` override applies our
+        // "StrongTypes" prefix at top-level component names — but its
+        // internal `$ref` resolution for inner generic args still emits
+        // the un-prefixed reflection-derived name and the dedup pass leaves
+        // an orphan component under that name. Match both shapes so we
+        // paint and inline either one.
+        var bare = name.StartsWith(MicrosoftSchemaNaming.WrapperPrefix, StringComparison.Ordinal)
+            ? name[MicrosoftSchemaNaming.WrapperPrefix.Length..]
+            : name;
+
+        if (bare == "NonEmptyString")
             return new OpenApiSchema { Type = JsonSchemaType.String, MinLength = 1 };
 
-        if (name == "Email")
+        if (bare == "Email")
             return new OpenApiSchema
             {
                 Type = JsonSchemaType.String,
@@ -64,10 +74,10 @@ internal sealed class StrongTypesComponentSchemaFiller : IOpenApiDocumentTransfo
                 MaxLength = Email.MaxLength,
             };
 
-        if (MicrosoftSchemaNaming.TryMatchNumericComponent(name, out var numericInner, out var numericBound))
+        if (MicrosoftSchemaNaming.TryMatchNumericComponent(bare, out var numericInner, out var numericBound))
             return BuildNumeric(numericInner, numericBound);
 
-        if (TrySplit(name, "NonEmptyEnumerableOf", out var arrayInner))
+        if (TrySplit(bare, "NonEmptyEnumerableOf", out var arrayInner))
         {
             return new OpenApiSchema
             {
@@ -77,7 +87,7 @@ internal sealed class StrongTypesComponentSchemaFiller : IOpenApiDocumentTransfo
             };
         }
 
-        if (TrySplit(name, "MaybeOf", out var maybeInner))
+        if (TrySplit(bare, "MaybeOf", out var maybeInner))
         {
             return new OpenApiSchema
             {
