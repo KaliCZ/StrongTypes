@@ -15,4 +15,6 @@ public sealed class MicrosoftOpenApiDocumentTests(MicrosoftTestApiFactory factor
     protected override string DocumentUrl => "/openapi/v1.json";
     protected override OpenApiVersion Version => OpenApiVersion.V3_0;
     protected override bool IsEmailStringFormatBroken => true;
+    protected override bool IsNonBodyParameterStrongTypeSchemaBroken => true;
+    protected override bool IsFormPropertyStrongTypeSchemaBroken => true;
 }

@@ -64,6 +64,48 @@ internal static class SchemaNavigation
             .GetProperty("requestBody").GetProperty("content")
             .GetProperty("application/json").GetProperty("schema");
 
+    /// <summary>
+    /// Returns the schema attached to the named parameter on the given
+    /// path/method. Fails the test if the parameter (or its <c>schema</c>) is
+    /// missing.
+    /// </summary>
+    internal static JsonElement ParameterSchema(JsonElement doc, string path, string parameterName, string method = "get")
+    {
+        var operation = doc.GetProperty("paths").GetProperty(path).GetProperty(method);
+        Assert.True(operation.TryGetProperty("parameters", out var parameters), $"operation {method} {path} has no parameters");
+        foreach (var p in parameters.EnumerateArray())
+        {
+            if (p.GetProperty("name").GetString() == parameterName)
+            {
+                Assert.True(p.TryGetProperty("schema", out var schema), $"parameter {parameterName} on {method} {path} has no schema");
+                return schema;
+            }
+        }
+        Assert.Fail($"parameter {parameterName} not found on {method} {path}");
+        return default;
+    }
+
+    /// <summary>
+    /// Returns the form request-body schema for the given path/method. Form
+    /// bodies are encoded as <c>application/x-www-form-urlencoded</c> or
+    /// <c>multipart/form-data</c> — both are accepted; the test uses
+    /// whichever the pipeline emitted.
+    /// </summary>
+    internal static JsonElement FormRequestSchema(JsonElement doc, string path, string method = "post")
+    {
+        var content = doc.GetProperty("paths").GetProperty(path).GetProperty(method)
+            .GetProperty("requestBody").GetProperty("content");
+        foreach (var contentType in new[] { "multipart/form-data", "application/x-www-form-urlencoded" })
+        {
+            if (content.TryGetProperty(contentType, out var ct))
+            {
+                return ct.GetProperty("schema");
+            }
+        }
+        Assert.Fail($"no form content-type found on {method} {path}");
+        return default;
+    }
+
     /// <summary>Returns the schema for a named property of an object schema.</summary>
     internal static JsonElement Property(JsonElement schema, string propertyName)
         => schema.GetProperty("properties").GetProperty(propertyName);

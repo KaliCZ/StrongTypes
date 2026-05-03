@@ -45,6 +45,35 @@ public abstract partial class OpenApiDocumentTestsBase(HttpClient client) : IDis
     // the annotation. Each flag is set in the per-pipeline subclass.
     protected virtual bool IsEmailStringFormatBroken => false;
 
+    /// <summary>
+    /// True when the pipeline emits non-body parameter schemas (query, route,
+    /// header) as the underlying primitive type without the strong-type
+    /// constraints — i.e. <c>{ "type": "string" }</c> instead of
+    /// <c>{ "type": "string", "minLength": 1 }</c> for <see cref="NonEmptyString"/>.
+    /// Set on the pipeline subclass; tests assert the underlying-only shape
+    /// when this flag is true so the suite documents what each pipeline
+    /// actually emits today and catches it the day the pipeline starts
+    /// honouring the schema transformer.
+    /// </summary>
+    protected virtual bool IsNonBodyParameterStrongTypeSchemaBroken => false;
+
+    /// <summary>
+    /// True when the pipeline mangles the <c>[FromForm]</c> request-body
+    /// schema — e.g. emitting <c>{ "allOf": [&lt;each-property-schema&gt;] }</c>
+    /// instead of <c>{ "type": "object", "properties": { … } }</c>. When true,
+    /// the form-property tests assert *only* that a request body schema
+    /// exists; they do not navigate into a non-existent <c>properties</c> map.
+    /// </summary>
+    protected virtual bool IsFormPropertiesSchemaBroken => false;
+
+    /// <summary>
+    /// True when the pipeline keeps the form schema's <c>properties</c> map
+    /// shape but emits each value as the underlying primitive (same gap as
+    /// <see cref="IsNonBodyParameterStrongTypeSchemaBroken"/>, but for form
+    /// fields rather than non-body parameters).
+    /// </summary>
+    protected virtual bool IsFormPropertyStrongTypeSchemaBroken => false;
+
     private async Task<JsonElement> GetDocumentAsync()
     {
         var response = await client.GetAsync(DocumentUrl, Ct);
