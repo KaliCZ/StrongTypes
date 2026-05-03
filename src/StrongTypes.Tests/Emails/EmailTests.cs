@@ -194,4 +194,53 @@ public class EmailTests
     [Property]
     public void Equals_Object_Null_False(Email email) =>
         Assert.False(email.Equals((object?)null));
+
+    [Property]
+    public void Equals_MailAddress_SameAddress_True(Email email)
+    {
+        var ma = new MailAddress(email.Address);
+        Assert.True(email.Equals(ma));
+        Assert.True(email.Equals((object)ma));
+    }
+
+    [Property]
+    public void Equals_MailAddress_CaseInsensitive(Email email)
+    {
+        var ma = new MailAddress(email.Address.ToUpperInvariant());
+        Assert.True(email.Equals(ma));
+    }
+
+    [Property]
+    public void Equals_MailAddress_DifferentAddress_False(Email a, Email b)
+    {
+        if (string.Equals(a.Address, b.Address, StringComparison.OrdinalIgnoreCase)) return;
+        var ma = new MailAddress(b.Address);
+        Assert.False(a.Equals(ma));
+    }
+
+    [Property]
+    public void Equals_MailAddress_Null_False(Email email) =>
+        Assert.False(email.Equals((MailAddress?)null));
+
+    [Property]
+    public void Equals_String_SameAddress_True(Email email)
+    {
+        Assert.True(email.Equals(email.Address));
+        Assert.True(email.Equals((object)email.Address));
+    }
+
+    [Property]
+    public void Equals_String_CaseInsensitive(Email email) =>
+        Assert.True(email.Equals(email.Address.ToUpperInvariant()));
+
+    [Property]
+    public void Equals_String_DifferentAddress_False(Email a, Email b)
+    {
+        if (string.Equals(a.Address, b.Address, StringComparison.OrdinalIgnoreCase)) return;
+        Assert.False(a.Equals(b.Address));
+    }
+
+    [Property]
+    public void Equals_String_Null_False(Email email) =>
+        Assert.False(email.Equals((string?)null));
 }

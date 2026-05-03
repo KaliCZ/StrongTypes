@@ -8,7 +8,10 @@ namespace StrongTypes;
 /// <summary>An email address validated by <see cref="MailAddress.TryCreate(string?, out MailAddress?)"/> and capped at the RFC 5321 deliverable length of 254 characters.</summary>
 /// <remarks>The <see cref="Value"/> property hands the caller a <see cref="MailAddress"/> directly so it can be passed straight into APIs that take one (mailers, validators). The wire form on JSON, EF Core columns, and route arguments is the underlying address string.</remarks>
 [JsonConverter(typeof(EmailJsonConverter))]
-public sealed class Email : IEquatable<Email>
+public sealed class Email :
+    IEquatable<Email>,
+    IEquatable<MailAddress>,
+    IEquatable<string>
 {
     /// <summary>RFC 5321 deliverable cap. The forwarder path can be longer; this is the addr-spec limit clients should enforce on input.</summary>
     public const int MaxLength = 254;
@@ -58,7 +61,19 @@ public sealed class Email : IEquatable<Email>
     public bool Equals(Email? other) => other is not null && string.Equals(Address, other.Address, StringComparison.OrdinalIgnoreCase);
 
     [Pure]
-    public override bool Equals(object? obj) => obj is Email other && Equals(other);
+    public bool Equals(MailAddress? other) => other is not null && string.Equals(Address, other.Address, StringComparison.OrdinalIgnoreCase);
+
+    [Pure]
+    public bool Equals(string? other) => other is not null && string.Equals(Address, other, StringComparison.OrdinalIgnoreCase);
+
+    [Pure]
+    public override bool Equals(object? obj) => obj switch
+    {
+        Email otherEmail => Equals(otherEmail),
+        MailAddress otherMailAddress => Equals(otherMailAddress),
+        string otherString => Equals(otherString),
+        _ => false,
+    };
 
     [Pure]
     public override int GetHashCode() => StringComparer.OrdinalIgnoreCase.GetHashCode(Address);

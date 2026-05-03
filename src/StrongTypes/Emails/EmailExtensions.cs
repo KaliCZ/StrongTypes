@@ -9,13 +9,21 @@ public static class EmailExtensions
     /// <summary>Parses <paramref name="s"/> under the full <see cref="Email"/> contract (non-blank, at most <see cref="Email.MaxLength"/> characters, parseable as an addr-spec) and returns the resulting <see cref="MailAddress"/>, or <c>null</c> on failure.</summary>
     /// <param name="s">The candidate address.</param>
     [Pure]
-    public static MailAddress? AsEmail(this string? s) => Email.TryCreate(s)?.Value;
+    public static MailAddress? AsEmail(this string? s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return null;
+        if (s.Length > Email.MaxLength) return null;
+        return MailAddress.TryCreate(s);
+    }
 
     /// <summary>Parses <paramref name="s"/> under the full <see cref="Email"/> contract and returns the resulting <see cref="MailAddress"/>.</summary>
     /// <param name="s">The candidate address.</param>
     /// <exception cref="ArgumentException"><paramref name="s"/> is null, blank, longer than <see cref="Email.MaxLength"/>, or not a valid addr-spec.</exception>
     [Pure]
-    public static MailAddress ToEmail(this string? s) => Email.Create(s).Value;
+    public static MailAddress ToEmail(this string? s) =>
+        s.AsEmail() ?? throw new ArgumentException(
+            $"'{s}' is not a valid email address (must be non-empty, at most {Email.MaxLength} characters, and parseable as an addr-spec).",
+            nameof(s));
 
     /// <summary>Returns the underlying address string of <paramref name="mailAddress"/>.</summary>
     /// <param name="mailAddress">The mail address.</param>
