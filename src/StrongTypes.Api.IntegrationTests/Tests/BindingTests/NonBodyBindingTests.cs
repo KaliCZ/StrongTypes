@@ -33,19 +33,20 @@ public sealed class NonBodyBindingTests(TestWebApplicationFactory factory) : IDi
     public async Task FromQuery_ValidValues_BindsAndEchoes()
     {
         var response = await _client.GetAsync(
-            "/binding-probe/query?name=Alice&count=42&email=alice@example.com", Ct);
+            "/binding-probe/query?name=Alice&count=42&digit=7&email=alice@example.com", Ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
         Assert.Equal("Alice", json.GetProperty("name").GetString());
         Assert.Equal(42, json.GetProperty("count").GetInt32());
+        Assert.Equal(7, json.GetProperty("digit").GetInt32());
         Assert.Equal("alice@example.com", json.GetProperty("email").GetString());
     }
 
     [Fact]
     public async Task FromQuery_OptionalEmailOmitted_BindsWithNull()
     {
-        var response = await _client.GetAsync("/binding-probe/query?name=Alice&count=1", Ct);
+        var response = await _client.GetAsync("/binding-probe/query?name=Alice&count=1&digit=0", Ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
@@ -53,12 +54,14 @@ public sealed class NonBodyBindingTests(TestWebApplicationFactory factory) : IDi
     }
 
     [Theory]
-    [InlineData("name=&count=1", "name")]
-    [InlineData("name=%20%20&count=1", "name")]
-    [InlineData("name=Alice&count=0", "count")]
-    [InlineData("name=Alice&count=-5", "count")]
-    [InlineData("name=Alice&count=not-a-number", "count")]
-    [InlineData("name=Alice&count=1&email=not-an-email", "email")]
+    [InlineData("name=&count=1&digit=0", "name")]
+    [InlineData("name=%20%20&count=1&digit=0", "name")]
+    [InlineData("name=Alice&count=0&digit=0", "count")]
+    [InlineData("name=Alice&count=-5&digit=0", "count")]
+    [InlineData("name=Alice&count=not-a-number&digit=0", "count")]
+    [InlineData("name=Alice&count=1&digit=ab", "digit")]
+    [InlineData("name=Alice&count=1&digit=42", "digit")]
+    [InlineData("name=Alice&count=1&digit=0&email=not-an-email", "email")]
     public async Task FromQuery_Invalid_Returns400ProblemDetails(string query, string expectedField)
     {
         var response = await _client.GetAsync($"/binding-probe/query?{query}", Ct);
@@ -69,7 +72,7 @@ public sealed class NonBodyBindingTests(TestWebApplicationFactory factory) : IDi
     [Fact]
     public async Task FromQuery_MissingRequired_Returns400()
     {
-        var response = await _client.GetAsync("/binding-probe/query?count=1", Ct);
+        var response = await _client.GetAsync("/binding-probe/query?count=1&digit=0", Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 

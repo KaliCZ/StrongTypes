@@ -17,8 +17,15 @@ public sealed class BindingProbeController : ControllerBase
     public IActionResult FromQuery(
         [FromQuery] NonEmptyString name,
         [FromQuery] Positive<int> count,
+        [FromQuery] Digit digit,
         [FromQuery] Email? email)
-        => Ok(new { name = name.Value, count = count.Value, email = email?.Address });
+        => Ok(new
+        {
+            name = name.Value,
+            count = count.Value,
+            digit = (int)digit.Value,
+            email = email?.Address,
+        });
 
     [HttpGet("query-implicit")]
     public IActionResult ImplicitQuery(NonEmptyString name, Positive<int> count)

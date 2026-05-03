@@ -202,4 +202,40 @@ public class DigitTests
         Assert.Equal("0", Digit.Create('0').ToString());
         Assert.Equal("9", Digit.Create('9').ToString());
     }
+
+    // ── IParsable ───────────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData("0", (byte)0)]
+    [InlineData("5", (byte)5)]
+    [InlineData("9", (byte)9)]
+    public void TryParse_SingleDigitString_ReturnsTrueAndWrapsValue(string input, byte expected)
+    {
+        Assert.True(Digit.TryParse(input, provider: null, out var parsed));
+        Assert.Equal(expected, parsed.Value);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("a")]
+    [InlineData("12")]
+    [InlineData("99")]
+    public void TryParse_InvalidInput_ReturnsFalse(string? input)
+    {
+        Assert.False(Digit.TryParse(input, provider: null, out var parsed));
+        Assert.Equal(default, parsed);
+    }
+
+    [Fact]
+    public void Parse_SingleDigit_WrapsValue() =>
+        Assert.Equal((byte)7, Digit.Parse("7", provider: null).Value);
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("a")]
+    [InlineData("42")]
+    public void Parse_Invalid_Throws(string input) =>
+        Assert.Throws<ArgumentException>(() => Digit.Parse(input, provider: null));
 }
