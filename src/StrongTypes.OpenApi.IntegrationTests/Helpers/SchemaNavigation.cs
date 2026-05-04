@@ -137,6 +137,19 @@ internal static class SchemaNavigation
         AssertJsonEqualsCore(doc.RootElement, actual, path: "$");
     }
 
+    // OpenAPI 3.0 keywords whose default value is `false`. Pipelines vary
+    // on whether they emit them when set to the default — Swashbuckle's
+    // serializer writes `exclusiveMinimum: false` alongside an inclusive
+    // bound, Microsoft's omits it. Both are wire-equivalent to absent;
+    // the comparator treats them as such so the strict deep-compare still
+    // catches stray *meaningful* keywords without complaining about
+    // serialization noise.
+    private static readonly HashSet<string> s_falseDefaultKeywords = new(StringComparer.Ordinal)
+    {
+        "exclusiveMinimum",
+        "exclusiveMaximum",
+    };
+
     private static void AssertJsonEqualsCore(JsonElement expected, JsonElement actual, string path)
     {
         if (expected.ValueKind != actual.ValueKind)
@@ -146,7 +159,9 @@ internal static class SchemaNavigation
         {
             case JsonValueKind.Object:
                 var expectedKeys = expected.EnumerateObject().Select(p => p.Name).Order().ToArray();
-                var actualKeys = actual.EnumerateObject().Select(p => p.Name).Order().ToArray();
+                var actualKeys = actual.EnumerateObject()
+                    .Where(p => !IsRedundantDefault(p, expected))
+                    .Select(p => p.Name).Order().ToArray();
                 if (!expectedKeys.SequenceEqual(actualKeys))
                     Assert.Fail($"at {path}: property-name set differs\n  expected: [{string.Join(", ", expectedKeys)}]\n  actual:   [{string.Join(", ", actualKeys)}]\n  actual schema: {actual.GetRawText()}");
                 foreach (var prop in expected.EnumerateObject())
@@ -176,4 +191,9 @@ internal static class SchemaNavigation
                 break;
         }
     }
+
+    private static bool IsRedundantDefault(JsonProperty prop, JsonElement expected)
+        => s_falseDefaultKeywords.Contains(prop.Name)
+           && prop.Value.ValueKind == JsonValueKind.False
+           && !expected.TryGetProperty(prop.Name, out _);
 }

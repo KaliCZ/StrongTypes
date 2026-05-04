@@ -20,12 +20,9 @@ public sealed class NumericStrongTypeSchemaTransformer : IOpenApiSchemaTransform
 {
     public Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
     {
-        var type = context.JsonTypeInfo.Type;
-        if (!type.IsGenericType) return Task.CompletedTask;
-
-        if (NumericWrapperKinds.TryGetBound(type.GetGenericTypeDefinition(), out var bound))
+        if (StrongTypeSchemaTypes.TryGetNumeric(context.JsonTypeInfo.Type, out var valueType, out var bound))
         {
-            NumericWrapperPainter.Paint(schema, type.GetGenericArguments()[0], bound);
+            NumericWrapperPainter.Paint(schema, valueType, bound);
             StrongTypeInlineMarker.Set(schema);
         }
 

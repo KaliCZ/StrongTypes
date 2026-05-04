@@ -17,18 +17,9 @@ public sealed class MaybeSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        // Maybe<T> is a struct that also implements IEnumerable<T>, so a
-        // Maybe<T>? property arrives here as Nullable<Maybe<T>> with the
-        // schema already coerced into the array shape Swashbuckle gives any
-        // IEnumerable. Unwrap Nullable<> first so the filter still recognises
-        // the underlying Maybe<T> and rewrites the schema to its real wire form.
-        var type = Nullable.GetUnderlyingType(context.Type) ?? context.Type;
-
-        if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(Maybe<>))
-            return;
+        if (!StrongTypeSchemaTypes.TryGetMaybeValue(context.Type, out var innerType)) return;
         if (schema is not OpenApiSchema concrete) return;
 
-        var innerType = type.GetGenericArguments()[0];
         var innerSchema = context.SchemaGenerator.GenerateSchema(
             innerType, context.SchemaRepository, memberInfo: null, parameterInfo: null, routeInfo: null);
 

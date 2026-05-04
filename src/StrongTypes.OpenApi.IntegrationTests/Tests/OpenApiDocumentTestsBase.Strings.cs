@@ -1,8 +1,7 @@
 using Xunit;
+using static StrongTypes.OpenApi.IntegrationTests.Helpers.BindingSchemaAsserts;
 using static StrongTypes.OpenApi.IntegrationTests.Helpers.NullableUnwrap;
 using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaNavigation;
-using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaValueReader;
-using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaWalk;
 
 namespace StrongTypes.OpenApi.IntegrationTests.Tests;
 
@@ -13,12 +12,7 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/non-empty-string-entities"));
-        var value = Property(body, "value");
-
-        AssertInlineSchema(value);
-        Assert.Equal("string", StringOrNull(value, "type"));
-        Assert.Equal(1, IntOrNull(value, "minLength"));
-        Assert.False(value.TryGetProperty("properties", out _));
+        AssertNonEmptyStringSchema(Property(body, "value"));
     }
 
     [Fact]
@@ -26,11 +20,7 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/non-empty-string-entities"));
-        var nullableValue = UnwrapNullableProperty(Property(body, "nullableValue"), Version);
-
-        AssertInlineSchema(nullableValue);
-        Assert.Equal("string", StringOrNull(nullableValue, "type"));
-        Assert.Equal(1, IntOrNull(nullableValue, "minLength"));
+        AssertNonEmptyStringSchema(UnwrapNullableProperty(Property(body, "nullableValue"), Version));
     }
 
     [Fact]
@@ -38,10 +28,6 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
-        var value = UnwrapNullableProperty(Property(body, "nullableNonEmptyString"), Version);
-
-        AssertInlineSchema(value);
-        Assert.Equal("string", StringOrNull(value, "type"));
-        Assert.Equal(1, IntOrNull(value, "minLength"));
+        AssertNonEmptyStringSchema(UnwrapNullableProperty(Property(body, "nullableNonEmptyString"), Version));
     }
 }

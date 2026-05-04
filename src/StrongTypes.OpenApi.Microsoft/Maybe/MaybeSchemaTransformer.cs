@@ -17,11 +17,9 @@ public sealed class MaybeSchemaTransformer : IOpenApiSchemaTransformer
 {
     public async Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
     {
-        var type = context.JsonTypeInfo.Type;
-        if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(Maybe<>))
+        if (!StrongTypeSchemaTypes.TryGetMaybeValue(context.JsonTypeInfo.Type, out var innerType))
             return;
 
-        var innerType = type.GetGenericArguments()[0];
         var innerSchema = await context.GetOrCreateSchemaAsync(innerType, parameterDescription: null, cancellationToken);
 
         SchemaPaint.ClearWrapperShape(schema);

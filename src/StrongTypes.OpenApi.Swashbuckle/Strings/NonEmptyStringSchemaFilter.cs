@@ -18,7 +18,7 @@ public sealed class NonEmptyStringSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        if (context.Type != typeof(NonEmptyString)) return;
+        if (!StrongTypeSchemaTypes.IsNonEmptyString(context.Type)) return;
         if (schema is not OpenApiSchema concrete) return;
 
         SchemaPaint.ClearWrapperShape(concrete);

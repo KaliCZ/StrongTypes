@@ -46,7 +46,7 @@ public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
             var attrs = clrProperty.GetCustomAttributes(inherit: true).OfType<Attribute>().ToArray();
             if (attrs.Length == 0) continue;
 
-            var surrogate = ResolveSurrogateType(clrProperty.PropertyType);
+            var surrogate = StrongTypeSchemaTypes.ResolveWireType(clrProperty.PropertyType);
             if (surrogate is null) continue;
 
             var generated = context.SchemaGenerator.GenerateSchema(surrogate, context.SchemaRepository, memberInfo: clrProperty);
@@ -63,25 +63,6 @@ public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
             StrongTypeInlineMarker.Set(wrapper);
             concrete.Properties[jsonName] = wrapper;
         }
-    }
-
-    private static Type? ResolveSurrogateType(Type propertyClrType)
-    {
-        var unwrapped = Nullable.GetUnderlyingType(propertyClrType) ?? propertyClrType;
-        if (unwrapped == typeof(NonEmptyString)) return typeof(string);
-        if (!unwrapped.IsGenericType) return null;
-
-        var def = unwrapped.GetGenericTypeDefinition();
-        var arg = unwrapped.GetGenericArguments()[0];
-
-        if (def == typeof(Positive<>) || def == typeof(NonNegative<>) ||
-            def == typeof(Negative<>) || def == typeof(NonPositive<>))
-            return arg;
-
-        if (def == typeof(NonEmptyEnumerable<>) || def == typeof(INonEmptyEnumerable<>))
-            return typeof(IEnumerable<>).MakeGenericType(arg);
-
-        return null;
     }
 
     private static void CopyAnnotationKeywords(OpenApiSchema source, OpenApiSchema target)

@@ -64,6 +64,15 @@ internal sealed class StrongTypesComponentSchemaFiller : IOpenApiDocumentTransfo
                 MaxLength = Email.MaxLength,
             };
 
+        if (name == "Digit")
+            return new OpenApiSchema
+            {
+                Type = JsonSchemaType.Integer,
+                Format = "int32",
+                Minimum = "0",
+                Maximum = "9",
+            };
+
         if (MicrosoftSchemaNaming.TryMatchNumericComponent(name, out var numericInner, out var numericBound))
             return BuildNumeric(numericInner, numericBound);
 
@@ -96,7 +105,7 @@ internal sealed class StrongTypesComponentSchemaFiller : IOpenApiDocumentTransfo
     {
         if (schema.Type != JsonSchemaType.Object) return false;
         if (schema.Properties is not { Count: > 0 } props) return false;
-        if (props.Count == 1 && props.ContainsKey("Value")) return false;
+        if (props.Count == 1 && (props.ContainsKey("Value") || props.ContainsKey("value"))) return false;
         return true;
     }
 
