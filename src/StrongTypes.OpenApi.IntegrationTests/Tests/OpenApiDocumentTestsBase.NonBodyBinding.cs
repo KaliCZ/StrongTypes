@@ -128,78 +128,32 @@ public abstract partial class OpenApiDocumentTestsBase
 
     // ── [FromForm] ───────────────────────────────────────────────────────
 
-    [Fact]
-    public async Task FromForm_NonEmptyString_RendersAsString_WithMinLength()
-    {
-        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyNonEmptyStringSchema(formSchema, "name");
-    }
-
-    [Fact]
-    public async Task FromForm_NullableNonEmptyString_RendersAsString_WithMinLength()
-    {
-        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyNonEmptyStringSchema(formSchema, "nullableName");
-    }
-
-    [Fact]
-    public async Task FromForm_PositiveInt_RendersAsExclusivePositive()
-    {
-        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyPositiveIntSchema(formSchema, "count", Version);
-    }
-
-    [Fact]
-    public async Task FromForm_NullablePositiveInt_RendersAsExclusivePositive()
-    {
-        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyPositiveIntSchema(formSchema, "nullableCount", Version);
-    }
-
-    [Fact]
-    public async Task FromForm_Digit_RendersAsInteger_WithZeroToNineBounds()
-    {
-        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyDigitSchema(formSchema, "digit");
-    }
-
-    [Fact]
-    public async Task FromForm_NonEmptyEnumerable_RendersAsArray_WithMinItems_And_StringItems()
-    {
-        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyNonEmptyEnumerableOfNonEmptyStringSchema(formSchema, "tags");
-    }
-
-    [Fact]
-    public async Task FromForm_Email_RendersAsString_WithEmailFormat()
-    {
-        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmailSchema(formSchema, "email");
-    }
-
-    [Fact]
-    public async Task FromForm_NullableEmail_RendersAsString_WithEmailFormat()
-    {
-        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmailSchema(formSchema, "nullableEmail");
-    }
-
     /// <summary>
-    /// The all-wrapper form body schema is a regular
-    /// <c>{ type: object, properties: { … } }</c> shape with one entry per
-    /// field. Swashbuckle's stock form-body assembler emits a nameless
-    /// <c>{ allOf: [&lt;each&gt;] }</c> instead whenever every field is
-    /// component-typed; <c>NonBodyStrongTypeOperationFilter</c> rebuilds
-    /// the properties map. This pins the aggregate shape so a regression
-    /// on either pipeline shows up as a missing property rather than as
-    /// per-field assertions silently looking up the wrong slot.
+    /// Pins the aggregate form-body shape and every per-field schema for
+    /// an all-wrapper form. Swashbuckle's stock form-body assembler emits
+    /// a nameless <c>{ allOf: [&lt;each&gt;] }</c> whenever every field
+    /// is component-typed; <c>NonBodyStrongTypeOperationFilter</c>
+    /// rebuilds it as <c>{ type: object, properties: { … } }</c>.
+    /// Asserting both the structural shape and each property's wire form
+    /// in the same test catches a regression in the reshape pass (a
+    /// missing property surfaces as a slot lookup failure) and a
+    /// regression in the per-type painters (a slot's contents differ).
     /// </summary>
     [Fact]
-    public async Task FromForm_AllWrappers_FormBody_IsObjectWithPropertiesMap()
+    public async Task FromForm_AllWrappers_FormBody_RendersObjectWithEveryPropertyInItsWireShape()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
         AssertFormBodyHasObjectShape(formSchema,
             "Name", "NullableName", "Count", "NullableCount", "Digit", "Tags", "Email", "NullableEmail");
+
+        AssertFormPropertyNonEmptyStringSchema(formSchema, "Name");
+        AssertFormPropertyNonEmptyStringSchema(formSchema, "NullableName");
+        AssertFormPropertyPositiveIntSchema(formSchema, "Count", Version);
+        AssertFormPropertyPositiveIntSchema(formSchema, "NullableCount", Version);
+        AssertFormPropertyDigitSchema(formSchema, "Digit");
+        AssertFormPropertyNonEmptyEnumerableOfNonEmptyStringSchema(formSchema, "Tags");
+        AssertFormPropertyEmailSchema(formSchema, "Email");
+        AssertFormPropertyEmailSchema(formSchema, "NullableEmail");
     }
 
     // ── Caller annotations on non-body slots ─────────────────────────────
@@ -248,7 +202,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_PlainString_With_StringLength_Carries_MaxLength()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated-plain");
-        var schema = formSchema.GetProperty("properties").GetProperty(FormPropertyName("PlainName"));
+        var schema = formSchema.GetProperty("properties").GetProperty("PlainName");
         AssertJsonEquals(schema, """{"type":"string","minLength":0,"maxLength":50}""");
     }
 
@@ -256,7 +210,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_NonEmptyString_With_StringLength_Carries_Both_Bounds()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated");
-        var schema = formSchema.GetProperty("properties").GetProperty(FormPropertyName("Name"));
+        var schema = formSchema.GetProperty("properties").GetProperty("Name");
         AssertJsonEquals(schema, """{"type":"string","minLength":1,"maxLength":50}""");
     }
 
@@ -264,7 +218,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_PlainInt_With_Range_Carries_Both_Bounds()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated-plain");
-        var schema = formSchema.GetProperty("properties").GetProperty(FormPropertyName("PlainCount"));
+        var schema = formSchema.GetProperty("properties").GetProperty("PlainCount");
         AssertJsonEquals(schema, IsPlainIntFormSchemaMissingType
             ? Version == OpenApiVersion.V3_1
                 ? """{"pattern":"^-?(?:0|[1-9]\\d*)$","type":["integer","string"],"format":"int32","minimum":5,"maximum":100}"""
@@ -276,7 +230,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_PositiveInt_With_Range_Carries_Both_Bounds()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated");
-        var schema = formSchema.GetProperty("properties").GetProperty(FormPropertyName("Count"));
+        var schema = formSchema.GetProperty("properties").GetProperty("Count");
         AssertJsonEquals(schema, """{"type":"integer","format":"int32","minimum":5,"maximum":100}""");
     }
 
@@ -300,13 +254,13 @@ public abstract partial class OpenApiDocumentTestsBase
 
         var properties = formSchema.GetProperty("properties");
 
-        AssertJsonEquals(properties.GetProperty(FormPropertyName("Title")), """{"type":"string","minLength":0,"maxLength":50}""");
-        AssertJsonEquals(properties.GetProperty(FormPropertyName("Description")), """{"type":"string","minLength":0,"maxLength":200}""");
+        AssertJsonEquals(properties.GetProperty("Title"), """{"type":"string","minLength":0,"maxLength":50}""");
+        AssertJsonEquals(properties.GetProperty("Description"), """{"type":"string","minLength":0,"maxLength":200}""");
 
-        var isActive = properties.GetProperty(FormPropertyName("IsActive"));
+        var isActive = properties.GetProperty("IsActive");
         Assert.Equal("boolean", isActive.GetProperty("type").GetString());
 
-        var age = properties.GetProperty(FormPropertyName("Age"));
+        var age = properties.GetProperty("Age");
         AssertJsonEquals(age, IsPlainIntFormSchemaMissingType
             ? Version == OpenApiVersion.V3_1
                 ? """{"pattern":"^-?(?:0|[1-9]\\d*)$","type":["integer","string"],"format":"int32","minimum":0,"maximum":150}"""
@@ -322,19 +276,41 @@ public abstract partial class OpenApiDocumentTestsBase
 
         var properties = formSchema.GetProperty("properties");
 
-        AssertJsonEquals(properties.GetProperty(FormPropertyName("Code")), """{"type":"string","minLength":1,"pattern":"^[A-Z]{3}-\\d{4}$"}""");
-        AssertJsonEquals(properties.GetProperty(FormPropertyName("Website")), """{"type":"string","minLength":1,"format":"uri"}""");
-        AssertJsonEquals(properties.GetProperty(FormPropertyName("Description")), """{"type":"string","minLength":1,"maxLength":200}""");
-        AssertJsonEquals(properties.GetProperty(FormPropertyName("Quantity")), """{"type":"integer","format":"int32","minimum":1,"maximum":100}""");
+        AssertJsonEquals(properties.GetProperty("Code"), """{"type":"string","minLength":1,"pattern":"^[A-Z]{3}-\\d{4}$"}""");
+        AssertJsonEquals(properties.GetProperty("Website"), """{"type":"string","minLength":1,"format":"uri"}""");
+        AssertJsonEquals(properties.GetProperty("Description"), """{"type":"string","minLength":1,"maxLength":200}""");
+        AssertJsonEquals(properties.GetProperty("Quantity"), """{"type":"integer","format":"int32","minimum":1,"maximum":100}""");
 
-        AssertEmailSchema(properties.GetProperty(FormPropertyName("Contact")));
+        AssertEmailSchema(properties.GetProperty("Contact"));
 
-        AssertJsonEquals(properties.GetProperty(FormPropertyName("Losses")), Version switch
+        AssertJsonEquals(properties.GetProperty("Losses"), Version switch
         {
             OpenApiVersion.V3_0 => """{"type":"array","minItems":2,"items":{"type":"number","format":"double","maximum":0,"exclusiveMaximum":true}}""",
             OpenApiVersion.V3_1 => """{"type":"array","minItems":2,"items":{"type":"number","format":"double","exclusiveMaximum":0}}""",
             _ => throw new ArgumentOutOfRangeException(nameof(Version), Version, null),
         });
+    }
+
+    /// <summary>
+    /// <see cref="Maybe{T}"/> bound from a non-body slot via
+    /// <c>StrongTypes.AspNetCore</c>'s model binder reads a single raw
+    /// form-data value, parses it as <typeparamref name="T"/>, and wraps
+    /// the result in <c>Some</c>/<c>None</c>. The wire is therefore the
+    /// inner <typeparamref name="T"/> — not the body-side
+    /// <c>{"Value":&lt;T&gt;}</c> wrapper object the JSON converter
+    /// emits. Both pipelines must paint the inner shape on every
+    /// <c>[FromForm]</c> <see cref="Maybe{T}"/> property; recursion
+    /// matches what we already do for <see cref="NonEmptyEnumerable{T}"/>.
+    /// </summary>
+    [Fact]
+    public async Task FromForm_Maybe_FormBody_RendersInnerWireShapeForEachProperty()
+    {
+        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-maybe");
+        AssertFormBodyHasObjectShape(formSchema, "Greeting", "Quantity", "ContactEmail");
+
+        AssertFormPropertyNonEmptyStringSchema(formSchema, "Greeting");
+        AssertFormPropertyPositiveIntSchema(formSchema, "Quantity", Version);
+        AssertFormPropertyEmailSchema(formSchema, "ContactEmail");
     }
 
     [Fact]
@@ -345,23 +321,25 @@ public abstract partial class OpenApiDocumentTestsBase
 
         var properties = formSchema.GetProperty("properties");
 
-        AssertJsonEquals(properties.GetProperty(FormPropertyName("Title")), """{"type":"string","minLength":0,"maxLength":100}""");
-        AssertJsonEquals(properties.GetProperty(FormPropertyName("Code")), """{"type":"string","minLength":1,"pattern":"^[A-Z]{3}$"}""");
+        AssertJsonEquals(properties.GetProperty("Title"), """{"type":"string","minLength":0,"maxLength":100}""");
+        AssertJsonEquals(properties.GetProperty("Code"), """{"type":"string","minLength":1,"pattern":"^[A-Z]{3}$"}""");
 
-        AssertJsonEquals(properties.GetProperty(FormPropertyName("Quantity")), IsPlainIntFormSchemaMissingType
+        AssertJsonEquals(properties.GetProperty("Quantity"), IsPlainIntFormSchemaMissingType
             ? Version == OpenApiVersion.V3_1
                 ? """{"pattern":"^-?(?:0|[1-9]\\d*)$","type":["integer","string"],"format":"int32","minimum":1,"maximum":1000}"""
                 : """{"pattern":"^-?(?:0|[1-9]\\d*)$","format":"int32","minimum":1,"maximum":1000}"""
             : """{"type":"integer","format":"int32","minimum":1,"maximum":1000}""");
 
-        AssertJsonEquals(properties.GetProperty(FormPropertyName("Stock")), """{"type":"integer","format":"int32","minimum":1,"maximum":100}""");
-        AssertEmailSchema(properties.GetProperty(FormPropertyName("ContactEmail")));
-        AssertJsonEquals(properties.GetProperty(FormPropertyName("Tags")), """{"type":"array","minItems":1,"items":{"type":"string","minLength":1}}""");
+        AssertJsonEquals(properties.GetProperty("Stock"), """{"type":"integer","format":"int32","minimum":1,"maximum":100}""");
+        AssertEmailSchema(properties.GetProperty("ContactEmail"));
+        AssertJsonEquals(properties.GetProperty("Tags"), """{"type":"array","minItems":1,"items":{"type":"string","minLength":1}}""");
     }
 
     private static void AssertFormBodyHasObjectShape(JsonElement formSchema, params string[] expectedPropertyNames)
     {
         Assert.False(formSchema.TryGetProperty("allOf", out _), "form body should not be wrapped in a top-level allOf");
+        Assert.False(formSchema.TryGetProperty("anyOf", out _), "form body should not be wrapped in a top-level anyOf");
+        Assert.False(formSchema.TryGetProperty("oneOf", out _), "form body should not be wrapped in a top-level oneOf");
         Assert.False(formSchema.TryGetProperty("$ref", out _), "form body should be inlined, not a $ref");
         Assert.True(formSchema.TryGetProperty("properties", out var properties), "form body must have a properties map");
         Assert.Equal(JsonValueKind.Object, properties.ValueKind);
@@ -375,6 +353,4 @@ public abstract partial class OpenApiDocumentTestsBase
             .ToArray();
         Assert.Equal(expected, actualNames, StringComparer.OrdinalIgnoreCase);
     }
-
-    protected virtual string FormPropertyName(string clrPropertyName) => clrPropertyName;
 }

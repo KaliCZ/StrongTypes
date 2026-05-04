@@ -12,10 +12,9 @@ namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 /// <see cref="AssertJsonEquals"/> so an unexpected keyword fails the test
 /// instead of silently passing.
 ///
-/// The form helpers additionally navigate the request-body schema by
-/// looking up the field by name in the form's <c>properties</c> map.
-/// Casing is treated case-insensitively because Microsoft emits
-/// PascalCase and Swashbuckle camelCase.
+/// Both Microsoft.AspNetCore.OpenApi and Swashbuckle emit form-body
+/// property keys in PascalCase (matching the C# property name), so
+/// callers pass the name as declared in the source.
 /// </summary>
 internal static class BindingSchemaAsserts
 {
@@ -108,20 +107,6 @@ internal static class BindingSchemaAsserts
     internal static void AssertFormPropertyEmailSchema(JsonElement formSchema, string propertyName)
         => AssertEmailSchema(GetFormProperty(formSchema, propertyName));
 
-    /// <summary>
-    /// Looks up a per-field schema on a <c>[FromForm]</c> request-body
-    /// schema. The field is found by name (case-insensitive because
-    /// Microsoft emits PascalCase, Swashbuckle camelCase).
-    /// </summary>
     private static JsonElement GetFormProperty(JsonElement formSchema, string propertyName)
-    {
-        var properties = formSchema.GetProperty("properties");
-        foreach (var entry in properties.EnumerateObject())
-        {
-            if (string.Equals(entry.Name, propertyName, StringComparison.OrdinalIgnoreCase))
-                return entry.Value;
-        }
-        Assert.Fail($"form schema has no '{propertyName}' property (case-insensitive)");
-        return default;
-    }
+        => formSchema.GetProperty("properties").GetProperty(propertyName);
 }

@@ -2,6 +2,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi;
 using StrongTypes.OpenApi.Core;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -34,7 +35,7 @@ namespace StrongTypes.OpenApi.Swashbuckle;
 /// Without that, consumers see a nameless allOf and can't tell which schema
 /// belongs to which field.
 /// </summary>
-public sealed class NonBodyStrongTypeOperationFilter : IOperationFilter
+public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOperationFilter>? logger = null) : IOperationFilter
 {
     private static readonly string[] s_formContentTypes =
     [
@@ -47,7 +48,8 @@ public sealed class NonBodyStrongTypeOperationFilter : IOperationFilter
         var descriptions = context.ApiDescription.ParameterDescriptions;
         if (descriptions is null || descriptions.Count == 0) return;
 
-        ReshapeFormAllOfIntoProperties(operation, descriptions, context.SchemaGenerator, context.SchemaRepository);
+        ReshapeFormAllOfIntoProperties(operation, descriptions, context.SchemaGenerator, context.SchemaRepository, logger);
+        ReshapeMaybeFormPropertiesIntoInnerWireShape(operation, descriptions, context.SchemaGenerator, context.SchemaRepository);
 
         foreach (var pd in descriptions)
         {
@@ -88,6 +90,8 @@ public sealed class NonBodyStrongTypeOperationFilter : IOperationFilter
         if (operation.RequestBody?.Content is not { } content) return;
         var clrType = ResolveParameterClrType(pd);
         if (clrType is null) return;
+        if (StrongTypeSchemaTypes.TryGetMaybeValue(clrType, out var maybeInner))
+            clrType = maybeInner;
         if (GetSlotAttributes(pd).Count == 0) return;
 
         foreach (var contentType in s_formContentTypes)
@@ -120,7 +124,8 @@ public sealed class NonBodyStrongTypeOperationFilter : IOperationFilter
         OpenApiOperation operation,
         IList<ApiParameterDescription> descriptions,
         ISchemaGenerator schemaGenerator,
-        SchemaRepository schemaRepository)
+        SchemaRepository schemaRepository,
+        ILogger? logger)
     {
         if (operation.RequestBody?.Content is not { } content) return;
 
@@ -128,15 +133,33 @@ public sealed class NonBodyStrongTypeOperationFilter : IOperationFilter
         {
             if (!content.TryGetValue(contentType, out var media)) continue;
             if (media.Schema is not OpenApiSchema formSchema) continue;
-            if (formSchema.AllOf is not { Count: > 0 }) continue;
+            if (formSchema.AllOf is not { Count: > 0 } allOf) continue;
             if (formSchema.Properties is { Count: > 0 }) continue;
 
+            var formParamCount = 0;
             var properties = new Dictionary<string, IOpenApiSchema>(StringComparer.Ordinal);
             foreach (var pd in descriptions)
             {
                 if (pd.Source != BindingSource.Form) continue;
+                formParamCount++;
+
                 var clrType = ResolveParameterClrType(pd);
-                if (clrType is null) continue;
+                if (clrType is null)
+                {
+                    logger?.LogWarning(
+                        "StrongTypes form-body reshape skipped property '{PropertyName}' on operation '{OperationId}' because no CLR type could be resolved from its ApiParameterDescription. The emitted form schema may be incomplete.",
+                        pd.Name, operation.OperationId ?? "(unnamed)");
+                    continue;
+                }
+
+                // Maybe<T> bound from a non-body slot via the StrongTypes.AspNetCore
+                // model binder reads a single raw form-data value and wraps
+                // it as Some/None — the wire is the inner T, not the
+                // body-side {"Value":<T>} wrapper object. Generate the
+                // schema for the inner T so consumers see the field's
+                // actual on-the-wire shape.
+                if (StrongTypeSchemaTypes.TryGetMaybeValue(clrType, out var maybeInner))
+                    clrType = maybeInner;
 
                 // For primitives, hand Swashbuckle the form record's
                 // PropertyInfo so its generator surfaces caller annotations
@@ -154,9 +177,65 @@ public sealed class NonBodyStrongTypeOperationFilter : IOperationFilter
 
             if (properties.Count == 0) continue;
 
+            if (properties.Count != formParamCount)
+            {
+                logger?.LogWarning(
+                    "StrongTypes form-body reshape on operation '{OperationId}' resolved {ResolvedCount} of {TotalCount} form parameters; the rest will be missing from the emitted properties map.",
+                    operation.OperationId ?? "(unnamed)", properties.Count, formParamCount);
+            }
+
+            if (allOf.Count > formParamCount)
+            {
+                logger?.LogWarning(
+                    "StrongTypes form-body reshape on operation '{OperationId}' replaced an allOf with {AllOfCount} entries using only {FormParamCount} form parameters; entries beyond the parameter set are dropped. This usually means Swashbuckle assembled the form body in a shape we don't recognise.",
+                    operation.OperationId ?? "(unnamed)", allOf.Count, formParamCount);
+            }
+
             formSchema.Properties = properties;
             formSchema.AllOf = null;
             formSchema.Type ??= JsonSchemaType.Object;
+        }
+    }
+
+    /// <summary>
+    /// Replaces the per-property schemas of <see cref="Maybe{T}"/>-typed
+    /// form fields with the inner type's wire shape. The body-side Maybe
+    /// schema is the wrapper object (<c>{"type":"object","properties":{"Value":&lt;T&gt;}}</c>)
+    /// the JSON converter emits, but the <c>StrongTypes.AspNetCore</c>
+    /// model binder reads non-body slots as a single raw value of the
+    /// inner type, so the form-data wire is the inner type. Runs after
+    /// <see cref="ReshapeFormAllOfIntoProperties"/> so it covers both the
+    /// reshaped path and the case where Swashbuckle natively emitted a
+    /// properties map.
+    /// </summary>
+    private static void ReshapeMaybeFormPropertiesIntoInnerWireShape(
+        OpenApiOperation operation,
+        IList<ApiParameterDescription> descriptions,
+        ISchemaGenerator schemaGenerator,
+        SchemaRepository schemaRepository)
+    {
+        if (operation.RequestBody?.Content is not { } content) return;
+
+        foreach (var contentType in s_formContentTypes)
+        {
+            if (!content.TryGetValue(contentType, out var media)) continue;
+            if (media.Schema is not OpenApiSchema formSchema) continue;
+            if (formSchema.Properties is not { Count: > 0 } properties) continue;
+
+            foreach (var pd in descriptions)
+            {
+                if (pd.Source != BindingSource.Form) continue;
+                var clrType = ResolveParameterClrType(pd);
+                if (clrType is null) continue;
+                if (!StrongTypeSchemaTypes.TryGetMaybeValue(clrType, out var innerType)) continue;
+                if (!properties.ContainsKey(pd.Name)) continue;
+
+                MemberInfo? memberInfo = null;
+                if (!StrongTypeSchemaTypes.IsInlineable(innerType))
+                    memberInfo = ResolveFormPropertyMember(pd);
+
+                properties[pd.Name] = schemaGenerator.GenerateSchema(innerType, schemaRepository, memberInfo);
+            }
         }
     }
 

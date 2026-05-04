@@ -191,6 +191,9 @@ public sealed class BindingProbeController : ControllerBase
 
     [HttpPost("form-mixed")]
     public IActionResult FromFormMixed([FromForm] MixedFormRequest request) => Ok();
+
+    [HttpPost("form-maybe")]
+    public IActionResult FromFormMaybe([FromForm] MaybeFormRequest request) => Ok();
 }
 
 public sealed record BindingProbeFormRequest(
@@ -232,3 +235,8 @@ public sealed record MixedFormRequest(
     [property: Range(1, 100)] Positive<int> Stock,
     Email ContactEmail,
     NonEmptyEnumerable<NonEmptyString> Tags);
+
+public sealed record MaybeFormRequest(
+    Maybe<NonEmptyString> Greeting,
+    Maybe<Positive<int>> Quantity,
+    Maybe<Email> ContactEmail);
