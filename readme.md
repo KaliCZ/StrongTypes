@@ -2,7 +2,7 @@
 
 [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
-StrongTypes adds small, focused types that make everyday code safer and more expressive. Every type ships with `System.Text.Json` converters out of the box, so invalid JSON fails at deserialization. The types can be stored directly in EF Core entities via the EfCore package, and OpenAPI documentation is supported through the Microsoft or Swashbuckle OpenAPI packages — see [Packages](#packages) below.
+StrongTypes adds small, focused types that make everyday code safer and more expressive. Every type ships with `System.Text.Json` converters out of the box, so invalid JSON fails at deserialization. The types can be stored directly in EF Core entities via the EfCore package, OpenAPI documentation is supported through the Microsoft or Swashbuckle OpenAPI packages, and WPF is supported via the WPF package — see [Packages](#packages) below.
 
 > 🤖 Letting Claude Code or Codex write code in a project that uses
 > StrongTypes? See [Use with Claude or Codex](#use-with-claude-or-codex)
@@ -30,6 +30,7 @@ StrongTypes adds small, focused types that make everyday code safer and more exp
   - [JSON serialization](#json-serialization)
   - [EF Core persistence](#ef-core-persistence)
   - [OpenAPI / Swagger schema](#openapi--swagger-schema)
+  - [WPF MVVM binding](#wpf-mvvm-binding)
 - [`NonEmptyEnumerable<T>`](#nonemptyenumerablet)
 - [Parsing helpers](#parsing-helpers)
   - [Enums](#enums)
@@ -155,6 +156,14 @@ Pick the one that matches the generator your app already uses. They're not inter
 
 > [!TIP]
 > If you have a free choice, prefer Swashbuckle. `Microsoft.AspNetCore.OpenApi` has a few rough edges that the framework gives no public hook to fix — for example `[EmailAddress]` doesn't surface as `format: email`, and a `Dictionary<string, int>` emits `{ "format": "int32", "pattern": "^-?(?:0|[1-9]\\d*)$" }` for the int instead of `{ "type": "integer", "format": "int32" }`. Swashbuckle exposes richer extension points and produces a faithful document in cases where the Microsoft pipeline silently drops the bound.
+
+[↑ Back to contents](#contents)
+
+### WPF MVVM binding
+
+For WPF applications, add the package [`Kalicz.StrongTypes.Wpf`](https://www.nuget.org/packages/Kalicz.StrongTypes.Wpf/) to enable bindings including two-way. One `this.UseStrongTypes()` call in `App.OnStartup` to register.
+
+Other UI frameworks (WinForms, MAUI, Avalonia, …) aren't covered yet — see [issue #94](https://github.com/KaliCZ/StrongTypes/issues/94).
 
 [↑ Back to contents](#contents)
 
@@ -644,6 +653,7 @@ Result<Positive<int>[], string> ParseOrderQuantities(IEnumerable<int> inputs)
 | [`Kalicz.StrongTypes.FsCheck`](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/) | FsCheck `Arbitrary<T>` generators for property-based (generative) testing of code that takes or returns the wrappers. | [readme](src/StrongTypes.FsCheck/readme.md) |
 | [`Kalicz.StrongTypes.OpenApi.Microsoft`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft/) | Schema transformers for `Microsoft.AspNetCore.OpenApi` (`AddOpenApi()`) so the generated document matches the wire JSON. | [readme](src/StrongTypes.OpenApi.Microsoft/readme.md) |
 | [`Kalicz.StrongTypes.OpenApi.Swashbuckle`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Swashbuckle/) | Schema filters for `Swashbuckle.AspNetCore` (`AddSwaggerGen()`) so the generated Swagger document matches the wire JSON. | [readme](src/StrongTypes.OpenApi.Swashbuckle/readme.md) |
+| [`Kalicz.StrongTypes.Wpf`](https://www.nuget.org/packages/Kalicz.StrongTypes.Wpf/) | `TypeConverter`s that bridge `IParsable<T>` into `TypeDescriptor`, enabling two-way MVVM binding to strong types in WPF (and any framework that resolves converters via `TypeDescriptor`). | [readme](src/StrongTypes.Wpf/readme.md) |
 
 [↑ Back to contents](#contents)
 

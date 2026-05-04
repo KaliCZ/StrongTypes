@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>CS1591</NoWarn>
+    <IsPackable>false</IsPackable>
+    <!-- Marked as a test project only on Windows: the test exe targets net10.0-windows
+         and cannot be launched on Linux. The Ubuntu CI job still compiles this project
+         (via EnableWindowsTargeting below), but skips it during `dotnet test`. WPF tests
+         are exercised by the dedicated Windows pipeline (.github/workflows/test-wpf.yml). -->
+    <IsTestProject Condition="'$(OS)' == 'Windows_NT'">true</IsTestProject>
+    <TestingPlatformDotnetTestSupport Condition="'$(OS)' == 'Windows_NT'">true</TestingPlatformDotnetTestSupport>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
+    <ProjectReference Include="..\StrongTypes.Wpf\StrongTypes.Wpf.csproj" />
+    <ProjectReference Include="..\StrongTypes.Wpf.TestApp\StrongTypes.Wpf.TestApp.csproj" />
+  </ItemGroup>
+</Project>
