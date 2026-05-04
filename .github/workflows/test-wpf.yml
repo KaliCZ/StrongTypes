@@ -1,4 +1,4 @@
-name: build-wpf
+name: test-wpf
 
 on:
   push:
