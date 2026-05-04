@@ -206,7 +206,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_PlainString_With_StringLength_Carries_MaxLength()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated-plain");
-        var schema = formSchema.GetProperty("properties").GetProperty(CamelOrPascal(formSchema.GetProperty("properties"), "plainName"));
+        var schema = formSchema.GetProperty("properties").GetProperty(FormPropertyName("PlainName"));
         Assert.Equal(50, schema.GetProperty("maxLength").GetInt32());
     }
 
@@ -214,7 +214,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_NonEmptyString_With_StringLength_Carries_Both_Bounds()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated");
-        var schema = ResolveAnnotatedFormWrapperProperty(formSchema, "name", allOfIndex: 0);
+        var schema = ResolveAnnotatedFormWrapperProperty(formSchema, "Name", allOfIndex: 0);
         AssertJsonEquals(schema, """{"type":"string","minLength":1,"maxLength":50}""");
     }
 
@@ -222,7 +222,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_PlainInt_With_Range_Carries_Both_Bounds()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated-plain");
-        var schema = formSchema.GetProperty("properties").GetProperty(CamelOrPascal(formSchema.GetProperty("properties"), "plainCount"));
+        var schema = formSchema.GetProperty("properties").GetProperty(FormPropertyName("PlainCount"));
         Assert.Equal(5, schema.GetProperty("minimum").GetInt32());
         Assert.Equal(100, schema.GetProperty("maximum").GetInt32());
     }
@@ -231,7 +231,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_PositiveInt_With_Range_Carries_Both_Bounds()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated");
-        var schema = ResolveAnnotatedFormWrapperProperty(formSchema, "count", allOfIndex: 1);
+        var schema = ResolveAnnotatedFormWrapperProperty(formSchema, "Count", allOfIndex: 1);
         AssertJsonEquals(schema, """{"type":"integer","format":"int32","minimum":5,"maximum":100}""");
     }
 
@@ -243,17 +243,8 @@ public abstract partial class OpenApiDocumentTestsBase
         if (IsFormPropertiesSchemaBroken)
             return formSchema.GetProperty("allOf")[allOfIndex];
 
-        return formSchema.GetProperty("properties").GetProperty(CamelOrPascal(formSchema.GetProperty("properties"), propertyName));
+        return formSchema.GetProperty("properties").GetProperty(FormPropertyName(propertyName));
     }
 
-    private static string CamelOrPascal(JsonElement properties, string camelCaseName)
-    {
-        // Microsoft emits PascalCase form-property keys; Swashbuckle emits
-        // camelCase. Pick whichever the schema carries.
-        if (properties.TryGetProperty(camelCaseName, out _)) return camelCaseName;
-        var pascal = char.ToUpperInvariant(camelCaseName[0]) + camelCaseName[1..];
-        if (properties.TryGetProperty(pascal, out _)) return pascal;
-        Assert.Fail($"form properties contain neither '{camelCaseName}' nor '{pascal}'");
-        return camelCaseName;
-    }
+    protected virtual string FormPropertyName(string clrPropertyName) => clrPropertyName;
 }

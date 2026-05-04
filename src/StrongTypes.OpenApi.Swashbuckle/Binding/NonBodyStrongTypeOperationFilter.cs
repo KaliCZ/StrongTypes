@@ -92,13 +92,12 @@ public sealed class NonBodyStrongTypeOperationFilter : IOperationFilter
             if (media.Schema is not OpenApiSchema formSchema) continue;
 
             // Modern Swashbuckle path: a proper `properties` map keyed by
-            // camelCase property name.
+            // the form model property name.
             if (formSchema.Properties is { Count: > 0 } properties)
             {
-                var camelKey = ToCamelCase(pd.Name);
-                if (properties.TryGetValue(camelKey, out var propSchema))
+                if (properties.TryGetValue(pd.Name, out var propSchema))
                 {
-                    properties[camelKey] = ApplyAnnotations(propSchema, clrType, pd);
+                    properties[pd.Name] = ApplyAnnotations(propSchema, clrType, pd);
                     return;
                 }
             }
@@ -187,9 +186,4 @@ public sealed class NonBodyStrongTypeOperationFilter : IOperationFilter
 
     private static Type? ResolveParameterClrType(ApiParameterDescription pd)
         => pd.ModelMetadata?.ModelType ?? pd.ParameterDescriptor?.ParameterType ?? pd.Type;
-
-    private static string ToCamelCase(string name)
-        => string.IsNullOrEmpty(name) || char.IsLower(name[0])
-            ? name
-            : char.ToLowerInvariant(name[0]) + name[1..];
 }
