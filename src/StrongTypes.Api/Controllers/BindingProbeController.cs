@@ -63,13 +63,17 @@ public sealed class BindingProbeController : ControllerBase
         [FromHeader(Name = "X-Name")] NonEmptyString name,
         [FromHeader(Name = "X-Nullable-Name")] NonEmptyString? nullableName,
         [FromHeader(Name = "X-Count")] Positive<int> count,
-        [FromHeader(Name = "X-Nullable-Count")] Positive<int>? nullableCount)
+        [FromHeader(Name = "X-Nullable-Count")] Positive<int>? nullableCount,
+        [FromHeader(Name = "X-Digit")] Digit digit,
+        [FromHeader(Name = "X-Nullable-Digit")] Digit? nullableDigit)
         => Ok(new
         {
             name = name.Value,
             nullableName = nullableName?.Value,
             count = count.Value,
             nullableCount = (int?)nullableCount?.Value,
+            digit = (int)digit.Value,
+            nullableDigit = (int?)nullableDigit?.Value,
         });
 
     [HttpPost("form")]
@@ -80,62 +84,27 @@ public sealed class BindingProbeController : ControllerBase
             nullableName = request.NullableName?.Value,
             count = request.Count.Value,
             nullableCount = (int?)request.NullableCount?.Value,
+            digit = (int)request.Digit.Value,
+            nullableDigit = (int?)request.NullableDigit?.Value,
             email = request.Email.Address,
             nullableEmail = request.NullableEmail?.Address,
-            tags = request.Tags?.Select(t => t.Value).ToArray(),
-            counts = request.Counts?.Select(c => c.Value).ToArray(),
-            digits = request.Digits?.Select(d => (int)d.Value).ToArray(),
-            displayNameState = MaybeState(request.DisplayName),
-            displayName = MaybeValue(request.DisplayName),
         });
 
-    [HttpGet("query-nee")]
-    public IActionResult NonEmptyEnumerableFromQuery(
-        [FromQuery] NonEmptyEnumerable<Positive<int>> counts,
+    [HttpGet("query-unsupported")]
+    public IActionResult UnsupportedFromQuery(
         [FromQuery] NonEmptyEnumerable<NonEmptyString>? tags,
-        [FromQuery] NonEmptyEnumerable<Digit>? digits)
-        => Ok(new
-        {
-            counts = counts.Select(c => c.Value).ToArray(),
-            tags = tags?.Select(t => t.Value).ToArray(),
-            digits = digits?.Select(d => (int)d.Value).ToArray(),
-        });
+        [FromQuery] Maybe<NonEmptyString> displayName)
+        => Ok(new { tagsBound = tags is not null, displayNameState = displayName.ToString() });
 
-    [HttpGet("route-nee/{counts}")]
-    public IActionResult NonEmptyEnumerableFromRoute([FromRoute] NonEmptyEnumerable<Positive<int>> counts)
-        => Ok(new { counts = counts.Select(c => c.Value).ToArray() });
-
-    [HttpGet("header-nee")]
-    public IActionResult NonEmptyEnumerableFromHeader(
-        [FromHeader(Name = "X-Counts")] NonEmptyEnumerable<Positive<int>> counts,
+    [HttpGet("header-unsupported")]
+    public IActionResult UnsupportedFromHeader(
         [FromHeader(Name = "X-Tags")] NonEmptyEnumerable<NonEmptyString>? tags,
-        [FromHeader(Name = "X-Digits")] NonEmptyEnumerable<Digit>? digits)
-        => Ok(new
-        {
-            counts = counts.Select(c => c.Value).ToArray(),
-            tags = tags?.Select(t => t.Value).ToArray(),
-            digits = digits?.Select(d => (int)d.Value).ToArray(),
-        });
+        [FromHeader(Name = "X-Display-Name")] Maybe<NonEmptyString> displayName)
+        => Ok(new { tagsBound = tags is not null, displayNameState = displayName.ToString() });
 
-    [HttpGet("query-nee-strong")]
-    public IActionResult StrongTypedFromQuery(
-        [FromQuery] NonEmptyEnumerable<NonEmptyString> tags,
-        [FromQuery] NonEmptyEnumerable<Positive<int>> counts,
-        [FromQuery] NonEmptyEnumerable<Digit> digits)
-        => Ok(new
-        {
-            tags = tags.Select(t => t.Value).ToArray(),
-            counts = counts.Select(c => c.Value).ToArray(),
-            digits = digits.Select(d => (int)d.Value).ToArray(),
-        });
-
-    private static string MaybeState<T>(Maybe<T>? maybe)
-        where T : notnull
-        => maybe is null ? "missing" : maybe.Value.IsSome ? "some" : "none";
-
-    private static string? MaybeValue(Maybe<NonEmptyString>? maybe)
-        => maybe is null ? null : maybe.Value.Match<string?>(v => v.Value, () => null);
-
+    [HttpPost("form-unsupported")]
+    public IActionResult UnsupportedFromForm([FromForm] UnsupportedBindingProbeFormRequest request)
+        => Ok(new { tagsBound = request.Tags is not null, displayNameState = request.DisplayName.ToString() });
 }
 
 public sealed record BindingProbeFormRequest(
@@ -143,9 +112,11 @@ public sealed record BindingProbeFormRequest(
     NonEmptyString? NullableName,
     Positive<int> Count,
     Positive<int>? NullableCount,
+    Digit Digit,
+    Digit? NullableDigit,
     Email Email,
-    Email? NullableEmail,
+    Email? NullableEmail);
+
+public sealed record UnsupportedBindingProbeFormRequest(
     NonEmptyEnumerable<NonEmptyString>? Tags,
-    NonEmptyEnumerable<Positive<int>>? Counts,
-    NonEmptyEnumerable<Digit>? Digits,
-    Maybe<NonEmptyString>? DisplayName);
+    Maybe<NonEmptyString> DisplayName);

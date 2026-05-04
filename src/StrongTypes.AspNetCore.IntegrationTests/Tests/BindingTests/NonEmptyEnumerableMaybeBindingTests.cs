@@ -2,11 +2,11 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
-using StrongTypes.Api.IntegrationTests.Infrastructure;
+using StrongTypes.AspNetCore.IntegrationTests.Infrastructure;
 using Xunit;
-using static StrongTypes.Api.IntegrationTests.Tests.BindingTestAsserts;
+using static StrongTypes.AspNetCore.IntegrationTests.Tests.BindingTests.BindingTestAsserts;
 
-namespace StrongTypes.Api.IntegrationTests.Tests;
+namespace StrongTypes.AspNetCore.IntegrationTests.Tests.BindingTests;
 
 /// <summary>
 /// Verifies the MVC binders shipped in <c>Kalicz.StrongTypes.AspNetCore</c>
@@ -14,8 +14,7 @@ namespace StrongTypes.Api.IntegrationTests.Tests;
 /// nullable collection properties, and form-bound nullable Maybe values that
 /// preserve omitted vs empty vs populated input.
 /// </summary>
-[Collection(IntegrationTestCollection.Name)]
-public sealed class NonEmptyEnumerableMaybeBindingTests(TestWebApplicationFactory factory) : IDisposable
+public sealed class NonEmptyEnumerableMaybeBindingTests(AspNetCoreTestApiFactory factory) : IClassFixture<AspNetCoreTestApiFactory>, IDisposable
 {
     private readonly HttpClient _client = factory.CreateClient(new WebApplicationFactoryClientOptions
     {

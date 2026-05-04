@@ -34,6 +34,8 @@ public sealed class HeaderBindingTests(TestWebApplicationFactory factory) : IDis
         request.Headers.Add("X-Nullable-Name", "Dana2");
         request.Headers.Add("X-Count", "13");
         request.Headers.Add("X-Nullable-Count", "5");
+        request.Headers.Add("X-Digit", "7");
+        request.Headers.Add("X-Nullable-Digit", "3");
 
         var response = await _client.SendAsync(request, Ct);
 
@@ -43,6 +45,8 @@ public sealed class HeaderBindingTests(TestWebApplicationFactory factory) : IDis
         Assert.Equal("Dana2", json.GetProperty("nullableName").GetString());
         Assert.Equal(13, json.GetProperty("count").GetInt32());
         Assert.Equal(5, json.GetProperty("nullableCount").GetInt32());
+        Assert.Equal(7, json.GetProperty("digit").GetInt32());
+        Assert.Equal(3, json.GetProperty("nullableDigit").GetInt32());
     }
 
     [Fact]
@@ -51,6 +55,7 @@ public sealed class HeaderBindingTests(TestWebApplicationFactory factory) : IDis
         using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header");
         request.Headers.Add("X-Name", "Dana");
         request.Headers.Add("X-Count", "13");
+        request.Headers.Add("X-Digit", "7");
 
         var response = await _client.SendAsync(request, Ct);
 
@@ -58,8 +63,10 @@ public sealed class HeaderBindingTests(TestWebApplicationFactory factory) : IDis
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
         Assert.Equal("Dana", json.GetProperty("name").GetString());
         Assert.Equal(13, json.GetProperty("count").GetInt32());
+        Assert.Equal(7, json.GetProperty("digit").GetInt32());
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableName").ValueKind);
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableCount").ValueKind);
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableDigit").ValueKind);
     }
 
     [Fact]
@@ -68,6 +75,7 @@ public sealed class HeaderBindingTests(TestWebApplicationFactory factory) : IDis
         using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header");
         request.Headers.Add("X-Name", "Dana");
         request.Headers.Add("X-Count", "0");
+        request.Headers.Add("X-Digit", "7");
 
         var response = await _client.SendAsync(request, Ct);
 
@@ -80,6 +88,7 @@ public sealed class HeaderBindingTests(TestWebApplicationFactory factory) : IDis
         using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header");
         request.Headers.Add("X-Name", "Dana");
         request.Headers.Add("X-Count", "13");
+        request.Headers.Add("X-Digit", "7");
         request.Headers.Add("X-Nullable-Count", "0");
 
         var response = await _client.SendAsync(request, Ct);
@@ -92,6 +101,7 @@ public sealed class HeaderBindingTests(TestWebApplicationFactory factory) : IDis
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header");
         request.Headers.Add("X-Count", "1");
+        request.Headers.Add("X-Digit", "7");
 
         var response = await _client.SendAsync(request, Ct);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -106,6 +116,7 @@ public sealed class HeaderBindingTests(TestWebApplicationFactory factory) : IDis
         using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header");
         request.Headers.Add("X-Name", "Dana");
         request.Headers.Add("X-Count", "13");
+        request.Headers.Add("X-Digit", "7");
         request.Headers.TryAddWithoutValidation("X-Nullable-Name", "");
 
         var response = await _client.SendAsync(request, Ct);
@@ -113,5 +124,30 @@ public sealed class HeaderBindingTests(TestWebApplicationFactory factory) : IDis
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableName").ValueKind);
+    }
+
+    [Fact]
+    public async Task FromHeader_InvalidDigit_Returns400()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header");
+        request.Headers.Add("X-Name", "Dana");
+        request.Headers.Add("X-Count", "13");
+        request.Headers.Add("X-Digit", "12");
+
+        var response = await _client.SendAsync(request, Ct);
+
+        await AssertValidationProblem(response, "X-Digit");
+    }
+
+    [Fact]
+    public async Task FromHeader_NonEmptyEnumerableAndMaybe_DoNotBindOutOfTheBox()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header-unsupported");
+        request.Headers.Add("X-Tags", "alpha");
+        request.Headers.Add("X-Display-Name", "Ada");
+
+        var response = await _client.SendAsync(request, Ct);
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
     }
 }
