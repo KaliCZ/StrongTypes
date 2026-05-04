@@ -184,24 +184,11 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
         foreach (var pd in descriptions)
         {
             if (pd.Source != BindingSource.Form) continue;
-            if (!IsStrongTypeFormField(ResolveParameterClrType(pd))) continue;
+            if (!StrongTypeSchemaTypes.IsInlineable(ResolveParameterClrType(pd))) continue;
             map ??= new Dictionary<string, int>(StringComparer.Ordinal);
             map[pd.Name] = index++;
         }
         return map;
-    }
-
-    private static bool IsStrongTypeFormField(Type? clrType)
-    {
-        if (clrType is null) return false;
-        var unwrapped = Nullable.GetUnderlyingType(clrType) ?? clrType;
-        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(Email) || unwrapped == typeof(Digit)) return true;
-        if (!unwrapped.IsGenericType) return false;
-        var definition = unwrapped.GetGenericTypeDefinition();
-        return NumericWrapperKinds.TryGetBound(definition, out _)
-            || definition == typeof(NonEmptyEnumerable<>)
-            || definition == typeof(INonEmptyEnumerable<>)
-            || definition == typeof(Maybe<>);
     }
 
     private static IReadOnlyList<Attribute> GetSlotAttributes(ApiParameterDescription pd)
