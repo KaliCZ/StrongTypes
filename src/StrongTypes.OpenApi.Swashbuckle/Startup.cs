@@ -25,6 +25,7 @@ public static class StrongTypesSwashbuckleExtensions
         options.SchemaFilter<NonEmptyEnumerableSchemaFilter>();
         options.SchemaFilter<MaybeSchemaFilter>();
         options.SchemaFilter<PropertyAnnotationSchemaFilter>();
+        options.OperationFilter<FormBodyPropertiesOperationFilter>();
         options.DocumentFilter<StrongTypeInliningDocumentFilter>();
         return options;
     }

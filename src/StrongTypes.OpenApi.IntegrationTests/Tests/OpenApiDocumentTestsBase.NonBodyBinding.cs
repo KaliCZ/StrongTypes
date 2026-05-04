@@ -116,41 +116,41 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_NonEmptyString_RendersAsString_WithMinLength_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyNonEmptyString(formSchema, "name", IsFormPropertiesSchemaBroken, IsFormPropertyStrongTypeSchemaBroken);
+        AssertFormPropertyNonEmptyString(formSchema, "name", IsFormPropertyStrongTypeSchemaBroken);
     }
 
     [Fact]
     public async Task FromForm_NullableNonEmptyString_RendersAsString_WithMinLength_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyNonEmptyString(formSchema, "nullableName", IsFormPropertiesSchemaBroken, IsFormPropertyStrongTypeSchemaBroken);
+        AssertFormPropertyNonEmptyString(formSchema, "nullableName", IsFormPropertyStrongTypeSchemaBroken);
     }
 
     [Fact]
     public async Task FromForm_PositiveInt_RendersAsExclusivePositive_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyPositiveInt(formSchema, "count", IsFormPropertiesSchemaBroken, IsFormPropertyStrongTypeSchemaBroken, Version);
+        AssertFormPropertyPositiveInt(formSchema, "count", IsFormPropertyStrongTypeSchemaBroken, Version);
     }
 
     [Fact]
     public async Task FromForm_NullablePositiveInt_RendersAsExclusivePositive_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyPositiveInt(formSchema, "nullableCount", IsFormPropertiesSchemaBroken, IsFormPropertyStrongTypeSchemaBroken, Version);
+        AssertFormPropertyPositiveInt(formSchema, "nullableCount", IsFormPropertyStrongTypeSchemaBroken, Version);
     }
 
     [Fact]
     public async Task FromForm_Email_RendersAsString_WithEmailFormat_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmail(formSchema, "email", IsFormPropertiesSchemaBroken, IsFormPropertyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
+        AssertFormPropertyEmail(formSchema, "email", IsFormPropertyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
     }
 
     [Fact]
     public async Task FromForm_NullableEmail_RendersAsString_WithEmailFormat_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmail(formSchema, "nullableEmail", IsFormPropertiesSchemaBroken, IsFormPropertyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
+        AssertFormPropertyEmail(formSchema, "nullableEmail", IsFormPropertyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
     }
 }
