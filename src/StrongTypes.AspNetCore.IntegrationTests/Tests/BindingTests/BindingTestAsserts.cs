@@ -7,21 +7,29 @@ namespace StrongTypes.AspNetCore.IntegrationTests.Tests.BindingTests;
 
 internal static class BindingTestAsserts
 {
-    internal static async Task AssertValidationProblem(HttpResponseMessage response, string expectedField)
+    internal static async Task AssertValidationProblem(
+        HttpResponseMessage response,
+        string expectedField,
+        string? expectedMessage = null)
     {
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
         var errors = problem.GetProperty("errors");
         Assert.Equal(JsonValueKind.Object, errors.ValueKind);
-        var found = false;
         foreach (var prop in errors.EnumerateObject())
         {
             if (string.Equals(prop.Name, expectedField, StringComparison.OrdinalIgnoreCase))
             {
-                found = true;
-                break;
+                if (expectedMessage is not null)
+                {
+                    var messages = prop.Value.EnumerateArray().Select(e => e.GetString()).ToArray();
+                    Assert.Contains(expectedMessage, messages);
+                }
+
+                return;
             }
         }
-        Assert.True(found, $"Expected ValidationProblemDetails to include error for '{expectedField}'. Actual: {problem}");
+
+        Assert.Fail($"Expected ValidationProblemDetails to include error for '{expectedField}'. Actual: {problem}");
     }
 }

@@ -49,14 +49,14 @@ public sealed class NonEmptyEnumerableBindingTests(AspNetCoreTestApiFactory fact
     }
 
     [Theory]
-    [InlineData("/binding-probe/query-nee", "")]
-    [InlineData("/binding-probe/query-nee?counts=0", "counts")]
-    [InlineData("/binding-probe/query-nee?counts=1&digits=12", "digits")]
-    [InlineData("/binding-probe/query-nee?counts=1&tags=", "tags")]
-    public async Task Query_InvalidCollectionInput_Returns400(string url, string expectedField)
+    [InlineData("/binding-probe/query-nee", "", "The counts field is required.")]
+    [InlineData("/binding-probe/query-nee?counts=0", "counts", null)]
+    [InlineData("/binding-probe/query-nee?counts=1&digits=12", "digits", null)]
+    [InlineData("/binding-probe/query-nee?counts=1&tags=", "tags", null)]
+    public async Task Query_InvalidCollectionInput_Returns400(string url, string expectedField, string? expectedMessage)
     {
         var response = await _client.GetAsync(url, Ct);
-        await AssertValidationProblem(response, expectedField);
+        await AssertValidationProblem(response, expectedField, expectedMessage);
     }
 
     [Fact]
@@ -171,11 +171,11 @@ public sealed class NonEmptyEnumerableBindingTests(AspNetCoreTestApiFactory fact
     }
 
     [Theory]
-    [InlineData("?tags=alpha&counts=1", "")]
-    [InlineData("?tags=alpha&counts=1&digits=x", "digits")]
-    public async Task StrongTypedEndpoint_InvalidInput_Returns400(string query, string expectedField)
+    [InlineData("?tags=alpha&counts=1", "", "The digits field is required.")]
+    [InlineData("?tags=alpha&counts=1&digits=x", "digits", null)]
+    public async Task StrongTypedEndpoint_InvalidInput_Returns400(string query, string expectedField, string? expectedMessage)
     {
         var response = await _client.GetAsync($"/binding-probe/query-nee-strong{query}", Ct);
-        await AssertValidationProblem(response, expectedField);
+        await AssertValidationProblem(response, expectedField, expectedMessage);
     }
 }
