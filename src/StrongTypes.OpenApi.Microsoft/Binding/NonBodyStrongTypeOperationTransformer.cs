@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -89,10 +88,13 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
             if (media.Schema is not OpenApiSchema formSchema) continue;
             if (formSchema.Properties is not { Count: > 0 } properties) continue;
 
-            var key = ResolveFormPropertyKey(pd.Name, properties);
-            if (key is null) continue;
-
-            properties[key] = PaintSlot(properties[key], clrType, pd);
+            // Microsoft.AspNetCore.OpenApi keys form-body properties by the
+            // C# property name (PascalCase), matching ApiParameterDescription.Name.
+            // No camelCase / case-insensitive fallback because this pipeline
+            // doesn't produce those — and a fallback would risk binding to
+            // the wrong slot if a user DTO ever has near-collisions.
+            if (!properties.ContainsKey(pd.Name)) continue;
+            properties[pd.Name] = PaintSlot(properties[pd.Name], clrType, pd);
         }
     }
 
@@ -166,30 +168,6 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
             return cpd.ParameterInfo.GetCustomAttributes(inherit: true).OfType<Attribute>().ToArray();
 
         return [];
-    }
-
-    private static string? ResolveFormPropertyKey(string name, IDictionary<string, IOpenApiSchema> properties)
-    {
-        if (properties.ContainsKey(name)) return name;
-
-        var camel = JsonNamingPolicy.CamelCase.ConvertName(name);
-        if (properties.ContainsKey(camel)) return camel;
-
-        var lastDot = name.LastIndexOf('.');
-        if (lastDot >= 0)
-        {
-            var leaf = name[(lastDot + 1)..];
-            if (properties.ContainsKey(leaf)) return leaf;
-            var leafCamel = JsonNamingPolicy.CamelCase.ConvertName(leaf);
-            if (properties.ContainsKey(leafCamel)) return leafCamel;
-        }
-
-        foreach (var key in properties.Keys)
-        {
-            if (string.Equals(key, name, StringComparison.OrdinalIgnoreCase)) return key;
-        }
-
-        return null;
     }
 
     // ApiParameterDescription.Type is the type the model binder reports —

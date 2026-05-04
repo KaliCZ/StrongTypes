@@ -21,42 +21,42 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromQuery_NonEmptyString_RendersAsString_WithMinLength()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "name");
-        AssertNonBodyNonEmptyString(schema);
+        AssertNonEmptyStringSchema(schema);
     }
 
     [Fact]
     public async Task FromQuery_NullableNonEmptyString_RendersAsString_WithMinLength()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "nullableName");
-        AssertNonBodyNonEmptyString(schema);
+        AssertNonEmptyStringSchema(schema);
     }
 
     [Fact]
     public async Task FromQuery_PositiveInt_RendersAsExclusivePositive()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "count");
-        AssertNonBodyPositiveInt(schema, Version);
+        AssertPositiveIntSchema(schema, Version);
     }
 
     [Fact]
     public async Task FromQuery_NullablePositiveInt_RendersAsExclusivePositive()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "nullableCount");
-        AssertNonBodyPositiveInt(schema, Version);
+        AssertPositiveIntSchema(schema, Version);
     }
 
     [Fact]
     public async Task FromQuery_Email_RendersAsString_WithEmailFormat()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "email");
-        AssertNonBodyEmail(schema, IsEmailStringFormatBroken);
+        AssertEmailSchema(schema, IsEmailStringFormatBroken);
     }
 
     [Fact]
     public async Task FromQuery_NullableEmail_RendersAsString_WithEmailFormat()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "nullableEmail");
-        AssertNonBodyEmail(schema, IsEmailStringFormatBroken);
+        AssertEmailSchema(schema, IsEmailStringFormatBroken);
     }
 
     // ── [FromRoute] ──────────────────────────────────────────────────────
@@ -65,14 +65,14 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromRoute_NonEmptyString_RendersAsString_WithMinLength()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/route/{name}/{count}", "name");
-        AssertNonBodyNonEmptyString(schema);
+        AssertNonEmptyStringSchema(schema);
     }
 
     [Fact]
     public async Task FromRoute_PositiveInt_RendersAsExclusivePositive()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/route/{name}/{count}", "count");
-        AssertRoutePositiveInt(schema, Version);
+        AssertPositiveIntSchema(schema, Version);
     }
 
     // ── [FromHeader] ─────────────────────────────────────────────────────
@@ -81,28 +81,28 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromHeader_NonEmptyString_RendersAsString_WithMinLength()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/header", "X-Name");
-        AssertNonBodyNonEmptyString(schema);
+        AssertNonEmptyStringSchema(schema);
     }
 
     [Fact]
     public async Task FromHeader_NullableNonEmptyString_RendersAsString_WithMinLength()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/header", "X-Nullable-Name");
-        AssertNonBodyNonEmptyString(schema);
+        AssertNonEmptyStringSchema(schema);
     }
 
     [Fact]
     public async Task FromHeader_PositiveInt_RendersAsExclusivePositive()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/header", "X-Count");
-        AssertNonBodyPositiveInt(schema, Version);
+        AssertPositiveIntSchema(schema, Version);
     }
 
     [Fact]
     public async Task FromHeader_NullablePositiveInt_RendersAsExclusivePositive()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/header", "X-Nullable-Count");
-        AssertNonBodyPositiveInt(schema, Version);
+        AssertPositiveIntSchema(schema, Version);
     }
 
     // ── [FromForm] ───────────────────────────────────────────────────────
@@ -122,42 +122,42 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_NonEmptyString_RendersAsString_WithMinLength()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyNonEmptyString(formSchema, "name", allOfIndex: 0, IsFormPropertiesSchemaBroken);
+        AssertFormPropertyNonEmptyStringSchema(formSchema, "name", allOfIndex: 0, IsFormPropertiesSchemaBroken);
     }
 
     [Fact]
     public async Task FromForm_NullableNonEmptyString_RendersAsString_WithMinLength()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyNonEmptyString(formSchema, "nullableName", allOfIndex: 1, IsFormPropertiesSchemaBroken);
+        AssertFormPropertyNonEmptyStringSchema(formSchema, "nullableName", allOfIndex: 1, IsFormPropertiesSchemaBroken);
     }
 
     [Fact]
     public async Task FromForm_PositiveInt_RendersAsExclusivePositive()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyPositiveInt(formSchema, "count", allOfIndex: 2, IsFormPropertiesSchemaBroken, Version);
+        AssertFormPropertyPositiveIntSchema(formSchema, "count", allOfIndex: 2, IsFormPropertiesSchemaBroken, Version);
     }
 
     [Fact]
     public async Task FromForm_NullablePositiveInt_RendersAsExclusivePositive()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyPositiveInt(formSchema, "nullableCount", allOfIndex: 3, IsFormPropertiesSchemaBroken, Version);
+        AssertFormPropertyPositiveIntSchema(formSchema, "nullableCount", allOfIndex: 3, IsFormPropertiesSchemaBroken, Version);
     }
 
     [Fact]
     public async Task FromForm_Email_RendersAsString_WithEmailFormat()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmail(formSchema, "email", allOfIndex: 4, IsFormPropertiesSchemaBroken, IsEmailStringFormatBroken);
+        AssertFormPropertyEmailSchema(formSchema, "email", allOfIndex: 4, IsFormPropertiesSchemaBroken, IsEmailStringFormatBroken);
     }
 
     [Fact]
     public async Task FromForm_NullableEmail_RendersAsString_WithEmailFormat()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmail(formSchema, "nullableEmail", allOfIndex: 5, IsFormPropertiesSchemaBroken, IsEmailStringFormatBroken);
+        AssertFormPropertyEmailSchema(formSchema, "nullableEmail", allOfIndex: 5, IsFormPropertiesSchemaBroken, IsEmailStringFormatBroken);
     }
 
     // ── Caller annotations on non-body slots ─────────────────────────────
@@ -165,6 +165,20 @@ public abstract partial class OpenApiDocumentTestsBase
     // data-annotations the same way JSON-body properties do — e.g. a
     // [StringLength(50)] on a [FromQuery] NonEmptyString must reach the
     // wire as maxLength: 50 alongside the wrapper's own minLength: 1.
+    //
+    // Each wrapper-typed test has a primitive-typed sibling that pins the
+    // baseline: the framework natively surfaces the annotation on the
+    // primitive, so the wrapper test only has teeth when the primitive
+    // baseline carries the keyword. If a pipeline ever stops surfacing the
+    // annotation on the primitive, the baseline fails first and the
+    // wrapper failure is correctly attributed to the framework, not us.
+
+    [Fact]
+    public async Task FromQuery_PlainString_With_StringLength_Carries_MaxLength()
+    {
+        var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query-annotated", "plainName");
+        Assert.Equal(50, schema.GetProperty("maxLength").GetInt32());
+    }
 
     [Fact]
     public async Task FromQuery_NonEmptyString_With_StringLength_Carries_Both_Bounds_When_Merged()
@@ -176,6 +190,14 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     [Fact]
+    public async Task FromQuery_PlainInt_With_Range_Carries_Both_Bounds()
+    {
+        var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query-annotated", "plainCount");
+        Assert.Equal(5, schema.GetProperty("minimum").GetInt32());
+        Assert.Equal(100, schema.GetProperty("maximum").GetInt32());
+    }
+
+    [Fact]
     public async Task FromQuery_PositiveInt_With_Range_Carries_Both_Bounds_When_Merged()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query-annotated", "count");
@@ -183,20 +205,37 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     [Fact]
+    public async Task FromForm_PlainString_With_StringLength_Carries_MaxLength()
+    {
+        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated-plain");
+        var schema = formSchema.GetProperty("properties").GetProperty(CamelOrPascal(formSchema.GetProperty("properties"), "plainName"));
+        Assert.Equal(50, schema.GetProperty("maxLength").GetInt32());
+    }
+
+    [Fact]
     public async Task FromForm_NonEmptyString_With_StringLength_Carries_Both_Bounds_When_Merged()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated");
-        var schema = ResolveAnnotatedFormProperty(formSchema, "name", allOfIndex: 0);
+        var schema = ResolveAnnotatedFormWrapperProperty(formSchema, "name", allOfIndex: 0);
         AssertJsonEquals(schema, IsNonBodyAnnotationMergingBroken
             ? """{"type":"string","minLength":1}"""
             : """{"type":"string","minLength":1,"maxLength":50}""");
     }
 
     [Fact]
+    public async Task FromForm_PlainInt_With_Range_Carries_Both_Bounds()
+    {
+        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated-plain");
+        var schema = formSchema.GetProperty("properties").GetProperty(CamelOrPascal(formSchema.GetProperty("properties"), "plainCount"));
+        Assert.Equal(5, schema.GetProperty("minimum").GetInt32());
+        Assert.Equal(100, schema.GetProperty("maximum").GetInt32());
+    }
+
+    [Fact]
     public async Task FromForm_PositiveInt_With_Range_Carries_Both_Bounds_When_Merged()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated");
-        var schema = ResolveAnnotatedFormProperty(formSchema, "count", allOfIndex: 1);
+        var schema = ResolveAnnotatedFormWrapperProperty(formSchema, "count", allOfIndex: 1);
         AssertJsonEquals(schema, ExpectedAnnotatedRangeShape(IsNonBodyAnnotationMergingBroken, Version));
     }
 
@@ -212,22 +251,25 @@ public abstract partial class OpenApiDocumentTestsBase
         };
     }
 
-    // The annotated form-probe request has only two fields, so the
-    // BindingSchemaAsserts.GetFormProperty helper (which hard-codes the
-    // 6-field count for the unannotated probe) doesn't fit; this picks
-    // the right slot per pipeline.
-    private JsonElement ResolveAnnotatedFormProperty(JsonElement formSchema, string propertyName, int allOfIndex)
+    private JsonElement ResolveAnnotatedFormWrapperProperty(JsonElement formSchema, string propertyName, int allOfIndex)
     {
+        // For the wrappers-only annotated form, Swashbuckle emits the
+        // broken `{allOf:[<each>]}` shape (every field is component-typed),
+        // while Microsoft emits a proper properties map.
         if (IsFormPropertiesSchemaBroken)
             return formSchema.GetProperty("allOf")[allOfIndex];
 
-        var properties = formSchema.GetProperty("properties");
-        foreach (var entry in properties.EnumerateObject())
-        {
-            if (string.Equals(entry.Name, propertyName, StringComparison.OrdinalIgnoreCase))
-                return entry.Value;
-        }
-        Assert.Fail($"form schema has no '{propertyName}' property");
-        return default;
+        return formSchema.GetProperty("properties").GetProperty(CamelOrPascal(formSchema.GetProperty("properties"), propertyName));
+    }
+
+    private static string CamelOrPascal(JsonElement properties, string camelCaseName)
+    {
+        // Microsoft emits PascalCase form-property keys; Swashbuckle emits
+        // camelCase. Pick whichever the schema carries.
+        if (properties.TryGetProperty(camelCaseName, out _)) return camelCaseName;
+        var pascal = char.ToUpperInvariant(camelCaseName[0]) + camelCaseName[1..];
+        if (properties.TryGetProperty(pascal, out _)) return pascal;
+        Assert.Fail($"form properties contain neither '{camelCaseName}' nor '{pascal}'");
+        return camelCaseName;
     }
 }

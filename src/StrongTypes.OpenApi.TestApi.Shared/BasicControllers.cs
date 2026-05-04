@@ -140,14 +140,29 @@ public sealed class BindingProbeController : ControllerBase
     // Annotated variants — pin that caller annotations attached at a non-body
     // strong-type slot (parameter or form property) reach the wire schema.
 
+    // Each annotated wrapper-typed parameter has a primitive-typed sibling
+    // carrying the same annotation. The sibling is the baseline: a pipeline
+    // that doesn't surface the annotation on the primitive obviously can't
+    // surface it on the wrapper either, so the wrapper tests only have
+    // teeth when the primitive sibling carries the keyword.
     [HttpGet("query-annotated")]
     public IActionResult FromQueryAnnotated(
         [FromQuery, StringLength(50)] NonEmptyString name,
-        [FromQuery, Range(5, 100)] Positive<int> count)
+        [FromQuery, StringLength(50)] string plainName,
+        [FromQuery, Range(5, 100)] Positive<int> count,
+        [FromQuery, Range(5, 100)] int plainCount)
         => Ok();
 
+    // Form bodies are split into two uniform requests — one all wrappers,
+    // one all primitives — to keep the per-pipeline form-body shape
+    // consistent. Mixing wrappers and primitives in a single [FromForm]
+    // request makes Swashbuckle emit a hybrid `allOf:[wrappers, {primitives}]`
+    // shape that's painful to navigate from a shared test.
     [HttpPost("form-annotated")]
     public IActionResult FromFormAnnotated([FromForm] AnnotatedBindingProbeFormRequest request) => Ok();
+
+    [HttpPost("form-annotated-plain")]
+    public IActionResult FromFormAnnotatedPlain([FromForm] PlainAnnotatedBindingProbeFormRequest request) => Ok();
 }
 
 public sealed record BindingProbeFormRequest(
@@ -161,3 +176,7 @@ public sealed record BindingProbeFormRequest(
 public sealed record AnnotatedBindingProbeFormRequest(
     [property: StringLength(50)] NonEmptyString Name,
     [property: Range(5, 100)] Positive<int> Count);
+
+public sealed record PlainAnnotatedBindingProbeFormRequest(
+    [property: StringLength(50)] string PlainName,
+    [property: Range(5, 100)] int PlainCount);

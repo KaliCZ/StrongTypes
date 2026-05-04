@@ -46,14 +46,21 @@ public abstract partial class OpenApiDocumentTestsBase(HttpClient client) : IDis
     protected virtual bool IsEmailStringFormatBroken => false;
 
     /// <summary>
-    /// True when the pipeline paints the strong-type wire shape on a
-    /// non-body slot but does not merge caller-supplied data-annotations
-    /// (<c>[StringLength]</c>, <c>[Range]</c>, …) attached at the slot.
-    /// Tests that exercise annotated <c>[FromQuery]</c> / <c>[FromForm]</c>
-    /// slots branch on this flag: they assert the merged shape on the
-    /// not-broken path and the wrapper-only shape on the broken path. The
-    /// day a pipeline starts merging, the broken-path assertion fails and
-    /// the flag must be flipped.
+    /// True when our adapter for the pipeline paints the strong-type wire
+    /// shape on a non-body slot (parameter or form-body field) but does
+    /// not merge caller-supplied data-annotations (<c>[StringLength]</c>,
+    /// <c>[Range]</c>, …) attached at the slot. The matching primitive
+    /// baselines (<c>FromQuery_Plain*</c> / <c>FromForm_Plain*</c>) prove
+    /// the framework itself does surface these annotations on a plain
+    /// <c>string</c> / <c>int</c> sibling, so when this flag is true the
+    /// gap is in our own non-body painter for that pipeline, not a
+    /// framework limitation.
+    ///
+    /// Currently set on the Swashbuckle adapter, where the non-body
+    /// annotation pass is not yet implemented. The matching wrapper tests
+    /// branch on the flag: merged shape on the not-broken path, wrapper-only
+    /// shape on the broken path. Implementing the missing pass flips the
+    /// flag back to <c>false</c>.
     /// </summary>
     protected virtual bool IsNonBodyAnnotationMergingBroken => false;
 

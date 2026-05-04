@@ -5,22 +5,21 @@ using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaNavigation;
 namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 
 /// <summary>
-/// Schema-shape assertions for parameters bound from non-body sources
-/// (<c>[FromQuery]</c>, <c>[FromRoute]</c>, <c>[FromHeader]</c>) and for
-/// individual properties of <c>[FromForm]</c> request bodies.
+/// Centralised wire-shape assertions for the strong-type wrappers. Every
+/// helper deep-compares against a literal JSON snapshot via
+/// <see cref="AssertJsonEquals"/> so an unexpected keyword fails the test
+/// instead of silently passing. The shapes pinned here are the same wire
+/// shapes the JSON-body path emits — there is no body-vs-non-body
+/// difference at the wire — so callers from non-body tests can safely use
+/// these to assert parameter and form-property schemas alike.
 ///
-/// Every shape helper deep-compares the schema against a literal JSON
-/// snapshot via <see cref="AssertJsonEquals"/>, so the helper body reads
-/// as the exact expected schema and any unexpected keyword fails the test.
-///
-/// Per-source splits exist where the broken shape genuinely differs by
-/// binding source — most notably <see cref="AssertRoutePositiveInt"/>,
-/// where a route <c>:int</c> constraint preserves the integer encoding
-/// even on pipelines that don't (yet) honour the strong-type transformer
-/// for non-body slots. The flag-driven branches that lived here for the
-/// pre-#87 Microsoft pipeline have been removed: every supported pipeline
-/// runs a non-body strong-type painter, and any future regression on that
-/// painter shows up as a literal-schema mismatch on these helpers.
+/// The form helpers additionally navigate the request-body schema:
+/// pipelines may emit <c>{ properties: { … } }</c> (Microsoft, modern
+/// Swashbuckle) or <c>{ allOf: [ &lt;each-field&gt; ] }</c> with the
+/// field names dropped (vanilla Swashbuckle when every field is
+/// component-typed — see <see cref="OpenApiDocumentTestsBase.IsFormPropertiesSchemaBroken"/>).
+/// The helpers pick the right slot per pipeline and then run the same
+/// shape assertion as the parameter-side helpers.
 /// </summary>
 internal static class BindingSchemaAsserts
 {
@@ -34,24 +33,20 @@ internal static class BindingSchemaAsserts
 
     // ── NonEmptyString ───────────────────────────────────────────────────
 
-    internal static void AssertNonBodyNonEmptyString(JsonElement schema)
+    internal static void AssertNonEmptyStringSchema(JsonElement schema)
         => AssertJsonEquals(schema, """{"type":"string","minLength":1}""");
 
     /// <param name="propertyName">Field name as it appears in the form schema's <c>properties</c> map on the not-broken path.</param>
     /// <param name="allOfIndex">Position in the form schema's <c>allOf</c> array, used only when <paramref name="isFormPropertiesSchemaBroken"/> is true (the field name has been dropped, so navigation is by declaration index).</param>
-    internal static void AssertFormPropertyNonEmptyString(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken)
-        => AssertNonBodyNonEmptyString(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken));
+    internal static void AssertFormPropertyNonEmptyStringSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken)
+        => AssertNonEmptyStringSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken));
 
     // ── Positive<int> ────────────────────────────────────────────────────
     // Splits by OpenAPI version: 3.0 encodes the exclusive bound as
     // {minimum:0, exclusiveMinimum:true} (boolean pair); 3.1 as
     // {exclusiveMinimum:0} (numeric).
 
-    /// <summary>
-    /// Asserts the schema for a <c>[FromQuery]</c> / <c>[FromHeader]</c> /
-    /// <c>[FromRoute]</c> <c>Positive&lt;int&gt;</c> parameter.
-    /// </summary>
-    internal static void AssertNonBodyPositiveInt(JsonElement schema, OpenApiVersion version)
+    internal static void AssertPositiveIntSchema(JsonElement schema, OpenApiVersion version)
         => AssertJsonEquals(schema, version switch
         {
             OpenApiVersion.V3_0 => """{"type":"integer","format":"int32","minimum":0,"exclusiveMinimum":true}""",
@@ -59,31 +54,22 @@ internal static class BindingSchemaAsserts
             _ => throw new ArgumentOutOfRangeException(nameof(version), version, null),
         });
 
-    /// <summary>
-    /// Same wire shape as <see cref="AssertNonBodyPositiveInt"/>; kept as
-    /// a separate entry point because the route helper used to assert a
-    /// pipeline-specific broken shape and call sites still document the
-    /// binding source they're exercising.
-    /// </summary>
-    internal static void AssertRoutePositiveInt(JsonElement schema, OpenApiVersion version)
-        => AssertNonBodyPositiveInt(schema, version);
-
     /// <param name="propertyName">Field name as it appears in the form schema's <c>properties</c> map on the not-broken path.</param>
     /// <param name="allOfIndex">Position in the form schema's <c>allOf</c> array, used only when <paramref name="isFormPropertiesSchemaBroken"/> is true (the field name has been dropped, so navigation is by declaration index).</param>
-    internal static void AssertFormPropertyPositiveInt(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken, OpenApiVersion version)
-        => AssertNonBodyPositiveInt(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken), version);
+    internal static void AssertFormPropertyPositiveIntSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken, OpenApiVersion version)
+        => AssertPositiveIntSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken), version);
 
     // ── Email ────────────────────────────────────────────────────────────
 
-    internal static void AssertNonBodyEmail(JsonElement schema, bool isEmailStringFormatBroken)
+    internal static void AssertEmailSchema(JsonElement schema, bool isEmailStringFormatBroken)
         => AssertJsonEquals(schema, isEmailStringFormatBroken
             ? """{"type":"string","minLength":1,"maxLength":254}"""
             : """{"type":"string","minLength":1,"maxLength":254,"format":"email"}""");
 
     /// <param name="propertyName">Field name as it appears in the form schema's <c>properties</c> map on the not-broken path.</param>
     /// <param name="allOfIndex">Position in the form schema's <c>allOf</c> array, used only when <paramref name="isFormPropertiesSchemaBroken"/> is true (the field name has been dropped, so navigation is by declaration index).</param>
-    internal static void AssertFormPropertyEmail(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken, bool isEmailStringFormatBroken)
-        => AssertNonBodyEmail(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken), isEmailStringFormatBroken);
+    internal static void AssertFormPropertyEmailSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken, bool isEmailStringFormatBroken)
+        => AssertEmailSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken), isEmailStringFormatBroken);
 
     /// <summary>
     /// Looks up a per-field schema on a <c>[FromForm]</c> request-body
@@ -92,8 +78,7 @@ internal static class BindingSchemaAsserts
     /// because Microsoft emits PascalCase, Swashbuckle camelCase). On the
     /// broken path the form schema is <c>{ allOf: [&lt;each-field&gt;] }</c>
     /// with names dropped; the field is found by its declaration index
-    /// (<paramref name="allOfIndex"/>). Either way, the per-field schema
-    /// returned is then asserted with the same strong-type assertion.
+    /// (<paramref name="allOfIndex"/>).
     /// </summary>
     private static JsonElement GetFormProperty(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken)
     {
