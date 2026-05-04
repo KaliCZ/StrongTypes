@@ -35,6 +35,8 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
             ["nullableName"] = "Eve2",
             ["count"] = "21",
             ["nullableCount"] = "5",
+            ["debt"] = "-12",
+            ["nullableDebt"] = "-1",
             ["digit"] = "7",
             ["nullableDigit"] = "3",
             ["email"] = "eve@example.com",
@@ -48,6 +50,8 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
         Assert.Equal("Eve2", json.GetProperty("nullableName").GetString());
         Assert.Equal(21, json.GetProperty("count").GetInt32());
         Assert.Equal(5, json.GetProperty("nullableCount").GetInt32());
+        Assert.Equal(-12m, json.GetProperty("debt").GetDecimal());
+        Assert.Equal(-1m, json.GetProperty("nullableDebt").GetDecimal());
         Assert.Equal(7, json.GetProperty("digit").GetInt32());
         Assert.Equal(3, json.GetProperty("nullableDigit").GetInt32());
         Assert.Equal("eve@example.com", json.GetProperty("email").GetString());
@@ -61,6 +65,7 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
         {
             ["name"] = "Eve",
             ["count"] = "21",
+            ["debt"] = "-12",
             ["digit"] = "7",
             ["email"] = "eve@example.com",
         });
@@ -70,10 +75,12 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
         Assert.Equal("Eve", json.GetProperty("name").GetString());
         Assert.Equal(21, json.GetProperty("count").GetInt32());
+        Assert.Equal(-12m, json.GetProperty("debt").GetDecimal());
         Assert.Equal(7, json.GetProperty("digit").GetInt32());
         Assert.Equal("eve@example.com", json.GetProperty("email").GetString());
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableName").ValueKind);
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableCount").ValueKind);
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableDebt").ValueKind);
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableDigit").ValueKind);
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableEmail").ValueKind);
     }
@@ -82,6 +89,9 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
     [InlineData("name", "")]
     [InlineData("count", "0")]
     [InlineData("count", "not-a-number")]
+    [InlineData("debt", "0")]
+    [InlineData("debt", "12")]
+    [InlineData("debt", "not-a-decimal")]
     [InlineData("digit", "12")]
     [InlineData("digit", "not-a-digit")]
     [InlineData("email", "not-an-email")]
@@ -91,6 +101,7 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
         {
             ["name"] = "Eve",
             ["count"] = "21",
+            ["debt"] = "-12",
             ["digit"] = "7",
             ["email"] = "eve@example.com",
         };
@@ -104,6 +115,8 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
 
     [Theory]
     [InlineData("nullableCount", "0")]
+    [InlineData("nullableDebt", "0")]
+    [InlineData("nullableDebt", "12")]
     [InlineData("nullableDigit", "12")]
     [InlineData("nullableEmail", "not-an-email")]
     public async Task FromForm_NonEmptyInvalidNullable_Returns400(string field, string badValue)
@@ -112,6 +125,7 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
         {
             ["name"] = "Eve",
             ["count"] = "21",
+            ["debt"] = "-12",
             ["digit"] = "7",
             ["email"] = "eve@example.com",
             [field] = badValue,
@@ -132,6 +146,7 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
         {
             ["name"] = "Eve",
             ["count"] = "21",
+            ["debt"] = "-12",
             ["digit"] = "7",
             ["email"] = "eve@example.com",
             ["nullableName"] = "",
