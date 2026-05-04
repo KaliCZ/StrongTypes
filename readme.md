@@ -13,6 +13,8 @@ StrongTypes adds small, focused types that make everyday code safer and more exp
   <img alt="Impact of StrongTypes on validation boundaries" src="docs/diagrams/impact.svg">
 </picture>
 
+### What's included
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/package-layout-dark.svg">
   <img alt="Package layout" src="docs/diagrams/package-layout.svg">
