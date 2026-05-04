@@ -38,8 +38,18 @@ public sealed class BindingProbeController : ControllerBase
         });
 
     [HttpGet("query-implicit")]
-    public IActionResult ImplicitQuery(NonEmptyString name, Positive<int> count)
-        => Ok(new { name = name.Value, count = count.Value });
+    public IActionResult ImplicitQuery(
+        NonEmptyString name,
+        NonEmptyString? nullableName,
+        Positive<int> count,
+        Positive<int>? nullableCount)
+        => Ok(new
+        {
+            name = name.Value,
+            nullableName = nullableName?.Value,
+            count = count.Value,
+            nullableCount = (int?)nullableCount?.Value,
+        });
 
     [HttpGet("route/{name}/{count:int}/{digit}")]
     public IActionResult FromRoute(

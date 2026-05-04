@@ -59,6 +59,10 @@ public sealed class NonBodyBindingTests(TestWebApplicationFactory factory) : IDi
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal("Alice", json.GetProperty("name").GetString());
+        Assert.Equal(42, json.GetProperty("count").GetInt32());
+        Assert.Equal(7, json.GetProperty("digit").GetInt32());
+        Assert.Equal("alice@example.com", json.GetProperty("email").GetString());
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableName").ValueKind);
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableCount").ValueKind);
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableDigit").ValueKind);
@@ -109,12 +113,34 @@ public sealed class NonBodyBindingTests(TestWebApplicationFactory factory) : IDi
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableName").ValueKind);
     }
 
-    [Fact]
-    public async Task FromQuery_MissingRequired_Returns400()
+    [Theory]
+    [InlineData("count=1&digit=0&email=alice@example.com", "name")]
+    [InlineData("name=Alice&count=1&digit=0", "email")]
+    public async Task FromQuery_MissingRequiredReferenceType_Returns400ProblemDetails(string query, string expectedField)
     {
-        var response = await _client.GetAsync(
-            "/binding-probe/query?count=1&digit=0&email=alice@example.com", Ct);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        // Reference-type strong types (NonEmptyString, Email) produce a model
+        // binding error for an omitted query parameter — there's no value to
+        // bind and null isn't assignable to the non-nullable parameter, so MVC
+        // surfaces a ValidationProblemDetails entry keyed by the parameter name.
+        var response = await _client.GetAsync($"/binding-probe/query?{query}", Ct);
+
+        await AssertValidationProblem(response, expectedField);
+    }
+
+    [Theory]
+    [InlineData("name=Alice&digit=0&email=alice@example.com")]
+    [InlineData("name=Alice&count=1&email=alice@example.com")]
+    public async Task FromQuery_MissingRequiredValueType_BindsToDefault(string query)
+    {
+        // Value-type strong types (Positive<int>, Digit are structs) silently
+        // bind to default(T) when the query parameter is omitted — MVC's
+        // TryParseModelBinder doesn't run for a missing source value, and no
+        // [BindRequired] attribute is present, so the action sees an
+        // invariant-violating default rather than a 400. Documented here so
+        // the contract is explicit; fixing this would need a custom binder
+        // that flags missing required structs.
+        var response = await _client.GetAsync($"/binding-probe/query?{query}", Ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     // ── Implicit query binding (no [From*] attribute) ────────────────────
@@ -122,12 +148,15 @@ public sealed class NonBodyBindingTests(TestWebApplicationFactory factory) : IDi
     [Fact]
     public async Task ImplicitQuery_ValidValues_Binds()
     {
-        var response = await _client.GetAsync("/binding-probe/query-implicit?name=Bob&count=7", Ct);
+        var response = await _client.GetAsync(
+            "/binding-probe/query-implicit?name=Bob&nullableName=Carol&count=7&nullableCount=3", Ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
         Assert.Equal("Bob", json.GetProperty("name").GetString());
+        Assert.Equal("Carol", json.GetProperty("nullableName").GetString());
         Assert.Equal(7, json.GetProperty("count").GetInt32());
+        Assert.Equal(3, json.GetProperty("nullableCount").GetInt32());
     }
 
     [Fact]
@@ -206,6 +235,8 @@ public sealed class NonBodyBindingTests(TestWebApplicationFactory factory) : IDi
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal("Dana", json.GetProperty("name").GetString());
+        Assert.Equal(13, json.GetProperty("count").GetInt32());
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableName").ValueKind);
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableCount").ValueKind);
     }
@@ -302,6 +333,9 @@ public sealed class NonBodyBindingTests(TestWebApplicationFactory factory) : IDi
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal("Eve", json.GetProperty("name").GetString());
+        Assert.Equal(21, json.GetProperty("count").GetInt32());
+        Assert.Equal("eve@example.com", json.GetProperty("email").GetString());
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableName").ValueKind);
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableCount").ValueKind);
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableEmail").ValueKind);

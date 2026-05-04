@@ -123,6 +123,31 @@ Use `OpenApiVersion`-aware helpers in `Helpers/ExclusiveBounds.cs` for
 anything that differs between OpenAPI 3.0 and 3.1 (e.g. exclusive
 bounds). Don't write version-conditional asserts inline.
 
+## Helpers don't live in test classes
+
+Test classes contain **only test methods** — `[Fact]`, `[Theory]`,
+`[Property]`, and the constructor / fixture wiring they need. Anything
+else is a helper and belongs in a dedicated helper file:
+
+- Pure assertion shapes (e.g. "this schema is a non-empty string",
+  "this response is a `ValidationProblemDetails` for field X") go in a
+  `Helpers/` folder as `internal static` classes — see
+  `StrongTypes.OpenApi.IntegrationTests/Helpers/` for the established
+  pattern (`SchemaNavigation`, `BindingSchemaAsserts`, …).
+- Per-pipeline / per-fixture variation that the helper needs (e.g. a
+  "broken" flag, the OpenAPI version, a base URL) is passed in as a
+  parameter. The helper itself stays static and pure — it does not
+  reach back into the test class via inheritance or `this`.
+- Test methods stay flat: navigate to the thing under test, then call
+  the assert helper. No private async helpers on the test class, no
+  `protected` shared methods on the base class beyond the fixture
+  surface.
+
+This applies equally to the `OpenApiDocumentTestsBase` partials, the
+API integration test base, and unit-test classes. If a test method has
+shared logic it would benefit from extracting, extract it to a helper
+file rather than to a private method on the class.
+
 ## Analyzer tests — `StrongTypes.Analyzers.Tests`
 
 For every diagnostic and code fix, write both a "reports the diagnostic"
