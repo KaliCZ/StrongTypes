@@ -2,6 +2,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi;
 using StrongTypes.OpenApi.Core;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -27,7 +28,7 @@ namespace StrongTypes.OpenApi.Swashbuckle;
 /// <see cref="BindingSource.Form"/>, and the form path is gated to
 /// <c>multipart/form-data</c> / <c>application/x-www-form-urlencoded</c>.
 /// </summary>
-public sealed class NonBodyStrongTypeOperationFilter : IOperationFilter
+public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOperationFilter>? logger = null) : IOperationFilter
 {
     private static readonly string[] s_formContentTypes =
     [
@@ -80,7 +81,7 @@ public sealed class NonBodyStrongTypeOperationFilter : IOperationFilter
         }
     }
 
-    private static void MergeFormPropertyAnnotations(OpenApiOperation operation, ApiParameterDescription pd, IReadOnlyDictionary<string, int>? allOfIndexByProperty)
+    private void MergeFormPropertyAnnotations(OpenApiOperation operation, ApiParameterDescription pd, IReadOnlyDictionary<string, int>? allOfIndexByProperty)
     {
         if (operation.RequestBody?.Content is not { } content) return;
         var clrType = ResolveParameterClrType(pd);
@@ -107,12 +108,40 @@ public sealed class NonBodyStrongTypeOperationFilter : IOperationFilter
             // index we built from the API description's declaration order.
             if (formSchema.AllOf is { Count: > 0 } allOf
                 && allOfIndexByProperty is not null
-                && allOfIndexByProperty.TryGetValue(pd.Name, out var index)
-                && index >= 0 && index < allOf.Count)
+                && allOfIndexByProperty.TryGetValue(pd.Name, out var index))
             {
+                if (!IsExpectedBrokenFormAllOfTarget(allOf, allOfIndexByProperty.Count, pd.Name, index))
+                    return;
+
                 allOf[index] = ApplyAnnotations(allOf[index], clrType, pd);
             }
         }
+    }
+
+    private bool IsExpectedBrokenFormAllOfTarget(IList<IOpenApiSchema> allOf, int expectedCount, string propertyName, int index)
+    {
+        if (allOf.Count != expectedCount)
+        {
+            logger?.LogError("StrongTypes form annotation merge skipped for property '{PropertyName}' because the form allOf count ({ActualCount}) did not match the strong-type form field count ({ExpectedCount}).",
+                propertyName, allOf.Count, expectedCount);
+            return false;
+        }
+
+        if (index < 0 || index >= allOf.Count)
+        {
+            logger?.LogError("StrongTypes form annotation merge skipped for property '{PropertyName}' because the computed allOf index ({Index}) was outside the form allOf count ({ActualCount}).",
+                propertyName, index, allOf.Count);
+            return false;
+        }
+
+        if (allOf[index] is not OpenApiSchemaReference)
+        {
+            logger?.LogError("StrongTypes form annotation merge skipped for property '{PropertyName}' because the target form allOf entry at index {Index} was not a reference schema.",
+                propertyName, index);
+            return false;
+        }
+
+        return true;
     }
 
     private static IOpenApiSchema ApplyAnnotations(IOpenApiSchema? slot, Type clrType, ApiParameterDescription pd)
