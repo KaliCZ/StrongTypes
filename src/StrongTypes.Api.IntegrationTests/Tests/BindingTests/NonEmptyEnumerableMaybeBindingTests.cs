@@ -9,13 +9,10 @@ using static StrongTypes.Api.IntegrationTests.Tests.BindingTestAsserts;
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
 /// <summary>
-/// Verifies that <see cref="NonEmptyEnumerable{T}"/> and <see cref="Maybe{T}"/>
-/// bind from every non-body source via the model binders shipped in
-/// <c>Kalicz.StrongTypes.AspNetCore</c>, and that an empty
-/// <c>NonEmptyEnumerable</c> source produces a 400 with
-/// <c>ValidationProblemDetails</c>. Body round-trip is covered too — the
-/// existing JSON converters handle that path; we just confirm the binders
-/// don't break it.
+/// Verifies the MVC binders shipped in <c>Kalicz.StrongTypes.AspNetCore</c>
+/// for realistic strong-type contracts: non-empty collections of strong types,
+/// nullable collection properties, and form-bound nullable Maybe values that
+/// preserve omitted vs empty vs populated input.
 /// </summary>
 [Collection(IntegrationTestCollection.Name)]
 public sealed class NonEmptyEnumerableMaybeBindingTests(TestWebApplicationFactory factory) : IDisposable
@@ -29,262 +26,207 @@ public sealed class NonEmptyEnumerableMaybeBindingTests(TestWebApplicationFactor
 
     public void Dispose() => _client.Dispose();
 
-    // ── Query ──────────────────────────────────────────────────────────────
-
     [Fact]
-    public async Task Query_MultipleIds_BindsAllValues()
+    public async Task Query_StrongTypedCollections_BindAllValues()
     {
-        var response = await _client.GetAsync("/binding-probe/query-nee?ids=1&ids=2&ids=3", Ct);
+        var response = await _client.GetAsync(
+            "/binding-probe/query-nee?counts=1&counts=2&tags=alpha&tags=beta&digits=3&digits=4", Ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal([1, 2, 3], json.GetProperty("ids").EnumerateArray().Select(e => e.GetInt32()));
-        Assert.Equal(JsonValueKind.Null, json.GetProperty("filter").ValueKind);
+        Assert.Equal([1, 2], json.GetProperty("counts").EnumerateArray().Select(e => e.GetInt32()));
+        Assert.Equal(["alpha", "beta"], json.GetProperty("tags").EnumerateArray().Select(e => e.GetString()));
+        Assert.Equal([3, 4], json.GetProperty("digits").EnumerateArray().Select(e => e.GetInt32()));
     }
 
     [Fact]
-    public async Task Query_SingleId_BindsAsOneElementSequence()
+    public async Task Query_NullableCollectionsOmitted_BindAsNull()
     {
-        var response = await _client.GetAsync("/binding-probe/query-nee?ids=42", Ct);
+        var response = await _client.GetAsync("/binding-probe/query-nee?counts=7", Ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal([42], json.GetProperty("ids").EnumerateArray().Select(e => e.GetInt32()));
+        Assert.Equal([7], json.GetProperty("counts").EnumerateArray().Select(e => e.GetInt32()));
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("tags").ValueKind);
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("digits").ValueKind);
     }
 
-    [Fact]
-    public async Task Query_MaybePresent_BindsToSome()
+    [Theory]
+    [InlineData("/binding-probe/query-nee", "")]
+    [InlineData("/binding-probe/query-nee?counts=0", "counts")]
+    [InlineData("/binding-probe/query-nee?counts=1&digits=12", "digits")]
+    [InlineData("/binding-probe/query-nee?counts=1&tags=", "tags")]
+    public async Task Query_InvalidCollectionInput_Returns400(string url, string expectedField)
     {
-        var response = await _client.GetAsync("/binding-probe/query-nee?ids=1&filter=99", Ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal(99, json.GetProperty("filter").GetInt32());
+        var response = await _client.GetAsync(url, Ct);
+        await AssertValidationProblem(response, expectedField);
     }
 
     [Fact]
-    public async Task Query_MaybeOmitted_BindsToNone()
-    {
-        var response = await _client.GetAsync("/binding-probe/query-nee?ids=1", Ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal(JsonValueKind.Null, json.GetProperty("filter").ValueKind);
-    }
-
-    [Fact]
-    public async Task Query_MaybeInvalid_Returns400()
-    {
-        var response = await _client.GetAsync("/binding-probe/query-nee?ids=1&filter=not-a-number", Ct);
-        await AssertValidationProblem(response, "filter");
-    }
-
-    [Fact]
-    public async Task Query_NoIds_Returns400ProblemDetails()
-    {
-        var response = await _client.GetAsync("/binding-probe/query-nee", Ct);
-        await AssertValidationProblem(response, "ids");
-    }
-
-    [Fact]
-    public async Task Query_OneIdNotANumber_Returns400()
-    {
-        var response = await _client.GetAsync("/binding-probe/query-nee?ids=1&ids=oops", Ct);
-        await AssertValidationProblem(response, "ids");
-    }
-
-    // ── Route ──────────────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task Route_SingleSegment_BindsAsOneElementSequence()
+    public async Task Route_StrongTypedCollection_BindsSingleSegment()
     {
         var response = await _client.GetAsync("/binding-probe/route-nee/7", Ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal([7], json.GetProperty("ids").EnumerateArray().Select(e => e.GetInt32()));
-    }
-
-    [Fact]
-    public async Task Route_NonIntegerSegment_Returns400()
-    {
-        var response = await _client.GetAsync("/binding-probe/route-nee/oops", Ct);
-        await AssertValidationProblem(response, "ids");
-    }
-
-    // ── Header ─────────────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task Header_MultipleValuesAcrossHeaders_BindsAll()
-    {
-        // ASP.NET Core's header binder reads StringValues from a single header
-        // line as a comma-separated list when used with array binding.
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header-nee");
-        request.Headers.Add("X-Ids", "10");
-        request.Headers.Add("X-Ids", "20");
-        request.Headers.Add("X-Filter", "5");
-
-        var response = await _client.SendAsync(request, Ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        var ids = json.GetProperty("ids").EnumerateArray().Select(e => e.GetInt32()).ToArray();
-        Assert.Contains(10, ids);
-        Assert.Contains(20, ids);
-        Assert.Equal(5, json.GetProperty("filter").GetInt32());
-    }
-
-    [Fact]
-    public async Task Header_MissingIds_Returns400()
-    {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header-nee");
-        var response = await _client.SendAsync(request, Ct);
-        await AssertValidationProblem(response, "X-Ids");
-    }
-
-    [Fact]
-    public async Task Header_FilterMissing_BindsToNone()
-    {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header-nee");
-        request.Headers.Add("X-Ids", "1");
-
-        var response = await _client.SendAsync(request, Ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal(JsonValueKind.Null, json.GetProperty("filter").ValueKind);
-    }
-
-    [Fact]
-    public async Task Header_FilterInvalid_Returns400()
-    {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header-nee");
-        request.Headers.Add("X-Ids", "1");
-        request.Headers.Add("X-Filter", "not-a-number");
-
-        var response = await _client.SendAsync(request, Ct);
-        await AssertValidationProblem(response, "X-Filter");
-    }
-
-    // ── Form ───────────────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task Form_MultipleIds_BindsAllValues()
-    {
-        var pairs = new List<KeyValuePair<string, string>>
-        {
-            new("Ids", "1"),
-            new("Ids", "2"),
-            new("Ids", "3"),
-            new("Filter", "9"),
-        };
-        using var content = new FormUrlEncodedContent(pairs);
-        var response = await _client.PostAsync("/binding-probe/form-nee", content, Ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal([1, 2, 3], json.GetProperty("ids").EnumerateArray().Select(e => e.GetInt32()));
-        Assert.Equal(9, json.GetProperty("filter").GetInt32());
-    }
-
-    [Fact]
-    public async Task Form_NoIds_Returns400()
-    {
-        var pairs = new List<KeyValuePair<string, string>>
-        {
-            new("Filter", "9"),
-        };
-        using var content = new FormUrlEncodedContent(pairs);
-        var response = await _client.PostAsync("/binding-probe/form-nee", content, Ct);
-
-        await AssertValidationProblem(response, "Ids");
-    }
-
-    [Fact]
-    public async Task Form_FilterOmitted_BindsToNone()
-    {
-        var pairs = new List<KeyValuePair<string, string>>
-        {
-            new("Ids", "1"),
-        };
-        using var content = new FormUrlEncodedContent(pairs);
-        var response = await _client.PostAsync("/binding-probe/form-nee", content, Ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal(JsonValueKind.Null, json.GetProperty("filter").ValueKind);
-    }
-
-    // ── Body (JSON converter — not the binder, but confirm it still works) ─
-
-    [Fact]
-    public async Task Body_JsonRoundTripStillWorks()
-    {
-        var payload = new { Ids = new[] { 1, 2, 3 }, Filter = new { Value = 7 } };
-        var response = await _client.PostAsJsonAsync("/binding-probe/body-nee", payload, Ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal([1, 2, 3], json.GetProperty("ids").EnumerateArray().Select(e => e.GetInt32()));
-        Assert.Equal(7, json.GetProperty("filter").GetInt32());
-    }
-
-    [Fact]
-    public async Task Body_EmptyIdsArray_Returns400()
-    {
-        var payload = new { Ids = Array.Empty<int>(), Filter = new { Value = (int?)null } };
-        var response = await _client.PostAsJsonAsync("/binding-probe/body-nee", payload, Ct);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    // ── Strong-typed element variants (NonEmptyString, Positive<int>, Email) ───
-    // These are the cases that motivate the binder existing at all — every
-    // wrapper in this library implements IParsable<T>, and the binders'
-    // element parsing must follow that path. Without it, only BCL primitives
-    // would work, which would defeat the point of shipping the package.
-
-    [Fact]
-    public async Task StrongTyped_AllPresent_BindsViaIParsable()
-    {
-        var response = await _client.GetAsync(
-            "/binding-probe/query-nee-strong?tags=alpha&tags=beta&counts=1&counts=2&filter=needle&contact=a@b.co", Ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal(["alpha", "beta"], json.GetProperty("tags").EnumerateArray().Select(e => e.GetString()));
-        Assert.Equal([1, 2], json.GetProperty("counts").EnumerateArray().Select(e => e.GetInt32()));
-        Assert.Equal("needle", json.GetProperty("filter").GetString());
-        Assert.Equal("a@b.co", json.GetProperty("contact").GetString());
-    }
-
-    [Fact]
-    public async Task StrongTyped_OptionalsOmitted_BindToNone()
-    {
-        var response = await _client.GetAsync(
-            "/binding-probe/query-nee-strong?tags=alpha&counts=1", Ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal(JsonValueKind.Null, json.GetProperty("filter").ValueKind);
-        Assert.Equal(JsonValueKind.Null, json.GetProperty("contact").ValueKind);
+        Assert.Equal([7], json.GetProperty("counts").EnumerateArray().Select(e => e.GetInt32()));
     }
 
     [Theory]
-    [InlineData("?tags=alpha&counts=1&counts=0", "counts")]      // Positive<int> rejects 0
-    [InlineData("?tags=alpha&counts=1&counts=oops", "counts")]   // not-an-integer
-    [InlineData("?tags=&counts=1", "tags")]                       // NonEmptyString rejects empty
-    [InlineData("?tags=alpha&counts=1&contact=not-an-email", "contact")]
-    public async Task StrongTyped_InvalidElement_Returns400(string query, string expectedField)
+    [InlineData("0")]
+    [InlineData("oops")]
+    public async Task Route_InvalidStrongTypedCollection_Returns400(string segment)
     {
-        var response = await _client.GetAsync($"/binding-probe/query-nee-strong{query}", Ct);
-        await AssertValidationProblem(response, expectedField);
+        var response = await _client.GetAsync($"/binding-probe/route-nee/{segment}", Ct);
+        await AssertValidationProblem(response, "counts");
     }
 
     [Fact]
-    public async Task StrongTyped_MissingRequiredCollection_Returns400()
+    public async Task Header_StrongTypedCollections_BindAllValues()
     {
-        var response = await _client.GetAsync("/binding-probe/query-nee-strong?counts=1", Ct);
-        await AssertValidationProblem(response, "tags");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header-nee");
+        request.Headers.Add("X-Counts", "10");
+        request.Headers.Add("X-Counts", "20");
+        request.Headers.Add("X-Tags", "red, blue");
+        request.Headers.Add("X-Digits", "5");
+
+        var response = await _client.SendAsync(request, Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal([10, 20], json.GetProperty("counts").EnumerateArray().Select(e => e.GetInt32()));
+        Assert.Equal(["red", "blue"], json.GetProperty("tags").EnumerateArray().Select(e => e.GetString()));
+        Assert.Equal([5], json.GetProperty("digits").EnumerateArray().Select(e => e.GetInt32()));
+    }
+
+    [Fact]
+    public async Task Header_MissingRequiredCollection_Returns400()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header-nee");
+        var response = await _client.SendAsync(request, Ct);
+        await AssertValidationProblem(response, "X-Counts");
+    }
+
+    [Fact]
+    public async Task Header_OptionalValuesOmitted_BindAsMissingOrNull()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header-nee");
+        request.Headers.Add("X-Counts", "1");
+
+        var response = await _client.SendAsync(request, Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("tags").ValueKind);
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("digits").ValueKind);
+    }
+
+    [Fact]
+    public async Task Form_ExtendedBindingProbeRequest_BindsNullableCollectionsAndMaybe()
+    {
+        var pairs = new List<KeyValuePair<string, string>>
+        {
+            new("name", "Eve"),
+            new("count", "21"),
+            new("email", "eve@example.com"),
+            new("tags", "north"),
+            new("tags", "south"),
+            new("counts", "1"),
+            new("counts", "2"),
+            new("digits", "8"),
+            new("displayName", "FormName"),
+        };
+        using var content = new FormUrlEncodedContent(pairs);
+
+        var response = await _client.PostAsync("/binding-probe/form", content, Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal(["north", "south"], json.GetProperty("tags").EnumerateArray().Select(e => e.GetString()));
+        Assert.Equal([1, 2], json.GetProperty("counts").EnumerateArray().Select(e => e.GetInt32()));
+        Assert.Equal([8], json.GetProperty("digits").EnumerateArray().Select(e => e.GetInt32()));
+        Assert.Equal("some", json.GetProperty("displayNameState").GetString());
+        Assert.Equal("FormName", json.GetProperty("displayName").GetString());
+    }
+
+    [Fact]
+    public async Task Form_NullableMaybeOmitted_BindsToMissingState()
+    {
+        var pairs = new List<KeyValuePair<string, string>>
+        {
+            new("name", "Eve"),
+            new("count", "21"),
+            new("email", "eve@example.com"),
+        };
+        using var content = new FormUrlEncodedContent(pairs);
+
+        var response = await _client.PostAsync("/binding-probe/form", content, Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal("missing", json.GetProperty("displayNameState").GetString());
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("displayName").ValueKind);
+    }
+
+    [Fact]
+    public async Task Form_EmptyNullableMaybe_BindsToNone()
+    {
+        var pairs = new List<KeyValuePair<string, string>>
+        {
+            new("name", "Eve"),
+            new("count", "21"),
+            new("email", "eve@example.com"),
+            new("displayName", ""),
+        };
+        using var content = new FormUrlEncodedContent(pairs);
+
+        var response = await _client.PostAsync("/binding-probe/form", content, Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal("none", json.GetProperty("displayNameState").GetString());
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("displayName").ValueKind);
+    }
+
+    [Theory]
+    [InlineData("counts", "0")]
+    [InlineData("digits", "88")]
+    [InlineData("tags", "")]
+    public async Task Form_InvalidNullableCollection_Returns400(string field, string badValue)
+    {
+        var pairs = new List<KeyValuePair<string, string>>
+        {
+            new("name", "Eve"),
+            new("count", "21"),
+            new("email", "eve@example.com"),
+            new(field, badValue),
+        };
+        using var content = new FormUrlEncodedContent(pairs);
+
+        var response = await _client.PostAsync("/binding-probe/form", content, Ct);
+
+        await AssertValidationProblem(response, field);
+    }
+
+    [Fact]
+    public async Task StrongTypedEndpoint_RequiresDigitCollection()
+    {
+        var response = await _client.GetAsync(
+            "/binding-probe/query-nee-strong?tags=alpha&counts=1&digits=4", Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal(["alpha"], json.GetProperty("tags").EnumerateArray().Select(e => e.GetString()));
+        Assert.Equal([1], json.GetProperty("counts").EnumerateArray().Select(e => e.GetInt32()));
+        Assert.Equal([4], json.GetProperty("digits").EnumerateArray().Select(e => e.GetInt32()));
+    }
+
+    [Theory]
+    [InlineData("?tags=alpha&counts=1", "")]
+    [InlineData("?tags=alpha&counts=1&digits=x", "digits")]
+    public async Task StrongTypedEndpoint_InvalidInput_Returns400(string query, string expectedField)
+    {
+        var response = await _client.GetAsync($"/binding-probe/query-nee-strong{query}", Ct);
+        await AssertValidationProblem(response, expectedField);
     }
 }

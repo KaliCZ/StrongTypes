@@ -4,11 +4,22 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace StrongTypes.AspNetCore;
 
-/// <summary>Binds an action parameter of type <see cref="Maybe{T}"/> from any non-body source. An absent source binds to <c>None</c>; a present source parses the raw string via <see cref="IParsable{TSelf}"/> on <typeparamref name="T"/> and wraps it as <c>Some</c>; a parse failure surfaces as a <c>400</c>.</summary>
+/// <summary>Binds <see cref="Maybe{T}"/> from a non-body source. For nullable Maybe targets, an absent source binds to <c>null</c>, an empty source binds to <c>None</c>, and a non-empty source parses via <see cref="IParsable{TSelf}"/> on <typeparamref name="T"/> and wraps it as <c>Some</c>.</summary>
 /// <typeparam name="T">The wrapped type. Must implement <see cref="IParsable{TSelf}"/> (every BCL primitive in net7+ and every Kalicz.StrongTypes wrapper qualifies).</typeparam>
 public sealed class MaybeModelBinder<T> : IModelBinder
     where T : notnull
 {
+    private readonly bool _isNullable;
+
+    public MaybeModelBinder()
+    {
+    }
+
+    public MaybeModelBinder(bool isNullable)
+    {
+        _isNullable = isNullable;
+    }
+
     public Task BindModelAsync(ModelBindingContext bindingContext)
     {
         ArgumentNullException.ThrowIfNull(bindingContext);
@@ -22,7 +33,14 @@ public sealed class MaybeModelBinder<T> : IModelBinder
         }
 
         var (raw, present) = ReadRawValue(bindingContext);
-        if (!present || string.IsNullOrEmpty(raw))
+        if (!present)
+        {
+            var isNullable = _isNullable || ModelMetadataNullability.IsNullable(bindingContext.ModelMetadata);
+            bindingContext.Result = ModelBindingResult.Success(isNullable ? null : default(Maybe<T>));
+            return Task.CompletedTask;
+        }
+
+        if (string.IsNullOrEmpty(raw))
         {
             bindingContext.Result = ModelBindingResult.Success(default(Maybe<T>));
             return Task.CompletedTask;

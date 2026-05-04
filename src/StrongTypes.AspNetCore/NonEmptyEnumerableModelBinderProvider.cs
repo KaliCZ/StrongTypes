@@ -17,6 +17,6 @@ public sealed class NonEmptyEnumerableModelBinderProvider : IModelBinderProvider
 
         var elementType = modelType.GetGenericArguments()[0];
         var binderType = typeof(NonEmptyEnumerableModelBinder<>).MakeGenericType(elementType);
-        return (IModelBinder)Activator.CreateInstance(binderType)!;
+        return (IModelBinder)Activator.CreateInstance(binderType, ModelMetadataNullability.IsNullable(context.Metadata))!;
     }
 }

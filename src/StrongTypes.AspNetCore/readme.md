@@ -16,11 +16,11 @@ need a custom binder:
   `T[]` binder for the elements and then enforces the non-empty
   invariant; an empty source surfaces as a 400 with
   `ValidationProblemDetails`.
-- `Maybe<T>` — *missing* maps to `None`, *present* maps to
-  `Some(parse(s))`. `IParsable<T>.TryParse` can't model the missing
-  case because there's no string to parse. The binder reads the value
-  provider directly to detect absence and delegates to the framework's
-  binder for `T` when a value is present.
+- `Maybe<T>` in form-bound patch contracts — `Maybe<T>?` can distinguish
+  an omitted field (`null`, skip), an empty field (`None`, clear), and a
+  non-empty field (`Some(parse(s))`, set). Query strings and headers can
+  technically represent some of those shapes, but they make poor public
+  contracts; prefer `T?` there.
 
 `[FromBody]` round-tripping for both types already works through the
 JSON converters that ship with `Kalicz.StrongTypes` — this package
@@ -51,17 +51,25 @@ collection / simple-type binders.
 [HttpGet("search")]
 public IActionResult Search(
     [FromQuery] NonEmptyEnumerable<NonEmptyString> tags,
-    [FromQuery] NonEmptyEnumerable<Positive<int>> counts,
-    [FromQuery] Maybe<Email> contact)
+    [FromQuery] NonEmptyEnumerable<Positive<int>> counts)
 {
     // tags is guaranteed non-empty; the framework returns 400 + problem
     // details if the caller sent zero ?tags=… values, or any tag is
     // empty / whitespace-only.
     // counts is guaranteed non-empty and every entry > 0.
-    // contact is None when the caller omits ?contact=…, Some(value)
-    // otherwise; an invalid email returns 400.
     return Ok(new { count = tags.Count, total = counts.Sum(c => c.Value) });
 }
+
+[HttpPost("profile")]
+public IActionResult PatchProfile([FromForm] ProfilePatch patch)
+{
+    // DisplayName == null: field omitted, leave it alone.
+    // DisplayName == None: field was present but empty, clear it.
+    // DisplayName == Some(value): set it to a non-empty string.
+    return Ok();
+}
+
+public sealed record ProfilePatch(Maybe<NonEmptyString>? DisplayName);
 ```
 
 ## Supported element types

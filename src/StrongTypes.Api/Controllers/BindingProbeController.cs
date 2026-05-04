@@ -82,65 +82,60 @@ public sealed class BindingProbeController : ControllerBase
             nullableCount = (int?)request.NullableCount?.Value,
             email = request.Email.Address,
             nullableEmail = request.NullableEmail?.Address,
+            tags = request.Tags?.Select(t => t.Value).ToArray(),
+            counts = request.Counts?.Select(c => c.Value).ToArray(),
+            digits = request.Digits?.Select(d => (int)d.Value).ToArray(),
+            displayNameState = MaybeState(request.DisplayName),
+            displayName = MaybeValue(request.DisplayName),
         });
-
-    // ── NonEmptyEnumerable<int> + Maybe<int> via the StrongTypes.AspNetCore binders ──
 
     [HttpGet("query-nee")]
     public IActionResult NonEmptyEnumerableFromQuery(
-        [FromQuery] NonEmptyEnumerable<int> ids,
-        [FromQuery] Maybe<int> filter)
+        [FromQuery] NonEmptyEnumerable<Positive<int>> counts,
+        [FromQuery] NonEmptyEnumerable<NonEmptyString>? tags,
+        [FromQuery] NonEmptyEnumerable<Digit>? digits)
         => Ok(new
         {
-            ids = ids.AsSpan().ToArray(),
-            filter = filter.Value,
+            counts = counts.Select(c => c.Value).ToArray(),
+            tags = tags?.Select(t => t.Value).ToArray(),
+            digits = digits?.Select(d => (int)d.Value).ToArray(),
         });
 
-    [HttpGet("route-nee/{ids}")]
-    public IActionResult NonEmptyEnumerableFromRoute([FromRoute] NonEmptyEnumerable<int> ids)
-        => Ok(new { ids = ids.AsSpan().ToArray() });
+    [HttpGet("route-nee/{counts}")]
+    public IActionResult NonEmptyEnumerableFromRoute([FromRoute] NonEmptyEnumerable<Positive<int>> counts)
+        => Ok(new { counts = counts.Select(c => c.Value).ToArray() });
 
     [HttpGet("header-nee")]
     public IActionResult NonEmptyEnumerableFromHeader(
-        [FromHeader(Name = "X-Ids")] NonEmptyEnumerable<int> ids,
-        [FromHeader(Name = "X-Filter")] Maybe<int> filter)
+        [FromHeader(Name = "X-Counts")] NonEmptyEnumerable<Positive<int>> counts,
+        [FromHeader(Name = "X-Tags")] NonEmptyEnumerable<NonEmptyString>? tags,
+        [FromHeader(Name = "X-Digits")] NonEmptyEnumerable<Digit>? digits)
         => Ok(new
         {
-            ids = ids.AsSpan().ToArray(),
-            filter = filter.Value,
+            counts = counts.Select(c => c.Value).ToArray(),
+            tags = tags?.Select(t => t.Value).ToArray(),
+            digits = digits?.Select(d => (int)d.Value).ToArray(),
         });
-
-    [HttpPost("form-nee")]
-    public IActionResult NonEmptyEnumerableFromForm([FromForm] NonEmptyEnumerableFormRequest request)
-        => Ok(new
-        {
-            ids = request.Ids.AsSpan().ToArray(),
-            filter = request.Filter.Value,
-        });
-
-    [HttpPost("body-nee")]
-    public IActionResult NonEmptyEnumerableFromBody([FromBody] NonEmptyEnumerableBodyRequest request)
-        => Ok(new
-        {
-            ids = request.Ids.AsSpan().ToArray(),
-            filter = request.Filter.Value,
-        });
-
-    // ── Strong-typed element variants — confirms IParsable<T>-based parsing ──
 
     [HttpGet("query-nee-strong")]
     public IActionResult StrongTypedFromQuery(
         [FromQuery] NonEmptyEnumerable<NonEmptyString> tags,
         [FromQuery] NonEmptyEnumerable<Positive<int>> counts,
-        [FromQuery] Maybe<NonEmptyString> filter,
-        [FromQuery] Maybe<Email> contact)
+        [FromQuery] NonEmptyEnumerable<Digit> digits)
         => Ok(new
         {
             tags = tags.Select(t => t.Value).ToArray(),
             counts = counts.Select(c => c.Value).ToArray(),
-            filter = filter.Value?.Value,
-            contact = contact.Value?.Address,
+            digits = digits.Select(d => (int)d.Value).ToArray(),
         });
+
+    private static string MaybeState<T>(Maybe<T>? maybe)
+        where T : notnull
+        => maybe is null ? "missing" : maybe.Value.IsSome ? "some" : "none";
+
+    private static string? MaybeValue(Maybe<NonEmptyString>? maybe)
+        => maybe is null ? null : maybe.Value.Match<string?>(v => v.Value, () => null);
+
 }
 
 public sealed record BindingProbeFormRequest(
@@ -149,12 +144,8 @@ public sealed record BindingProbeFormRequest(
     Positive<int> Count,
     Positive<int>? NullableCount,
     Email Email,
-    Email? NullableEmail);
-
-public sealed record NonEmptyEnumerableFormRequest(
-    NonEmptyEnumerable<int> Ids,
-    Maybe<int> Filter);
-
-public sealed record NonEmptyEnumerableBodyRequest(
-    NonEmptyEnumerable<int> Ids,
-    Maybe<int> Filter);
+    Email? NullableEmail,
+    NonEmptyEnumerable<NonEmptyString>? Tags,
+    NonEmptyEnumerable<Positive<int>>? Counts,
+    NonEmptyEnumerable<Digit>? Digits,
+    Maybe<NonEmptyString>? DisplayName);

@@ -10,6 +10,17 @@ namespace StrongTypes.AspNetCore;
 /// <typeparam name="T">The element type. Must implement <see cref="IParsable{TSelf}"/> (every BCL primitive in net7+ and every Kalicz.StrongTypes wrapper qualifies).</typeparam>
 public sealed class NonEmptyEnumerableModelBinder<T> : IModelBinder
 {
+    private readonly bool _isNullable;
+
+    public NonEmptyEnumerableModelBinder()
+    {
+    }
+
+    public NonEmptyEnumerableModelBinder(bool isNullable)
+    {
+        _isNullable = isNullable;
+    }
+
     public Task BindModelAsync(ModelBindingContext bindingContext)
     {
         ArgumentNullException.ThrowIfNull(bindingContext);
@@ -25,6 +36,12 @@ public sealed class NonEmptyEnumerableModelBinder<T> : IModelBinder
         var raw = ReadRawValues(bindingContext);
         if (raw.Count == 0)
         {
+            if (_isNullable || ModelMetadataNullability.IsNullable(bindingContext.ModelMetadata))
+            {
+                bindingContext.Result = ModelBindingResult.Success(null);
+                return Task.CompletedTask;
+            }
+
             bindingContext.ModelState.TryAddModelError(modelName, $"At least one value is required for '{modelName}'.");
             bindingContext.Result = ModelBindingResult.Failed();
             return Task.CompletedTask;
