@@ -34,4 +34,4 @@ After registration, a plain MVVM binding works:
 
 …where `Name` is a view-model property of type `NonEmptyString`. `ValidatesOnExceptions=True` turns the strong type's `ArgumentException` (thrown by `Create` / `Parse` when validation fails) into a `ValidationError` on the binding, which in turn drives the standard WPF "invalid input" red border.
 
-For non-WPF callers (tests, console hosts) where there is no `Application` to extend, call `StrongTypesWpf.Register()` directly — it does the same wiring. To register a custom `IParsable<T>` outside the StrongTypes library, call `StrongTypesWpf.Register<T>()`.
+For non-WPF callers (tests, console hosts) where there is no `Application` to extend, call `StrongTypesWpf.Register()` directly — it does the same wiring.
