@@ -51,7 +51,7 @@ collection / simple-type binders.
 [HttpGet("search")]
 public IActionResult Search(
     [FromQuery] NonEmptyEnumerable<int> ids,
-    [FromQuery] Maybe<NonEmptyString> filter)
+    [FromQuery] Maybe<int> filter)
 {
     // ids is guaranteed non-empty; the framework returns 400 + problem
     // details if the caller sent zero ?ids=… values.
@@ -59,6 +59,32 @@ public IActionResult Search(
     return Ok(new { count = ids.Count, hasFilter = filter.IsSome });
 }
 ```
+
+## Supported element types
+
+Both binders parse each raw string via the element type's
+`TypeConverter`. That covers every type the BCL ships a converter for —
+`int`, `long`, `Guid`, `DateTime`, `string`, the other primitives, and
+any user type that registers its own `[TypeConverter(...)]`.
+
+It does **not** cover the strong-type wrappers in this library
+(`NonEmptyString`, `Email`, `Digit`, `Positive<T>`, the other numeric
+wrappers). Those parse via `IParsable<T>`, which `TypeConverter` does
+not consult. Today the supported shapes for non-body binding are:
+
+- ✅ `NonEmptyEnumerable<T>` where `T` is a primitive / BCL type
+  (`NonEmptyEnumerable<int>`, `NonEmptyEnumerable<Guid>`, …).
+- ✅ `Maybe<T>` where `T` is a primitive / BCL type.
+- ❌ `NonEmptyEnumerable<StrongType>` and `Maybe<StrongType>` for the
+  wrapper types — wire-form parsing isn't wired through `IParsable<T>`
+  yet.
+- ❌ Wrapper-of-wrapper (`NonEmptyEnumerable<Maybe<…>>`,
+  `Maybe<NonEmptyEnumerable<…>>`) — would need real model-binder
+  composition rather than per-element string parsing.
+
+For the wrapper types, `[FromBody]` already round-trips correctly via
+the JSON converters that ship with `Kalicz.StrongTypes` — only the
+non-body sources are gapped.
 
 ## License
 
