@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>CS1591</NoWarn>
+
+    <Version>0.0.0-dev</Version>
+    <PackageId>Kalicz.StrongTypes.Wpf</PackageId>
+    <Authors>KaliCZ</Authors>
+    <Copyright>Copyright © 2026 KaliCZ</Copyright>
+    <Description>TypeConverters that bridge Kalicz.StrongTypes' IParsable&lt;T&gt; into WPF (and any framework that resolves converters via TypeDescriptor), enabling two-way MVVM binding to NonEmptyString, Email, Digit, Positive&lt;T&gt;, NonNegative&lt;T&gt;, Negative&lt;T&gt;, NonPositive&lt;T&gt;.</Description>
+    <PackageTags>StrongTypes, WPF, MVVM, Binding, TypeConverter, NonEmptyString, Email</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://github.com/KaliCZ/StrongTypes</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/KaliCZ/StrongTypes.git</RepositoryUrl>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="readme.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>
