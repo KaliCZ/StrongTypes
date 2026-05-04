@@ -77,7 +77,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromRoute_PositiveInt_RendersAsExclusivePositive_When_NotBroken()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/route/{name}/{count}", "count");
-        AssertNonBodyPositiveInt(schema, IsNonJsonBodyStrongTypeSchemaBroken, Version);
+        AssertRoutePositiveInt(schema, IsNonJsonBodyStrongTypeSchemaBroken, Version);
     }
 
     // ── [FromHeader] ─────────────────────────────────────────────────────
