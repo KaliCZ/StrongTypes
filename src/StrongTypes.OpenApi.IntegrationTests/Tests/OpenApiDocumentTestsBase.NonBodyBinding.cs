@@ -257,8 +257,7 @@ public abstract partial class OpenApiDocumentTestsBase
         AssertJsonEquals(properties.GetProperty("Title"), """{"type":"string","minLength":0,"maxLength":50}""");
         AssertJsonEquals(properties.GetProperty("Description"), """{"type":"string","minLength":0,"maxLength":200}""");
 
-        var isActive = properties.GetProperty("IsActive");
-        Assert.Equal("boolean", isActive.GetProperty("type").GetString());
+        AssertJsonEquals(properties.GetProperty("IsActive"), """{"type":"boolean"}""");
 
         var age = properties.GetProperty("Age");
         AssertJsonEquals(age, IsPlainIntFormSchemaMissingType
