@@ -12,6 +12,9 @@ public static class StrongTypesWpf
     /// <summary>Installs a <see cref="TypeDescriptionProvider"/> that synthesizes a <see cref="ParsableTypeConverter{T}"/> on demand for every strong type shipped in <c>Kalicz.StrongTypes</c>: <see cref="NonEmptyString"/>, <see cref="Email"/>, <see cref="Digit"/>, and every closed instantiation of <see cref="Positive{T}"/> / <see cref="NonNegative{T}"/> / <see cref="Negative{T}"/> / <see cref="NonPositive{T}"/>. Idempotent. Most apps should call <see cref="ApplicationExtensions.UseStrongTypes"/> from <c>App.OnStartup</c> instead; this entry point exists for non-WPF callers (tests, console hosts).</summary>
     public static void Register()
     {
+        if (_registered)
+            return;
+
         lock (_gate)
         {
             if (_registered)
