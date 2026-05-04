@@ -5,13 +5,12 @@ using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaNavigation;
 namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 
 /// <summary>
-/// Centralised wire-shape assertions for the strong-type wrappers. Every
-/// helper deep-compares against a literal JSON snapshot via
+/// Centralised wire-shape assertions for the strong-type wrappers, used
+/// by body, parameter, and form-property tests alike — the wrapper's
+/// wire shape doesn't depend on where it's bound. Every helper
+/// deep-compares against a literal JSON snapshot via
 /// <see cref="AssertJsonEquals"/> so an unexpected keyword fails the test
-/// instead of silently passing. The shapes pinned here are the same wire
-/// shapes the JSON-body path emits — there is no body-vs-non-body
-/// difference at the wire — so callers from non-body tests can safely use
-/// these to assert parameter and form-property schemas alike.
+/// instead of silently passing.
 ///
 /// The form helpers additionally navigate the request-body schema:
 /// pipelines may emit <c>{ properties: { … } }</c> (Microsoft, modern
@@ -58,6 +57,30 @@ internal static class BindingSchemaAsserts
     /// <param name="allOfIndex">Position in the form schema's <c>allOf</c> array, used only when <paramref name="isFormPropertiesSchemaBroken"/> is true (the field name has been dropped, so navigation is by declaration index).</param>
     internal static void AssertFormPropertyPositiveIntSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken, OpenApiVersion version)
         => AssertPositiveIntSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken), version);
+
+    // ── Other numeric wrappers ──────────────────────────────────────────
+    // Inclusive-bound shapes (NonNegative, NonPositive) don't depend on
+    // OpenAPI version — there's no exclusive boundary to encode. Exclusive
+    // shapes (Negative<double>) split the same way Positive does.
+
+    internal static void AssertNonNegativeLongSchema(JsonElement schema)
+        => AssertJsonEquals(schema, """{"type":"integer","format":"int64","minimum":0}""");
+
+    internal static void AssertNegativeDoubleSchema(JsonElement schema, OpenApiVersion version)
+        => AssertJsonEquals(schema, version switch
+        {
+            OpenApiVersion.V3_0 => """{"type":"number","format":"double","maximum":0,"exclusiveMaximum":true}""",
+            OpenApiVersion.V3_1 => """{"type":"number","format":"double","exclusiveMaximum":0}""",
+            _ => throw new ArgumentOutOfRangeException(nameof(version), version, null),
+        });
+
+    // Both pipelines emit `format: double` for `decimal`. There's no
+    // standard OpenAPI format for the BCL decimal type, so they fall
+    // through to the closest numeric format. Pinned here to surface a
+    // future change in pipeline behaviour rather than to bless the
+    // mapping as ideal.
+    internal static void AssertNonPositiveDecimalSchema(JsonElement schema)
+        => AssertJsonEquals(schema, """{"type":"number","format":"double","maximum":0}""");
 
     // ── Email ────────────────────────────────────────────────────────────
 

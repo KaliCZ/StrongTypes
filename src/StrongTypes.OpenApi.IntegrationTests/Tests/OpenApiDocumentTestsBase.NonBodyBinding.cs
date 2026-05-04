@@ -199,7 +199,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromQuery_PositiveInt_With_Range_Carries_Both_Bounds()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query-annotated", "count");
-        AssertAnnotatedPositiveIntRangeShape(schema);
+        AssertJsonEquals(schema, """{"type":"integer","format":"int32","minimum":5,"maximum":100}""");
     }
 
     [Fact]
@@ -232,28 +232,7 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated");
         var schema = ResolveAnnotatedFormWrapperProperty(formSchema, "count", allOfIndex: 1);
-        AssertAnnotatedPositiveIntRangeShape(schema);
-    }
-
-    // Caller's [Range(5, 100)] is merged: type+format come from the
-    // wrapper, minimum and maximum come from the caller. Pipelines may
-    // emit redundant `exclusiveMinimum: false` / `exclusiveMaximum: false`
-    // defaults under OpenAPI 3.0 — wire-equivalent to omitting them — so
-    // we assert the load-bearing keywords directly rather than pin the
-    // full literal shape.
-    private static void AssertAnnotatedPositiveIntRangeShape(JsonElement schema)
-    {
-        Assert.Equal("integer", schema.GetProperty("type").GetString());
-        Assert.Equal("int32", schema.GetProperty("format").GetString());
-        Assert.Equal(5, schema.GetProperty("minimum").GetInt32());
-        Assert.Equal(100, schema.GetProperty("maximum").GetInt32());
-        // exclusiveMinimum/Maximum, if present, must be false (i.e. the
-        // bounds are inclusive). A `true` here would mean the wrapper's
-        // exclusive floor leaked through — that's the wrong wire shape.
-        if (schema.TryGetProperty("exclusiveMinimum", out var exMin) && exMin.ValueKind == JsonValueKind.True)
-            Assert.Fail("exclusiveMinimum is true — caller's inclusive bound was not merged correctly");
-        if (schema.TryGetProperty("exclusiveMaximum", out var exMax) && exMax.ValueKind == JsonValueKind.True)
-            Assert.Fail("exclusiveMaximum is true — caller's inclusive bound was not merged correctly");
+        AssertJsonEquals(schema, """{"type":"integer","format":"int32","minimum":5,"maximum":100}""");
     }
 
     private JsonElement ResolveAnnotatedFormWrapperProperty(JsonElement formSchema, string propertyName, int allOfIndex)
