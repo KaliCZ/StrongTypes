@@ -46,22 +46,16 @@ public abstract partial class OpenApiDocumentTestsBase(HttpClient client) : IDis
     protected virtual bool IsEmailStringFormatBroken => false;
 
     /// <summary>
-    /// True when the pipeline doesn't run the strong-type schema transformer
-    /// on schemas that live outside a JSON request/response body — i.e.
-    /// parameter schemas (<c>[FromQuery]</c>, <c>[FromRoute]</c>,
-    /// <c>[FromHeader]</c>) and the per-field schemas inside a
-    /// <c>[FromForm]</c> request body. Microsoft.AspNetCore.OpenApi only
-    /// fires the transformer on JSON body schemas; everything else loses
-    /// the strong-type keywords (<c>minLength</c>, <c>maxLength</c>,
-    /// <c>format</c>, <c>exclusiveMinimum</c>, …). The underlying primitive
-    /// may or may not survive depending on what source-side metadata the
-    /// pipeline can read (e.g. a <c>:int</c> route constraint preserves
-    /// <c>type: integer</c>, otherwise the type falls back to <c>string</c>).
-    /// The broken-path assertion checks that the strong-type keywords are
-    /// absent — the day the pipeline starts honouring the transformer the
-    /// keywords appear, the assertion fails, and this flag must be flipped.
+    /// True when the pipeline paints the strong-type wire shape on a
+    /// non-body slot but does not merge caller-supplied data-annotations
+    /// (<c>[StringLength]</c>, <c>[Range]</c>, …) attached at the slot.
+    /// Tests that exercise annotated <c>[FromQuery]</c> / <c>[FromForm]</c>
+    /// slots branch on this flag: they assert the merged shape on the
+    /// not-broken path and the wrapper-only shape on the broken path. The
+    /// day a pipeline starts merging, the broken-path assertion fails and
+    /// the flag must be flipped.
     /// </summary>
-    protected virtual bool IsNonJsonBodyStrongTypeSchemaBroken => false;
+    protected virtual bool IsNonBodyAnnotationMergingBroken => false;
 
     /// <summary>
     /// True when the pipeline emits the <c>[FromForm]</c> request-body schema

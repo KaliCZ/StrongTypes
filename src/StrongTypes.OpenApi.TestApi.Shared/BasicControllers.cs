@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 
 namespace StrongTypes.OpenApi.TestApi.Shared;
@@ -135,6 +136,18 @@ public sealed class BindingProbeController : ControllerBase
 
     [HttpPost("form")]
     public IActionResult FromForm([FromForm] BindingProbeFormRequest request) => Ok();
+
+    // Annotated variants — pin that caller annotations attached at a non-body
+    // strong-type slot (parameter or form property) reach the wire schema.
+
+    [HttpGet("query-annotated")]
+    public IActionResult FromQueryAnnotated(
+        [FromQuery, StringLength(50)] NonEmptyString name,
+        [FromQuery, Range(5, 100)] Positive<int> count)
+        => Ok();
+
+    [HttpPost("form-annotated")]
+    public IActionResult FromFormAnnotated([FromForm] AnnotatedBindingProbeFormRequest request) => Ok();
 }
 
 public sealed record BindingProbeFormRequest(
@@ -144,3 +157,7 @@ public sealed record BindingProbeFormRequest(
     Positive<int>? NullableCount,
     Email Email,
     Email? NullableEmail);
+
+public sealed record AnnotatedBindingProbeFormRequest(
+    [property: StringLength(50)] NonEmptyString Name,
+    [property: Range(5, 100)] Positive<int> Count);

@@ -1,5 +1,7 @@
+using System.Reflection;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
@@ -14,7 +16,18 @@ namespace StrongTypes.OpenApi.Microsoft;
 /// fires <see cref="IOpenApiSchemaTransformer"/> on JSON-body schemas; for
 /// every other slot the parameter's CLR type is inspected via the
 /// <see cref="ApiParameterDescription"/> exposed on the operation context
-/// and the wire schema is written directly.
+/// and the wire shape is written directly. Caller annotations attached at
+/// the slot (e.g. <c>[StringLength]</c> on a <c>[FromQuery]</c> parameter
+/// or <c>[Range]</c> on a <c>[FromForm]</c> property) are layered on top
+/// via <see cref="WrapperAnnotationApplier"/> so non-body slots merge
+/// annotations the same way JSON-body properties do.
+///
+/// Body schemas are out of scope by construction: this transformer only
+/// dispatches on <see cref="BindingSource.Query"/> / <see cref="BindingSource.Path"/> /
+/// <see cref="BindingSource.Header"/> / <see cref="BindingSource.Form"/>,
+/// and the form path is gated to <c>multipart/form-data</c> /
+/// <c>application/x-www-form-urlencoded</c>. JSON request/response bodies
+/// are reached neither by source nor by content type.
 /// </summary>
 internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationTransformer
 {
@@ -51,16 +64,15 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
     private static void RewriteOperationParameter(OpenApiOperation operation, ApiParameterDescription pd)
     {
         if (operation.Parameters is null) return;
-
-        var painted = TryBuildWireSchema(ResolveParameterClrType(pd));
-        if (painted is null) return;
+        var clrType = ResolveParameterClrType(pd);
+        if (clrType is null) return;
 
         foreach (var p in operation.Parameters)
         {
             if (p is not OpenApiParameter parameter) continue;
             if (!string.Equals(parameter.Name, pd.Name, StringComparison.Ordinal)) continue;
 
-            parameter.Schema = painted;
+            parameter.Schema = PaintSlot(parameter.Schema, clrType, pd);
             return;
         }
     }
@@ -68,9 +80,8 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
     private static void RewriteFormProperty(OpenApiOperation operation, ApiParameterDescription pd)
     {
         if (operation.RequestBody?.Content is not { } content) return;
-
-        var painted = TryBuildWireSchema(ResolveParameterClrType(pd));
-        if (painted is null) return;
+        var clrType = ResolveParameterClrType(pd);
+        if (clrType is null) return;
 
         foreach (var contentType in s_formContentTypes)
         {
@@ -81,8 +92,80 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
             var key = ResolveFormPropertyKey(pd.Name, properties);
             if (key is null) continue;
 
-            properties[key] = painted;
+            properties[key] = PaintSlot(properties[key], clrType, pd);
         }
+    }
+
+    private static IOpenApiSchema PaintSlot(IOpenApiSchema? existing, Type clrType, ApiParameterDescription pd)
+    {
+        // Mutate the existing schema when possible so any keywords the
+        // pipeline already wrote (description, default, caller-applied
+        // [StringLength] on the IParsable string overload, …) survive the
+        // wrapper paint. Falls back to a fresh schema only when the slot
+        // currently holds an OpenApiSchemaReference or is null.
+        var schema = existing as OpenApiSchema ?? new OpenApiSchema();
+        if (!TryPaintWireShape(schema, clrType)) return existing ?? schema;
+
+        var attributes = GetSlotAttributes(pd);
+        if (attributes.Count > 0)
+            WrapperAnnotationApplier.TryApply(schema, clrType, attributes);
+
+        return schema;
+    }
+
+    private static bool TryPaintWireShape(OpenApiSchema schema, Type clrType)
+    {
+        var unwrapped = Nullable.GetUnderlyingType(clrType) ?? clrType;
+
+        if (unwrapped == typeof(NonEmptyString))
+        {
+            SchemaPaint.ClearWrapperShape(schema);
+            schema.Type = JsonSchemaType.String;
+            schema.Format = null;
+            SchemaPaint.TightenMinLength(schema, 1);
+            return true;
+        }
+
+        if (unwrapped == typeof(Email))
+        {
+            // Format is intentionally left to whatever the pipeline already
+            // wrote (typically nothing — Microsoft.AspNetCore.OpenApi doesn't
+            // honor format:email even on plain string properties). The
+            // matching JSON-body Email schema and the IsEmailStringFormatBroken
+            // flag in the integration tests pin this same behavior.
+            SchemaPaint.ClearWrapperShape(schema);
+            schema.Type = JsonSchemaType.String;
+            SchemaPaint.TightenMinLength(schema, 1);
+            SchemaPaint.TightenMaxLength(schema, Email.MaxLength);
+            return true;
+        }
+
+        if (unwrapped.IsGenericType && NumericWrapperKinds.TryGetBound(unwrapped.GetGenericTypeDefinition(), out var bound))
+        {
+            NumericWrapperPainter.Paint(schema, unwrapped.GetGenericArguments()[0], bound);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static IReadOnlyList<Attribute> GetSlotAttributes(ApiParameterDescription pd)
+    {
+        // For a flattened [FromForm] complex model, ModelMetadata pinpoints
+        // the property; reflect on it to read the property's own attributes.
+        if (pd.ModelMetadata is { ContainerType: { } containerType, PropertyName: { } propertyName })
+        {
+            var prop = containerType.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
+            if (prop is not null)
+                return prop.GetCustomAttributes(inherit: true).OfType<Attribute>().ToArray();
+        }
+
+        // For a method parameter (query/path/header), the attributes live on
+        // the ParameterInfo.
+        if (pd.ParameterDescriptor is ControllerParameterDescriptor cpd)
+            return cpd.ParameterInfo.GetCustomAttributes(inherit: true).OfType<Attribute>().ToArray();
+
+        return [];
     }
 
     private static string? ResolveFormPropertyKey(string name, IDictionary<string, IOpenApiSchema> properties)
@@ -116,35 +199,4 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
     // properties of a flattened [FromForm] model.
     private static Type? ResolveParameterClrType(ApiParameterDescription pd)
         => pd.ModelMetadata?.ModelType ?? pd.ParameterDescriptor?.ParameterType ?? pd.Type;
-
-    private static OpenApiSchema? TryBuildWireSchema(Type? clrType)
-    {
-        if (clrType is null) return null;
-
-        var unwrapped = Nullable.GetUnderlyingType(clrType) ?? clrType;
-
-        if (unwrapped == typeof(NonEmptyString))
-            return new OpenApiSchema { Type = JsonSchemaType.String, MinLength = 1 };
-
-        if (unwrapped == typeof(Email))
-            // Format is intentionally omitted to stay consistent with the
-            // JSON-body Email schema this pipeline emits — Microsoft.AspNetCore.OpenApi
-            // doesn't honor format:email there either (see EmailSchemaTransformer +
-            // the IsEmailStringFormatBroken flag in the integration tests).
-            return new OpenApiSchema
-            {
-                Type = JsonSchemaType.String,
-                MinLength = 1,
-                MaxLength = Email.MaxLength,
-            };
-
-        if (unwrapped.IsGenericType && NumericWrapperKinds.TryGetBound(unwrapped.GetGenericTypeDefinition(), out var bound))
-        {
-            var schema = new OpenApiSchema();
-            NumericWrapperPainter.Paint(schema, unwrapped.GetGenericArguments()[0], bound);
-            return schema;
-        }
-
-        return null;
-    }
 }
