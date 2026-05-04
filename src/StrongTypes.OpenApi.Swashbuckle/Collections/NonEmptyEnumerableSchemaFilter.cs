@@ -14,13 +14,8 @@ public sealed class NonEmptyEnumerableSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        var type = context.Type;
-        if (!type.IsGenericType) return;
         if (schema is not OpenApiSchema concrete) return;
-
-        var definition = type.GetGenericTypeDefinition();
-        if (definition != typeof(NonEmptyEnumerable<>) && definition != typeof(INonEmptyEnumerable<>))
-            return;
+        if (!StrongTypeSchemaTypes.TryGetNonEmptyEnumerableElement(context.Type, out _)) return;
 
         SchemaPaint.TightenMinItems(concrete, 1);
         StrongTypeInlineMarker.Set(concrete);

@@ -20,13 +20,11 @@ public sealed class NumericStrongTypeSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        var type = context.Type;
-        if (!type.IsGenericType) return;
         if (schema is not OpenApiSchema concrete) return;
 
-        if (NumericWrapperKinds.TryGetBound(type.GetGenericTypeDefinition(), out var bound))
+        if (StrongTypeSchemaTypes.TryGetNumeric(context.Type, out var valueType, out var bound))
         {
-            NumericWrapperPainter.Paint(concrete, type.GetGenericArguments()[0], bound);
+            NumericWrapperPainter.Paint(concrete, valueType, bound);
             StrongTypeInlineMarker.Set(concrete);
         }
     }

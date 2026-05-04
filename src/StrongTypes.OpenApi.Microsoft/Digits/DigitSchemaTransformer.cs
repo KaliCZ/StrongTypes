@@ -8,7 +8,7 @@ public sealed class DigitSchemaTransformer : IOpenApiSchemaTransformer
 {
     public Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
     {
-        if (context.JsonTypeInfo.Type != typeof(Digit))
+        if (!StrongTypeSchemaTypes.IsDigit(context.JsonTypeInfo.Type))
             return Task.CompletedTask;
 
         SchemaPaint.ClearWrapperShape(schema);

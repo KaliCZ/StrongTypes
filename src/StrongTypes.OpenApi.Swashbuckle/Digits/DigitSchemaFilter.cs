@@ -8,7 +8,7 @@ public sealed class DigitSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        if (context.Type != typeof(Digit)) return;
+        if (!StrongTypeSchemaTypes.IsDigit(context.Type)) return;
         if (schema is not OpenApiSchema concrete) return;
 
         SchemaPaint.ClearWrapperShape(concrete);

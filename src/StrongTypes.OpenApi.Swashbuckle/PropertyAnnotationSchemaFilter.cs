@@ -67,19 +67,14 @@ public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
 
     private static Type? ResolveSurrogateType(Type propertyClrType)
     {
-        var unwrapped = Nullable.GetUnderlyingType(propertyClrType) ?? propertyClrType;
-        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(Email)) return typeof(string);
-        if (!unwrapped.IsGenericType) return null;
+        if (StrongTypeSchemaTypes.IsNonEmptyString(propertyClrType) || StrongTypeSchemaTypes.IsEmail(propertyClrType)) return typeof(string);
+        if (StrongTypeSchemaTypes.IsDigit(propertyClrType)) return typeof(int);
 
-        var def = unwrapped.GetGenericTypeDefinition();
-        var arg = unwrapped.GetGenericArguments()[0];
+        if (StrongTypeSchemaTypes.TryGetNumeric(propertyClrType, out var valueType, out _))
+            return valueType;
 
-        if (def == typeof(Positive<>) || def == typeof(NonNegative<>) ||
-            def == typeof(Negative<>) || def == typeof(NonPositive<>))
-            return arg;
-
-        if (def == typeof(NonEmptyEnumerable<>) || def == typeof(INonEmptyEnumerable<>))
-            return typeof(IEnumerable<>).MakeGenericType(arg);
+        if (StrongTypeSchemaTypes.TryGetNonEmptyEnumerableElement(propertyClrType, out var elementType))
+            return typeof(IEnumerable<>).MakeGenericType(elementType);
 
         return null;
     }

@@ -117,9 +117,7 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
 
     private static bool TryPaintWireShape(OpenApiSchema schema, Type clrType)
     {
-        var unwrapped = Nullable.GetUnderlyingType(clrType) ?? clrType;
-
-        if (unwrapped == typeof(NonEmptyString))
+        if (StrongTypeSchemaTypes.IsNonEmptyString(clrType))
         {
             SchemaPaint.ClearWrapperShape(schema);
             schema.Type = JsonSchemaType.String;
@@ -128,7 +126,7 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
             return true;
         }
 
-        if (unwrapped == typeof(Email))
+        if (StrongTypeSchemaTypes.IsEmail(clrType))
         {
             // Format is intentionally left to whatever the pipeline already
             // wrote (typically nothing — Microsoft.AspNetCore.OpenApi doesn't
@@ -142,7 +140,7 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
             return true;
         }
 
-        if (unwrapped == typeof(Digit))
+        if (StrongTypeSchemaTypes.IsDigit(clrType))
         {
             SchemaPaint.ClearWrapperShape(schema);
             schema.Type = JsonSchemaType.Integer;
@@ -152,9 +150,9 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
             return true;
         }
 
-        if (unwrapped.IsGenericType && NumericWrapperKinds.TryGetBound(unwrapped.GetGenericTypeDefinition(), out var bound))
+        if (StrongTypeSchemaTypes.TryGetNumeric(clrType, out var valueType, out var bound))
         {
-            NumericWrapperPainter.Paint(schema, unwrapped.GetGenericArguments()[0], bound);
+            NumericWrapperPainter.Paint(schema, valueType, bound);
             return true;
         }
 

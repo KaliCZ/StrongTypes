@@ -22,34 +22,28 @@ public static class WrapperAnnotationApplier
     {
         if (propertyClrType is null) return false;
 
-        var unwrapped = Nullable.GetUnderlyingType(propertyClrType) ?? propertyClrType;
         var attrList = attributes as IReadOnlyList<Attribute> ?? attributes.ToArray();
 
         var matched = false;
-        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(Email))
+        if (StrongTypeSchemaTypes.IsNonEmptyString(propertyClrType) || StrongTypeSchemaTypes.IsEmail(propertyClrType))
         {
             ApplyStringAnnotations(schema, attrList);
             matched = true;
         }
-        else if (unwrapped == typeof(Digit))
+        else if (StrongTypeSchemaTypes.IsDigit(propertyClrType))
         {
             ApplyNumericAnnotations(schema, attrList);
             matched = true;
         }
-        else if (unwrapped.IsGenericType)
+        else if (StrongTypeSchemaTypes.TryGetNumeric(propertyClrType, out _, out _))
         {
-            var def = unwrapped.GetGenericTypeDefinition();
-            if (def == typeof(Positive<>) || def == typeof(NonNegative<>) ||
-                def == typeof(Negative<>) || def == typeof(NonPositive<>))
-            {
-                ApplyNumericAnnotations(schema, attrList);
-                matched = true;
-            }
-            else if (def == typeof(NonEmptyEnumerable<>) || def == typeof(INonEmptyEnumerable<>))
-            {
-                ApplyArrayAnnotations(schema, attrList);
-                matched = true;
-            }
+            ApplyNumericAnnotations(schema, attrList);
+            matched = true;
+        }
+        else if (StrongTypeSchemaTypes.TryGetNonEmptyEnumerableElement(propertyClrType, out _))
+        {
+            ApplyArrayAnnotations(schema, attrList);
+            matched = true;
         }
 
         if (!matched) return false;
