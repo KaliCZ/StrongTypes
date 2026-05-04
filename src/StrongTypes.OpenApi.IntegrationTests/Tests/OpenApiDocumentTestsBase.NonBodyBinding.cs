@@ -282,12 +282,9 @@ public abstract partial class OpenApiDocumentTestsBase
 
         AssertEmailSchema(properties.GetProperty("Contact"));
 
-        AssertJsonEquals(properties.GetProperty("Losses"), Version switch
-        {
-            OpenApiVersion.V3_0 => """{"type":"array","minItems":2,"items":{"type":"number","format":"double","maximum":0,"exclusiveMaximum":true}}""",
-            OpenApiVersion.V3_1 => """{"type":"array","minItems":2,"items":{"type":"number","format":"double","exclusiveMaximum":0}}""",
-            _ => throw new ArgumentOutOfRangeException(nameof(Version), Version, null),
-        });
+        AssertJsonEquals(properties.GetProperty("Losses"), Version == OpenApiVersion.V3_1
+            ? """{"type":"array","minItems":2,"items":{"type":"number","format":"double","exclusiveMaximum":0}}"""
+            : """{"type":"array","minItems":2,"items":{"type":"number","format":"double","maximum":0,"exclusiveMaximum":true}}""");
     }
 
     /// <summary>
