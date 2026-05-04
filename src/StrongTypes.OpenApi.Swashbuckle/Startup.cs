@@ -21,10 +21,12 @@ public static class StrongTypesSwashbuckleExtensions
     {
         options.SchemaFilter<NonEmptyStringSchemaFilter>();
         options.SchemaFilter<EmailSchemaFilter>();
+        options.SchemaFilter<DigitSchemaFilter>();
         options.SchemaFilter<NumericStrongTypeSchemaFilter>();
         options.SchemaFilter<NonEmptyEnumerableSchemaFilter>();
         options.SchemaFilter<MaybeSchemaFilter>();
         options.SchemaFilter<PropertyAnnotationSchemaFilter>();
+        options.OperationFilter<NonBodyStrongTypeOperationFilter>();
         options.DocumentFilter<StrongTypeInliningDocumentFilter>();
         return options;
     }

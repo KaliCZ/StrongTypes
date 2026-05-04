@@ -18,7 +18,7 @@ public sealed class NonEmptyStringSchemaTransformer : IOpenApiSchemaTransformer
 {
     public Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
     {
-        if (context.JsonTypeInfo.Type != typeof(NonEmptyString))
+        if (!StrongTypeSchemaTypes.IsNonEmptyString(context.JsonTypeInfo.Type))
             return Task.CompletedTask;
 
         SchemaPaint.ClearWrapperShape(schema);

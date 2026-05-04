@@ -18,7 +18,7 @@ public sealed class EmailSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        if (context.Type != typeof(Email)) return;
+        if (!StrongTypeSchemaTypes.IsEmail(context.Type)) return;
         if (schema is not OpenApiSchema concrete) return;
 
         SchemaPaint.ClearWrapperShape(concrete);

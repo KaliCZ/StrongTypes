@@ -18,7 +18,7 @@ public sealed class EmailSchemaTransformer : IOpenApiSchemaTransformer
 {
     public Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
     {
-        if (context.JsonTypeInfo.Type != typeof(Email))
+        if (!StrongTypeSchemaTypes.IsEmail(context.JsonTypeInfo.Type))
             return Task.CompletedTask;
 
         SchemaPaint.ClearWrapperShape(schema);

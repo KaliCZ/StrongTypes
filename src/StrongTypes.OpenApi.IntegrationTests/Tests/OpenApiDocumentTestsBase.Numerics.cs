@@ -1,9 +1,7 @@
 using Xunit;
-using static StrongTypes.OpenApi.IntegrationTests.Helpers.ExclusiveBounds;
+using static StrongTypes.OpenApi.IntegrationTests.Helpers.BindingSchemaAsserts;
 using static StrongTypes.OpenApi.IntegrationTests.Helpers.NullableUnwrap;
 using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaNavigation;
-using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaValueReader;
-using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaWalk;
 
 namespace StrongTypes.OpenApi.IntegrationTests.Tests;
 
@@ -14,12 +12,7 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/positive-int-entities"));
-        var value = Property(body, "value");
-
-        AssertInlineSchema(value);
-        Assert.Equal("integer", StringOrNull(value, "type"));
-        Assert.Equal("int32", StringOrNull(value, "format"));
-        AssertExclusiveLowerBound(value, 0m, Version);
+        AssertPositiveIntSchema(Property(body, "value"), Version);
     }
 
     [Fact]
@@ -27,13 +20,7 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/non-negative-long-entities"));
-        var value = Property(body, "value");
-
-        AssertInlineSchema(value);
-        Assert.Equal("integer", StringOrNull(value, "type"));
-        Assert.Equal("int64", StringOrNull(value, "format"));
-        Assert.Equal(0m, DecimalOrNull(value, "minimum"));
-        Assert.False(BoolOrFalse(value, "exclusiveMinimum"));
+        AssertNonNegativeLongSchema(Property(body, "value"));
     }
 
     [Fact]
@@ -41,12 +28,7 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/negative-double-entities"));
-        var value = Property(body, "value");
-
-        AssertInlineSchema(value);
-        Assert.Equal("number", StringOrNull(value, "type"));
-        Assert.Equal("double", StringOrNull(value, "format"));
-        AssertExclusiveUpperBound(value, 0m, Version);
+        AssertNegativeDoubleSchema(Property(body, "value"), Version);
     }
 
     [Fact]
@@ -54,12 +36,16 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/non-positive-decimal-entities"));
-        var value = Property(body, "value");
+        AssertPlainDecimalSchema(Property(body, "plainValue"), Version);
+        AssertNonPositiveDecimalSchema(Property(body, "value"));
+    }
 
-        AssertInlineSchema(value);
-        Assert.Equal("number", StringOrNull(value, "type"));
-        Assert.Equal(0m, DecimalOrNull(value, "maximum"));
-        Assert.False(BoolOrFalse(value, "exclusiveMaximum"));
+    [Fact]
+    public async Task Digit_Renders_As_Integer_With_Zero_To_Nine_Bounds()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/digit-entities"));
+        AssertDigitSchema(Property(body, "value"));
     }
 
     [Fact]
@@ -67,12 +53,7 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/positive-int-entities"));
-        var nullableValue = UnwrapNullableProperty(Property(body, "nullableValue"), Version);
-
-        AssertInlineSchema(nullableValue);
-        Assert.Equal("integer", StringOrNull(nullableValue, "type"));
-        Assert.Equal("int32", StringOrNull(nullableValue, "format"));
-        AssertExclusiveLowerBound(nullableValue, 0m, Version);
+        AssertPositiveIntSchema(UnwrapNullableProperty(Property(body, "nullableValue"), Version), Version);
     }
 
     [Fact]
@@ -80,11 +61,14 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
-        var value = UnwrapNullableProperty(Property(body, "nullablePositiveInt"), Version);
+        AssertPositiveIntSchema(UnwrapNullableProperty(Property(body, "nullablePositiveInt"), Version), Version);
+    }
 
-        AssertInlineSchema(value);
-        Assert.Equal("integer", StringOrNull(value, "type"));
-        Assert.Equal("int32", StringOrNull(value, "format"));
-        AssertExclusiveLowerBound(value, 0m, Version);
+    [Fact]
+    public async Task Nullable_Digit_On_Dedicated_Nullables_Endpoint_Renders_As_Integer_With_Zero_To_Nine_Bounds()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
+        AssertDigitSchema(UnwrapNullableProperty(Property(body, "nullableDigit"), Version));
     }
 }

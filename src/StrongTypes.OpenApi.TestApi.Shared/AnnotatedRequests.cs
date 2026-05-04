@@ -57,11 +57,22 @@ public sealed record AnnotatedTextsRequest(
     [property: System.ComponentModel.Description("Short user tagline")]
     string TaglineRaw,
 
-    NonEmptyString Description);
+    NonEmptyString Description,
+
+    // Email type with caller annotations — caller's [StringLength(100)] is
+    // tighter than the wrapper's own maxLength: 254, so the wire schema
+    // must reflect the caller's bound.
+    [property: StringLength(100)]
+    Email AnnotatedEmail,
+
+    [property: StringLength(100)]
+    string AnnotatedEmailRaw);
 
 public sealed record AnnotatedNumbersRequest(
     [property: Range(18, 120)] Positive<int> Age,
     [property: Range(18, 120)] int AgeRaw,
+    [property: Range(2, 8)] Digit Digit,
+    [property: Range(2, 8)] int DigitRaw,
     [property: Range(-5, 5)] Positive<int> RangeAcrossFloor,
     [property: Range(2, 10, MinimumIsExclusive = true)] Positive<int> ExclusiveLowerAge,
     [property: Range(2, 10, MinimumIsExclusive = true)] int ExclusiveLowerAgeRaw,

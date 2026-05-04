@@ -29,6 +29,11 @@
     <Project Path="src/StrongTypes.Tests/StrongTypes.Tests.csproj" />
     <Project Path="src/StrongTypes/StrongTypes.csproj" />
   </Folder>
+  <Folder Name="/WPF/">
+    <Project Path="src/StrongTypes.Wpf/StrongTypes.Wpf.csproj" />
+    <Project Path="src/StrongTypes.Wpf.TestApp/StrongTypes.Wpf.TestApp.csproj" />
+    <Project Path="src/StrongTypes.Wpf.Tests/StrongTypes.Wpf.Tests.csproj" />
+  </Folder>
   <Folder Name="/Other/">
     <File Path=".editorconfig" />
     <File Path="license.txt" />

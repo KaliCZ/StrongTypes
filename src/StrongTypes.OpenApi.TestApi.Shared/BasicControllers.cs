@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 
 namespace StrongTypes.OpenApi.TestApi.Shared;
@@ -52,11 +53,20 @@ public sealed class NegativeDoubleEntityController : ControllerBase
 }
 
 [ApiController]
+[Route("digit-entities")]
+public sealed class DigitEntityController : ControllerBase
+{
+    [HttpPost]
+    public IActionResult Create(StructEntityRequest<Digit> request)
+        => Ok(new EntityResponse(Guid.NewGuid()));
+}
+
+[ApiController]
 [Route("non-positive-decimal-entities")]
 public sealed class NonPositiveDecimalEntityController : ControllerBase
 {
     [HttpPost]
-    public IActionResult Create(StructEntityRequest<NonPositive<decimal>> request)
+    public IActionResult Create(DecimalEntityRequest request)
         => Ok(new EntityResponse(Guid.NewGuid()));
 }
 
@@ -101,9 +111,8 @@ public sealed class NestedStrongTypesController : ControllerBase
 /// generated OpenAPI document can be asserted against. Mirrors the shape of
 /// <c>StrongTypes.Api.Controllers.BindingProbeController</c>: each endpoint
 /// accepts a required and a nullable variant of every wrapped type so the
-/// schema tests cover both branches. <c>Digit</c> is deliberately omitted
-/// because it has no OpenAPI schema transformer yet; <c>[FromRoute]</c> is
-/// required-only because route segments are required by HTTP semantics.
+/// schema tests cover both branches. <c>[FromRoute]</c> is required-only
+/// because route segments are required by HTTP semantics.
 /// </summary>
 [ApiController]
 [Route("binding-probe")]
@@ -115,14 +124,17 @@ public sealed class BindingProbeController : ControllerBase
         [FromQuery] NonEmptyString? nullableName,
         [FromQuery] Positive<int> count,
         [FromQuery] Positive<int>? nullableCount,
+        [FromQuery] Digit digit,
+        [FromQuery] Digit? nullableDigit,
         [FromQuery] Email email,
         [FromQuery] Email? nullableEmail)
         => Ok();
 
-    [HttpGet("route/{name}/{count:int}")]
+    [HttpGet("route/{name}/{count:int}/{digit}")]
     public IActionResult FromRoute(
         [FromRoute] NonEmptyString name,
-        [FromRoute] Positive<int> count)
+        [FromRoute] Positive<int> count,
+        [FromRoute] Digit digit)
         => Ok();
 
     [HttpGet("header")]
@@ -135,6 +147,33 @@ public sealed class BindingProbeController : ControllerBase
 
     [HttpPost("form")]
     public IActionResult FromForm([FromForm] BindingProbeFormRequest request) => Ok();
+
+    // Annotated variants — pin that caller annotations attached at a non-body
+    // strong-type slot (parameter or form property) reach the wire schema.
+
+    // Each annotated wrapper-typed parameter has a primitive-typed sibling
+    // carrying the same annotation. The sibling is the baseline: a pipeline
+    // that doesn't surface the annotation on the primitive obviously can't
+    // surface it on the wrapper either, so the wrapper tests only have
+    // teeth when the primitive sibling carries the keyword.
+    [HttpGet("query-annotated")]
+    public IActionResult FromQueryAnnotated(
+        [FromQuery, StringLength(50)] NonEmptyString name,
+        [FromQuery, StringLength(50)] string plainName,
+        [FromQuery, Range(5, 100)] Positive<int> count,
+        [FromQuery, Range(5, 100)] int plainCount)
+        => Ok();
+
+    // Form bodies are split into two uniform requests — one all wrappers,
+    // one all primitives — to keep the per-pipeline form-body shape
+    // consistent. Mixing wrappers and primitives in a single [FromForm]
+    // request makes Swashbuckle emit a hybrid `allOf:[wrappers, {primitives}]`
+    // shape that's painful to navigate from a shared test.
+    [HttpPost("form-annotated")]
+    public IActionResult FromFormAnnotated([FromForm] AnnotatedBindingProbeFormRequest request) => Ok();
+
+    [HttpPost("form-annotated-plain")]
+    public IActionResult FromFormAnnotatedPlain([FromForm] PlainAnnotatedBindingProbeFormRequest request) => Ok();
 }
 
 public sealed record BindingProbeFormRequest(
@@ -142,5 +181,15 @@ public sealed record BindingProbeFormRequest(
     NonEmptyString? NullableName,
     Positive<int> Count,
     Positive<int>? NullableCount,
+    Digit Digit,
+    NonEmptyEnumerable<NonEmptyString> Tags,
     Email Email,
     Email? NullableEmail);
+
+public sealed record AnnotatedBindingProbeFormRequest(
+    [property: StringLength(50)] NonEmptyString Name,
+    [property: Range(5, 100)] Positive<int> Count);
+
+public sealed record PlainAnnotatedBindingProbeFormRequest(
+    [property: StringLength(50)] string PlainName,
+    [property: Range(5, 100)] int PlainCount);

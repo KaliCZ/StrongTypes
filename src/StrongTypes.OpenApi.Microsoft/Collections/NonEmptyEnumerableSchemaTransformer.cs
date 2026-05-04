@@ -16,14 +16,9 @@ public sealed class NonEmptyEnumerableSchemaTransformer : IOpenApiSchemaTransfor
 {
     public async Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
     {
-        var type = context.JsonTypeInfo.Type;
-        if (!type.IsGenericType) return;
-
-        var definition = type.GetGenericTypeDefinition();
-        if (definition != typeof(NonEmptyEnumerable<>) && definition != typeof(INonEmptyEnumerable<>))
+        if (!StrongTypeSchemaTypes.TryGetNonEmptyEnumerableElement(context.JsonTypeInfo.Type, out var elementType))
             return;
 
-        var elementType = type.GetGenericArguments()[0];
         var itemsSchema = await context.GetOrCreateSchemaAsync(elementType, parameterDescription: null, cancellationToken);
 
         SchemaPaint.ClearWrapperShape(schema);

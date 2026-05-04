@@ -139,6 +139,8 @@ public static class StrongTypeInliner
 
         if (schema.Not is { } not)
             schema.Not = RewriteSlot(not, ctx);
+
+        StrongTypeInlineMarker.Remove(schema);
     }
 
     private static void RewriteVariantList(IList<IOpenApiSchema>? variants, RewriteContext ctx)
