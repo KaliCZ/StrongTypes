@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using FsCheck.Xunit;
 using Xunit;
 
@@ -232,4 +233,47 @@ public class PositiveTests
         System.IComparable positive = Positive<int>.Create(3);
         Assert.Throws<ArgumentException>(() => positive.CompareTo("not a number"));
     }
+
+    // ── IParsable ───────────────────────────────────────────────────────
+
+    [Property]
+    public void TryParse_ValidPositive_ReturnsTrueAndWrapsValue(int value)
+    {
+        if (value <= 0) return;
+        var s = value.ToString(CultureInfo.InvariantCulture);
+        Assert.True(Positive<int>.TryParse(s, CultureInfo.InvariantCulture, out var parsed));
+        Assert.Equal(value, parsed.Value);
+    }
+
+    [Property]
+    public void TryParse_NonPositive_ReturnsFalse(int value)
+    {
+        if (value > 0) return;
+        var s = value.ToString(CultureInfo.InvariantCulture);
+        Assert.False(Positive<int>.TryParse(s, CultureInfo.InvariantCulture, out var parsed));
+        Assert.Equal(default, parsed);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("not-a-number")]
+    [InlineData("3.14")]
+    public void TryParse_NotANumber_ReturnsFalse(string? input)
+    {
+        Assert.False(Positive<int>.TryParse(input, CultureInfo.InvariantCulture, out var parsed));
+        Assert.Equal(default, parsed);
+    }
+
+    [Fact]
+    public void Parse_ValidPositive_WrapsValue() =>
+        Assert.Equal(42, Positive<int>.Parse("42", CultureInfo.InvariantCulture).Value);
+
+    [Fact]
+    public void Parse_NonPositive_Throws() =>
+        Assert.Throws<ArgumentException>(() => Positive<int>.Parse("0", CultureInfo.InvariantCulture));
+
+    [Fact]
+    public void Parse_NotANumber_Throws() =>
+        Assert.Throws<FormatException>(() => Positive<int>.Parse("abc", CultureInfo.InvariantCulture));
 }

@@ -302,4 +302,35 @@ public class EmailTests
         Assert.False(emailNull != nesNull);
         Assert.False(nesNull != emailNull);
     }
+
+    // ── IParsable ─────────────────────────────────────────────────────────
+
+    [Property]
+    public void TryParse_ValidInput_ReturnsTrueAndWrapsAddress(Email seed)
+    {
+        Assert.True(Email.TryParse(seed.Address, provider: null, out var parsed));
+        Assert.Equal(seed.Address, parsed!.Address);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("not-an-email")]
+    [InlineData("@no-local.com")]
+    public void TryParse_Invalid_ReturnsFalse(string? input)
+    {
+        Assert.False(Email.TryParse(input, provider: null, out var parsed));
+        Assert.Null(parsed);
+    }
+
+    [Property]
+    public void Parse_ValidInput_WrapsAddress(Email seed) =>
+        Assert.Equal(seed.Address, Email.Parse(seed.Address, provider: null).Address);
+
+    [Theory]
+    [InlineData("not-an-email")]
+    [InlineData("")]
+    public void Parse_Invalid_Throws(string input) =>
+        Assert.Throws<ArgumentException>(() => Email.Parse(input, provider: null));
 }

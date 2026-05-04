@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Text.Json.Serialization;
@@ -13,7 +14,8 @@ public sealed class NonEmptyString :
     IEquatable<string>,
     IComparable<NonEmptyString>,
     IComparable<string>,
-    IComparable
+    IComparable,
+    IParsable<NonEmptyString>
 {
     private NonEmptyString(string value)
     {
@@ -53,6 +55,18 @@ public sealed class NonEmptyString :
     {
         return TryCreate(value)
             ?? throw new ArgumentException("You cannot create NonEmptyString from whitespace, empty string or null.", nameof(value));
+    }
+
+    /// <summary>Parses <paramref name="s"/> into a <see cref="NonEmptyString"/>. Equivalent to <see cref="Create(string?)"/>; the format provider is unused.</summary>
+    /// <exception cref="ArgumentException"><paramref name="s"/> is empty or whitespace.</exception>
+    [Pure]
+    public static NonEmptyString Parse(string s, IFormatProvider? provider) => Create(s);
+
+    /// <summary>Tries to parse <paramref name="s"/> into a <see cref="NonEmptyString"/>. Equivalent to <see cref="TryCreate(string?)"/>; the format provider is unused.</summary>
+    public static bool TryParse(string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out NonEmptyString result)
+    {
+        result = TryCreate(s);
+        return result is not null;
     }
 
     #region Proxy methods to string

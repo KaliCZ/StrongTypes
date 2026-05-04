@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Net.Mail;
 using System.Text.Json.Serialization;
@@ -11,7 +12,8 @@ namespace StrongTypes;
 public sealed class Email :
     IEquatable<Email>,
     IEquatable<MailAddress>,
-    IEquatable<string>
+    IEquatable<string>,
+    IParsable<Email>
 {
     /// <summary>RFC 5321 deliverable cap. The forwarder path can be longer; this is the addr-spec limit clients should enforce on input.</summary>
     public const int MaxLength = 254;
@@ -48,6 +50,18 @@ public sealed class Email :
         TryCreate(value) ?? throw new ArgumentException(
             $"'{value}' is not a valid email address (must be non-empty, at most {MaxLength} characters, and parseable as an addr-spec).",
             nameof(value));
+
+    /// <summary>Parses <paramref name="s"/> into an <see cref="Email"/>. Equivalent to <see cref="Create(string?)"/>; the format provider is unused.</summary>
+    /// <exception cref="ArgumentException"><paramref name="s"/> is null, blank, longer than <see cref="MaxLength"/>, or not a valid email address.</exception>
+    [Pure]
+    public static Email Parse(string s, IFormatProvider? provider) => Create(s);
+
+    /// <summary>Tries to parse <paramref name="s"/> into an <see cref="Email"/>. Equivalent to <see cref="TryCreate(string?)"/>; the format provider is unused.</summary>
+    public static bool TryParse(string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out Email result)
+    {
+        result = TryCreate(s);
+        return result is not null;
+    }
 
     public static implicit operator string(Email email) => email.Address;
 

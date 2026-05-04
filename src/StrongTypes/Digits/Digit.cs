@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 
 namespace StrongTypes;
@@ -12,7 +13,8 @@ public readonly struct Digit :
     IComparable<Digit>,
     IComparable<byte>,
     IComparable<int>,
-    IComparable
+    IComparable,
+    IParsable<Digit>
 {
     private Digit(byte value)
     {
@@ -46,6 +48,26 @@ public readonly struct Digit :
     {
         return TryCreate(value)
             ?? throw new ArgumentException($"Value must be a decimal digit character, but was '{value}'.", nameof(value));
+    }
+
+    /// <summary>Parses <paramref name="s"/> into a <see cref="Digit"/>. The string must consist of exactly one decimal digit character; the format provider is unused.</summary>
+    /// <exception cref="ArgumentException"><paramref name="s"/> is not a single decimal digit character.</exception>
+    [Pure]
+    public static Digit Parse(string s, IFormatProvider? provider)
+        => TryParse(s, provider, out var result)
+            ? result
+            : throw new ArgumentException($"Value must be a single decimal digit character, but was '{s}'.", nameof(s));
+
+    /// <summary>Tries to parse <paramref name="s"/> into a <see cref="Digit"/>. The string must consist of exactly one decimal digit character; the format provider is unused.</summary>
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out Digit result)
+    {
+        if (s is { Length: 1 } && TryCreate(s[0]) is { } digit)
+        {
+            result = digit;
+            return true;
+        }
+        result = default;
+        return false;
     }
 
     #region Equality
