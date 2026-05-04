@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using StrongTypes.Api.Data;
+using StrongTypes.AspNetCore;
 using StrongTypes.EfCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddStrongTypes();
 builder.Services.AddDbContext<SqlServerDbContext>(options => options
     .UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"))
     .UseStrongTypes());

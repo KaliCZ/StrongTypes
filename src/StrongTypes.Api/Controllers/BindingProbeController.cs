@@ -83,6 +83,48 @@ public sealed class BindingProbeController : ControllerBase
             email = request.Email.Address,
             nullableEmail = request.NullableEmail?.Address,
         });
+
+    // ── NonEmptyEnumerable<int> + Maybe<int> via the StrongTypes.AspNetCore binders ──
+
+    [HttpGet("query-nee")]
+    public IActionResult NonEmptyEnumerableFromQuery(
+        [FromQuery] NonEmptyEnumerable<int> ids,
+        [FromQuery] Maybe<int> filter)
+        => Ok(new
+        {
+            ids = ids.AsSpan().ToArray(),
+            filter = filter.Value,
+        });
+
+    [HttpGet("route-nee/{ids}")]
+    public IActionResult NonEmptyEnumerableFromRoute([FromRoute] NonEmptyEnumerable<int> ids)
+        => Ok(new { ids = ids.AsSpan().ToArray() });
+
+    [HttpGet("header-nee")]
+    public IActionResult NonEmptyEnumerableFromHeader(
+        [FromHeader(Name = "X-Ids")] NonEmptyEnumerable<int> ids,
+        [FromHeader(Name = "X-Filter")] Maybe<int> filter)
+        => Ok(new
+        {
+            ids = ids.AsSpan().ToArray(),
+            filter = filter.Value,
+        });
+
+    [HttpPost("form-nee")]
+    public IActionResult NonEmptyEnumerableFromForm([FromForm] NonEmptyEnumerableFormRequest request)
+        => Ok(new
+        {
+            ids = request.Ids.AsSpan().ToArray(),
+            filter = request.Filter.Value,
+        });
+
+    [HttpPost("body-nee")]
+    public IActionResult NonEmptyEnumerableFromBody([FromBody] NonEmptyEnumerableBodyRequest request)
+        => Ok(new
+        {
+            ids = request.Ids.AsSpan().ToArray(),
+            filter = request.Filter.Value,
+        });
 }
 
 public sealed record BindingProbeFormRequest(
@@ -92,3 +134,11 @@ public sealed record BindingProbeFormRequest(
     Positive<int>? NullableCount,
     Email Email,
     Email? NullableEmail);
+
+public sealed record NonEmptyEnumerableFormRequest(
+    NonEmptyEnumerable<int> Ids,
+    Maybe<int> Filter);
+
+public sealed record NonEmptyEnumerableBodyRequest(
+    NonEmptyEnumerable<int> Ids,
+    Maybe<int> Filter);

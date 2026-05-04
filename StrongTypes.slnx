@@ -3,6 +3,9 @@
     <Project Path="src/StrongTypes.Api.IntegrationTests/StrongTypes.Api.IntegrationTests.csproj" />
     <Project Path="src/StrongTypes.Api/StrongTypes.Api.csproj" />
   </Folder>
+  <Folder Name="/AspNetCore package/">
+    <Project Path="src/StrongTypes.AspNetCore/StrongTypes.AspNetCore.csproj" />
+  </Folder>
   <Folder Name="/EF Core package/">
     <Project Path="src/StrongTypes.EfCore/StrongTypes.EfCore.csproj" />
   </Folder>

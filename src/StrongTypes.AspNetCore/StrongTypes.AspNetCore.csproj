@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>CS1591</NoWarn>
+
+    <Version>0.0.0-dev</Version>
+    <PackageId>Kalicz.StrongTypes.AspNetCore</PackageId>
+    <RootNamespace>StrongTypes.AspNetCore</RootNamespace>
+    <Authors>KaliCZ</Authors>
+    <Copyright>Copyright © 2026 KaliCZ</Copyright>
+    <Description>ASP.NET Core MVC model binders for Kalicz.StrongTypes wrappers that don't fit the IParsable&lt;T&gt; single-string shape: NonEmptyEnumerable&lt;T&gt; (multiple wire values) and Maybe&lt;T&gt; (missing-vs-present semantics). Single registration call: services.AddStrongTypes().</Description>
+    <PackageTags>StrongTypes, AspNetCore, ModelBinding, NonEmptyEnumerable, Maybe</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://github.com/KaliCZ/StrongTypes</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/KaliCZ/StrongTypes.git</RepositoryUrl>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="readme.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>
