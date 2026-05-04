@@ -166,14 +166,31 @@ public sealed class BindingProbeController : ControllerBase
 
     // Form bodies are split into two uniform requests — one all wrappers,
     // one all primitives — to keep the per-pipeline form-body shape
-    // consistent. Mixing wrappers and primitives in a single [FromForm]
-    // request makes Swashbuckle emit a hybrid `allOf:[wrappers, {primitives}]`
-    // shape that's painful to navigate from a shared test.
+    // consistent. The `NonBodyStrongTypeOperationFilter` reshapes
+    // Swashbuckle's `{ allOf: [<each>] }` form-body schema (emitted
+    // whenever every field is component-typed) back into a proper
+    // `{ properties: { … } }` map, so consumers see field names on both
+    // pipelines.
     [HttpPost("form-annotated")]
     public IActionResult FromFormAnnotated([FromForm] AnnotatedBindingProbeFormRequest request) => Ok();
 
     [HttpPost("form-annotated-plain")]
     public IActionResult FromFormAnnotatedPlain([FromForm] PlainAnnotatedBindingProbeFormRequest request) => Ok();
+
+    // The three endpoints below cover the form-body reshape on diverse
+    // payload shapes: a primitives-only form (Swashbuckle emits a proper
+    // properties map natively), an all-wrappers form with a mix of
+    // annotations on multiple wrappers of the same type, and a mixed form
+    // exercising both kinds together with caller annotations on each.
+
+    [HttpPost("form-simple-types")]
+    public IActionResult FromFormSimpleTypes([FromForm] SimpleTypesFormRequest request) => Ok();
+
+    [HttpPost("form-all-wrappers")]
+    public IActionResult FromFormAllWrappers([FromForm] AllStrongTypesFormRequest request) => Ok();
+
+    [HttpPost("form-mixed")]
+    public IActionResult FromFormMixed([FromForm] MixedFormRequest request) => Ok();
 }
 
 public sealed record BindingProbeFormRequest(
@@ -193,3 +210,25 @@ public sealed record AnnotatedBindingProbeFormRequest(
 public sealed record PlainAnnotatedBindingProbeFormRequest(
     [property: StringLength(50)] string PlainName,
     [property: Range(5, 100)] int PlainCount);
+
+public sealed record SimpleTypesFormRequest(
+    [property: StringLength(50)] string Title,
+    [property: Range(0, 150)] int Age,
+    bool IsActive,
+    [property: StringLength(200)] string Description);
+
+public sealed record AllStrongTypesFormRequest(
+    [property: RegularExpression(@"^[A-Z]{3}-\d{4}$")] NonEmptyString Code,
+    [property: Url] NonEmptyString Website,
+    [property: StringLength(200)] NonEmptyString Description,
+    [property: Range(1, 100)] Positive<int> Quantity,
+    Email Contact,
+    [property: MinLength(2)] NonEmptyEnumerable<Negative<decimal>> Losses);
+
+public sealed record MixedFormRequest(
+    [property: StringLength(100)] string Title,
+    [property: RegularExpression(@"^[A-Z]{3}$")] NonEmptyString Code,
+    [property: Range(1, 1000)] int Quantity,
+    [property: Range(1, 100)] Positive<int> Stock,
+    Email ContactEmail,
+    NonEmptyEnumerable<NonEmptyString> Tags);

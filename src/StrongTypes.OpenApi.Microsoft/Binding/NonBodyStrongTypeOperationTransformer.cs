@@ -156,6 +156,17 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
             return true;
         }
 
+        if (StrongTypeSchemaTypes.TryGetNonEmptyEnumerableElement(clrType, out var elementType))
+        {
+            SchemaPaint.ClearWrapperShape(schema);
+            schema.Type = JsonSchemaType.Array;
+            SchemaPaint.TightenMinItems(schema, 1);
+            var itemsSchema = new OpenApiSchema();
+            if (TryPaintWireShape(itemsSchema, elementType))
+                schema.Items = itemsSchema;
+            return true;
+        }
+
         return false;
     }
 
