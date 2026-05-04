@@ -59,6 +59,8 @@ public abstract partial class OpenApiDocumentTestsBase(HttpClient client) : IDis
     /// </summary>
     protected virtual bool IsFormPropertiesSchemaBroken => false;
 
+    protected virtual bool IsPlainIntFormSchemaMissingType => true;
+
     private async Task<JsonElement> GetDocumentAsync()
     {
         var response = await client.GetAsync(DocumentUrl, Ct);

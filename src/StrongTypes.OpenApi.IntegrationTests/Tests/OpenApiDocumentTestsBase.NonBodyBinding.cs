@@ -207,7 +207,7 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated-plain");
         var schema = formSchema.GetProperty("properties").GetProperty(FormPropertyName("PlainName"));
-        Assert.Equal(50, schema.GetProperty("maxLength").GetInt32());
+        AssertJsonEquals(schema, """{"type":"string","minLength":0,"maxLength":50}""");
     }
 
     [Fact]
@@ -223,8 +223,11 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated-plain");
         var schema = formSchema.GetProperty("properties").GetProperty(FormPropertyName("PlainCount"));
-        Assert.Equal(5, schema.GetProperty("minimum").GetInt32());
-        Assert.Equal(100, schema.GetProperty("maximum").GetInt32());
+        AssertJsonEquals(schema, IsPlainIntFormSchemaMissingType
+            ? Version == OpenApiVersion.V3_1
+                ? """{"pattern":"^-?(?:0|[1-9]\\d*)$","type":["integer","string"],"format":"int32","minimum":5,"maximum":100}"""
+                : """{"pattern":"^-?(?:0|[1-9]\\d*)$","format":"int32","minimum":5,"maximum":100}"""
+            : """{"type":"integer","format":"int32","minimum":5,"maximum":100}""");
     }
 
     [Fact]
