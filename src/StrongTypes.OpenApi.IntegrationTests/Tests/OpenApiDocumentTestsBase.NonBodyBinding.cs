@@ -46,6 +46,20 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     [Fact]
+    public async Task FromQuery_Digit_RendersAsInteger_WithZeroToNineBounds()
+    {
+        var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "digit");
+        AssertDigitSchema(schema);
+    }
+
+    [Fact]
+    public async Task FromQuery_NullableDigit_RendersAsInteger_WithZeroToNineBounds()
+    {
+        var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "nullableDigit");
+        AssertDigitSchema(schema);
+    }
+
+    [Fact]
     public async Task FromQuery_Email_RendersAsString_WithEmailFormat()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "email");
@@ -64,15 +78,22 @@ public abstract partial class OpenApiDocumentTestsBase
     [Fact]
     public async Task FromRoute_NonEmptyString_RendersAsString_WithMinLength()
     {
-        var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/route/{name}/{count}", "name");
+        var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/route/{name}/{count}/{digit}", "name");
         AssertNonEmptyStringSchema(schema);
     }
 
     [Fact]
     public async Task FromRoute_PositiveInt_RendersAsExclusivePositive()
     {
-        var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/route/{name}/{count}", "count");
+        var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/route/{name}/{count}/{digit}", "count");
         AssertPositiveIntSchema(schema, Version);
+    }
+
+    [Fact]
+    public async Task FromRoute_Digit_RendersAsInteger_WithZeroToNineBounds()
+    {
+        var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/route/{name}/{count}/{digit}", "digit");
+        AssertDigitSchema(schema);
     }
 
     // ── [FromHeader] ─────────────────────────────────────────────────────
@@ -112,11 +133,13 @@ public abstract partial class OpenApiDocumentTestsBase
     //   1: NullableName   (NonEmptyString?)
     //   2: Count          (Positive<int>)
     //   3: NullableCount  (Positive<int>?)
-    //   4: Email          (Email)
-    //   5: NullableEmail  (Email?)
-    // The form-index is used by the broken-path lookup when the form schema
-    // is `allOf:[<each-field>]` with the names dropped — see
-    // IsFormPropertiesSchemaBroken.
+    //   4: Digit          (Digit)
+    //   5: Tags           (NonEmptyEnumerable<NonEmptyString>)
+    //   6: Email          (Email)
+    //   7: NullableEmail  (Email?)
+    // Swashbuckle's broken allOf keeps most fields in declaration order,
+    // but puts the collection-shaped Tags field at the end as an object
+    // entry; those tests pass the observed allOf index explicitly.
 
     [Fact]
     public async Task FromForm_NonEmptyString_RendersAsString_WithMinLength()
@@ -147,17 +170,31 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     [Fact]
+    public async Task FromForm_Digit_RendersAsInteger_WithZeroToNineBounds()
+    {
+        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
+        AssertFormPropertyDigitSchema(formSchema, "digit", allOfIndex: 4, IsFormPropertiesSchemaBroken);
+    }
+
+    [Fact]
+    public async Task FromForm_NonEmptyEnumerable_RendersAsArray_WithMinItems_And_StringItems()
+    {
+        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
+        AssertFormPropertyNonEmptyEnumerableOfNonEmptyStringSchema(formSchema, "tags", allOfIndex: 7, IsFormPropertiesSchemaBroken);
+    }
+
+    [Fact]
     public async Task FromForm_Email_RendersAsString_WithEmailFormat()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmailSchema(formSchema, "email", allOfIndex: 4, IsFormPropertiesSchemaBroken, IsEmailStringFormatBroken);
+        AssertFormPropertyEmailSchema(formSchema, "email", allOfIndex: 5, IsFormPropertiesSchemaBroken, IsEmailStringFormatBroken);
     }
 
     [Fact]
     public async Task FromForm_NullableEmail_RendersAsString_WithEmailFormat()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmailSchema(formSchema, "nullableEmail", allOfIndex: 5, IsFormPropertiesSchemaBroken, IsEmailStringFormatBroken);
+        AssertFormPropertyEmailSchema(formSchema, "nullableEmail", allOfIndex: 6, IsFormPropertiesSchemaBroken, IsEmailStringFormatBroken);
     }
 
     // ── Caller annotations on non-body slots ─────────────────────────────

@@ -31,6 +31,11 @@ public static class WrapperAnnotationApplier
             ApplyStringAnnotations(schema, attrList);
             matched = true;
         }
+        else if (unwrapped == typeof(Digit))
+        {
+            ApplyNumericAnnotations(schema, attrList);
+            matched = true;
+        }
         else if (unwrapped.IsGenericType)
         {
             var def = unwrapped.GetGenericTypeDefinition();

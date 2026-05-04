@@ -70,6 +70,7 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
         if (operation.Parameters is null) return;
         var clrType = ResolveParameterClrType(pd);
         if (clrType is null) return;
+        if (GetSlotAttributes(pd).Count == 0) return;
 
         foreach (var p in operation.Parameters)
         {
@@ -86,6 +87,7 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
         if (operation.RequestBody?.Content is not { } content) return;
         var clrType = ResolveParameterClrType(pd);
         if (clrType is null) return;
+        if (GetSlotAttributes(pd).Count == 0) return;
 
         foreach (var contentType in s_formContentTypes)
         {
@@ -193,7 +195,7 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
     {
         if (clrType is null) return false;
         var unwrapped = Nullable.GetUnderlyingType(clrType) ?? clrType;
-        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(Email)) return true;
+        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(Email) || unwrapped == typeof(Digit)) return true;
         if (!unwrapped.IsGenericType) return false;
         return NumericWrapperKinds.TryGetBound(unwrapped.GetGenericTypeDefinition(), out _);
     }

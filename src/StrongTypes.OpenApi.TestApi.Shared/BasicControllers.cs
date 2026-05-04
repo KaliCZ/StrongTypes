@@ -53,6 +53,15 @@ public sealed class NegativeDoubleEntityController : ControllerBase
 }
 
 [ApiController]
+[Route("digit-entities")]
+public sealed class DigitEntityController : ControllerBase
+{
+    [HttpPost]
+    public IActionResult Create(StructEntityRequest<Digit> request)
+        => Ok(new EntityResponse(Guid.NewGuid()));
+}
+
+[ApiController]
 [Route("non-positive-decimal-entities")]
 public sealed class NonPositiveDecimalEntityController : ControllerBase
 {
@@ -102,9 +111,8 @@ public sealed class NestedStrongTypesController : ControllerBase
 /// generated OpenAPI document can be asserted against. Mirrors the shape of
 /// <c>StrongTypes.Api.Controllers.BindingProbeController</c>: each endpoint
 /// accepts a required and a nullable variant of every wrapped type so the
-/// schema tests cover both branches. <c>Digit</c> is deliberately omitted
-/// because it has no OpenAPI schema transformer yet; <c>[FromRoute]</c> is
-/// required-only because route segments are required by HTTP semantics.
+/// schema tests cover both branches. <c>[FromRoute]</c> is required-only
+/// because route segments are required by HTTP semantics.
 /// </summary>
 [ApiController]
 [Route("binding-probe")]
@@ -116,14 +124,17 @@ public sealed class BindingProbeController : ControllerBase
         [FromQuery] NonEmptyString? nullableName,
         [FromQuery] Positive<int> count,
         [FromQuery] Positive<int>? nullableCount,
+        [FromQuery] Digit digit,
+        [FromQuery] Digit? nullableDigit,
         [FromQuery] Email email,
         [FromQuery] Email? nullableEmail)
         => Ok();
 
-    [HttpGet("route/{name}/{count:int}")]
+    [HttpGet("route/{name}/{count:int}/{digit}")]
     public IActionResult FromRoute(
         [FromRoute] NonEmptyString name,
-        [FromRoute] Positive<int> count)
+        [FromRoute] Positive<int> count,
+        [FromRoute] Digit digit)
         => Ok();
 
     [HttpGet("header")]
@@ -170,6 +181,8 @@ public sealed record BindingProbeFormRequest(
     NonEmptyString? NullableName,
     Positive<int> Count,
     Positive<int>? NullableCount,
+    Digit Digit,
+    NonEmptyEnumerable<NonEmptyString> Tags,
     Email Email,
     Email? NullableEmail);
 

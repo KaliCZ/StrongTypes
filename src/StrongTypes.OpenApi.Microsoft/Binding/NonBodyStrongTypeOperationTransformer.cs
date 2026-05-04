@@ -142,6 +142,16 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
             return true;
         }
 
+        if (unwrapped == typeof(Digit))
+        {
+            SchemaPaint.ClearWrapperShape(schema);
+            schema.Type = JsonSchemaType.Integer;
+            schema.Format = "int32";
+            SchemaPaint.TightenLowerBound(schema, 0, floorExclusive: false);
+            SchemaPaint.TightenUpperBound(schema, 9, floorExclusive: false);
+            return true;
+        }
+
         if (unwrapped.IsGenericType && NumericWrapperKinds.TryGetBound(unwrapped.GetGenericTypeDefinition(), out var bound))
         {
             NumericWrapperPainter.Paint(schema, unwrapped.GetGenericArguments()[0], bound);

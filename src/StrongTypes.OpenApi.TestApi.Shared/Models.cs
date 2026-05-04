@@ -33,6 +33,7 @@ public sealed record NonEmptyStringCollectionsRequest(
 public sealed record NullableStrongTypesRequest(
     NonEmptyString? NullableNonEmptyString,
     Positive<int>? NullablePositiveInt,
+    Digit? NullableDigit,
     NonEmptyEnumerable<NonEmptyString>? NullableNonEmptyStringArray,
     NonEmptyEnumerable<Positive<int>>? NullableNonEmptyPositiveIntArray);
 

@@ -28,7 +28,7 @@ internal static class BindingSchemaAsserts
     /// index and asserts this count to lock in that the broken shape is the
     /// one we expect.
     /// </summary>
-    private const int FormFieldCount = 6;
+    private const int FormFieldCount = 8;
 
     // ── NonEmptyString ───────────────────────────────────────────────────
 
@@ -58,6 +58,14 @@ internal static class BindingSchemaAsserts
     internal static void AssertFormPropertyPositiveIntSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken, OpenApiVersion version)
         => AssertPositiveIntSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken), version);
 
+    // ── Digit ────────────────────────────────────────────────────────────
+
+    internal static void AssertDigitSchema(JsonElement schema)
+        => AssertJsonEquals(schema, """{"type":"integer","format":"int32","minimum":0,"maximum":9}""");
+
+    internal static void AssertFormPropertyDigitSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken)
+        => AssertDigitSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken));
+
     // ── Other numeric wrappers ──────────────────────────────────────────
     // Inclusive-bound shapes (NonNegative, NonPositive) don't depend on
     // OpenAPI version — there's no exclusive boundary to encode. Exclusive
@@ -81,6 +89,14 @@ internal static class BindingSchemaAsserts
     // mapping as ideal.
     internal static void AssertNonPositiveDecimalSchema(JsonElement schema)
         => AssertJsonEquals(schema, """{"type":"number","format":"double","maximum":0}""");
+
+    // ── NonEmptyEnumerable<T> ────────────────────────────────────────────
+
+    internal static void AssertNonEmptyEnumerableOfNonEmptyStringSchema(JsonElement schema)
+        => AssertJsonEquals(schema, """{"type":"array","minItems":1,"items":{"type":"string","minLength":1}}""");
+
+    internal static void AssertFormPropertyNonEmptyEnumerableOfNonEmptyStringSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken)
+        => AssertNonEmptyEnumerableOfNonEmptyStringSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken));
 
     internal static void AssertPlainDecimalSchema(JsonElement schema, OpenApiVersion version)
     {
@@ -128,7 +144,16 @@ internal static class BindingSchemaAsserts
             Assert.Equal(JsonValueKind.Array, allOf.ValueKind);
             Assert.Equal(FormFieldCount, allOf.GetArrayLength());
             Assert.False(formSchema.TryGetProperty("properties", out _), "form schema is broken-flagged but still has a properties map");
-            return allOf[allOfIndex];
+            var slot = allOf[allOfIndex];
+            if (slot.TryGetProperty("properties", out var slotProperties))
+            {
+                foreach (var entry in slotProperties.EnumerateObject())
+                {
+                    if (string.Equals(entry.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+                        return entry.Value;
+                }
+            }
+            return slot;
         }
 
         var properties = formSchema.GetProperty("properties");

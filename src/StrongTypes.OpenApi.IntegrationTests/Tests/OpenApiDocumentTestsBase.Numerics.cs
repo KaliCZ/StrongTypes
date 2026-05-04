@@ -41,6 +41,14 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     [Fact]
+    public async Task Digit_Renders_As_Integer_With_Zero_To_Nine_Bounds()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/digit-entities"));
+        AssertDigitSchema(Property(body, "value"));
+    }
+
+    [Fact]
     public async Task Nullable_Positive_Int_Property_Still_Renders_As_Integer_With_ExclusiveMinimum_Zero()
     {
         var doc = await GetDocumentAsync();
@@ -54,5 +62,13 @@ public abstract partial class OpenApiDocumentTestsBase
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
         AssertPositiveIntSchema(UnwrapNullableProperty(Property(body, "nullablePositiveInt"), Version), Version);
+    }
+
+    [Fact]
+    public async Task Nullable_Digit_On_Dedicated_Nullables_Endpoint_Renders_As_Integer_With_Zero_To_Nine_Bounds()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
+        AssertDigitSchema(UnwrapNullableProperty(Property(body, "nullableDigit"), Version));
     }
 }
