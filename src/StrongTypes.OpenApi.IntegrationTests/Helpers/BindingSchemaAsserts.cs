@@ -115,8 +115,7 @@ internal static class BindingSchemaAsserts
     /// <c>{ type: object, properties: { … } }</c> shape — no top-level
     /// <c>allOf</c> / <c>anyOf</c> / <c>oneOf</c> / <c>$ref</c>, a
     /// <c>properties</c> map present, and exactly the expected set of
-    /// property names (order is irrelevant; comparison is
-    /// case-insensitive).
+    /// property names (order is irrelevant).
     /// </summary>
     internal static void AssertFormBodyHasObjectShape(JsonElement formSchema, params string[] expectedPropertyNames)
     {
@@ -127,12 +126,7 @@ internal static class BindingSchemaAsserts
         Assert.True(formSchema.TryGetProperty("properties", out var properties), "form body must have a properties map");
         Assert.Equal(JsonValueKind.Object, properties.ValueKind);
 
-        var actual = properties.EnumerateObject().Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var expected = expectedPropertyNames.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        if (actual.SetEquals(expected)) return;
-
-        var missing = expected.Except(actual, StringComparer.OrdinalIgnoreCase).Order().ToArray();
-        var extra = actual.Except(expected, StringComparer.OrdinalIgnoreCase).Order().ToArray();
-        Assert.Fail($"form properties differ.\n  missing: [{string.Join(", ", missing)}]\n  extra:   [{string.Join(", ", extra)}]");
+        var actual = properties.EnumerateObject().Select(p => p.Name);
+        Assert.Equivalent(expectedPropertyNames, actual);
     }
 }
