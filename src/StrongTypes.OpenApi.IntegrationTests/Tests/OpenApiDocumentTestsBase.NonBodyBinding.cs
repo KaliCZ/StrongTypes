@@ -334,23 +334,4 @@ public abstract partial class OpenApiDocumentTestsBase
         AssertEmailSchema(properties.GetProperty("ContactEmail"));
         AssertJsonEquals(properties.GetProperty("Tags"), """{"type":"array","minItems":1,"items":{"type":"string","minLength":1}}""");
     }
-
-    private static void AssertFormBodyHasObjectShape(JsonElement formSchema, params string[] expectedPropertyNames)
-    {
-        Assert.False(formSchema.TryGetProperty("allOf", out _), "form body should not be wrapped in a top-level allOf");
-        Assert.False(formSchema.TryGetProperty("anyOf", out _), "form body should not be wrapped in a top-level anyOf");
-        Assert.False(formSchema.TryGetProperty("oneOf", out _), "form body should not be wrapped in a top-level oneOf");
-        Assert.False(formSchema.TryGetProperty("$ref", out _), "form body should be inlined, not a $ref");
-        Assert.True(formSchema.TryGetProperty("properties", out var properties), "form body must have a properties map");
-        Assert.Equal(JsonValueKind.Object, properties.ValueKind);
-
-        var actualNames = properties.EnumerateObject()
-            .Select(p => p.Name)
-            .Order(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-        var expected = expectedPropertyNames
-            .Order(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-        Assert.Equal(expected, actualNames, StringComparer.OrdinalIgnoreCase);
-    }
 }
