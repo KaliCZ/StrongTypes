@@ -31,6 +31,23 @@ namespace StrongTypes.OpenApi.IntegrationTests.Tests;
 public abstract partial class OpenApiDocumentTestsBase
 {
     [Fact]
+    public async Task Property_Email_With_StringLength_Tightens_MaxLength_Below_Wrapper_Ceiling()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
+        var annotatedEmail = Property(body, "annotatedEmail");
+
+        // Caller's [StringLength(100)] is tighter than the Email wrapper's
+        // own maxLength: 254 — the merged shape must surface 100. The
+        // wrapper's minLength: 1 still floors the lower bound, and the
+        // wrapper's format: email reaches the wire on pipelines that
+        // honour it on the wrapper component schema.
+        Assert.Equal(1, CollectMaxInt(doc, annotatedEmail, "minLength", Version));
+        Assert.Equal(100, CollectMinInt(doc, annotatedEmail, "maxLength", Version));
+        Assert.Equal("email", CollectFirstString(doc, annotatedEmail, "format", Version));
+    }
+
+    [Fact]
     public async Task Property_NonEmptyString_With_StringLength_And_Pattern_Carries_All_Three()
     {
         var doc = await GetDocumentAsync();

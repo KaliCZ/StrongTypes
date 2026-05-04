@@ -2,13 +2,21 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using Microsoft.OpenApi;
-using StrongTypes.OpenApi.Core;
 
-namespace StrongTypes.OpenApi.Microsoft;
+namespace StrongTypes.OpenApi.Core;
 
-// Source: Microsoft.AspNetCore.OpenApi 10.0 — JsonNodeSchemaExtensions.ApplyValidationAttributes
-// and OpenApiSchemaService's per-property attribute pass. Keep this in step on runtime upgrades.
-internal static class WrapperAnnotationApplier
+/// <summary>
+/// Layers caller-supplied data-annotations
+/// (<see cref="StringLengthAttribute"/>, <see cref="RangeAttribute"/>,
+/// <see cref="RegularExpressionAttribute"/>, <see cref="DescriptionAttribute"/>, …)
+/// onto a schema painted for a strong-type wrapper. Bounds are tightened
+/// via the <see cref="SchemaPaint"/> helpers so caller-stricter values
+/// stack on top of the wrapper's own floor/ceiling without weakening
+/// either side. Returns <c>true</c> when the wrapper type was recognised
+/// and the attribute pass ran (regardless of whether any individual
+/// attribute matched).
+/// </summary>
+public static class WrapperAnnotationApplier
 {
     public static bool TryApply(OpenApiSchema schema, Type? propertyClrType, IEnumerable<Attribute> attributes)
     {
@@ -18,7 +26,7 @@ internal static class WrapperAnnotationApplier
         var attrList = attributes as IReadOnlyList<Attribute> ?? attributes.ToArray();
 
         var matched = false;
-        if (unwrapped == typeof(NonEmptyString))
+        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(Email))
         {
             ApplyStringAnnotations(schema, attrList);
             matched = true;

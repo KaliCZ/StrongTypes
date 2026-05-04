@@ -68,7 +68,7 @@ public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
     private static Type? ResolveSurrogateType(Type propertyClrType)
     {
         var unwrapped = Nullable.GetUnderlyingType(propertyClrType) ?? propertyClrType;
-        if (unwrapped == typeof(NonEmptyString)) return typeof(string);
+        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(Email)) return typeof(string);
         if (!unwrapped.IsGenericType) return null;
 
         var def = unwrapped.GetGenericTypeDefinition();
