@@ -171,6 +171,8 @@ internal static class SchemaNavigation
             case JsonValueKind.True:
             case JsonValueKind.False:
             case JsonValueKind.Null:
+                // Kinds already verified equal above and these have no
+                // payload — the kind IS the value.
                 break;
         }
     }
