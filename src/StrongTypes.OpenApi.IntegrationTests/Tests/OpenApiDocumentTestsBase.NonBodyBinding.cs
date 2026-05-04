@@ -127,41 +127,41 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_NonEmptyString_RendersAsString_WithMinLength_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyNonEmptyString(formSchema, "name", formIndex: 0, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken);
+        AssertFormPropertyNonEmptyString(formSchema, "name", allOfIndex: 0, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken);
     }
 
     [Fact]
     public async Task FromForm_NullableNonEmptyString_RendersAsString_WithMinLength_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyNonEmptyString(formSchema, "nullableName", formIndex: 1, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken);
+        AssertFormPropertyNonEmptyString(formSchema, "nullableName", allOfIndex: 1, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken);
     }
 
     [Fact]
     public async Task FromForm_PositiveInt_RendersAsExclusivePositive_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyPositiveInt(formSchema, "count", formIndex: 2, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken, Version);
+        AssertFormPropertyPositiveInt(formSchema, "count", allOfIndex: 2, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken, Version);
     }
 
     [Fact]
     public async Task FromForm_NullablePositiveInt_RendersAsExclusivePositive_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyPositiveInt(formSchema, "nullableCount", formIndex: 3, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken, Version);
+        AssertFormPropertyPositiveInt(formSchema, "nullableCount", allOfIndex: 3, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken, Version);
     }
 
     [Fact]
     public async Task FromForm_Email_RendersAsString_WithEmailFormat_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmail(formSchema, "email", formIndex: 4, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
+        AssertFormPropertyEmail(formSchema, "email", allOfIndex: 4, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
     }
 
     [Fact]
     public async Task FromForm_NullableEmail_RendersAsString_WithEmailFormat_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmail(formSchema, "nullableEmail", formIndex: 5, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
+        AssertFormPropertyEmail(formSchema, "nullableEmail", allOfIndex: 5, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
     }
 }
