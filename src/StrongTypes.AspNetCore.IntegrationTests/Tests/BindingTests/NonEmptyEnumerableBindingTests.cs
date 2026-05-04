@@ -10,11 +10,9 @@ namespace StrongTypes.AspNetCore.IntegrationTests.Tests.BindingTests;
 
 /// <summary>
 /// Verifies the MVC binders shipped in <c>Kalicz.StrongTypes.AspNetCore</c>
-/// for realistic strong-type contracts: non-empty collections of strong types,
-/// nullable collection properties, and form-bound nullable Maybe values that
-/// preserve omitted vs empty vs populated input.
+/// for non-empty collections of strong types across non-body binding sources.
 /// </summary>
-public sealed class NonEmptyEnumerableMaybeBindingTests(AspNetCoreTestApiFactory factory) : IClassFixture<AspNetCoreTestApiFactory>, IDisposable
+public sealed class NonEmptyEnumerableBindingTests(AspNetCoreTestApiFactory factory) : IClassFixture<AspNetCoreTestApiFactory>, IDisposable
 {
     private readonly HttpClient _client = factory.CreateClient(new WebApplicationFactoryClientOptions
     {
@@ -121,19 +119,15 @@ public sealed class NonEmptyEnumerableMaybeBindingTests(AspNetCoreTestApiFactory
     }
 
     [Fact]
-    public async Task Form_ExtendedBindingProbeRequest_BindsNullableCollectionsAndMaybe()
+    public async Task Form_ExtendedBindingProbeRequest_BindsNullableCollections()
     {
         var pairs = new List<KeyValuePair<string, string>>
         {
-            new("name", "Eve"),
-            new("count", "21"),
-            new("email", "eve@example.com"),
             new("tags", "north"),
             new("tags", "south"),
             new("counts", "1"),
             new("counts", "2"),
             new("digits", "8"),
-            new("displayName", "FormName"),
         };
         using var content = new FormUrlEncodedContent(pairs);
 
@@ -144,47 +138,6 @@ public sealed class NonEmptyEnumerableMaybeBindingTests(AspNetCoreTestApiFactory
         Assert.Equal(["north", "south"], json.GetProperty("tags").EnumerateArray().Select(e => e.GetString()));
         Assert.Equal([1, 2], json.GetProperty("counts").EnumerateArray().Select(e => e.GetInt32()));
         Assert.Equal([8], json.GetProperty("digits").EnumerateArray().Select(e => e.GetInt32()));
-        Assert.Equal("some", json.GetProperty("displayNameState").GetString());
-        Assert.Equal("FormName", json.GetProperty("displayName").GetString());
-    }
-
-    [Fact]
-    public async Task Form_NullableMaybeOmitted_BindsToMissingState()
-    {
-        var pairs = new List<KeyValuePair<string, string>>
-        {
-            new("name", "Eve"),
-            new("count", "21"),
-            new("email", "eve@example.com"),
-        };
-        using var content = new FormUrlEncodedContent(pairs);
-
-        var response = await _client.PostAsync("/binding-probe/form", content, Ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal("missing", json.GetProperty("displayNameState").GetString());
-        Assert.Equal(JsonValueKind.Null, json.GetProperty("displayName").ValueKind);
-    }
-
-    [Fact]
-    public async Task Form_EmptyNullableMaybe_BindsToNone()
-    {
-        var pairs = new List<KeyValuePair<string, string>>
-        {
-            new("name", "Eve"),
-            new("count", "21"),
-            new("email", "eve@example.com"),
-            new("displayName", ""),
-        };
-        using var content = new FormUrlEncodedContent(pairs);
-
-        var response = await _client.PostAsync("/binding-probe/form", content, Ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal("none", json.GetProperty("displayNameState").GetString());
-        Assert.Equal(JsonValueKind.Null, json.GetProperty("displayName").ValueKind);
     }
 
     [Theory]
@@ -195,9 +148,6 @@ public sealed class NonEmptyEnumerableMaybeBindingTests(AspNetCoreTestApiFactory
     {
         var pairs = new List<KeyValuePair<string, string>>
         {
-            new("name", "Eve"),
-            new("count", "21"),
-            new("email", "eve@example.com"),
             new(field, badValue),
         };
         using var content = new FormUrlEncodedContent(pairs);
