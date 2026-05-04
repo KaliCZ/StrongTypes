@@ -47,18 +47,21 @@ public abstract partial class OpenApiDocumentTestsBase(HttpClient client) : IDis
 
     /// <summary>
     /// True when the pipeline doesn't run the strong-type schema transformer
-    /// on non-body parameters (query / route / header). The strong-type
-    /// keywords (<c>minLength</c>, <c>maxLength</c>, <c>format</c>,
-    /// <c>exclusiveMinimum</c>, …) are absent; the underlying primitive may
-    /// or may not survive depending on what source-side metadata the
+    /// on schemas that live outside a JSON request/response body — i.e.
+    /// parameter schemas (<c>[FromQuery]</c>, <c>[FromRoute]</c>,
+    /// <c>[FromHeader]</c>) and the per-field schemas inside a
+    /// <c>[FromForm]</c> request body. Microsoft.AspNetCore.OpenApi only
+    /// fires the transformer on JSON body schemas; everything else loses
+    /// the strong-type keywords (<c>minLength</c>, <c>maxLength</c>,
+    /// <c>format</c>, <c>exclusiveMinimum</c>, …). The underlying primitive
+    /// may or may not survive depending on what source-side metadata the
     /// pipeline can read (e.g. a <c>:int</c> route constraint preserves
-    /// <c>type: integer</c>, otherwise the type falls back to
-    /// <c>"string"</c>). The broken-path assertion checks that the
-    /// strong-type keywords are absent — the day the pipeline starts
-    /// honouring the transformer, those keywords appear, the assertion
-    /// fails, and this flag must be flipped to <c>false</c>.
+    /// <c>type: integer</c>, otherwise the type falls back to <c>string</c>).
+    /// The broken-path assertion checks that the strong-type keywords are
+    /// absent — the day the pipeline starts honouring the transformer the
+    /// keywords appear, the assertion fails, and this flag must be flipped.
     /// </summary>
-    protected virtual bool IsNonBodyParameterStrongTypeSchemaBroken => false;
+    protected virtual bool IsNonJsonBodyStrongTypeSchemaBroken => false;
 
     /// <summary>
     /// True when the pipeline emits the <c>[FromForm]</c> request-body schema
@@ -73,14 +76,6 @@ public abstract partial class OpenApiDocumentTestsBase(HttpClient client) : IDis
     /// this flag must be flipped to <c>false</c>.
     /// </summary>
     protected virtual bool IsFormPropertiesSchemaBroken => false;
-
-    /// <summary>
-    /// True when the pipeline keeps the form schema's <c>properties</c> map
-    /// shape but emits each value as a bare <c>{ "type": "string" }</c> —
-    /// same gap as <see cref="IsNonBodyParameterStrongTypeSchemaBroken"/>,
-    /// but for form fields rather than non-body parameters.
-    /// </summary>
-    protected virtual bool IsFormPropertyStrongTypeSchemaBroken => false;
 
     private async Task<JsonElement> GetDocumentAsync()
     {

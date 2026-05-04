@@ -35,14 +35,14 @@ internal static class BindingSchemaAsserts
     internal static void AssertNonBodyEmail(JsonElement schema, bool isBroken, bool isEmailFormatBroken)
         => AssertEmailSchema(schema, isBroken, isEmailFormatBroken, assertInline: true);
 
-    internal static void AssertFormPropertyNonEmptyString(JsonElement formSchema, string propertyName, int formIndex, bool isFormPropertiesBroken, bool isStrongTypeBroken)
-        => AssertNonEmptyStringSchema(GetFormProperty(formSchema, propertyName, formIndex, isFormPropertiesBroken), isStrongTypeBroken, assertInline: false);
+    internal static void AssertFormPropertyNonEmptyString(JsonElement formSchema, string propertyName, int formIndex, bool isFormPropertiesBroken, bool isBroken)
+        => AssertNonEmptyStringSchema(GetFormProperty(formSchema, propertyName, formIndex, isFormPropertiesBroken), isBroken, assertInline: false);
 
-    internal static void AssertFormPropertyPositiveInt(JsonElement formSchema, string propertyName, int formIndex, bool isFormPropertiesBroken, bool isStrongTypeBroken, OpenApiVersion version)
-        => AssertPositiveIntSchema(GetFormProperty(formSchema, propertyName, formIndex, isFormPropertiesBroken), isStrongTypeBroken, version, assertInline: false);
+    internal static void AssertFormPropertyPositiveInt(JsonElement formSchema, string propertyName, int formIndex, bool isFormPropertiesBroken, bool isBroken, OpenApiVersion version)
+        => AssertPositiveIntSchema(GetFormProperty(formSchema, propertyName, formIndex, isFormPropertiesBroken), isBroken, version, assertInline: false);
 
-    internal static void AssertFormPropertyEmail(JsonElement formSchema, string propertyName, int formIndex, bool isFormPropertiesBroken, bool isStrongTypeBroken, bool isEmailFormatBroken)
-        => AssertEmailSchema(GetFormProperty(formSchema, propertyName, formIndex, isFormPropertiesBroken), isStrongTypeBroken, isEmailFormatBroken, assertInline: false);
+    internal static void AssertFormPropertyEmail(JsonElement formSchema, string propertyName, int formIndex, bool isFormPropertiesBroken, bool isBroken, bool isEmailFormatBroken)
+        => AssertEmailSchema(GetFormProperty(formSchema, propertyName, formIndex, isFormPropertiesBroken), isBroken, isEmailFormatBroken, assertInline: false);
 
     private static void AssertNonEmptyStringSchema(JsonElement schema, bool isBroken, bool assertInline)
     {

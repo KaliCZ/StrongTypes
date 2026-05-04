@@ -11,12 +11,12 @@ namespace StrongTypes.OpenApi.IntegrationTests.Tests;
 /// <c>[FromForm]</c>). Required and nullable variants of each wrapped type
 /// are exercised separately so a regression on either branch shows up.
 ///
-/// Pipelines that don't yet rewrite these schemas (i.e.
-/// <see cref="OpenApiDocumentTestsBase.IsNonBodyParameterStrongTypeSchemaBroken"/>
-/// or the form-equivalent flags) get the underlying-type assertion path so
-/// the suite documents current behaviour rather than skipping. Fixing the
-/// pipeline flips the flag and turns those tests into the strong-type-aware
-/// assertion path.
+/// Pipelines that don't run the strong-type schema transformer on these
+/// slots (i.e. <see cref="OpenApiDocumentTestsBase.IsNonJsonBodyStrongTypeSchemaBroken"/>)
+/// or that emit the form schema as <c>allOf</c> with field names dropped
+/// (<see cref="OpenApiDocumentTestsBase.IsFormPropertiesSchemaBroken"/>)
+/// take the broken-shape assertion path. Fixing the pipeline flips the
+/// flag and turns those tests into the strong-type-aware assertion path.
 /// </summary>
 public abstract partial class OpenApiDocumentTestsBase
 {
@@ -26,42 +26,42 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromQuery_NonEmptyString_RendersAsString_WithMinLength_When_NotBroken()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "name");
-        AssertNonBodyNonEmptyString(schema, IsNonBodyParameterStrongTypeSchemaBroken);
+        AssertNonBodyNonEmptyString(schema, IsNonJsonBodyStrongTypeSchemaBroken);
     }
 
     [Fact]
     public async Task FromQuery_NullableNonEmptyString_RendersAsString_WithMinLength_When_NotBroken()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "nullableName");
-        AssertNonBodyNonEmptyString(schema, IsNonBodyParameterStrongTypeSchemaBroken);
+        AssertNonBodyNonEmptyString(schema, IsNonJsonBodyStrongTypeSchemaBroken);
     }
 
     [Fact]
     public async Task FromQuery_PositiveInt_RendersAsExclusivePositive_When_NotBroken()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "count");
-        AssertNonBodyPositiveInt(schema, IsNonBodyParameterStrongTypeSchemaBroken, Version);
+        AssertNonBodyPositiveInt(schema, IsNonJsonBodyStrongTypeSchemaBroken, Version);
     }
 
     [Fact]
     public async Task FromQuery_NullablePositiveInt_RendersAsExclusivePositive_When_NotBroken()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "nullableCount");
-        AssertNonBodyPositiveInt(schema, IsNonBodyParameterStrongTypeSchemaBroken, Version);
+        AssertNonBodyPositiveInt(schema, IsNonJsonBodyStrongTypeSchemaBroken, Version);
     }
 
     [Fact]
     public async Task FromQuery_Email_RendersAsString_WithEmailFormat_When_NotBroken()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "email");
-        AssertNonBodyEmail(schema, IsNonBodyParameterStrongTypeSchemaBroken, IsEmailStringFormatBroken);
+        AssertNonBodyEmail(schema, IsNonJsonBodyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
     }
 
     [Fact]
     public async Task FromQuery_NullableEmail_RendersAsString_WithEmailFormat_When_NotBroken()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "nullableEmail");
-        AssertNonBodyEmail(schema, IsNonBodyParameterStrongTypeSchemaBroken, IsEmailStringFormatBroken);
+        AssertNonBodyEmail(schema, IsNonJsonBodyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
     }
 
     // ── [FromRoute] ──────────────────────────────────────────────────────
@@ -70,14 +70,14 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromRoute_NonEmptyString_RendersAsString_WithMinLength_When_NotBroken()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/route/{name}/{count}", "name");
-        AssertNonBodyNonEmptyString(schema, IsNonBodyParameterStrongTypeSchemaBroken);
+        AssertNonBodyNonEmptyString(schema, IsNonJsonBodyStrongTypeSchemaBroken);
     }
 
     [Fact]
     public async Task FromRoute_PositiveInt_RendersAsExclusivePositive_When_NotBroken()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/route/{name}/{count}", "count");
-        AssertNonBodyPositiveInt(schema, IsNonBodyParameterStrongTypeSchemaBroken, Version);
+        AssertNonBodyPositiveInt(schema, IsNonJsonBodyStrongTypeSchemaBroken, Version);
     }
 
     // ── [FromHeader] ─────────────────────────────────────────────────────
@@ -86,28 +86,28 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromHeader_NonEmptyString_RendersAsString_WithMinLength_When_NotBroken()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/header", "X-Name");
-        AssertNonBodyNonEmptyString(schema, IsNonBodyParameterStrongTypeSchemaBroken);
+        AssertNonBodyNonEmptyString(schema, IsNonJsonBodyStrongTypeSchemaBroken);
     }
 
     [Fact]
     public async Task FromHeader_NullableNonEmptyString_RendersAsString_WithMinLength_When_NotBroken()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/header", "X-Nullable-Name");
-        AssertNonBodyNonEmptyString(schema, IsNonBodyParameterStrongTypeSchemaBroken);
+        AssertNonBodyNonEmptyString(schema, IsNonJsonBodyStrongTypeSchemaBroken);
     }
 
     [Fact]
     public async Task FromHeader_PositiveInt_RendersAsExclusivePositive_When_NotBroken()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/header", "X-Count");
-        AssertNonBodyPositiveInt(schema, IsNonBodyParameterStrongTypeSchemaBroken, Version);
+        AssertNonBodyPositiveInt(schema, IsNonJsonBodyStrongTypeSchemaBroken, Version);
     }
 
     [Fact]
     public async Task FromHeader_NullablePositiveInt_RendersAsExclusivePositive_When_NotBroken()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/header", "X-Nullable-Count");
-        AssertNonBodyPositiveInt(schema, IsNonBodyParameterStrongTypeSchemaBroken, Version);
+        AssertNonBodyPositiveInt(schema, IsNonJsonBodyStrongTypeSchemaBroken, Version);
     }
 
     // ── [FromForm] ───────────────────────────────────────────────────────
@@ -127,41 +127,41 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_NonEmptyString_RendersAsString_WithMinLength_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyNonEmptyString(formSchema, "name", formIndex: 0, IsFormPropertiesSchemaBroken, IsFormPropertyStrongTypeSchemaBroken);
+        AssertFormPropertyNonEmptyString(formSchema, "name", formIndex: 0, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken);
     }
 
     [Fact]
     public async Task FromForm_NullableNonEmptyString_RendersAsString_WithMinLength_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyNonEmptyString(formSchema, "nullableName", formIndex: 1, IsFormPropertiesSchemaBroken, IsFormPropertyStrongTypeSchemaBroken);
+        AssertFormPropertyNonEmptyString(formSchema, "nullableName", formIndex: 1, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken);
     }
 
     [Fact]
     public async Task FromForm_PositiveInt_RendersAsExclusivePositive_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyPositiveInt(formSchema, "count", formIndex: 2, IsFormPropertiesSchemaBroken, IsFormPropertyStrongTypeSchemaBroken, Version);
+        AssertFormPropertyPositiveInt(formSchema, "count", formIndex: 2, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken, Version);
     }
 
     [Fact]
     public async Task FromForm_NullablePositiveInt_RendersAsExclusivePositive_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyPositiveInt(formSchema, "nullableCount", formIndex: 3, IsFormPropertiesSchemaBroken, IsFormPropertyStrongTypeSchemaBroken, Version);
+        AssertFormPropertyPositiveInt(formSchema, "nullableCount", formIndex: 3, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken, Version);
     }
 
     [Fact]
     public async Task FromForm_Email_RendersAsString_WithEmailFormat_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmail(formSchema, "email", formIndex: 4, IsFormPropertiesSchemaBroken, IsFormPropertyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
+        AssertFormPropertyEmail(formSchema, "email", formIndex: 4, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
     }
 
     [Fact]
     public async Task FromForm_NullableEmail_RendersAsString_WithEmailFormat_When_NotBroken()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmail(formSchema, "nullableEmail", formIndex: 5, IsFormPropertiesSchemaBroken, IsFormPropertyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
+        AssertFormPropertyEmail(formSchema, "nullableEmail", formIndex: 5, IsFormPropertiesSchemaBroken, IsNonJsonBodyStrongTypeSchemaBroken, IsEmailStringFormatBroken);
     }
 }
