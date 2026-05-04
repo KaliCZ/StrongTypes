@@ -24,6 +24,7 @@ public static class StrongTypesOpenApiExtensions
         options.AddSchemaTransformer<NonEmptyEnumerableSchemaTransformer>();
         options.AddSchemaTransformer<MaybeSchemaTransformer>();
         options.AddSchemaTransformer<StrongTypeCollectionShapeTransformer>();
+        options.AddOperationTransformer<NonBodyStrongTypeOperationTransformer>();
         options.AddDocumentTransformer<StrongTypesComponentSchemaFiller>();
         options.AddDocumentTransformer<PropertyAnnotationSchemaTransformer>();
         options.AddDocumentTransformer<StrongTypeInliningDocumentTransformer>();
