@@ -43,7 +43,13 @@ public abstract partial class OpenApiDocumentTestsBase(HttpClient client) : IDis
     // rather than skipping — so the suite documents the framework's
     // actual behaviour and catches it if the framework starts honouring
     // the annotation. Each flag is set in the per-pipeline subclass.
-    protected virtual bool IsEmailStringFormatBroken => false;
+    /// <summary>
+    /// True when the pipeline doesn't surface <c>[EmailAddress]</c> on a
+    /// plain <c>string</c> property as <c>format: email</c>. Strong-type
+    /// slots (<see cref="Email"/>, <see cref="NonEmptyString"/>) always paint
+    /// the format on every pipeline; only the primitive baseline varies.
+    /// </summary>
+    protected virtual bool IsPlainStringEmailFormatBroken => false;
 
     /// <summary>
     /// True when the pipeline emits the <c>[FromForm]</c> request-body schema

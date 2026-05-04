@@ -128,13 +128,9 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
 
         if (StrongTypeSchemaTypes.IsEmail(clrType))
         {
-            // Format is intentionally left to whatever the pipeline already
-            // wrote (typically nothing — Microsoft.AspNetCore.OpenApi doesn't
-            // honor format:email even on plain string properties). The
-            // matching JSON-body Email schema and the IsEmailStringFormatBroken
-            // flag in the integration tests pin this same behavior.
             SchemaPaint.ClearWrapperShape(schema);
             schema.Type = JsonSchemaType.String;
+            SchemaPaint.SetFormatIfAbsent(schema, "email");
             SchemaPaint.TightenMinLength(schema, 1);
             SchemaPaint.TightenMaxLength(schema, Email.MaxLength);
             return true;

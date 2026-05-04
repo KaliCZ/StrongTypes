@@ -81,6 +81,9 @@ public static class WrapperAnnotationApplier
                 case Base64StringAttribute:
                     SchemaPaint.SetFormatIfAbsent(schema, "byte");
                     break;
+                case EmailAddressAttribute:
+                    SchemaPaint.SetFormatIfAbsent(schema, "email");
+                    break;
             }
         }
     }

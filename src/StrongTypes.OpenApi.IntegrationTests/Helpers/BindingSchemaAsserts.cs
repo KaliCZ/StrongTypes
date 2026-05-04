@@ -117,15 +117,13 @@ internal static class BindingSchemaAsserts
 
     // ── Email ────────────────────────────────────────────────────────────
 
-    internal static void AssertEmailSchema(JsonElement schema, bool isEmailStringFormatBroken)
-        => AssertJsonEquals(schema, isEmailStringFormatBroken
-            ? """{"type":"string","minLength":1,"maxLength":254}"""
-            : """{"type":"string","minLength":1,"maxLength":254,"format":"email"}""");
+    internal static void AssertEmailSchema(JsonElement schema)
+        => AssertJsonEquals(schema, """{"type":"string","minLength":1,"maxLength":254,"format":"email"}""");
 
     /// <param name="propertyName">Field name as it appears in the form schema's <c>properties</c> map on the not-broken path.</param>
     /// <param name="allOfIndex">Position in the form schema's <c>allOf</c> array, used only when <paramref name="isFormPropertiesSchemaBroken"/> is true (the field name has been dropped, so navigation is by declaration index).</param>
-    internal static void AssertFormPropertyEmailSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken, bool isEmailStringFormatBroken)
-        => AssertEmailSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken), isEmailStringFormatBroken);
+    internal static void AssertFormPropertyEmailSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken)
+        => AssertEmailSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken));
 
     /// <summary>
     /// Looks up a per-field schema on a <c>[FromForm]</c> request-body
