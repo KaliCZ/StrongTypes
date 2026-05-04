@@ -82,9 +82,10 @@ public abstract partial class OpenApiDocumentTestsBase
 
         // Wrapper's minLength: 1 always reaches the wire. The [EmailAddress]
         // format keyword only reaches it on pipelines that honour the
-        // attribute on plain primitives.
+        // attribute on string properties; Microsoft.AspNetCore.OpenApi
+        // drops it across every slot (see Email for the always-format type).
         Assert.Equal(1, CollectMaxInt(doc, contactEmail, "minLength", Version));
-        Assert.Equal(IsEmailStringFormatBroken ? null : "email", CollectFirstString(doc, contactEmail, "format", Version));
+        Assert.Equal(IsEmailAddressFormatIgnored ? null : "email", CollectFirstString(doc, contactEmail, "format", Version));
     }
 
     [Fact]
@@ -277,7 +278,7 @@ public abstract partial class OpenApiDocumentTestsBase
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var contactEmailRaw = Property(body, "contactEmailRaw");
 
-        Assert.Equal(IsEmailStringFormatBroken ? null : "email", CollectFirstString(doc, contactEmailRaw, "format", Version));
+        Assert.Equal(IsEmailAddressFormatIgnored ? null : "email", CollectFirstString(doc, contactEmailRaw, "format", Version));
     }
 
     [Fact]

@@ -63,14 +63,14 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromQuery_Email_RendersAsString_WithEmailFormat()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "email");
-        AssertEmailSchema(schema, IsEmailStringFormatBroken);
+        AssertEmailSchema(schema);
     }
 
     [Fact]
     public async Task FromQuery_NullableEmail_RendersAsString_WithEmailFormat()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "nullableEmail");
-        AssertEmailSchema(schema, IsEmailStringFormatBroken);
+        AssertEmailSchema(schema);
     }
 
     // ── [FromRoute] ──────────────────────────────────────────────────────
@@ -187,14 +187,14 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_Email_RendersAsString_WithEmailFormat()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmailSchema(formSchema, "email", allOfIndex: 5, IsFormPropertiesSchemaBroken, IsEmailStringFormatBroken);
+        AssertFormPropertyEmailSchema(formSchema, "email", allOfIndex: 5, IsFormPropertiesSchemaBroken);
     }
 
     [Fact]
     public async Task FromForm_NullableEmail_RendersAsString_WithEmailFormat()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmailSchema(formSchema, "nullableEmail", allOfIndex: 6, IsFormPropertiesSchemaBroken, IsEmailStringFormatBroken);
+        AssertFormPropertyEmailSchema(formSchema, "nullableEmail", allOfIndex: 6, IsFormPropertiesSchemaBroken);
     }
 
     // ── Caller annotations on non-body slots ─────────────────────────────
