@@ -146,7 +146,7 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
                 var clrType = ResolveParameterClrType(pd);
                 if (clrType is null)
                 {
-                    logger?.LogWarning(
+                    logger?.LogError(
                         "StrongTypes form-body reshape skipped property '{PropertyName}' on operation '{OperationId}' because no CLR type could be resolved from its ApiParameterDescription. The emitted form schema may be incomplete.",
                         pd.Name, operation.OperationId ?? "(unnamed)");
                     continue;
@@ -179,14 +179,14 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
 
             if (properties.Count != formParamCount)
             {
-                logger?.LogWarning(
+                logger?.LogError(
                     "StrongTypes form-body reshape on operation '{OperationId}' resolved {ResolvedCount} of {TotalCount} form parameters; the rest will be missing from the emitted properties map.",
                     operation.OperationId ?? "(unnamed)", properties.Count, formParamCount);
             }
 
             if (allOf.Count > formParamCount)
             {
-                logger?.LogWarning(
+                logger?.LogError(
                     "StrongTypes form-body reshape on operation '{OperationId}' replaced an allOf with {AllOfCount} entries using only {FormParamCount} form parameters; entries beyond the parameter set are dropped. This usually means Swashbuckle assembled the form body in a shape we don't recognise.",
                     operation.OperationId ?? "(unnamed)", allOf.Count, formParamCount);
             }
