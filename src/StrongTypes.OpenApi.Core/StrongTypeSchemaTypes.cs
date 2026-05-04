@@ -7,7 +7,7 @@ public static class StrongTypeSchemaTypes
 
     public static bool IsInlineable(Type? clrType)
     {
-        return ResolveAnnotationSurrogate(clrType) is not null
+        return ResolveWireType(clrType) is not null
             || TryGetMaybeValue(clrType, out _);
     }
 
@@ -59,7 +59,7 @@ public static class StrongTypeSchemaTypes
         return true;
     }
 
-    public static Type? ResolveAnnotationSurrogate(Type? clrType)
+    public static Type? ResolveWireType(Type? clrType)
     {
         if (IsNonEmptyString(clrType) || IsEmail(clrType)) return typeof(string);
         if (IsDigit(clrType)) return typeof(int);

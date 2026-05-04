@@ -46,7 +46,7 @@ public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
             var attrs = clrProperty.GetCustomAttributes(inherit: true).OfType<Attribute>().ToArray();
             if (attrs.Length == 0) continue;
 
-            var surrogate = StrongTypeSchemaTypes.ResolveAnnotationSurrogate(clrProperty.PropertyType);
+            var surrogate = StrongTypeSchemaTypes.ResolveWireType(clrProperty.PropertyType);
             if (surrogate is null) continue;
 
             var generated = context.SchemaGenerator.GenerateSchema(surrogate, context.SchemaRepository, memberInfo: clrProperty);
