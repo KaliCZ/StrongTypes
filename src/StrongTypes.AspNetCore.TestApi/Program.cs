@@ -10,3 +10,6 @@ var app = builder.Build();
 app.MapControllers();
 
 app.Run();
+
+// Exposed for WebApplicationFactory in integration tests
+public partial class Program { }
