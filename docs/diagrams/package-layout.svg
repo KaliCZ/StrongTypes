@@ -96,7 +96,7 @@
   <circle class="sm-bullet" cx="35" cy="306" r="2"/>
   <text class="card-body" x="43" y="310">DbContext extension</text>
 
-  <!-- FsCheck card (bottom-right, under Core) -->
+  <!-- FsCheck card (bottom-middle, under Core) -->
   <rect class="card-bg card-border" x="245" y="235" width="215" height="110" rx="8" stroke-width="1.5"/>
   <text class="card-title" x="259" y="259">Kalicz.StrongTypes.FsCheck</text>
   <circle class="sm-bullet" cx="265" cy="282" r="2"/>
@@ -106,9 +106,18 @@
   <circle class="sm-bullet" cx="265" cy="326" r="2"/>
   <text class="card-body" x="273" y="330">generators</text>
 
+  <!-- Wpf card (bottom-right) -->
+  <rect class="card-bg card-border" x="475" y="235" width="305" height="110" rx="8" stroke-width="1.5"/>
+  <text class="card-title" x="489" y="259">Kalicz.StrongTypes.Wpf</text>
+  <circle class="sm-bullet" cx="495" cy="284" r="2"/>
+  <text class="card-body" x="503" y="288">Two-way MVVM binding to strong types</text>
+  <circle class="sm-bullet" cx="495" cy="306" r="2"/>
+  <text class="card-body" x="503" y="310">via <tspan font-family="ui-monospace, Menlo, Consolas, monospace">TypeDescriptor</tspan></text>
+
   <!-- Arrows from satellite cards to core card -->
   <line class="arrow-line" x1="460" y1="61"  x2="412" y2="61"  stroke-width="1.5" marker-end="url(#pl-arrow)"/>
   <line class="arrow-line" x1="460" y1="159" x2="412" y2="159" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
   <line class="arrow-line" x1="122" y1="235" x2="122" y2="210" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
   <line class="arrow-line" x1="352" y1="235" x2="352" y2="210" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
+  <line class="arrow-line" x1="475" y1="240" x2="412" y2="207" stroke-width="1.5" marker-end="url(#pl-arrow)"/>
 </svg>

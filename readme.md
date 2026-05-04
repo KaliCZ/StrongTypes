@@ -2,7 +2,7 @@
 
 [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
-StrongTypes adds small, focused types that make everyday code safer and more expressive. Every type ships with `System.Text.Json` converters out of the box, so invalid JSON fails at deserialization. The types can be stored directly in EF Core entities via the EfCore package, and OpenAPI documentation is supported through the Microsoft or Swashbuckle OpenAPI packages — see [Packages](#packages) below.
+StrongTypes adds small, focused types that make everyday code safer and more expressive. Every type ships with `System.Text.Json` converters out of the box, so invalid JSON fails at deserialization. The types can be stored directly in EF Core entities via the EfCore package, OpenAPI documentation is supported through the Microsoft or Swashbuckle OpenAPI packages, and WPF MVVM binding works out of the box with the WPF package — see [Packages](#packages) below.
 
 > 🤖 Letting Claude Code or Codex write code in a project that uses
 > StrongTypes? See [Use with Claude or Codex](#use-with-claude-or-codex)
@@ -30,6 +30,7 @@ StrongTypes adds small, focused types that make everyday code safer and more exp
   - [JSON serialization](#json-serialization)
   - [EF Core persistence](#ef-core-persistence)
   - [OpenAPI / Swagger schema](#openapi--swagger-schema)
+  - [WPF MVVM binding](#wpf-mvvm-binding)
 - [`NonEmptyEnumerable<T>`](#nonemptyenumerablet)
 - [Parsing helpers](#parsing-helpers)
   - [Enums](#enums)
@@ -155,6 +156,14 @@ Pick the one that matches the generator your app already uses. They're not inter
 
 > [!TIP]
 > If you have a free choice, prefer Swashbuckle. `Microsoft.AspNetCore.OpenApi` has a few rough edges that the framework gives no public hook to fix — for example `[EmailAddress]` doesn't surface as `format: email`, and a `Dictionary<string, int>` emits `{ "format": "int32", "pattern": "^-?(?:0|[1-9]\\d*)$" }` for the int instead of `{ "type": "integer", "format": "int32" }`. Swashbuckle exposes richer extension points and produces a faithful document in cases where the Microsoft pipeline silently drops the bound.
+
+[↑ Back to contents](#contents)
+
+### WPF MVVM binding
+
+If you bind strong types to WPF controls (`<TextBox Text="{Binding Name, ...}" />`), add the companion package [`Kalicz.StrongTypes.Wpf`](https://www.nuget.org/packages/Kalicz.StrongTypes.Wpf/). WPF resolves binding converters through `TypeDescriptor.GetConverter`, which never consults `IParsable<T>` directly — so without a converter, two-way binding silently drops user input. One `this.UseStrongTypes()` call in `App.OnStartup` registers a `TypeDescriptionProvider` that synthesizes the converter on demand for every strong type, including every closed instantiation of the generic numeric wrappers. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.Wpf/readme.md) for setup details.
+
+Other UI frameworks (WinForms, MAUI, Avalonia, …) aren't covered yet — see [issue #94](https://github.com/KaliCZ/StrongTypes/issues/94).
 
 [↑ Back to contents](#contents)
 
