@@ -110,9 +110,9 @@
   <rect class="card-bg card-border" x="475" y="235" width="305" height="110" rx="8" stroke-width="1.5"/>
   <text class="card-title" x="489" y="259">Kalicz.StrongTypes.Wpf</text>
   <circle class="sm-bullet" cx="495" cy="284" r="2"/>
-  <text class="card-body" x="503" y="288">Two-way MVVM binding to strong types</text>
+  <text class="card-body" x="503" y="288">Two-way MVVM binding</text>
   <circle class="sm-bullet" cx="495" cy="306" r="2"/>
-  <text class="card-body" x="503" y="310">via <tspan font-family="ui-monospace, Menlo, Consolas, monospace">TypeDescriptor</tspan></text>
+  <text class="card-body" x="503" y="310">to strong-typed VM properties</text>
 
   <!-- Arrows from satellite cards to core card -->
   <line class="arrow-line" x1="460" y1="61"  x2="412" y2="61"  stroke-width="1.5" marker-end="url(#pl-arrow)"/>

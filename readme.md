@@ -161,7 +161,7 @@ Pick the one that matches the generator your app already uses. They're not inter
 
 ### WPF MVVM binding
 
-If you bind strong types to WPF controls (`<TextBox Text="{Binding Name, ...}" />`), add the companion package [`Kalicz.StrongTypes.Wpf`](https://www.nuget.org/packages/Kalicz.StrongTypes.Wpf/). WPF resolves binding converters through `TypeDescriptor.GetConverter`, which never consults `IParsable<T>` directly — so without a converter, two-way binding silently drops user input. One `this.UseStrongTypes()` call in `App.OnStartup` registers a `TypeDescriptionProvider` that synthesizes the converter on demand for every strong type, including every closed instantiation of the generic numeric wrappers. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.Wpf/readme.md) for setup details.
+For WPF applications, add the package [`Kalicz.StrongTypes.Wpf`](https://www.nuget.org/packages/Kalicz.StrongTypes.Wpf/) to enable bindings including two-way. One `this.UseStrongTypes()` call in `App.OnStartup` to register.
 
 Other UI frameworks (WinForms, MAUI, Avalonia, …) aren't covered yet — see [issue #94](https://github.com/KaliCZ/StrongTypes/issues/94).
 
