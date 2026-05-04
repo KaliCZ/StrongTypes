@@ -2,7 +2,7 @@
 
 [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
-StrongTypes adds small, focused types that make everyday code safer and more expressive. Every type ships with `System.Text.Json` converters out of the box, so invalid JSON fails at deserialization. The types can be stored directly in EF Core entities via the EfCore package, OpenAPI documentation is supported through the Microsoft or Swashbuckle OpenAPI packages, and WPF is supported via the WPF package — see [Packages](#packages) below.
+StrongTypes adds small, focused types that make everyday code safer and more expressive. Every type ships with `System.Text.Json` converters out of the box, so invalid JSON fails at deserialization. The types can be stored directly in EF Core entities via the EfCore package, OpenAPI documentation is supported through the Microsoft or Swashbuckle OpenAPI packages, WPF is supported via the WPF package, and a niche ASP.NET Core package adds MVC model binders for the two wrappers (`Maybe<T>` and `NonEmptyEnumerable<T>`) that don't bind from form posts out of the box — see [Packages](#packages) below.
 
 > 🤖 Letting Claude Code or Codex write code in a project that uses
 > StrongTypes? See [Use with Claude or Codex](#use-with-claude-or-codex)
@@ -653,6 +653,7 @@ Result<Positive<int>[], string> ParseOrderQuantities(IEnumerable<int> inputs)
 | [`Kalicz.StrongTypes.FsCheck`](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/) | FsCheck `Arbitrary<T>` generators for property-based (generative) testing of code that takes or returns the wrappers. | [readme](src/StrongTypes.FsCheck/readme.md) |
 | [`Kalicz.StrongTypes.OpenApi.Microsoft`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft/) | Schema transformers for `Microsoft.AspNetCore.OpenApi` (`AddOpenApi()`) so the generated document matches the wire JSON. | [readme](src/StrongTypes.OpenApi.Microsoft/readme.md) |
 | [`Kalicz.StrongTypes.OpenApi.Swashbuckle`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Swashbuckle/) | Schema filters for `Swashbuckle.AspNetCore` (`AddSwaggerGen()`) so the generated Swagger document matches the wire JSON. | [readme](src/StrongTypes.OpenApi.Swashbuckle/readme.md) |
+| [`Kalicz.StrongTypes.AspNetCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.AspNetCore/) | Niche MVC model binders for HTML form posts: `Maybe<T>` for patch contracts, and `NonEmptyEnumerable<T>` for repeated form / query fields. The other wrappers bind out of the box without this package. | [readme](src/StrongTypes.AspNetCore/readme.md) |
 | [`Kalicz.StrongTypes.Wpf`](https://www.nuget.org/packages/Kalicz.StrongTypes.Wpf/) | `TypeConverter`s that bridge `IParsable<T>` into `TypeDescriptor`, enabling two-way MVVM binding to strong types in WPF (and any framework that resolves converters via `TypeDescriptor`). | [readme](src/StrongTypes.Wpf/readme.md) |
 
 [↑ Back to contents](#contents)

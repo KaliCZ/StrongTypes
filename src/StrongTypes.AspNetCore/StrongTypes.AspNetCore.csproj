@@ -12,7 +12,7 @@
     <RootNamespace>StrongTypes.AspNetCore</RootNamespace>
     <Authors>KaliCZ</Authors>
     <Copyright>Copyright © 2026 KaliCZ</Copyright>
-    <Description>ASP.NET Core MVC model binders for Kalicz.StrongTypes wrappers that don't fit the IParsable&lt;T&gt; single-string shape: NonEmptyEnumerable&lt;T&gt; (multiple wire values) and Maybe&lt;T&gt; in form-bound patch contracts. Single registration call: services.AddStrongTypes().</Description>
+    <Description>Niche ASP.NET Core MVC model binders for the two Kalicz.StrongTypes wrappers that don't fit the IParsable&lt;T&gt; single-string shape. Primarily intended for HTML form posts: Maybe&lt;T&gt; powers form-bound patch contracts (omitted vs. cleared vs. set), and NonEmptyEnumerable&lt;T&gt; binds repeated form fields (and query strings). The other wrappers (NonEmptyString, Email, Digit, the numeric ones) bind out of the box without this package. Single registration call: services.AddStrongTypes().</Description>
     <PackageTags>StrongTypes, AspNetCore, ModelBinding, NonEmptyEnumerable, Maybe</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
