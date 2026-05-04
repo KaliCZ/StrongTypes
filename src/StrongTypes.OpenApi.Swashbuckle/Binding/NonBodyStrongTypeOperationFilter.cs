@@ -200,7 +200,8 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
         var definition = unwrapped.GetGenericTypeDefinition();
         return NumericWrapperKinds.TryGetBound(definition, out _)
             || definition == typeof(NonEmptyEnumerable<>)
-            || definition == typeof(INonEmptyEnumerable<>);
+            || definition == typeof(INonEmptyEnumerable<>)
+            || definition == typeof(Maybe<>);
     }
 
     private static IReadOnlyList<Attribute> GetSlotAttributes(ApiParameterDescription pd)
