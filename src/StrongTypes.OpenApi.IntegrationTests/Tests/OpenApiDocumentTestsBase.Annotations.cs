@@ -165,6 +165,17 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     [Fact]
+    public async Task Property_Digit_With_Range_Carries_Caller_Bounds()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
+        var digit = Property(body, "digit");
+
+        Assert.Equal(2m, CollectMaxLowerBound(doc, digit, Version));
+        Assert.Equal(8m, CollectMinUpperBound(doc, digit, Version));
+    }
+
+    [Fact]
     public async Task Property_NonEmptyEnumerable_With_MaxLength_Carries_Min_And_MaxItems()
     {
         var doc = await GetDocumentAsync();
@@ -330,6 +341,17 @@ public abstract partial class OpenApiDocumentTestsBase
 
         Assert.Equal(10m, CollectMinUpperBound(doc, exclusiveRaw, Version));
         AssertExclusiveLowerBoundReachable(doc, exclusiveRaw, 2m, Version);
+    }
+
+    [Fact]
+    public async Task Property_Int_Digit_Baseline_With_Range_Carries_Caller_Bounds()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
+        var digitRaw = Property(body, "digitRaw");
+
+        Assert.Equal(2m, CollectMaxLowerBound(doc, digitRaw, Version));
+        Assert.Equal(8m, CollectMinUpperBound(doc, digitRaw, Version));
     }
 
     [Fact]

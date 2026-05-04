@@ -71,6 +71,8 @@ public sealed record AnnotatedTextsRequest(
 public sealed record AnnotatedNumbersRequest(
     [property: Range(18, 120)] Positive<int> Age,
     [property: Range(18, 120)] int AgeRaw,
+    [property: Range(2, 8)] Digit Digit,
+    [property: Range(2, 8)] int DigitRaw,
     [property: Range(-5, 5)] Positive<int> RangeAcrossFloor,
     [property: Range(2, 10, MinimumIsExclusive = true)] Positive<int> ExclusiveLowerAge,
     [property: Range(2, 10, MinimumIsExclusive = true)] int ExclusiveLowerAgeRaw,

@@ -7,15 +7,8 @@ public static class StrongTypeSchemaTypes
 
     public static bool IsInlineable(Type? clrType)
     {
-        var unwrapped = UnwrapNullable(clrType);
-        if (unwrapped is null) return false;
-
-        return IsNonEmptyString(unwrapped)
-            || IsEmail(unwrapped)
-            || IsDigit(unwrapped)
-            || TryGetNumeric(unwrapped, out _, out _)
-            || TryGetNonEmptyEnumerableElement(unwrapped, out _)
-            || TryGetMaybeValue(unwrapped, out _);
+        return ResolveAnnotationSurrogate(clrType) is not null
+            || TryGetMaybeValue(clrType, out _);
     }
 
     public static bool IsNonEmptyString(Type? clrType)
@@ -64,5 +57,14 @@ public static class StrongTypeSchemaTypes
 
         valueType = unwrapped.GetGenericArguments()[0];
         return true;
+    }
+
+    public static Type? ResolveAnnotationSurrogate(Type? clrType)
+    {
+        if (IsNonEmptyString(clrType) || IsEmail(clrType)) return typeof(string);
+        if (IsDigit(clrType)) return typeof(int);
+        if (TryGetNumeric(clrType, out var valueType, out _)) return valueType;
+        if (TryGetNonEmptyEnumerableElement(clrType, out var elementType)) return typeof(IEnumerable<>).MakeGenericType(elementType);
+        return null;
     }
 }

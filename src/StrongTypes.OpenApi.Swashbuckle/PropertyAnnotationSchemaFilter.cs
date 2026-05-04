@@ -46,7 +46,7 @@ public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
             var attrs = clrProperty.GetCustomAttributes(inherit: true).OfType<Attribute>().ToArray();
             if (attrs.Length == 0) continue;
 
-            var surrogate = ResolveSurrogateType(clrProperty.PropertyType);
+            var surrogate = StrongTypeSchemaTypes.ResolveAnnotationSurrogate(clrProperty.PropertyType);
             if (surrogate is null) continue;
 
             var generated = context.SchemaGenerator.GenerateSchema(surrogate, context.SchemaRepository, memberInfo: clrProperty);
@@ -63,20 +63,6 @@ public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
             StrongTypeInlineMarker.Set(wrapper);
             concrete.Properties[jsonName] = wrapper;
         }
-    }
-
-    private static Type? ResolveSurrogateType(Type propertyClrType)
-    {
-        if (StrongTypeSchemaTypes.IsNonEmptyString(propertyClrType) || StrongTypeSchemaTypes.IsEmail(propertyClrType)) return typeof(string);
-        if (StrongTypeSchemaTypes.IsDigit(propertyClrType)) return typeof(int);
-
-        if (StrongTypeSchemaTypes.TryGetNumeric(propertyClrType, out var valueType, out _))
-            return valueType;
-
-        if (StrongTypeSchemaTypes.TryGetNonEmptyEnumerableElement(propertyClrType, out var elementType))
-            return typeof(IEnumerable<>).MakeGenericType(elementType);
-
-        return null;
     }
 
     private static void CopyAnnotationKeywords(OpenApiSchema source, OpenApiSchema target)
