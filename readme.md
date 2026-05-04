@@ -1,16 +1,8 @@
-# Kalicz.StrongTypes for C# &nbsp;&nbsp;&nbsp;&nbsp; [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
+# Kalicz.StrongTypes for C#
 
-[![StrongTypes downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads%20%28StrongTypes%29)](https://www.nuget.org/packages/Kalicz.StrongTypes/)
-[![StrongTypes.EfCore downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.EfCore?label=downloads%20%28StrongTypes.EfCore%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/)
-[![StrongTypes.FsCheck downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.FsCheck?label=downloads%20%28StrongTypes.FsCheck%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/)
-[![StrongTypes.OpenApi.Microsoft downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.OpenApi.Microsoft?label=downloads%20%28StrongTypes.OpenApi.Microsoft%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft/)
-[![StrongTypes.OpenApi.Swashbuckle downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.OpenApi.Swashbuckle?label=downloads%20%28StrongTypes.OpenApi.Swashbuckle%29)](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Swashbuckle/)
+[![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
-StrongTypes is not an attempt to build a full algebraic type system on top of C#. It adds small, focused types that make everyday code safer and more expressive — things like "a string that is never empty" or "an integer that is always positive".
-
-Every type ships with `System.Text.Json` converters out of the box (except `Result`), so invalid JSON fails at deserialization — in ASP.NET Core, that's before your endpoint method even runs.
-
-You can store the types directly in your EF Core entities with the use of the EfCore package. OpenAPI documentation is supported with the use of the OpenAPI packages for microsoft or Swagger - see [Packages](#packages) below.
+StrongTypes adds small, focused types that make everyday code safer and more expressive. Every type ships with `System.Text.Json` converters out of the box, so invalid JSON fails at deserialization. The types can be stored directly in EF Core entities via the EfCore package, and OpenAPI documentation is supported through the Microsoft or Swashbuckle OpenAPI packages — see [Packages](#packages) below.
 
 > 🤖 Letting Claude Code or Codex write code in a project that uses
 > StrongTypes? See [Use with Claude or Codex](#use-with-claude-or-codex)
@@ -20,6 +12,8 @@ You can store the types directly in your EF Core entities with the use of the Ef
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/impact-dark.svg">
   <img alt="Impact of StrongTypes on validation boundaries" src="docs/diagrams/impact.svg">
 </picture>
+
+### What's included
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/package-layout-dark.svg">

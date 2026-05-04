@@ -1,4 +1,4 @@
-<svg class="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 990 760" role="img" aria-label="Impact of StrongTypes on application validation boundaries">
+<svg class="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 990 945" role="img" aria-label="Impact of StrongTypes on application validation boundaries">
   <style>
     .panel-title  { font: 700 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     .panel-sub    { font: 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
@@ -213,10 +213,17 @@
     <text class="mono" x="30" y="111">{ "name": "Alice" }</text>
     <text class="mono-sm" x="97" y="138" text-anchor="middle">parses to ↓</text>
 
-    <rect class="pill-bg pill-border" x="20" y="146" width="155" height="55" rx="6" stroke-width="1.2"/>
+    <rect class="pill-bg pill-border" x="20" y="146" width="155" height="60" rx="6" stroke-width="1.2"/>
     <text class="mono" x="30" y="163">class Request {</text>
     <text class="mono" x="42" y="180"><tspan class="green-text" font-weight="600">NonEmptyString</tspan> Name;</text>
     <text class="mono" x="30" y="197">}</text>
+
+    <!-- ───── OpenAPI request schema ───── -->
+    <text class="mono-sm" x="97" y="221" text-anchor="middle">described in OpenAPI as ↓</text>
+    <rect class="pill-bg pill-border" x="20" y="229" width="155" height="60" rx="6" stroke-width="1.2"/>
+    <text class="mono-sm" x="30" y="247">name:</text>
+    <text class="mono-sm" x="30" y="264" xml:space="preserve">  type: <tspan class="green-text" font-weight="600">string</tspan></text>
+    <text class="mono-sm" x="30" y="281" xml:space="preserve">  minLength: <tspan class="green-text" font-weight="600">1</tspan></text>
 
     <!-- ───── Badge: Automatic JSON validation ───── -->
     <rect class="green-solid" x="195" y="78" width="180" height="32" rx="16"/>
@@ -255,47 +262,54 @@
     <text class="mono-sm" x="790" y="186">public <tspan class="green-text" font-weight="600">NonEmptyString</tspan> Name</text>
 
     <!-- ─────── Light divider between Write and Usage ─────── -->
-    <line class="green-line-soft" x1="35" y1="217" x2="955" y2="217" stroke-width="1"/>
+    <line class="green-line-soft" x1="35" y1="305" x2="955" y2="305" stroke-width="1"/>
 
     <!-- ────────── Usage row ────────── -->
-    <text class="flow-tag" x="35" y="234">Usage ↑</text>
+    <text class="flow-tag" x="35" y="322">Usage ↑</text>
 
     <!-- ─── Response box (Usage row, left) ─── -->
-    <text class="external" x="25" y="257">JSON out</text>
-    <rect class="pill-bg pill-border" x="20" y="264" width="155" height="55" rx="6" stroke-width="1.2"/>
-    <text class="mono-sm" x="30" y="282">class Response {</text>
-    <text class="mono-sm" x="42" y="298"><tspan class="green-text" font-weight="600">NonEmptyString</tspan> Name;</text>
-    <text class="mono-sm" x="30" y="314">}</text>
+    <text class="external" x="25" y="345">JSON out</text>
+    <rect class="pill-bg pill-border" x="20" y="352" width="155" height="60" rx="6" stroke-width="1.2"/>
+    <text class="mono-sm" x="30" y="370">class Response {</text>
+    <text class="mono-sm" x="42" y="386"><tspan class="green-text" font-weight="600">NonEmptyString</tspan> Name;</text>
+    <text class="mono-sm" x="30" y="402">}</text>
+
+    <!-- ───── OpenAPI response schema ───── -->
+    <text class="mono-sm" x="97" y="427" text-anchor="middle">described in OpenAPI as ↓</text>
+    <rect class="pill-bg pill-border" x="20" y="435" width="155" height="60" rx="6" stroke-width="1.2"/>
+    <text class="mono-sm" x="30" y="453">name:</text>
+    <text class="mono-sm" x="30" y="470" xml:space="preserve">  type: <tspan class="green-text" font-weight="600">string</tspan></text>
+    <text class="mono-sm" x="30" y="487" xml:space="preserve">  minLength: <tspan class="green-text" font-weight="600">1</tspan></text>
 
     <!-- ─── Controller box (Usage row, empty) ─── -->
-    <rect class="green-bg green-border" x="195" y="264" width="180" height="55" rx="8" stroke-width="1.5"/>
-    <text class="layer-title-sm green-text" x="285" y="285" text-anchor="middle">Controller</text>
-    <text class="mono-xs green-muted" x="285" y="305" text-anchor="middle" font-style="italic">maps to Response</text>
+    <rect class="green-bg green-border" x="195" y="387" width="180" height="55" rx="8" stroke-width="1.5"/>
+    <text class="layer-title-sm green-text" x="285" y="408" text-anchor="middle">Controller</text>
+    <text class="mono-xs green-muted" x="285" y="428" text-anchor="middle" font-style="italic">maps to Response</text>
 
     <!-- ─── Services box (Usage row, with shadow stack) ─── -->
-    <rect class="green-bg green-border" x="497" y="252" width="180" height="55" rx="8" stroke-width="1.5" opacity="0.45"/>
-    <rect class="green-bg green-border" x="491" y="258" width="180" height="55" rx="8" stroke-width="1.5" opacity="0.7"/>
-    <rect class="green-bg green-border" x="485" y="264" width="180" height="55" rx="8" stroke-width="1.5"/>
-    <text class="layer-title-sm green-text" x="575" y="285" text-anchor="middle">Services</text>
-    <text class="mono-xs green-text" x="575" y="305" text-anchor="middle">trusts NonEmptyString</text>
+    <rect class="green-bg green-border" x="497" y="375" width="180" height="55" rx="8" stroke-width="1.5" opacity="0.45"/>
+    <rect class="green-bg green-border" x="491" y="381" width="180" height="55" rx="8" stroke-width="1.5" opacity="0.7"/>
+    <rect class="green-bg green-border" x="485" y="387" width="180" height="55" rx="8" stroke-width="1.5"/>
+    <text class="layer-title-sm green-text" x="575" y="408" text-anchor="middle">Services</text>
+    <text class="mono-xs green-text" x="575" y="428" text-anchor="middle">trusts NonEmptyString</text>
 
     <!-- ─── Entity box (Usage row) ─── -->
-    <rect class="green-bg green-border" x="775" y="264" width="200" height="55" rx="8" stroke-width="1.5"/>
-    <text class="layer-title-sm green-text" x="875" y="285" text-anchor="middle">Entity / DB</text>
-    <text class="mono-sm" x="875" y="307" text-anchor="middle">public <tspan class="green-text" font-weight="600">NonEmptyString</tspan> Name</text>
+    <rect class="green-bg green-border" x="775" y="387" width="200" height="55" rx="8" stroke-width="1.5"/>
+    <text class="layer-title-sm green-text" x="875" y="408" text-anchor="middle">Entity / DB</text>
+    <text class="mono-sm" x="875" y="430" text-anchor="middle">public <tspan class="green-text" font-weight="600">NonEmptyString</tspan> Name</text>
 
     <!-- Usage arrow: Entity → Services -->
-    <line x1="775" y1="291" x2="665" y2="291" stroke="#10B981" stroke-width="1.5" marker-end="url(#imp-arrow-green)"/>
-    <text class="type-label-sm green-text" x="720" y="282" text-anchor="middle">NonEmptyString</text>
+    <line x1="775" y1="414" x2="665" y2="414" stroke="#10B981" stroke-width="1.5" marker-end="url(#imp-arrow-green)"/>
+    <text class="type-label-sm green-text" x="720" y="405" text-anchor="middle">NonEmptyString</text>
 
     <!-- Usage arrow: Services → Controller -->
-    <line x1="485" y1="291" x2="375" y2="291" stroke="#10B981" stroke-width="1.5" marker-end="url(#imp-arrow-green)"/>
-    <text class="type-label-sm green-text" x="430" y="282" text-anchor="middle">NonEmptyString</text>
+    <line x1="485" y1="414" x2="375" y2="414" stroke="#10B981" stroke-width="1.5" marker-end="url(#imp-arrow-green)"/>
+    <text class="type-label-sm green-text" x="430" y="405" text-anchor="middle">NonEmptyString</text>
 
     <!-- Usage arrow: Controller → Response -->
-    <line x1="195" y1="291" x2="175" y2="291" stroke="#10B981" stroke-width="1.5" marker-end="url(#imp-arrow-green)"/>
+    <line x1="195" y1="414" x2="175" y2="414" stroke="#10B981" stroke-width="1.5" marker-end="url(#imp-arrow-green)"/>
 
     <!-- Note -->
-    <text class="note" x="35" y="342">The type travels all the way back out — the response DTO is still <tspan class="green-text" font-family="ui-monospace, Menlo, Consolas, monospace">NonEmptyString</tspan>, so any downstream consumer already knows it's non-empty.</text>
+    <text class="note" x="35" y="525">The type travels all the way back out — the response DTO is still <tspan class="green-text" font-family="ui-monospace, Menlo, Consolas, monospace">NonEmptyString</tspan>, so any downstream consumer already knows it's non-empty.</text>
   </g>
 </svg>
