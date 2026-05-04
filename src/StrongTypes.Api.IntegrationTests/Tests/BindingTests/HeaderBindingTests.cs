@@ -140,10 +140,20 @@ public sealed class HeaderBindingTests(TestWebApplicationFactory factory) : IDis
     }
 
     [Fact]
-    public async Task FromHeader_NonEmptyEnumerableAndMaybe_DoNotBindOutOfTheBox()
+    public async Task FromHeader_NonEmptyEnumerable_DoesNotBindOutOfTheBox()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header-unsupported");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header-unsupported-nee");
         request.Headers.Add("X-Tags", "alpha");
+
+        var response = await _client.SendAsync(request, Ct);
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task FromHeader_Maybe_DoesNotBindOutOfTheBox()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header-unsupported-maybe");
         request.Headers.Add("X-Display-Name", "Ada");
 
         var response = await _client.SendAsync(request, Ct);

@@ -146,18 +146,33 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
     }
 
     [Fact]
-    public async Task FromForm_NonEmptyEnumerableAndMaybe_DoNotBindOutOfTheBox()
+    public async Task FromForm_NonEmptyEnumerable_DoesNotBindOutOfTheBox()
     {
         var pairs = new List<KeyValuePair<string, string>>
         {
             new("tags", "alpha"),
             new("tags", "beta"),
+        };
+        using var content = new FormUrlEncodedContent(pairs);
+
+        var response = await _client.PostAsync("/binding-probe/form-unsupported-nee", content, Ct);
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task FromForm_Maybe_DoesNotBindOutOfTheBox()
+    {
+        var pairs = new List<KeyValuePair<string, string>>
+        {
             new("displayName", "Ada"),
         };
         using var content = new FormUrlEncodedContent(pairs);
 
-        var response = await _client.PostAsync("/binding-probe/form-unsupported", content, Ct);
+        var response = await _client.PostAsync("/binding-probe/form-unsupported-maybe", content, Ct);
 
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal("None", json.GetProperty("displayNameState").GetString());
     }
 }

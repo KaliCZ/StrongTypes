@@ -96,15 +96,43 @@ public sealed class BindingProbeController : ControllerBase
         [FromQuery] Maybe<NonEmptyString> displayName)
         => Ok(new { tagsBound = tags is not null, displayNameState = displayName.ToString() });
 
+    [HttpGet("query-unsupported-nee")]
+    public IActionResult UnsupportedNonEmptyEnumerableFromQuery(
+        [FromQuery] NonEmptyEnumerable<NonEmptyString>? tags)
+        => Ok(new { tagsBound = tags is not null });
+
+    [HttpGet("query-unsupported-maybe")]
+    public IActionResult UnsupportedMaybeFromQuery(
+        [FromQuery] Maybe<NonEmptyString> displayName)
+        => Ok(new { displayNameState = displayName.ToString() });
+
     [HttpGet("header-unsupported")]
     public IActionResult UnsupportedFromHeader(
         [FromHeader(Name = "X-Tags")] NonEmptyEnumerable<NonEmptyString>? tags,
         [FromHeader(Name = "X-Display-Name")] Maybe<NonEmptyString> displayName)
         => Ok(new { tagsBound = tags is not null, displayNameState = displayName.ToString() });
 
+    [HttpGet("header-unsupported-nee")]
+    public IActionResult UnsupportedNonEmptyEnumerableFromHeader(
+        [FromHeader(Name = "X-Tags")] NonEmptyEnumerable<NonEmptyString>? tags)
+        => Ok(new { tagsBound = tags is not null });
+
+    [HttpGet("header-unsupported-maybe")]
+    public IActionResult UnsupportedMaybeFromHeader(
+        [FromHeader(Name = "X-Display-Name")] Maybe<NonEmptyString> displayName)
+        => Ok(new { displayNameState = displayName.ToString() });
+
     [HttpPost("form-unsupported")]
     public IActionResult UnsupportedFromForm([FromForm] UnsupportedBindingProbeFormRequest request)
         => Ok(new { tagsBound = request.Tags is not null, displayNameState = request.DisplayName.ToString() });
+
+    [HttpPost("form-unsupported-nee")]
+    public IActionResult UnsupportedNonEmptyEnumerableFromForm([FromForm] UnsupportedNonEmptyEnumerableFormRequest request)
+        => Ok(new { tagsBound = request.Tags is not null });
+
+    [HttpPost("form-unsupported-maybe")]
+    public IActionResult UnsupportedMaybeFromForm([FromForm] UnsupportedMaybeFormRequest request)
+        => Ok(new { displayNameState = request.DisplayName.ToString() });
 }
 
 public sealed record BindingProbeFormRequest(
@@ -119,4 +147,10 @@ public sealed record BindingProbeFormRequest(
 
 public sealed record UnsupportedBindingProbeFormRequest(
     NonEmptyEnumerable<NonEmptyString>? Tags,
+    Maybe<NonEmptyString> DisplayName);
+
+public sealed record UnsupportedNonEmptyEnumerableFormRequest(
+    NonEmptyEnumerable<NonEmptyString>? Tags);
+
+public sealed record UnsupportedMaybeFormRequest(
     Maybe<NonEmptyString> DisplayName);

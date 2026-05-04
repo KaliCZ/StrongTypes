@@ -165,10 +165,19 @@ public sealed class QueryBindingTests(TestWebApplicationFactory factory) : IDisp
     }
 
     [Fact]
-    public async Task FromQuery_NonEmptyEnumerableAndMaybe_DoNotBindOutOfTheBox()
+    public async Task FromQuery_NonEmptyEnumerable_DoesNotBindOutOfTheBox()
     {
         var response = await _client.GetAsync(
-            "/binding-probe/query-unsupported?tags=alpha&tags=beta&displayName=Ada", Ct);
+            "/binding-probe/query-unsupported-nee?tags=alpha&tags=beta", Ct);
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task FromQuery_Maybe_DoesNotBindOutOfTheBox()
+    {
+        var response = await _client.GetAsync(
+            "/binding-probe/query-unsupported-maybe?displayName=Ada", Ct);
 
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
     }
