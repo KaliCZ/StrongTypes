@@ -111,6 +111,16 @@ internal static class BindingSchemaAsserts
         => formSchema.GetProperty("properties").GetProperty(propertyName);
 
     /// <summary>
+    /// Asserts that the named property in a form-body / object schema's
+    /// <c>properties</c> map deep-equals the literal JSON snapshot. Thin
+    /// composition of <see cref="GetFormProperty"/> +
+    /// <see cref="AssertJsonEquals"/> — exists because tests that pin every
+    /// property of a form body had repeated this exact two-step inline.
+    /// </summary>
+    internal static void AssertSchema(JsonElement formSchema, string propertyName, string expectedJson)
+        => AssertJsonEquals(GetFormProperty(formSchema, propertyName), expectedJson);
+
+    /// <summary>
     /// Asserts that a <c>[FromForm]</c> request-body schema is a clean
     /// <c>{ type: object, properties: { … } }</c> shape — no top-level
     /// <c>allOf</c> / <c>anyOf</c> / <c>oneOf</c> / <c>$ref</c>, a

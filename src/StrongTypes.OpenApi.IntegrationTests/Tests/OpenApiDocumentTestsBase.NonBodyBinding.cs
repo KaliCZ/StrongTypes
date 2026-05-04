@@ -202,24 +202,21 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_PlainString_With_StringLength_Carries_MaxLength()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated-plain");
-        var schema = formSchema.GetProperty("properties").GetProperty("PlainName");
-        AssertJsonEquals(schema, """{"type":"string","minLength":0,"maxLength":50}""");
+        AssertSchema(formSchema, "PlainName", """{"type":"string","minLength":0,"maxLength":50}""");
     }
 
     [Fact]
     public async Task FromForm_NonEmptyString_With_StringLength_Carries_Both_Bounds()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated");
-        var schema = formSchema.GetProperty("properties").GetProperty("Name");
-        AssertJsonEquals(schema, """{"type":"string","minLength":1,"maxLength":50}""");
+        AssertSchema(formSchema, "Name", """{"type":"string","minLength":1,"maxLength":50}""");
     }
 
     [Fact]
     public async Task FromForm_PlainInt_With_Range_Carries_Both_Bounds()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated-plain");
-        var schema = formSchema.GetProperty("properties").GetProperty("PlainCount");
-        AssertJsonEquals(schema, IsPlainIntFormSchemaMissingType
+        AssertSchema(formSchema, "PlainCount", IsPlainIntFormSchemaMissingType
             ? Version == OpenApiVersion.V3_1
                 ? """{"pattern":"^-?(?:0|[1-9]\\d*)$","type":["integer","string"],"format":"int32","minimum":5,"maximum":100}"""
                 : """{"pattern":"^-?(?:0|[1-9]\\d*)$","format":"int32","minimum":5,"maximum":100}"""
@@ -230,8 +227,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_PositiveInt_With_Range_Carries_Both_Bounds()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated");
-        var schema = formSchema.GetProperty("properties").GetProperty("Count");
-        AssertJsonEquals(schema, """{"type":"integer","format":"int32","minimum":5,"maximum":100}""");
+        AssertSchema(formSchema, "Count", """{"type":"integer","format":"int32","minimum":5,"maximum":100}""");
     }
 
     // ── Diverse form-body shapes ─────────────────────────────────────────
@@ -252,15 +248,10 @@ public abstract partial class OpenApiDocumentTestsBase
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-simple-types");
         AssertFormBodyHasObjectShape(formSchema, "Title", "Age", "IsActive", "Description");
 
-        var properties = formSchema.GetProperty("properties");
-
-        AssertJsonEquals(properties.GetProperty("Title"), """{"type":"string","minLength":0,"maxLength":50}""");
-        AssertJsonEquals(properties.GetProperty("Description"), """{"type":"string","minLength":0,"maxLength":200}""");
-
-        AssertJsonEquals(properties.GetProperty("IsActive"), """{"type":"boolean"}""");
-
-        var age = properties.GetProperty("Age");
-        AssertJsonEquals(age, IsPlainIntFormSchemaMissingType
+        AssertSchema(formSchema, "Title", """{"type":"string","minLength":0,"maxLength":50}""");
+        AssertSchema(formSchema, "Description", """{"type":"string","minLength":0,"maxLength":200}""");
+        AssertSchema(formSchema, "IsActive", """{"type":"boolean"}""");
+        AssertSchema(formSchema, "Age", IsPlainIntFormSchemaMissingType
             ? Version == OpenApiVersion.V3_1
                 ? """{"pattern":"^-?(?:0|[1-9]\\d*)$","type":["integer","string"],"format":"int32","minimum":0,"maximum":150}"""
                 : """{"pattern":"^-?(?:0|[1-9]\\d*)$","format":"int32","minimum":0,"maximum":150}"""
@@ -273,16 +264,12 @@ public abstract partial class OpenApiDocumentTestsBase
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-all-wrappers");
         AssertFormBodyHasObjectShape(formSchema, "Code", "Website", "Description", "Quantity", "Contact", "Losses");
 
-        var properties = formSchema.GetProperty("properties");
-
-        AssertJsonEquals(properties.GetProperty("Code"), """{"type":"string","minLength":1,"pattern":"^[A-Z]{3}-\\d{4}$"}""");
-        AssertJsonEquals(properties.GetProperty("Website"), """{"type":"string","minLength":1,"format":"uri"}""");
-        AssertJsonEquals(properties.GetProperty("Description"), """{"type":"string","minLength":1,"maxLength":200}""");
-        AssertJsonEquals(properties.GetProperty("Quantity"), """{"type":"integer","format":"int32","minimum":1,"maximum":100}""");
-
-        AssertEmailSchema(properties.GetProperty("Contact"));
-
-        AssertJsonEquals(properties.GetProperty("Losses"), Version == OpenApiVersion.V3_1
+        AssertSchema(formSchema, "Code", """{"type":"string","minLength":1,"pattern":"^[A-Z]{3}-\\d{4}$"}""");
+        AssertSchema(formSchema, "Website", """{"type":"string","minLength":1,"format":"uri"}""");
+        AssertSchema(formSchema, "Description", """{"type":"string","minLength":1,"maxLength":200}""");
+        AssertSchema(formSchema, "Quantity", """{"type":"integer","format":"int32","minimum":1,"maximum":100}""");
+        AssertFormPropertyEmailSchema(formSchema, "Contact");
+        AssertSchema(formSchema, "Losses", Version == OpenApiVersion.V3_1
             ? """{"type":"array","minItems":2,"items":{"type":"number","format":"double","exclusiveMaximum":0}}"""
             : """{"type":"array","minItems":2,"items":{"type":"number","format":"double","maximum":0,"exclusiveMaximum":true}}""");
     }
@@ -315,19 +302,15 @@ public abstract partial class OpenApiDocumentTestsBase
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-mixed");
         AssertFormBodyHasObjectShape(formSchema, "Title", "Code", "Quantity", "Stock", "ContactEmail", "Tags");
 
-        var properties = formSchema.GetProperty("properties");
-
-        AssertJsonEquals(properties.GetProperty("Title"), """{"type":"string","minLength":0,"maxLength":100}""");
-        AssertJsonEquals(properties.GetProperty("Code"), """{"type":"string","minLength":1,"pattern":"^[A-Z]{3}$"}""");
-
-        AssertJsonEquals(properties.GetProperty("Quantity"), IsPlainIntFormSchemaMissingType
+        AssertSchema(formSchema, "Title", """{"type":"string","minLength":0,"maxLength":100}""");
+        AssertSchema(formSchema, "Code", """{"type":"string","minLength":1,"pattern":"^[A-Z]{3}$"}""");
+        AssertSchema(formSchema, "Quantity", IsPlainIntFormSchemaMissingType
             ? Version == OpenApiVersion.V3_1
                 ? """{"pattern":"^-?(?:0|[1-9]\\d*)$","type":["integer","string"],"format":"int32","minimum":1,"maximum":1000}"""
                 : """{"pattern":"^-?(?:0|[1-9]\\d*)$","format":"int32","minimum":1,"maximum":1000}"""
             : """{"type":"integer","format":"int32","minimum":1,"maximum":1000}""");
-
-        AssertJsonEquals(properties.GetProperty("Stock"), """{"type":"integer","format":"int32","minimum":1,"maximum":100}""");
-        AssertEmailSchema(properties.GetProperty("ContactEmail"));
-        AssertJsonEquals(properties.GetProperty("Tags"), """{"type":"array","minItems":1,"items":{"type":"string","minLength":1}}""");
+        AssertSchema(formSchema, "Stock", """{"type":"integer","format":"int32","minimum":1,"maximum":100}""");
+        AssertFormPropertyEmailSchema(formSchema, "ContactEmail");
+        AssertSchema(formSchema, "Tags", """{"type":"array","minItems":1,"items":{"type":"string","minLength":1}}""");
     }
 }
