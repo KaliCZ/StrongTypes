@@ -2,53 +2,21 @@
 
 [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes.AspNetCore?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes.AspNetCore/) [![Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.AspNetCore?label=downloads)](https://www.nuget.org/packages/Kalicz.StrongTypes.AspNetCore/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
-A small, niche companion package to
+A small companion package to
 [Kalicz.StrongTypes](https://www.nuget.org/packages/Kalicz.StrongTypes).
-Most apps will not need it. It only matters if you're posting HTML
-forms (or, occasionally, accepting list query strings) and you want
-two specific wrappers — `Maybe<T>` and `NonEmptyEnumerable<T>` — to
-bind from those non-body sources.
+You only need it if you want to bind `NonEmptyEnumerable<T>` or
+`Maybe<T>` from `[FromForm]` (the primary expected use), or from
+`[FromQuery]`, `[FromHeader]`, or `[FromRoute]`.
 
-If you're shipping a JSON API with `[FromBody]`, stop reading: the
-JSON converters in `Kalicz.StrongTypes` already handle every wrapper,
-including these two, with arbitrary nesting. You don't need this
-package.
+If you're writing a standard JSON API, you don't need this package.
+`[FromBody]` round-tripping for both wrappers — and arbitrary nesting
+of them — already works through the JSON converters that ship with
+the main `Kalicz.StrongTypes` package.
 
-## When you actually want this package
-
-The intended scenario is **server-rendered HTML forms** posting back
-to MVC controllers:
-
-- **`Maybe<T>` for patch contracts.** A form field that the user can
-  leave alone, clear, or set needs three states. `Maybe<T>?` gives you
-  exactly that: `null` = field omitted (don't touch it), `None` =
-  field present but empty (clear it), `Some(value)` = set it. This is
-  the main reason the package exists.
-- **`NonEmptyEnumerable<T>` for repeated form fields** — multi-select
-  inputs, checkbox groups, dynamic row collections — where you want
-  the type system to express "at least one was submitted." The same
-  binder also works for repeated query parameters
-  (`?tags=a&tags=b`), so list-style search filters are a reasonable
-  secondary use.
-
-Everything else — `NonEmptyString`, `Email`, `Digit`, the numeric
-wrappers — already binds from `[FromQuery]`, `[FromRoute]`,
-`[FromHeader]`, and `[FromForm]` without this package, because they
+The other wrappers (`NonEmptyString`, `Email`, `Digit`, the numeric
+ones) bind from every non-body source out of the box because they
 implement `IParsable<TSelf>` and ASP.NET Core's built-in `TryParse`
-binder picks them up.
-
-## What's not worth using
-
-- **`Maybe<T>` from query strings or headers.** The binder *will*
-  bind it (omitted key → `None` on a non-nullable target or `null`
-  on `Maybe<T>?`, present key → `Some(parse(s))`), but the
-  three-state distinction that makes `Maybe<T>` valuable in form
-  patches doesn't really survive on a query string or a header —
-  there's no idiomatic way for a caller to spell "present but
-  empty" vs "omitted," so callers can't actually drive the third
-  state. Use plain `T?` there.
-- **`[FromBody]`.** Already covered by the JSON converters in the
-  main package — no need for this package at all.
+binder picks them up — no extra package needed for those either.
 
 ## Install
 
@@ -71,7 +39,9 @@ collection / simple-type binders.
 
 ## Examples
 
-The primary use — a form-posted patch contract:
+A form-posted patch contract — the original motivation for the
+package. `Maybe<T>?` distinguishes the three update intents that a
+single field on an HTML form has to express:
 
 ```csharp
 [HttpPost("profile")]
