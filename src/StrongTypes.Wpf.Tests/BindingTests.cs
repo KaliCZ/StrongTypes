@@ -12,7 +12,7 @@ public class NonEmptyStringBindingTests
     [Fact]
     public void OneWay_DisplaysCurrentValue()
     {
-        Sta.Run(() =>
+        StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Name = NonEmptyString.Create("Alice") };
             var textBox = new TextBox();
@@ -25,7 +25,7 @@ public class NonEmptyStringBindingTests
     [Fact]
     public void OneWay_ReflectsSourceChange()
     {
-        Sta.Run(() =>
+        StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Name = NonEmptyString.Create("Alice") };
             var textBox = new TextBox();
@@ -40,7 +40,7 @@ public class NonEmptyStringBindingTests
     [Fact]
     public void TwoWay_ValidInput_UpdatesSource()
     {
-        Sta.Run(() =>
+        StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Name = NonEmptyString.Create("Alice") };
             var textBox = new TextBox();
@@ -55,7 +55,7 @@ public class NonEmptyStringBindingTests
     [Fact]
     public void TwoWay_InvalidInput_DoesNotMutateSourceAndRaisesValidationError()
     {
-        Sta.Run(() =>
+        StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Name = NonEmptyString.Create("Alice") };
             var textBox = new TextBox();
@@ -89,7 +89,7 @@ public class EmailBindingTests
     [Fact]
     public void OneWay_DisplaysAddress()
     {
-        Sta.Run(() =>
+        StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Email = Email.Create("alice@example.com") };
             var textBox = new TextBox();
@@ -102,7 +102,7 @@ public class EmailBindingTests
     [Fact]
     public void TwoWay_ValidInput_UpdatesSource()
     {
-        Sta.Run(() =>
+        StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Email = Email.Create("alice@example.com") };
             var textBox = new TextBox();
@@ -117,7 +117,7 @@ public class EmailBindingTests
     [Fact]
     public void TwoWay_InvalidInput_DoesNotMutateSourceAndRaisesValidationError()
     {
-        Sta.Run(() =>
+        StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Email = Email.Create("alice@example.com") };
             var textBox = new TextBox();
@@ -151,7 +151,7 @@ public class PositiveIntBindingTests
     [Fact]
     public void OneWay_DisplaysCurrentValue()
     {
-        Sta.Run(() =>
+        StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Age = Positive<int>.Create(30) };
             var textBox = new TextBox();
@@ -164,7 +164,7 @@ public class PositiveIntBindingTests
     [Fact]
     public void TwoWay_ValidInput_UpdatesSource()
     {
-        Sta.Run(() =>
+        StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Age = Positive<int>.Create(30) };
             var textBox = new TextBox();
@@ -179,7 +179,7 @@ public class PositiveIntBindingTests
     [Fact]
     public void TwoWay_InvalidInput_DoesNotMutateSourceAndRaisesValidationError()
     {
-        Sta.Run(() =>
+        StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Age = Positive<int>.Create(30) };
             var textBox = new TextBox();
@@ -195,7 +195,7 @@ public class PositiveIntBindingTests
     [Fact]
     public void TwoWay_NonNumericInput_DoesNotMutateSourceAndRaisesValidationError()
     {
-        Sta.Run(() =>
+        StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Age = Positive<int>.Create(30) };
             var textBox = new TextBox();

@@ -7,9 +7,5 @@ namespace StrongTypes.Wpf.Tests;
 internal static class TestSetup
 {
     [ModuleInitializer]
-    internal static void Init()
-    {
-        StrongTypes.Wpf.StrongTypesWpf.Register();
-        StrongTypes.Wpf.StrongTypesWpf.Register<Positive<int>>();
-    }
+    internal static void Init() => StrongTypesWpf.Register();
 }

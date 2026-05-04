@@ -6,7 +6,8 @@ using System.Threading;
 
 namespace StrongTypes.Wpf.Tests;
 
-internal static class Sta
+/// <summary>Runs an action on a fresh thread set to Single-Threaded Apartment (STA) mode. WPF's <c>DependencyObject</c> infrastructure (and therefore every <c>TextBox</c>, <c>Binding</c>, etc. these tests construct) requires the calling thread to be STA; xUnit worker threads are Multi-Threaded Apartment by default, which would throw on <c>new TextBox()</c>.</summary>
+internal static class StaThread
 {
     public static void Run(Action body) => Run<object?>(() => { body(); return null; });
 

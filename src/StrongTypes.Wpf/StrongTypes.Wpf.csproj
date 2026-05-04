@@ -1,9 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <LangVersion>14.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>CS1591</NoWarn>
 
@@ -11,7 +13,7 @@
     <PackageId>Kalicz.StrongTypes.Wpf</PackageId>
     <Authors>KaliCZ</Authors>
     <Copyright>Copyright © 2026 KaliCZ</Copyright>
-    <Description>TypeConverters that bridge Kalicz.StrongTypes' IParsable&lt;T&gt; into WPF (and any framework that resolves converters via TypeDescriptor), enabling two-way MVVM binding to NonEmptyString, Email, Digit, Positive&lt;T&gt;, NonNegative&lt;T&gt;, Negative&lt;T&gt;, NonPositive&lt;T&gt;.</Description>
+    <Description>WPF MVVM binding support for Kalicz.StrongTypes. Adds an Application.UseStrongTypes() extension that wires TypeConverters into TypeDescriptor for NonEmptyString, Email, Digit, and every closed instantiation of Positive&lt;T&gt;, NonNegative&lt;T&gt;, Negative&lt;T&gt;, NonPositive&lt;T&gt; — enabling two-way TextBox bindings to strong-typed view-model properties.</Description>
     <PackageTags>StrongTypes, WPF, MVVM, Binding, TypeConverter, NonEmptyString, Email</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

@@ -4,8 +4,7 @@ public partial class App : System.Windows.Application
 {
     protected override void OnStartup(System.Windows.StartupEventArgs e)
     {
-        StrongTypes.Wpf.StrongTypesWpf.Register();
-        StrongTypes.Wpf.StrongTypesWpf.Register<Positive<int>>();
+        this.UseStrongTypes();
         base.OnStartup(e);
     }
 }
