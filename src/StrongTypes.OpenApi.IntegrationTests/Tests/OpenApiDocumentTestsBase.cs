@@ -44,12 +44,16 @@ public abstract partial class OpenApiDocumentTestsBase(HttpClient client) : IDis
     // actual behaviour and catches it if the framework starts honouring
     // the annotation. Each flag is set in the per-pipeline subclass.
     /// <summary>
-    /// True when the pipeline doesn't surface <c>[EmailAddress]</c> on a
-    /// plain <c>string</c> property as <c>format: email</c>. Strong-type
-    /// slots (<see cref="Email"/>, <see cref="NonEmptyString"/>) always paint
-    /// the format on every pipeline; only the primitive baseline varies.
+    /// True when the pipeline drops the <see cref="EmailAddressAttribute"/>
+    /// from string slots — i.e. neither plain <c>string</c> nor
+    /// <see cref="NonEmptyString"/> properties decorated with
+    /// <c>[EmailAddress]</c> reach the wire as <c>format: email</c>.
+    /// Microsoft.AspNetCore.OpenApi never emits the keyword from the
+    /// attribute on any string slot (body / query / route / header / form);
+    /// Swashbuckle does. The always-an-email wrapper <see cref="Email"/> is
+    /// independent — it paints <c>format: email</c> on every pipeline.
     /// </summary>
-    protected virtual bool IsPlainStringEmailFormatBroken => false;
+    protected virtual bool IsEmailAddressFormatIgnored => false;
 
     /// <summary>
     /// True when the pipeline emits the <c>[FromForm]</c> request-body schema
