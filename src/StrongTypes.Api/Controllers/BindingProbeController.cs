@@ -92,12 +92,6 @@ public sealed class BindingProbeController : ControllerBase
             nullableEmail = request.NullableEmail?.Address,
         });
 
-    [HttpGet("query-unsupported")]
-    public IActionResult UnsupportedFromQuery(
-        [FromQuery] NonEmptyEnumerable<NonEmptyString>? tags,
-        [FromQuery] Maybe<NonEmptyString> displayName)
-        => Ok(new { tagsBound = tags is not null, displayNameState = displayName.ToString() });
-
     [HttpGet("query-unsupported-nee")]
     public IActionResult UnsupportedNonEmptyEnumerableFromQuery(
         [FromQuery] NonEmptyEnumerable<NonEmptyString>? tags)
@@ -108,12 +102,6 @@ public sealed class BindingProbeController : ControllerBase
         [FromQuery] Maybe<NonEmptyString> displayName)
         => Ok(new { displayNameState = displayName.ToString() });
 
-    [HttpGet("header-unsupported")]
-    public IActionResult UnsupportedFromHeader(
-        [FromHeader(Name = "X-Tags")] NonEmptyEnumerable<NonEmptyString>? tags,
-        [FromHeader(Name = "X-Display-Name")] Maybe<NonEmptyString> displayName)
-        => Ok(new { tagsBound = tags is not null, displayNameState = displayName.ToString() });
-
     [HttpGet("header-unsupported-nee")]
     public IActionResult UnsupportedNonEmptyEnumerableFromHeader(
         [FromHeader(Name = "X-Tags")] NonEmptyEnumerable<NonEmptyString>? tags)
@@ -123,10 +111,6 @@ public sealed class BindingProbeController : ControllerBase
     public IActionResult UnsupportedMaybeFromHeader(
         [FromHeader(Name = "X-Display-Name")] Maybe<NonEmptyString> displayName)
         => Ok(new { displayNameState = displayName.ToString() });
-
-    [HttpPost("form-unsupported")]
-    public IActionResult UnsupportedFromForm([FromForm] UnsupportedBindingProbeFormRequest request)
-        => Ok(new { tagsBound = request.Tags is not null, displayNameState = request.DisplayName.ToString() });
 
     [HttpPost("form-unsupported-nee")]
     public IActionResult UnsupportedNonEmptyEnumerableFromForm([FromForm] UnsupportedNonEmptyEnumerableFormRequest request)
@@ -148,10 +132,6 @@ public sealed record BindingProbeFormRequest(
     Digit? NullableDigit,
     Email Email,
     Email? NullableEmail);
-
-public sealed record UnsupportedBindingProbeFormRequest(
-    NonEmptyEnumerable<NonEmptyString>? Tags,
-    Maybe<NonEmptyString> DisplayName);
 
 public sealed record UnsupportedNonEmptyEnumerableFormRequest(
     NonEmptyEnumerable<NonEmptyString>? Tags);
