@@ -63,14 +63,14 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromQuery_Email_RendersAsString_WithEmailFormat()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "email");
-        AssertEmailSchema(schema, IsEmailStringFormatBroken);
+        AssertEmailSchema(schema);
     }
 
     [Fact]
     public async Task FromQuery_NullableEmail_RendersAsString_WithEmailFormat()
     {
         var schema = ParameterSchema(await GetDocumentAsync(), "/binding-probe/query", "nullableEmail");
-        AssertEmailSchema(schema, IsEmailStringFormatBroken);
+        AssertEmailSchema(schema);
     }
 
     // ── [FromRoute] ──────────────────────────────────────────────────────
@@ -174,14 +174,14 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_Email_RendersAsString_WithEmailFormat()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmailSchema(formSchema, "email", IsEmailStringFormatBroken);
+        AssertFormPropertyEmailSchema(formSchema, "email");
     }
 
     [Fact]
     public async Task FromForm_NullableEmail_RendersAsString_WithEmailFormat()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form");
-        AssertFormPropertyEmailSchema(formSchema, "nullableEmail", IsEmailStringFormatBroken);
+        AssertFormPropertyEmailSchema(formSchema, "nullableEmail");
     }
 
     /// <summary>
@@ -327,7 +327,7 @@ public abstract partial class OpenApiDocumentTestsBase
         AssertJsonEquals(properties.GetProperty(FormPropertyName("Description")), """{"type":"string","minLength":1,"maxLength":200}""");
         AssertJsonEquals(properties.GetProperty(FormPropertyName("Quantity")), """{"type":"integer","format":"int32","minimum":1,"maximum":100}""");
 
-        AssertEmailSchema(properties.GetProperty(FormPropertyName("Contact")), IsEmailStringFormatBroken);
+        AssertEmailSchema(properties.GetProperty(FormPropertyName("Contact")));
 
         AssertJsonEquals(properties.GetProperty(FormPropertyName("Losses")), Version switch
         {
@@ -355,7 +355,7 @@ public abstract partial class OpenApiDocumentTestsBase
             : """{"type":"integer","format":"int32","minimum":1,"maximum":1000}""");
 
         AssertJsonEquals(properties.GetProperty(FormPropertyName("Stock")), """{"type":"integer","format":"int32","minimum":1,"maximum":100}""");
-        AssertEmailSchema(properties.GetProperty(FormPropertyName("ContactEmail")), IsEmailStringFormatBroken);
+        AssertEmailSchema(properties.GetProperty(FormPropertyName("ContactEmail")));
         AssertJsonEquals(properties.GetProperty(FormPropertyName("Tags")), """{"type":"array","minItems":1,"items":{"type":"string","minLength":1}}""");
     }
 

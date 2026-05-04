@@ -12,7 +12,7 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/email-entities"));
-        AssertEmailSchema(Property(body, "value"), isEmailStringFormatBroken: false);
+        AssertEmailSchema(Property(body, "value"));
     }
 
     [Fact]
@@ -20,6 +20,6 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/email-entities"));
-        AssertEmailSchema(UnwrapNullableProperty(Property(body, "nullableValue"), Version), isEmailStringFormatBroken: false);
+        AssertEmailSchema(UnwrapNullableProperty(Property(body, "nullableValue"), Version));
     }
 }

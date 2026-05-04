@@ -102,13 +102,11 @@ internal static class BindingSchemaAsserts
 
     // ── Email ────────────────────────────────────────────────────────────
 
-    internal static void AssertEmailSchema(JsonElement schema, bool isEmailStringFormatBroken)
-        => AssertJsonEquals(schema, isEmailStringFormatBroken
-            ? """{"type":"string","minLength":1,"maxLength":254}"""
-            : """{"type":"string","minLength":1,"maxLength":254,"format":"email"}""");
+    internal static void AssertEmailSchema(JsonElement schema)
+        => AssertJsonEquals(schema, """{"type":"string","minLength":1,"maxLength":254,"format":"email"}""");
 
-    internal static void AssertFormPropertyEmailSchema(JsonElement formSchema, string propertyName, bool isEmailStringFormatBroken)
-        => AssertEmailSchema(GetFormProperty(formSchema, propertyName), isEmailStringFormatBroken);
+    internal static void AssertFormPropertyEmailSchema(JsonElement formSchema, string propertyName)
+        => AssertEmailSchema(GetFormProperty(formSchema, propertyName));
 
     /// <summary>
     /// Looks up a per-field schema on a <c>[FromForm]</c> request-body

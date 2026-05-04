@@ -9,11 +9,15 @@ hooks built for one do nothing for the other.
 > **Recommendation:** prefer Swashbuckle when you have a free choice.
 > `Microsoft.AspNetCore.OpenApi` has rough edges the framework exposes
 > no public hook to fix — `[EmailAddress]` doesn't propagate as
-> `format: email`, strong-type keys on dictionaries aren't always
-> honored, and the framework's deduplication pass silently strips
-> bounds the transformer placed earlier (the Microsoft adapter has to
-> repaint components after the fact). Swashbuckle's filter pipeline
-> hits all of these cleanly.
+> `format: email` on any string slot (body / query / route / header /
+> form), strong-type keys on dictionaries aren't always honored, and
+> the framework's deduplication pass silently strips bounds the
+> transformer placed earlier (the Microsoft adapter has to repaint
+> components after the fact). Swashbuckle's filter pipeline hits all
+> of these cleanly. If you need an always-`format: email` shape on
+> Microsoft, use the `Email` strong type rather than
+> `[EmailAddress] string` / `[EmailAddress] NonEmptyString` — see
+> the section below.
 
 | Spec generator                          | Package                                    | Configured on             |
 | --------------------------------------- | ------------------------------------------ | ------------------------- |
@@ -84,6 +88,19 @@ is a strong-type wrapper. Each adapter re-applies them.
   open an issue on
   [KaliCZ/StrongTypes](https://github.com/KaliCZ/StrongTypes/issues)
   so it can be added.
+
+### `[EmailAddress]` on Microsoft is a special case
+
+Microsoft.AspNetCore.OpenApi never emits `format: email` from
+`[EmailAddress]` — not on a plain `string`, not on a `NonEmptyString`,
+not on any slot (body, query, route, header, form). The adapter
+mirrors the framework here: we don't paint `format: email` from the
+attribute on wrapper types either, because doing so would mean wrapping
+a `string` in `NonEmptyString` silently enables a keyword the attribute
+didn't enable on the primitive. If you want `format: email` on
+Microsoft, use the `Email` strong type — it's painted as
+`{ "type": "string", "format": "email", "minLength": 1, "maxLength": 254 }`
+on every slot regardless of pipeline.
 
 ## OpenAPI version
 
