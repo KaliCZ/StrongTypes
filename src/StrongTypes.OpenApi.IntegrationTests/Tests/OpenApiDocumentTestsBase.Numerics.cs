@@ -36,6 +36,7 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/non-positive-decimal-entities"));
+        AssertPlainDecimalSchema(Property(body, "plainValue"), Version);
         AssertNonPositiveDecimalSchema(Property(body, "value"));
     }
 

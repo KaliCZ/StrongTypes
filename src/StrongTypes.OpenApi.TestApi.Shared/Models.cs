@@ -4,6 +4,8 @@ namespace StrongTypes.OpenApi.TestApi.Shared;
 
 public sealed record StructEntityRequest<T>(T Value, T? NullableValue) where T : struct;
 
+public sealed record DecimalEntityRequest(NonPositive<decimal> Value, decimal PlainValue);
+
 public sealed record ReferenceEntityRequest<T>(T Value, T? NullableValue) where T : class;
 
 public sealed record StructEntityPatchRequest<T>(T? Value, Maybe<T>? NullableValue) where T : struct;

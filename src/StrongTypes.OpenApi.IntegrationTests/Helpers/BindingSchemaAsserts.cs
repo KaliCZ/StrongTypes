@@ -82,6 +82,23 @@ internal static class BindingSchemaAsserts
     internal static void AssertNonPositiveDecimalSchema(JsonElement schema)
         => AssertJsonEquals(schema, """{"type":"number","format":"double","maximum":0}""");
 
+    internal static void AssertPlainDecimalSchema(JsonElement schema, OpenApiVersion version)
+    {
+        if (version == OpenApiVersion.V3_1 && schema.TryGetProperty("pattern", out _) && schema.TryGetProperty("type", out _))
+        {
+            AssertJsonEquals(schema, """{"pattern":"^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$","type":["number","string"],"format":"double"}""");
+            return;
+        }
+
+        if (schema.TryGetProperty("pattern", out _))
+        {
+            AssertJsonEquals(schema, """{"pattern":"^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$","format":"double"}""");
+            return;
+        }
+
+        AssertJsonEquals(schema, """{"type":"number","format":"double"}""");
+    }
+
     // ── Email ────────────────────────────────────────────────────────────
 
     internal static void AssertEmailSchema(JsonElement schema, bool isEmailStringFormatBroken)

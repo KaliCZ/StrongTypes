@@ -57,7 +57,7 @@ public sealed class NegativeDoubleEntityController : ControllerBase
 public sealed class NonPositiveDecimalEntityController : ControllerBase
 {
     [HttpPost]
-    public IActionResult Create(StructEntityRequest<NonPositive<decimal>> request)
+    public IActionResult Create(DecimalEntityRequest request)
         => Ok(new EntityResponse(Guid.NewGuid()));
 }
 
