@@ -12,33 +12,19 @@ namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 /// <see cref="AssertJsonEquals"/> so an unexpected keyword fails the test
 /// instead of silently passing.
 ///
-/// The form helpers additionally navigate the request-body schema:
-/// pipelines may emit <c>{ properties: { … } }</c> (Microsoft, modern
-/// Swashbuckle) or <c>{ allOf: [ &lt;each-field&gt; ] }</c> with the
-/// field names dropped (vanilla Swashbuckle when every field is
-/// component-typed — see <see cref="OpenApiDocumentTestsBase.IsFormPropertiesSchemaBroken"/>).
-/// The helpers pick the right slot per pipeline and then run the same
-/// shape assertion as the parameter-side helpers.
+/// Both Microsoft.AspNetCore.OpenApi and Swashbuckle emit form-body
+/// property keys in PascalCase (matching the C# property name), so
+/// callers pass the name as declared in the source.
 /// </summary>
 internal static class BindingSchemaAsserts
 {
-    /// <summary>
-    /// Number of fields in <c>BindingProbeFormRequest</c>. The Swashbuckle
-    /// broken-path navigates the form schema's <c>allOf</c> by declaration
-    /// index and asserts this count to lock in that the broken shape is the
-    /// one we expect.
-    /// </summary>
-    private const int FormFieldCount = 8;
-
     // ── NonEmptyString ───────────────────────────────────────────────────
 
     internal static void AssertNonEmptyStringSchema(JsonElement schema)
         => AssertJsonEquals(schema, """{"type":"string","minLength":1}""");
 
-    /// <param name="propertyName">Field name as it appears in the form schema's <c>properties</c> map on the not-broken path.</param>
-    /// <param name="allOfIndex">Position in the form schema's <c>allOf</c> array, used only when <paramref name="isFormPropertiesSchemaBroken"/> is true (the field name has been dropped, so navigation is by declaration index).</param>
-    internal static void AssertFormPropertyNonEmptyStringSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken)
-        => AssertNonEmptyStringSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken));
+    internal static void AssertFormPropertyNonEmptyStringSchema(JsonElement formSchema, string propertyName)
+        => AssertNonEmptyStringSchema(GetFormProperty(formSchema, propertyName));
 
     // ── Positive<int> ────────────────────────────────────────────────────
     // Splits by OpenAPI version: 3.0 encodes the exclusive bound as
@@ -53,18 +39,16 @@ internal static class BindingSchemaAsserts
             _ => throw new ArgumentOutOfRangeException(nameof(version), version, null),
         });
 
-    /// <param name="propertyName">Field name as it appears in the form schema's <c>properties</c> map on the not-broken path.</param>
-    /// <param name="allOfIndex">Position in the form schema's <c>allOf</c> array, used only when <paramref name="isFormPropertiesSchemaBroken"/> is true (the field name has been dropped, so navigation is by declaration index).</param>
-    internal static void AssertFormPropertyPositiveIntSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken, OpenApiVersion version)
-        => AssertPositiveIntSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken), version);
+    internal static void AssertFormPropertyPositiveIntSchema(JsonElement formSchema, string propertyName, OpenApiVersion version)
+        => AssertPositiveIntSchema(GetFormProperty(formSchema, propertyName), version);
 
     // ── Digit ────────────────────────────────────────────────────────────
 
     internal static void AssertDigitSchema(JsonElement schema)
         => AssertJsonEquals(schema, """{"type":"integer","format":"int32","minimum":0,"maximum":9}""");
 
-    internal static void AssertFormPropertyDigitSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken)
-        => AssertDigitSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken));
+    internal static void AssertFormPropertyDigitSchema(JsonElement formSchema, string propertyName)
+        => AssertDigitSchema(GetFormProperty(formSchema, propertyName));
 
     // ── Other numeric wrappers ──────────────────────────────────────────
     // Inclusive-bound shapes (NonNegative, NonPositive) don't depend on
@@ -95,8 +79,8 @@ internal static class BindingSchemaAsserts
     internal static void AssertNonEmptyEnumerableOfNonEmptyStringSchema(JsonElement schema)
         => AssertJsonEquals(schema, """{"type":"array","minItems":1,"items":{"type":"string","minLength":1}}""");
 
-    internal static void AssertFormPropertyNonEmptyEnumerableOfNonEmptyStringSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken)
-        => AssertNonEmptyEnumerableOfNonEmptyStringSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken));
+    internal static void AssertFormPropertyNonEmptyEnumerableOfNonEmptyStringSchema(JsonElement formSchema, string propertyName)
+        => AssertNonEmptyEnumerableOfNonEmptyStringSchema(GetFormProperty(formSchema, propertyName));
 
     internal static void AssertPlainDecimalSchema(JsonElement schema, OpenApiVersion version)
     {
@@ -120,47 +104,39 @@ internal static class BindingSchemaAsserts
     internal static void AssertEmailSchema(JsonElement schema)
         => AssertJsonEquals(schema, """{"type":"string","minLength":1,"maxLength":254,"format":"email"}""");
 
-    /// <param name="propertyName">Field name as it appears in the form schema's <c>properties</c> map on the not-broken path.</param>
-    /// <param name="allOfIndex">Position in the form schema's <c>allOf</c> array, used only when <paramref name="isFormPropertiesSchemaBroken"/> is true (the field name has been dropped, so navigation is by declaration index).</param>
-    internal static void AssertFormPropertyEmailSchema(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken)
-        => AssertEmailSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken));
+    internal static void AssertFormPropertyEmailSchema(JsonElement formSchema, string propertyName)
+        => AssertEmailSchema(GetFormProperty(formSchema, propertyName));
+
+    private static JsonElement GetFormProperty(JsonElement formSchema, string propertyName)
+        => formSchema.GetProperty("properties").GetProperty(propertyName);
 
     /// <summary>
-    /// Looks up a per-field schema on a <c>[FromForm]</c> request-body
-    /// schema. On the not-broken path the form schema is an object with a
-    /// <c>properties</c> map; the field is found by name (case-insensitive
-    /// because Microsoft emits PascalCase, Swashbuckle camelCase). On the
-    /// broken path the form schema is <c>{ allOf: [&lt;each-field&gt;] }</c>
-    /// with names dropped; the field is found by its declaration index
-    /// (<paramref name="allOfIndex"/>).
+    /// Asserts that the named property in a form-body / object schema's
+    /// <c>properties</c> map deep-equals the literal JSON snapshot. Thin
+    /// composition of <see cref="GetFormProperty"/> +
+    /// <see cref="AssertJsonEquals"/> — exists because tests that pin every
+    /// property of a form body had repeated this exact two-step inline.
     /// </summary>
-    private static JsonElement GetFormProperty(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken)
-    {
-        if (isFormPropertiesSchemaBroken)
-        {
-            Assert.True(formSchema.TryGetProperty("allOf", out var allOf), "form schema is broken-flagged but has no allOf");
-            Assert.Equal(JsonValueKind.Array, allOf.ValueKind);
-            Assert.Equal(FormFieldCount, allOf.GetArrayLength());
-            Assert.False(formSchema.TryGetProperty("properties", out _), "form schema is broken-flagged but still has a properties map");
-            var slot = allOf[allOfIndex];
-            if (slot.TryGetProperty("properties", out var slotProperties))
-            {
-                foreach (var entry in slotProperties.EnumerateObject())
-                {
-                    if (string.Equals(entry.Name, propertyName, StringComparison.OrdinalIgnoreCase))
-                        return entry.Value;
-                }
-            }
-            return slot;
-        }
+    internal static void AssertSchema(JsonElement formSchema, string propertyName, string expectedJson)
+        => AssertJsonEquals(GetFormProperty(formSchema, propertyName), expectedJson);
 
-        var properties = formSchema.GetProperty("properties");
-        foreach (var entry in properties.EnumerateObject())
-        {
-            if (string.Equals(entry.Name, propertyName, StringComparison.OrdinalIgnoreCase))
-                return entry.Value;
-        }
-        Assert.Fail($"form schema has no '{propertyName}' property (case-insensitive)");
-        return default;
+    /// <summary>
+    /// Asserts that a <c>[FromForm]</c> request-body schema is a clean
+    /// <c>{ type: object, properties: { … } }</c> shape — no top-level
+    /// <c>allOf</c> / <c>anyOf</c> / <c>oneOf</c> / <c>$ref</c>, a
+    /// <c>properties</c> map present, and exactly the expected set of
+    /// property names (order is irrelevant).
+    /// </summary>
+    internal static void AssertFormBodyHasObjectShape(JsonElement formSchema, params string[] expectedPropertyNames)
+    {
+        Assert.False(formSchema.TryGetProperty("allOf", out _), "form body should not be wrapped in a top-level allOf");
+        Assert.False(formSchema.TryGetProperty("anyOf", out _), "form body should not be wrapped in a top-level anyOf");
+        Assert.False(formSchema.TryGetProperty("oneOf", out _), "form body should not be wrapped in a top-level oneOf");
+        Assert.False(formSchema.TryGetProperty("$ref", out _), "form body should be inlined, not a $ref");
+        Assert.True(formSchema.TryGetProperty("properties", out var properties), "form body must have a properties map");
+        Assert.Equal(JsonValueKind.Object, properties.ValueKind);
+
+        var actual = properties.EnumerateObject().Select(p => p.Name);
+        Assert.Equivalent(expectedPropertyNames, actual);
     }
 }

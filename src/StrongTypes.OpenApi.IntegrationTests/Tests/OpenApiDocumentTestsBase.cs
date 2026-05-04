@@ -55,20 +55,6 @@ public abstract partial class OpenApiDocumentTestsBase(HttpClient client) : IDis
     /// </summary>
     protected virtual bool IsEmailAddressFormatIgnored => false;
 
-    /// <summary>
-    /// True when the pipeline emits the <c>[FromForm]</c> request-body schema
-    /// as <c>{ "allOf": [&lt;each-property's-schema&gt;] }</c> — i.e. each
-    /// form field's schema is correct, but the field <em>names</em> are
-    /// dropped and there's no top-level <c>properties</c> map. Vanilla
-    /// Swashbuckle does this whenever every form field is component-typed,
-    /// because its form-body assembler doesn't know how to merge $refs into
-    /// a properties map. The broken-path navigates the allOf by declaration
-    /// index and asserts the same per-property shape; the day Swashbuckle
-    /// fixes the assembler the allOf disappears, the assertion fails, and
-    /// this flag must be flipped to <c>false</c>.
-    /// </summary>
-    protected virtual bool IsFormPropertiesSchemaBroken => false;
-
     protected virtual bool IsPlainIntFormSchemaMissingType => true;
 
     private async Task<JsonElement> GetDocumentAsync()

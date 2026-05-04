@@ -100,6 +100,15 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
 
     private static IOpenApiSchema PaintSlot(IOpenApiSchema? existing, Type clrType, ApiParameterDescription pd)
     {
+        // Maybe<T> bound from a non-body slot via the StrongTypes.AspNetCore
+        // model binder reads a single raw form-data value and wraps it as
+        // Some/None — the wire is the inner T, not the body-side
+        // {"Value":<T>} wrapper object the JSON converter emits. Unwrap
+        // here so the rest of this pass paints the inner shape and merges
+        // slot annotations against it.
+        if (StrongTypeSchemaTypes.TryGetMaybeValue(clrType, out var maybeInner))
+            clrType = maybeInner;
+
         // Mutate the existing schema when possible so any keywords the
         // pipeline already wrote (description, default, caller-applied
         // [StringLength] on the IParsable string overload, …) survive the
@@ -149,6 +158,17 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
         if (StrongTypeSchemaTypes.TryGetNumeric(clrType, out var valueType, out var bound))
         {
             NumericWrapperPainter.Paint(schema, valueType, bound);
+            return true;
+        }
+
+        if (StrongTypeSchemaTypes.TryGetNonEmptyEnumerableElement(clrType, out var elementType))
+        {
+            SchemaPaint.ClearWrapperShape(schema);
+            schema.Type = JsonSchemaType.Array;
+            SchemaPaint.TightenMinItems(schema, 1);
+            var itemsSchema = new OpenApiSchema();
+            if (TryPaintWireShape(itemsSchema, elementType))
+                schema.Items = itemsSchema;
             return true;
         }
 

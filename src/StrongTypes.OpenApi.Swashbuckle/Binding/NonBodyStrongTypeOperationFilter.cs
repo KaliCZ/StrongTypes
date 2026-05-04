@@ -27,6 +27,13 @@ namespace StrongTypes.OpenApi.Swashbuckle;
 /// <see cref="BindingSource.Path"/> / <see cref="BindingSource.Header"/> /
 /// <see cref="BindingSource.Form"/>, and the form path is gated to
 /// <c>multipart/form-data</c> / <c>application/x-www-form-urlencoded</c>.
+///
+/// The form path also reshapes Swashbuckle's <c>{ allOf: [&lt;each-field&gt;] }</c>
+/// request body — emitted whenever every form field is component-typed —
+/// back into a proper <c>{ type: object, properties: { … } }</c> map keyed
+/// by the form-field names from the <see cref="ApiParameterDescription"/>s.
+/// Without that, consumers see a nameless allOf and can't tell which schema
+/// belongs to which field.
 /// </summary>
 public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOperationFilter>? logger = null) : IOperationFilter
 {
@@ -41,12 +48,8 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
         var descriptions = context.ApiDescription.ParameterDescriptions;
         if (descriptions is null || descriptions.Count == 0) return;
 
-        // For form bodies that emit the broken `{allOf:[<each-component-field>]}`
-        // shape (every form field is component-typed — see
-        // IsFormPropertiesSchemaBroken in the integration tests), we need to
-        // map allOf entries back to their CLR property by declaration order.
-        // Compute that map once per operation.
-        var formAllOfIndexByProperty = BuildFormAllOfIndexMap(descriptions);
+        ReshapeFormAllOfIntoProperties(operation, descriptions, context.SchemaGenerator, context.SchemaRepository, logger);
+        ReshapeMaybeFormPropertiesIntoInnerWireShape(operation, descriptions, context.SchemaGenerator, context.SchemaRepository);
 
         foreach (var pd in descriptions)
         {
@@ -60,7 +63,7 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
             }
             else if (pd.Source == BindingSource.Form)
             {
-                MergeFormPropertyAnnotations(operation, pd, formAllOfIndexByProperty);
+                MergeFormPropertyAnnotations(operation, pd);
             }
         }
     }
@@ -82,68 +85,164 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
         }
     }
 
-    private void MergeFormPropertyAnnotations(OpenApiOperation operation, ApiParameterDescription pd, IReadOnlyDictionary<string, int>? allOfIndexByProperty)
+    private static void MergeFormPropertyAnnotations(OpenApiOperation operation, ApiParameterDescription pd)
     {
         if (operation.RequestBody?.Content is not { } content) return;
         var clrType = ResolveParameterClrType(pd);
         if (clrType is null) return;
+        if (StrongTypeSchemaTypes.TryGetMaybeValue(clrType, out var maybeInner))
+            clrType = maybeInner;
         if (GetSlotAttributes(pd).Count == 0) return;
 
         foreach (var contentType in s_formContentTypes)
         {
             if (!content.TryGetValue(contentType, out var media)) continue;
             if (media.Schema is not OpenApiSchema formSchema) continue;
+            if (formSchema.Properties is not { Count: > 0 } properties) continue;
+            if (!properties.TryGetValue(pd.Name, out var propSchema)) continue;
 
-            // Modern Swashbuckle path: a proper `properties` map keyed by
-            // the form model property name.
-            if (formSchema.Properties is { Count: > 0 } properties)
+            properties[pd.Name] = ApplyAnnotations(propSchema, clrType, pd);
+            return;
+        }
+    }
+
+    /// <summary>
+    /// Replaces Swashbuckle's all-component <c>{ allOf: [&lt;each-field&gt;] }</c>
+    /// form-body schema (and the hybrid <c>{ allOf: [wrappers, {primitives}] }</c>
+    /// shape Swashbuckle emits for mixed forms) with a flat
+    /// <c>{ type: object, properties: { … } }</c> map keyed by each form
+    /// field's <see cref="ApiParameterDescription.Name"/>. Per-property
+    /// schemas come from the schema generator: wrappers stay as
+    /// <c>$ref</c>s to their components (or inline schemas for
+    /// collection-shaped wrappers Swashbuckle inlines anyway), and
+    /// primitives are generated with their <see cref="MemberInfo"/> so
+    /// Swashbuckle's own data-annotation pipeline applies
+    /// <c>[StringLength]</c>, <c>[Range]</c>, etc. directly to the
+    /// emitted schema.
+    /// </summary>
+    private static void ReshapeFormAllOfIntoProperties(
+        OpenApiOperation operation,
+        IList<ApiParameterDescription> descriptions,
+        ISchemaGenerator schemaGenerator,
+        SchemaRepository schemaRepository,
+        ILogger? logger)
+    {
+        if (operation.RequestBody?.Content is not { } content) return;
+
+        foreach (var contentType in s_formContentTypes)
+        {
+            if (!content.TryGetValue(contentType, out var media)) continue;
+            if (media.Schema is not OpenApiSchema formSchema) continue;
+            if (formSchema.AllOf is not { Count: > 0 } allOf) continue;
+            if (formSchema.Properties is { Count: > 0 }) continue;
+
+            var formParamCount = 0;
+            var properties = new Dictionary<string, IOpenApiSchema>(StringComparer.Ordinal);
+            foreach (var pd in descriptions)
             {
-                if (properties.TryGetValue(pd.Name, out var propSchema))
+                if (pd.Source != BindingSource.Form) continue;
+                formParamCount++;
+
+                var clrType = ResolveParameterClrType(pd);
+                if (clrType is null)
                 {
-                    properties[pd.Name] = ApplyAnnotations(propSchema, clrType, pd);
-                    return;
+                    logger?.LogError(
+                        "StrongTypes form-body reshape skipped property '{PropertyName}' on operation '{OperationId}' because no CLR type could be resolved from its ApiParameterDescription. The emitted form schema may be incomplete.",
+                        pd.Name, operation.OperationId ?? "(unnamed)");
+                    continue;
                 }
+
+                // Maybe<T> bound from a non-body slot via the StrongTypes.AspNetCore
+                // model binder reads a single raw form-data value and wraps
+                // it as Some/None — the wire is the inner T, not the
+                // body-side {"Value":<T>} wrapper object. Generate the
+                // schema for the inner T so consumers see the field's
+                // actual on-the-wire shape.
+                if (StrongTypeSchemaTypes.TryGetMaybeValue(clrType, out var maybeInner))
+                    clrType = maybeInner;
+
+                // For primitives, hand Swashbuckle the form record's
+                // PropertyInfo so its generator surfaces caller annotations
+                // (`[StringLength]`, `[Range]`, …) directly. For wrappers
+                // we want a clean $ref — `MergeFormPropertyAnnotations`
+                // layers slot annotations on top via WrapperAnnotationApplier,
+                // and passing MemberInfo here would risk double-emission
+                // without the inline marker the inliner needs.
+                MemberInfo? memberInfo = null;
+                if (!StrongTypeSchemaTypes.IsInlineable(clrType))
+                    memberInfo = ResolveFormPropertyMember(pd);
+
+                properties[pd.Name] = schemaGenerator.GenerateSchema(clrType, schemaRepository, memberInfo);
             }
 
-            // Broken path: form body emits `{allOf:[<each-component-field>]}`
-            // when every field is component-typed. Look the field up by the
-            // index we built from the API description's declaration order.
-            if (formSchema.AllOf is { Count: > 0 } allOf
-                && allOfIndexByProperty is not null
-                && allOfIndexByProperty.TryGetValue(pd.Name, out var index))
-            {
-                if (!IsExpectedBrokenFormAllOfTarget(allOf, allOfIndexByProperty.Count, pd.Name, index))
-                    return;
+            if (properties.Count == 0) continue;
 
-                allOf[index] = ApplyAnnotations(allOf[index], clrType, pd);
+            if (properties.Count != formParamCount)
+            {
+                logger?.LogError(
+                    "StrongTypes form-body reshape on operation '{OperationId}' resolved {ResolvedCount} of {TotalCount} form parameters; the rest will be missing from the emitted properties map.",
+                    operation.OperationId ?? "(unnamed)", properties.Count, formParamCount);
+            }
+
+            if (allOf.Count > formParamCount)
+            {
+                logger?.LogError(
+                    "StrongTypes form-body reshape on operation '{OperationId}' replaced an allOf with {AllOfCount} entries using only {FormParamCount} form parameters; entries beyond the parameter set are dropped. This usually means Swashbuckle assembled the form body in a shape we don't recognise.",
+                    operation.OperationId ?? "(unnamed)", allOf.Count, formParamCount);
+            }
+
+            formSchema.Properties = properties;
+            formSchema.AllOf = null;
+            formSchema.Type ??= JsonSchemaType.Object;
+        }
+    }
+
+    /// <summary>
+    /// Replaces the per-property schemas of <see cref="Maybe{T}"/>-typed
+    /// form fields with the inner type's wire shape. The body-side Maybe
+    /// schema is the wrapper object (<c>{"type":"object","properties":{"Value":&lt;T&gt;}}</c>)
+    /// the JSON converter emits, but the <c>StrongTypes.AspNetCore</c>
+    /// model binder reads non-body slots as a single raw value of the
+    /// inner type, so the form-data wire is the inner type. Runs after
+    /// <see cref="ReshapeFormAllOfIntoProperties"/> so it covers both the
+    /// reshaped path and the case where Swashbuckle natively emitted a
+    /// properties map.
+    /// </summary>
+    private static void ReshapeMaybeFormPropertiesIntoInnerWireShape(
+        OpenApiOperation operation,
+        IList<ApiParameterDescription> descriptions,
+        ISchemaGenerator schemaGenerator,
+        SchemaRepository schemaRepository)
+    {
+        if (operation.RequestBody?.Content is not { } content) return;
+
+        foreach (var contentType in s_formContentTypes)
+        {
+            if (!content.TryGetValue(contentType, out var media)) continue;
+            if (media.Schema is not OpenApiSchema formSchema) continue;
+            if (formSchema.Properties is not { Count: > 0 } properties) continue;
+
+            foreach (var pd in descriptions)
+            {
+                if (pd.Source != BindingSource.Form) continue;
+                var clrType = ResolveParameterClrType(pd);
+                if (clrType is null) continue;
+                if (!StrongTypeSchemaTypes.TryGetMaybeValue(clrType, out var innerType)) continue;
+                if (!properties.ContainsKey(pd.Name)) continue;
+
+                MemberInfo? memberInfo = null;
+                if (!StrongTypeSchemaTypes.IsInlineable(innerType))
+                    memberInfo = ResolveFormPropertyMember(pd);
+
+                properties[pd.Name] = schemaGenerator.GenerateSchema(innerType, schemaRepository, memberInfo);
             }
         }
     }
 
-    private bool IsExpectedBrokenFormAllOfTarget(IList<IOpenApiSchema> allOf, int expectedCount, string propertyName, int index)
+    private static MemberInfo? ResolveFormPropertyMember(ApiParameterDescription pd)
     {
-        if (allOf.Count != expectedCount)
-        {
-            logger?.LogError("StrongTypes form annotation merge skipped for property '{PropertyName}' because the form allOf count ({ActualCount}) did not match the strong-type form field count ({ExpectedCount}).",
-                propertyName, allOf.Count, expectedCount);
-            return false;
-        }
-
-        if (index < 0 || index >= allOf.Count)
-        {
-            logger?.LogError("StrongTypes form annotation merge skipped for property '{PropertyName}' because the computed allOf index ({Index}) was outside the form allOf count ({ActualCount}).",
-                propertyName, index, allOf.Count);
-            return false;
-        }
-
-        if (allOf[index] is not OpenApiSchemaReference)
-        {
-            logger?.LogError("StrongTypes form annotation merge skipped for property '{PropertyName}' because the target form allOf entry at index {Index} was not a reference schema.",
-                propertyName, index);
-            return false;
-        }
-
-        return true;
+        if (pd.ModelMetadata is not { ContainerType: { } containerType, PropertyName: { } propertyName }) return null;
+        return containerType.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
     }
 
     private static IOpenApiSchema ApplyAnnotations(IOpenApiSchema? slot, Type clrType, ApiParameterDescription pd)
@@ -175,20 +274,6 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
         }
 
         return slot ?? new OpenApiSchema();
-    }
-
-    private static IReadOnlyDictionary<string, int>? BuildFormAllOfIndexMap(IList<ApiParameterDescription> descriptions)
-    {
-        Dictionary<string, int>? map = null;
-        var index = 0;
-        foreach (var pd in descriptions)
-        {
-            if (pd.Source != BindingSource.Form) continue;
-            if (!StrongTypeSchemaTypes.IsInlineable(ResolveParameterClrType(pd))) continue;
-            map ??= new Dictionary<string, int>(StringComparer.Ordinal);
-            map[pd.Name] = index++;
-        }
-        return map;
     }
 
     private static IReadOnlyList<Attribute> GetSlotAttributes(ApiParameterDescription pd)
