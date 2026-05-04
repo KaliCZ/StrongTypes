@@ -28,7 +28,7 @@ public sealed class NonEmptyEnumerableModelBinder<T> : IModelBinder
 
         if (!StringElementParser<T>.IsSupported)
         {
-            bindingContext.ModelState.TryAddModelError(modelName, $"NonEmptyEnumerable<{typeof(T).Name}> can't bind from a non-body source: {typeof(T).Name} doesn't implement IParsable<{typeof(T).Name}>.");
+            bindingContext.ModelState.TryAddModelError(modelName, $"NonEmptyEnumerable<{typeof(T).Name}> can't bind: {typeof(T).Name} doesn't implement IParsable<{typeof(T).Name}>.");
             bindingContext.Result = ModelBindingResult.Failed();
             return Task.CompletedTask;
         }
