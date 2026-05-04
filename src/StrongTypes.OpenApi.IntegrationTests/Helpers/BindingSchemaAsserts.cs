@@ -11,14 +11,21 @@ namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 /// (<c>[FromQuery]</c>, <c>[FromRoute]</c>, <c>[FromHeader]</c>) and for
 /// individual properties of <c>[FromForm]</c> request bodies. The same
 /// assertion runs on every pipeline; when a pipeline gets the schema
-/// wrong it sets the matching "broken" flag and the helper asserts that
-/// the strong-type-specific keywords are <em>absent</em> (rather than
-/// silently skipping). The day the pipeline starts honouring the schema
-/// transformer those keywords appear, the broken-path assertion fails,
-/// and the flag must be flipped to <c>false</c> in the subclass.
+/// wrong it sets the matching "broken" flag and the helper asserts the
+/// <em>actual</em> broken shape (rather than silently skipping). The day
+/// the pipeline starts emitting the correct shape, the broken-path assert
+/// fails and the flag must be flipped to <c>false</c> in the subclass.
 /// </summary>
 internal static class BindingSchemaAsserts
 {
+    /// <summary>
+    /// Number of fields in <c>BindingProbeFormRequest</c>. The Swashbuckle
+    /// broken-path navigates the form schema's <c>allOf</c> by declaration
+    /// index and asserts this count to lock in that the broken shape is the
+    /// one we expect.
+    /// </summary>
+    private const int FormFieldCount = 6;
+
     internal static void AssertNonBodyNonEmptyString(JsonElement schema, bool isBroken)
         => AssertNonEmptyStringSchema(schema, isBroken, assertInline: true);
 
@@ -28,14 +35,14 @@ internal static class BindingSchemaAsserts
     internal static void AssertNonBodyEmail(JsonElement schema, bool isBroken, bool isEmailFormatBroken)
         => AssertEmailSchema(schema, isBroken, isEmailFormatBroken, assertInline: true);
 
-    internal static void AssertFormPropertyNonEmptyString(JsonElement formSchema, string propertyName, bool isStrongTypeBroken)
-        => AssertNonEmptyStringSchema(GetFormProperty(formSchema, propertyName), isStrongTypeBroken, assertInline: false);
+    internal static void AssertFormPropertyNonEmptyString(JsonElement formSchema, string propertyName, int formIndex, bool isFormPropertiesBroken, bool isStrongTypeBroken)
+        => AssertNonEmptyStringSchema(GetFormProperty(formSchema, propertyName, formIndex, isFormPropertiesBroken), isStrongTypeBroken, assertInline: false);
 
-    internal static void AssertFormPropertyPositiveInt(JsonElement formSchema, string propertyName, bool isStrongTypeBroken, OpenApiVersion version)
-        => AssertPositiveIntSchema(GetFormProperty(formSchema, propertyName), isStrongTypeBroken, version, assertInline: false);
+    internal static void AssertFormPropertyPositiveInt(JsonElement formSchema, string propertyName, int formIndex, bool isFormPropertiesBroken, bool isStrongTypeBroken, OpenApiVersion version)
+        => AssertPositiveIntSchema(GetFormProperty(formSchema, propertyName, formIndex, isFormPropertiesBroken), isStrongTypeBroken, version, assertInline: false);
 
-    internal static void AssertFormPropertyEmail(JsonElement formSchema, string propertyName, bool isStrongTypeBroken, bool isEmailFormatBroken)
-        => AssertEmailSchema(GetFormProperty(formSchema, propertyName), isStrongTypeBroken, isEmailFormatBroken, assertInline: false);
+    internal static void AssertFormPropertyEmail(JsonElement formSchema, string propertyName, int formIndex, bool isFormPropertiesBroken, bool isStrongTypeBroken, bool isEmailFormatBroken)
+        => AssertEmailSchema(GetFormProperty(formSchema, propertyName, formIndex, isFormPropertiesBroken), isStrongTypeBroken, isEmailFormatBroken, assertInline: false);
 
     private static void AssertNonEmptyStringSchema(JsonElement schema, bool isBroken, bool assertInline)
     {
@@ -92,12 +99,26 @@ internal static class BindingSchemaAsserts
     }
 
     /// <summary>
-    /// Looks up a named property on a form request-body schema. Pipelines
-    /// disagree on casing (Microsoft PascalCase, Swashbuckle camelCase);
-    /// the lookup is case-insensitive so tests aren't pipeline-flavoured.
+    /// Looks up a per-field schema on a <c>[FromForm]</c> request-body
+    /// schema. On the not-broken path the form schema is an object with a
+    /// <c>properties</c> map; the field is found by name (case-insensitive
+    /// because Microsoft emits PascalCase, Swashbuckle camelCase). On the
+    /// broken path the form schema is <c>{ allOf: [&lt;each-field&gt;] }</c>
+    /// with names dropped; the field is found by its declaration index
+    /// (<paramref name="formIndex"/>). Either way, the per-field schema
+    /// returned is then asserted with the same strong-type assertion.
     /// </summary>
-    private static JsonElement GetFormProperty(JsonElement formSchema, string propertyName)
+    private static JsonElement GetFormProperty(JsonElement formSchema, string propertyName, int formIndex, bool isFormPropertiesBroken)
     {
+        if (isFormPropertiesBroken)
+        {
+            Assert.True(formSchema.TryGetProperty("allOf", out var allOf), "form schema is broken-flagged but has no allOf");
+            Assert.Equal(JsonValueKind.Array, allOf.ValueKind);
+            Assert.Equal(FormFieldCount, allOf.GetArrayLength());
+            Assert.False(formSchema.TryGetProperty("properties", out _), "form schema is broken-flagged but still has a properties map");
+            return allOf[formIndex];
+        }
+
         var properties = formSchema.GetProperty("properties");
         foreach (var entry in properties.EnumerateObject())
         {
