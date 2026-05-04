@@ -2,7 +2,7 @@
 
 [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
-StrongTypes adds small, focused types that make everyday code safer and more expressive. Every type ships with `System.Text.Json` converters out of the box, so invalid JSON fails at deserialization. The types can be stored directly in EF Core entities via the EfCore package, OpenAPI documentation is supported through the Microsoft or Swashbuckle OpenAPI packages, WPF is supported via the WPF package, and an ASP.NET Core package adds MVC model binders for `Maybe<T>` and `NonEmptyEnumerable<T>` from `[FromForm]` (and other non-body sources) — see [Packages](#packages) below.
+StrongTypes adds small, focused types that make everyday code safer and more expressive. Every type ships with `System.Text.Json` converters out of the box, so invalid JSON fails at deserialization. The types can be stored directly in EF Core entities via the EfCore package, OpenAPI documentation is supported through the Microsoft or Swashbuckle OpenAPI packages, and WPF is supported via the WPF package — see [Packages](#packages) below.
 
 > 🤖 Letting Claude Code or Codex write code in a project that uses
 > StrongTypes? See [Use with Claude or Codex](#use-with-claude-or-codex)
