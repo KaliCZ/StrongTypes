@@ -100,6 +100,38 @@ will need tests** (a new strong type, a converter, an analyzer, an API
 endpoint, …). It is the single source of truth; do not infer testing
 conventions from existing tests without checking it first.
 
+## Skill — keep it in sync
+
+The `Skill/` directory ships a Claude / Codex skill that teaches the
+agent how to use this library in *consumer* projects (not this repo).
+It's distributed as a release asset and lives entirely inside `Skill/`:
+
+- `Skill/SKILL.md` — top-level guide, package table, decision trees,
+  anti-patterns.
+- `Skill/references/*.md` — per-feature references loaded on demand.
+
+**Update it whenever the library's user-facing surface changes.** That
+includes:
+
+- Adding a new package — add a row to the `Packages` table in
+  `SKILL.md`, add a row to "Helpers and integrations", and create a
+  `Skill/references/<package>.md` covering when to use it, when not
+  to use it, and the wiring snippet.
+- Adding a new strong type — add a row to the appropriate type
+  catalog table and either extend an existing reference or add a new
+  one.
+- Changing wiring (extension method names, registration calls) or
+  package compatibility (target frameworks, dependency versions) —
+  update the affected reference file *and* any `SKILL.md` snippet
+  that mentions it.
+- Changing the recommended pattern for something the skill calls out
+  (decision trees, anti-patterns) — update the corresponding section
+  of `SKILL.md`.
+
+The skill must work standalone; it can't assume the reader has the
+repository handy. Keep snippets self-contained and copy real examples
+from passing tests where possible.
+
 ## StrongTypes.Api — purpose
 
 An ASP.NET Core minimal API that exists purely as an integration-test
