@@ -35,6 +35,10 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
             ["nullableName"] = "Eve2",
             ["count"] = "21",
             ["nullableCount"] = "5",
+            ["debt"] = "-12",
+            ["nullableDebt"] = "-1",
+            ["digit"] = "7",
+            ["nullableDigit"] = "3",
             ["email"] = "eve@example.com",
             ["nullableEmail"] = "eve2@example.com",
         });
@@ -46,6 +50,10 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
         Assert.Equal("Eve2", json.GetProperty("nullableName").GetString());
         Assert.Equal(21, json.GetProperty("count").GetInt32());
         Assert.Equal(5, json.GetProperty("nullableCount").GetInt32());
+        Assert.Equal(-12m, json.GetProperty("debt").GetDecimal());
+        Assert.Equal(-1m, json.GetProperty("nullableDebt").GetDecimal());
+        Assert.Equal(7, json.GetProperty("digit").GetInt32());
+        Assert.Equal(3, json.GetProperty("nullableDigit").GetInt32());
         Assert.Equal("eve@example.com", json.GetProperty("email").GetString());
         Assert.Equal("eve2@example.com", json.GetProperty("nullableEmail").GetString());
     }
@@ -57,6 +65,8 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
         {
             ["name"] = "Eve",
             ["count"] = "21",
+            ["debt"] = "-12",
+            ["digit"] = "7",
             ["email"] = "eve@example.com",
         });
         var response = await _client.PostAsync("/binding-probe/form", content, Ct);
@@ -65,9 +75,13 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
         Assert.Equal("Eve", json.GetProperty("name").GetString());
         Assert.Equal(21, json.GetProperty("count").GetInt32());
+        Assert.Equal(-12m, json.GetProperty("debt").GetDecimal());
+        Assert.Equal(7, json.GetProperty("digit").GetInt32());
         Assert.Equal("eve@example.com", json.GetProperty("email").GetString());
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableName").ValueKind);
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableCount").ValueKind);
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableDebt").ValueKind);
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableDigit").ValueKind);
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableEmail").ValueKind);
     }
 
@@ -75,6 +89,11 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
     [InlineData("name", "")]
     [InlineData("count", "0")]
     [InlineData("count", "not-a-number")]
+    [InlineData("debt", "0")]
+    [InlineData("debt", "12")]
+    [InlineData("debt", "not-a-decimal")]
+    [InlineData("digit", "12")]
+    [InlineData("digit", "not-a-digit")]
     [InlineData("email", "not-an-email")]
     public async Task FromForm_InvalidRequired_Returns400(string field, string badValue)
     {
@@ -82,6 +101,8 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
         {
             ["name"] = "Eve",
             ["count"] = "21",
+            ["debt"] = "-12",
+            ["digit"] = "7",
             ["email"] = "eve@example.com",
         };
         pairs[field] = badValue;
@@ -94,6 +115,9 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
 
     [Theory]
     [InlineData("nullableCount", "0")]
+    [InlineData("nullableDebt", "0")]
+    [InlineData("nullableDebt", "12")]
+    [InlineData("nullableDigit", "12")]
     [InlineData("nullableEmail", "not-an-email")]
     public async Task FromForm_NonEmptyInvalidNullable_Returns400(string field, string badValue)
     {
@@ -101,6 +125,8 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
         {
             ["name"] = "Eve",
             ["count"] = "21",
+            ["debt"] = "-12",
+            ["digit"] = "7",
             ["email"] = "eve@example.com",
             [field] = badValue,
         };
@@ -120,6 +146,8 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
         {
             ["name"] = "Eve",
             ["count"] = "21",
+            ["debt"] = "-12",
+            ["digit"] = "7",
             ["email"] = "eve@example.com",
             ["nullableName"] = "",
         };
@@ -130,5 +158,36 @@ public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDispo
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
         Assert.Equal(JsonValueKind.Null, json.GetProperty("nullableName").ValueKind);
+    }
+
+    [Fact]
+    public async Task FromForm_NonEmptyEnumerable_DoesNotBindOutOfTheBox()
+    {
+        var pairs = new List<KeyValuePair<string, string>>
+        {
+            new("tags", "alpha"),
+            new("tags", "beta"),
+        };
+        using var content = new FormUrlEncodedContent(pairs);
+
+        var response = await _client.PostAsync("/binding-probe/form-unsupported-nee", content, Ct);
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task FromForm_Maybe_DoesNotBindOutOfTheBox()
+    {
+        var pairs = new List<KeyValuePair<string, string>>
+        {
+            new("displayName", "Ada"),
+        };
+        using var content = new FormUrlEncodedContent(pairs);
+
+        var response = await _client.PostAsync("/binding-probe/form-unsupported-maybe", content, Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal("None", json.GetProperty("displayNameState").GetString());
     }
 }
