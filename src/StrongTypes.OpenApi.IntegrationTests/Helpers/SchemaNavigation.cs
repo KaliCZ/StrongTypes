@@ -120,4 +120,58 @@ internal static class SchemaNavigation
         Assert.False(schema.TryGetProperty("$ref", out _), "expected inline schema, found $ref");
         Assert.False(schema.TryGetProperty("allOf", out _), "expected inline schema, found allOf");
     }
+
+    /// <summary>
+    /// Asserts that <paramref name="actual"/> deep-equals
+    /// <paramref name="expectedJson"/> — same property-name set on every
+    /// object, same array length and order, same primitive values
+    /// (numbers compared as <see cref="decimal"/> so <c>1</c> matches
+    /// <c>1.0</c>). Property order on objects is ignored. This pins the
+    /// full emitted shape so that an unexpected keyword (a wrong
+    /// <c>format</c>, a stray <c>nullable</c>, some new <c>x-…</c>
+    /// annotation, …) fails the test instead of silently passing.
+    /// </summary>
+    internal static void AssertJsonEquals(JsonElement actual, string expectedJson)
+    {
+        using var doc = JsonDocument.Parse(expectedJson);
+        AssertJsonEqualsCore(doc.RootElement, actual, path: "$");
+    }
+
+    private static void AssertJsonEqualsCore(JsonElement expected, JsonElement actual, string path)
+    {
+        if (expected.ValueKind != actual.ValueKind)
+            Assert.Fail($"at {path}: expected {expected.ValueKind} but got {actual.ValueKind}\n  expected: {expected.GetRawText()}\n  actual:   {actual.GetRawText()}");
+
+        switch (expected.ValueKind)
+        {
+            case JsonValueKind.Object:
+                var expectedKeys = expected.EnumerateObject().Select(p => p.Name).Order().ToArray();
+                var actualKeys = actual.EnumerateObject().Select(p => p.Name).Order().ToArray();
+                if (!expectedKeys.SequenceEqual(actualKeys))
+                    Assert.Fail($"at {path}: property-name set differs\n  expected: [{string.Join(", ", expectedKeys)}]\n  actual:   [{string.Join(", ", actualKeys)}]\n  actual schema: {actual.GetRawText()}");
+                foreach (var prop in expected.EnumerateObject())
+                    AssertJsonEqualsCore(prop.Value, actual.GetProperty(prop.Name), $"{path}.{prop.Name}");
+                break;
+
+            case JsonValueKind.Array:
+                if (expected.GetArrayLength() != actual.GetArrayLength())
+                    Assert.Fail($"at {path}: array length differs (expected {expected.GetArrayLength()}, got {actual.GetArrayLength()})\n  expected: {expected.GetRawText()}\n  actual:   {actual.GetRawText()}");
+                for (var i = 0; i < expected.GetArrayLength(); i++)
+                    AssertJsonEqualsCore(expected[i], actual[i], $"{path}[{i}]");
+                break;
+
+            case JsonValueKind.String:
+                Assert.Equal(expected.GetString(), actual.GetString());
+                break;
+
+            case JsonValueKind.Number:
+                Assert.Equal(expected.GetDecimal(), actual.GetDecimal());
+                break;
+
+            case JsonValueKind.True:
+            case JsonValueKind.False:
+            case JsonValueKind.Null:
+                break;
+        }
+    }
 }

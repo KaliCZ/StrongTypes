@@ -1,8 +1,6 @@
 using System.Text.Json;
 using Xunit;
-using static StrongTypes.OpenApi.IntegrationTests.Helpers.ExclusiveBounds;
 using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaNavigation;
-using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaValueReader;
 
 namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 
@@ -16,12 +14,9 @@ namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 /// the pipeline starts emitting the correct shape, the broken-path assert
 /// fails and the flag must be flipped to <c>false</c> in the subclass.
 ///
-/// Every public helper follows the same three-line shape: assert the
-/// schema is inline (no <c>$ref</c>/<c>allOf</c> wrappers — both pipelines
-/// run a strong-type inliner before tests look at the document), then
-/// branch on the broken flag and dispatch to a private
-/// <c>AssertCorrect…</c> or <c>AssertBroken…</c> helper that names the
-/// exact shape it pins.
+/// Every shape helper deep-compares the schema against a literal JSON
+/// snapshot via <see cref="AssertJsonEquals"/>, so the helper body reads
+/// as the exact expected schema and any unexpected keyword fails the test.
 ///
 /// Per-source splits exist where the broken shape genuinely differs by
 /// binding source — most notably <see cref="AssertRoutePositiveInt"/>,
@@ -46,54 +41,45 @@ internal static class BindingSchemaAsserts
     private const int FormFieldCount = 6;
 
     // ── NonEmptyString ───────────────────────────────────────────────────
-    // Broken shape is consistent across every source (always falls back to
-    // {type:string} with minLength missing), so one helper covers all of them.
 
     internal static void AssertNonBodyNonEmptyString(JsonElement schema, bool isNonJsonBodyStrongTypeSchemaBroken)
-        => AssertNonEmptyStringSchema(schema, isNonJsonBodyStrongTypeSchemaBroken);
+    {
+        if (isNonJsonBodyStrongTypeSchemaBroken) AssertBrokenNonEmptyString(schema);
+        else AssertCorrectNonEmptyString(schema);
+    }
 
     /// <param name="propertyName">Field name as it appears in the form schema's <c>properties</c> map on the not-broken path.</param>
     /// <param name="allOfIndex">Position in the form schema's <c>allOf</c> array, used only when <paramref name="isFormPropertiesSchemaBroken"/> is true (the field name has been dropped, so navigation is by declaration index).</param>
     internal static void AssertFormPropertyNonEmptyString(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken, bool isNonJsonBodyStrongTypeSchemaBroken)
-        => AssertNonEmptyStringSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken), isNonJsonBodyStrongTypeSchemaBroken);
-
-    private static void AssertNonEmptyStringSchema(JsonElement schema, bool isBroken)
     {
-        AssertInlineSchema(schema);
-        if (isBroken) AssertBrokenNonEmptyString(schema);
+        var schema = GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken);
+        if (isNonJsonBodyStrongTypeSchemaBroken) AssertBrokenNonEmptyString(schema);
         else AssertCorrectNonEmptyString(schema);
     }
 
     private static void AssertCorrectNonEmptyString(JsonElement schema)
-    {
-        Assert.Equal("string", StringOrNull(schema, "type"));
-        Assert.Equal(1, IntOrNull(schema, "minLength"));
-    }
+        => AssertJsonEquals(schema, """{"type":"string","minLength":1}""");
 
     private static void AssertBrokenNonEmptyString(JsonElement schema)
-    {
         // Schema transformer didn't run; the underlying string type survives
-        // but the NonEmptyString-specific minLength: 1 is missing. The day
-        // it starts running, this assert fails and the broken flag must be
-        // flipped.
-        Assert.Equal("string", StringOrNull(schema, "type"));
-        Assert.Null(IntOrNull(schema, "minLength"));
-    }
+        // but the NonEmptyString-specific minLength: 1 is missing.
+        => AssertJsonEquals(schema, """{"type":"string"}""");
 
     // ── Positive<int> ────────────────────────────────────────────────────
     // Broken shape splits by source: a route :int constraint preserves
     // {type:integer, format:int32}; every other source falls back to
     // {type:string} because there's no source-side type metadata.
+    // Correct shape splits by OpenAPI version: 3.0 encodes the exclusive
+    // bound as {minimum:0, exclusiveMinimum:true} (boolean pair); 3.1 as
+    // {exclusiveMinimum:0} (numeric).
 
     /// <summary>
     /// Asserts the schema for a <c>[FromQuery]</c> or <c>[FromHeader]</c>
     /// <c>Positive&lt;int&gt;</c> parameter. On the broken path the underlying
-    /// type falls back to <c>{type:string}</c> with no <c>format</c> and no
-    /// <c>exclusiveMinimum</c>.
+    /// type falls back to <c>{type:string}</c>.
     /// </summary>
     internal static void AssertNonBodyPositiveInt(JsonElement schema, bool isNonJsonBodyStrongTypeSchemaBroken, OpenApiVersion version)
     {
-        AssertInlineSchema(schema);
         if (isNonJsonBodyStrongTypeSchemaBroken) AssertBrokenPositiveIntStringFallback(schema);
         else AssertCorrectPositiveInt(schema, version);
     }
@@ -101,12 +87,10 @@ internal static class BindingSchemaAsserts
     /// <summary>
     /// Asserts the schema for a <c>[FromRoute]</c> <c>Positive&lt;int&gt;</c>
     /// parameter. On the broken path the route <c>:int</c> constraint
-    /// preserves the underlying type as <c>{type:integer, format:int32}</c>,
-    /// but no <c>exclusiveMinimum</c> is emitted.
+    /// preserves <c>{type:integer, format:int32}</c>.
     /// </summary>
     internal static void AssertRoutePositiveInt(JsonElement schema, bool isNonJsonBodyStrongTypeSchemaBroken, OpenApiVersion version)
     {
-        AssertInlineSchema(schema);
         if (isNonJsonBodyStrongTypeSchemaBroken) AssertBrokenPositiveIntIntegerWithFormat(schema);
         else AssertCorrectPositiveInt(schema, version);
     }
@@ -116,85 +100,55 @@ internal static class BindingSchemaAsserts
     internal static void AssertFormPropertyPositiveInt(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken, bool isNonJsonBodyStrongTypeSchemaBroken, OpenApiVersion version)
     {
         var schema = GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken);
-        AssertInlineSchema(schema);
         if (isNonJsonBodyStrongTypeSchemaBroken) AssertBrokenPositiveIntStringFallback(schema);
         else AssertCorrectPositiveInt(schema, version);
     }
 
     private static void AssertCorrectPositiveInt(JsonElement schema, OpenApiVersion version)
-    {
-        Assert.Equal("integer", StringOrNull(schema, "type"));
-        Assert.Equal("int32", StringOrNull(schema, "format"));
-        AssertExclusiveLowerBound(schema, 0m, version);
-    }
+        => AssertJsonEquals(schema, version switch
+        {
+            OpenApiVersion.V3_0 => """{"type":"integer","format":"int32","minimum":0,"exclusiveMinimum":true}""",
+            OpenApiVersion.V3_1 => """{"type":"integer","format":"int32","exclusiveMinimum":0}""",
+            _ => throw new ArgumentOutOfRangeException(nameof(version), version, null),
+        });
 
     private static void AssertBrokenPositiveIntStringFallback(JsonElement schema)
-    {
         // Schema transformer didn't run and there's no source-side metadata
         // (no route :int constraint, etc.); the type falls all the way back
-        // to a string. The day the pipeline starts honouring the strong-type
-        // transformer (or even just preserving the underlying integer type),
-        // this assert fails and the flag must be flipped.
-        Assert.Equal("string", StringOrNull(schema, "type"));
-        Assert.Null(StringOrNull(schema, "format"));
-        Assert.False(schema.TryGetProperty("exclusiveMinimum", out _), "exclusiveMinimum should not be present on broken schema");
-    }
+        // to a string with neither format nor exclusiveMinimum.
+        => AssertJsonEquals(schema, """{"type":"string"}""");
 
     private static void AssertBrokenPositiveIntIntegerWithFormat(JsonElement schema)
-    {
         // Schema transformer didn't run, but the route :int constraint
-        // preserves the underlying integer type. No exclusiveMinimum is
-        // emitted. The day the transformer starts running on route schemas,
-        // exclusiveMinimum appears, this assert fails, and the flag must be
-        // flipped.
-        Assert.Equal("integer", StringOrNull(schema, "type"));
-        Assert.Equal("int32", StringOrNull(schema, "format"));
-        Assert.False(schema.TryGetProperty("exclusiveMinimum", out _), "exclusiveMinimum should not be present on broken schema");
-    }
+        // preserves the underlying integer type. exclusiveMinimum is absent.
+        => AssertJsonEquals(schema, """{"type":"integer","format":"int32"}""");
 
     // ── Email ────────────────────────────────────────────────────────────
-    // Broken shape is consistent across every source (always {type:string}
-    // with the Email-specific keywords absent), so one helper covers all.
 
     internal static void AssertNonBodyEmail(JsonElement schema, bool isNonJsonBodyStrongTypeSchemaBroken, bool isEmailStringFormatBroken)
-        => AssertEmailSchema(schema, isNonJsonBodyStrongTypeSchemaBroken, isEmailStringFormatBroken);
+    {
+        if (isNonJsonBodyStrongTypeSchemaBroken) AssertBrokenEmail(schema);
+        else AssertCorrectEmail(schema, isEmailStringFormatBroken);
+    }
 
     /// <param name="propertyName">Field name as it appears in the form schema's <c>properties</c> map on the not-broken path.</param>
     /// <param name="allOfIndex">Position in the form schema's <c>allOf</c> array, used only when <paramref name="isFormPropertiesSchemaBroken"/> is true (the field name has been dropped, so navigation is by declaration index).</param>
     internal static void AssertFormPropertyEmail(JsonElement formSchema, string propertyName, int allOfIndex, bool isFormPropertiesSchemaBroken, bool isNonJsonBodyStrongTypeSchemaBroken, bool isEmailStringFormatBroken)
-        => AssertEmailSchema(GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken), isNonJsonBodyStrongTypeSchemaBroken, isEmailStringFormatBroken);
-
-    private static void AssertEmailSchema(JsonElement schema, bool isBroken, bool isEmailStringFormatBroken)
     {
-        AssertInlineSchema(schema);
-        if (isBroken) AssertBrokenEmail(schema);
+        var schema = GetFormProperty(formSchema, propertyName, allOfIndex, isFormPropertiesSchemaBroken);
+        if (isNonJsonBodyStrongTypeSchemaBroken) AssertBrokenEmail(schema);
         else AssertCorrectEmail(schema, isEmailStringFormatBroken);
     }
 
     private static void AssertCorrectEmail(JsonElement schema, bool isEmailStringFormatBroken)
-    {
-        Assert.Equal("string", StringOrNull(schema, "type"));
-        Assert.Equal(1, IntOrNull(schema, "minLength"));
-        Assert.Equal(254, IntOrNull(schema, "maxLength"));
-        if (isEmailStringFormatBroken)
-            // Pipeline emits minLength/maxLength but drops format: email.
-            // The day it starts emitting the format keyword, this assert
-            // fails and the flag must be flipped.
-            Assert.Null(StringOrNull(schema, "format"));
-        else
-            Assert.Equal("email", StringOrNull(schema, "format"));
-    }
+        => AssertJsonEquals(schema, isEmailStringFormatBroken
+            ? """{"type":"string","minLength":1,"maxLength":254}"""
+            : """{"type":"string","minLength":1,"maxLength":254,"format":"email"}""");
 
     private static void AssertBrokenEmail(JsonElement schema)
-    {
         // Schema transformer didn't run; the underlying string type survives
-        // but none of the Email-specific keywords appear (no minLength,
-        // maxLength, or format).
-        Assert.Equal("string", StringOrNull(schema, "type"));
-        Assert.Null(IntOrNull(schema, "minLength"));
-        Assert.Null(IntOrNull(schema, "maxLength"));
-        Assert.Null(StringOrNull(schema, "format"));
-    }
+        // but none of the Email-specific keywords appear.
+        => AssertJsonEquals(schema, """{"type":"string"}""");
 
     /// <summary>
     /// Looks up a per-field schema on a <c>[FromForm]</c> request-body
