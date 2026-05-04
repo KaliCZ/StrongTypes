@@ -50,41 +50,44 @@ collection / simple-type binders.
 ```csharp
 [HttpGet("search")]
 public IActionResult Search(
-    [FromQuery] NonEmptyEnumerable<int> ids,
-    [FromQuery] Maybe<int> filter)
+    [FromQuery] NonEmptyEnumerable<NonEmptyString> tags,
+    [FromQuery] NonEmptyEnumerable<Positive<int>> counts,
+    [FromQuery] Maybe<Email> contact)
 {
-    // ids is guaranteed non-empty; the framework returns 400 + problem
-    // details if the caller sent zero ?ids=… values.
-    // filter is None when the caller omits ?filter=…, Some(value) otherwise.
-    return Ok(new { count = ids.Count, hasFilter = filter.IsSome });
+    // tags is guaranteed non-empty; the framework returns 400 + problem
+    // details if the caller sent zero ?tags=… values, or any tag is
+    // empty / whitespace-only.
+    // counts is guaranteed non-empty and every entry > 0.
+    // contact is None when the caller omits ?contact=…, Some(value)
+    // otherwise; an invalid email returns 400.
+    return Ok(new { count = tags.Count, total = counts.Sum(c => c.Value) });
 }
 ```
 
 ## Supported element types
 
-Both binders parse each raw string via the element type's
-`TypeConverter`. That covers every type the BCL ships a converter for —
-`int`, `long`, `Guid`, `DateTime`, `string`, the other primitives, and
-any user type that registers its own `[TypeConverter(...)]`.
+Both binders parse each raw string via `IParsable<T>` on the element
+type. That covers:
 
-It does **not** cover the strong-type wrappers in this library
-(`NonEmptyString`, `Email`, `Digit`, `Positive<T>`, the other numeric
-wrappers). Those parse via `IParsable<T>`, which `TypeConverter` does
-not consult. Today the supported shapes for non-body binding are:
+- Every BCL primitive and value type that implements `IParsable<T>`
+  (`int`, `long`, `Guid`, `DateTime`, `decimal`, …) — every numeric
+  type in net7+ does.
+- Every Kalicz.StrongTypes wrapper — `NonEmptyString`, `Email`,
+  `Digit`, `Positive<T>`, `Negative<T>`, `NonNegative<T>`,
+  `NonPositive<T>`. They all implement `IParsable<TSelf>` and round-trip
+  through their `TryCreate` factory, so wire-level invariant violations
+  (empty `NonEmptyString`, non-positive `Positive<int>`, malformed
+  `Email`) surface as 400 + `ValidationProblemDetails`.
 
-- ✅ `NonEmptyEnumerable<T>` where `T` is a primitive / BCL type
-  (`NonEmptyEnumerable<int>`, `NonEmptyEnumerable<Guid>`, …).
-- ✅ `Maybe<T>` where `T` is a primitive / BCL type.
-- ❌ `NonEmptyEnumerable<StrongType>` and `Maybe<StrongType>` for the
-  wrapper types — wire-form parsing isn't wired through `IParsable<T>`
-  yet.
-- ❌ Wrapper-of-wrapper (`NonEmptyEnumerable<Maybe<…>>`,
-  `Maybe<NonEmptyEnumerable<…>>`) — would need real model-binder
-  composition rather than per-element string parsing.
-
-For the wrapper types, `[FromBody]` already round-trips correctly via
-the JSON converters that ship with `Kalicz.StrongTypes` — only the
-non-body sources are gapped.
+What's **not** supported is wrapper-of-wrapper —
+`NonEmptyEnumerable<Maybe<T>>`, `Maybe<NonEmptyEnumerable<T>>`,
+`NonEmptyEnumerable<NonEmptyEnumerable<T>>`. These have no obvious wire
+form on a non-body source (how would you encode "list of optional
+lists" in `?foo=…` syntax?), and they'd need real model-binder
+composition rather than per-element string parsing. If you need that
+shape, use `[FromBody]` — the JSON converters that ship with
+`Kalicz.StrongTypes` handle arbitrary nesting through the JSON
+serializer.
 
 ## License
 

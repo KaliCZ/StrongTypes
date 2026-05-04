@@ -125,6 +125,22 @@ public sealed class BindingProbeController : ControllerBase
             ids = request.Ids.AsSpan().ToArray(),
             filter = request.Filter.Value,
         });
+
+    // ── Strong-typed element variants — confirms IParsable<T>-based parsing ──
+
+    [HttpGet("query-nee-strong")]
+    public IActionResult StrongTypedFromQuery(
+        [FromQuery] NonEmptyEnumerable<NonEmptyString> tags,
+        [FromQuery] NonEmptyEnumerable<Positive<int>> counts,
+        [FromQuery] Maybe<NonEmptyString> filter,
+        [FromQuery] Maybe<Email> contact)
+        => Ok(new
+        {
+            tags = tags.Select(t => t.Value).ToArray(),
+            counts = counts.Select(c => c.Value).ToArray(),
+            filter = filter.Value?.Value,
+            contact = contact.Value?.Address,
+        });
 }
 
 public sealed record BindingProbeFormRequest(

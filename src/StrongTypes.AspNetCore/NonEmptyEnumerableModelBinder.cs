@@ -1,21 +1,26 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Primitives;
 
 namespace StrongTypes.AspNetCore;
 
-/// <summary>Binds an action parameter of type <see cref="NonEmptyEnumerable{T}"/> from any non-body source. Reads multiple raw values from the binding source, parses each via the registered <see cref="TypeConverter"/> for <typeparamref name="T"/>, and wraps the result via <see cref="NonEmptyEnumerable.TryCreateRange{T}(System.Collections.Generic.IEnumerable{T})"/>; an empty source surfaces as a binding error.</summary>
-/// <typeparam name="T">The element type.</typeparam>
+/// <summary>Binds an action parameter of type <see cref="NonEmptyEnumerable{T}"/> from any non-body source. Reads multiple raw strings from the binding source, parses each via <see cref="IParsable{TSelf}"/> on <typeparamref name="T"/>, and wraps the result via <see cref="NonEmptyEnumerable.TryCreateRange{T}(System.Collections.Generic.IEnumerable{T})"/>; an empty source surfaces as a binding error.</summary>
+/// <typeparam name="T">The element type. Must implement <see cref="IParsable{TSelf}"/> (every BCL primitive in net7+ and every Kalicz.StrongTypes wrapper qualifies).</typeparam>
 public sealed class NonEmptyEnumerableModelBinder<T> : IModelBinder
 {
     public Task BindModelAsync(ModelBindingContext bindingContext)
     {
         ArgumentNullException.ThrowIfNull(bindingContext);
         var modelName = bindingContext.ModelName;
+
+        if (!StringElementParser<T>.IsSupported)
+        {
+            bindingContext.ModelState.TryAddModelError(modelName, $"NonEmptyEnumerable<{typeof(T).Name}> can't bind from a non-body source: {typeof(T).Name} doesn't implement IParsable<{typeof(T).Name}>.");
+            bindingContext.Result = ModelBindingResult.Failed();
+            return Task.CompletedTask;
+        }
 
         var raw = ReadRawValues(bindingContext);
         if (raw.Count == 0)
@@ -25,17 +30,12 @@ public sealed class NonEmptyEnumerableModelBinder<T> : IModelBinder
             return Task.CompletedTask;
         }
 
-        var converter = TypeDescriptor.GetConverter(typeof(T));
         var array = new T[raw.Count];
         for (var i = 0; i < raw.Count; i++)
         {
-            try
+            if (!StringElementParser<T>.TryParse(raw[i] ?? string.Empty, out array[i]!))
             {
-                array[i] = (T)converter.ConvertFromString(context: null, CultureInfo.InvariantCulture, raw[i]!)!;
-            }
-            catch (Exception ex)
-            {
-                bindingContext.ModelState.TryAddModelError(modelName, $"Could not parse '{raw[i]}' as {typeof(T).Name}: {ex.Message}");
+                bindingContext.ModelState.TryAddModelError(modelName, $"Could not parse '{raw[i]}' as {typeof(T).Name}.");
                 bindingContext.Result = ModelBindingResult.Failed();
                 return Task.CompletedTask;
             }

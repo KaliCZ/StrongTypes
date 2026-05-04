@@ -237,4 +237,54 @@ public sealed class NonEmptyEnumerableMaybeBindingTests(TestWebApplicationFactor
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    // ── Strong-typed element variants (NonEmptyString, Positive<int>, Email) ───
+    // These are the cases that motivate the binder existing at all — every
+    // wrapper in this library implements IParsable<T>, and the binders'
+    // element parsing must follow that path. Without it, only BCL primitives
+    // would work, which would defeat the point of shipping the package.
+
+    [Fact]
+    public async Task StrongTyped_AllPresent_BindsViaIParsable()
+    {
+        var response = await _client.GetAsync(
+            "/binding-probe/query-nee-strong?tags=alpha&tags=beta&counts=1&counts=2&filter=needle&contact=a@b.co", Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal(["alpha", "beta"], json.GetProperty("tags").EnumerateArray().Select(e => e.GetString()));
+        Assert.Equal([1, 2], json.GetProperty("counts").EnumerateArray().Select(e => e.GetInt32()));
+        Assert.Equal("needle", json.GetProperty("filter").GetString());
+        Assert.Equal("a@b.co", json.GetProperty("contact").GetString());
+    }
+
+    [Fact]
+    public async Task StrongTyped_OptionalsOmitted_BindToNone()
+    {
+        var response = await _client.GetAsync(
+            "/binding-probe/query-nee-strong?tags=alpha&counts=1", Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("filter").ValueKind);
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("contact").ValueKind);
+    }
+
+    [Theory]
+    [InlineData("?tags=alpha&counts=1&counts=0", "counts")]      // Positive<int> rejects 0
+    [InlineData("?tags=alpha&counts=1&counts=oops", "counts")]   // not-an-integer
+    [InlineData("?tags=&counts=1", "tags")]                       // NonEmptyString rejects empty
+    [InlineData("?tags=alpha&counts=1&contact=not-an-email", "contact")]
+    public async Task StrongTyped_InvalidElement_Returns400(string query, string expectedField)
+    {
+        var response = await _client.GetAsync($"/binding-probe/query-nee-strong{query}", Ct);
+        await AssertValidationProblem(response, expectedField);
+    }
+
+    [Fact]
+    public async Task StrongTyped_MissingRequiredCollection_Returns400()
+    {
+        var response = await _client.GetAsync("/binding-probe/query-nee-strong?counts=1", Ct);
+        await AssertValidationProblem(response, "tags");
+    }
 }
