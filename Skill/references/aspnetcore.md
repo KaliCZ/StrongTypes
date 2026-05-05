@@ -44,24 +44,11 @@ they implement `IParsable<TSelf>` and ASP.NET Core's built-in
 ## `Maybe<T>` is not supported on non-body slots
 
 `Maybe<T>` is **intentionally unsupported** on `[FromQuery]`,
-`[FromRoute]`, `[FromHeader]`, and `[FromForm]`. The wire formats for
-those slots only model "present" vs "absent" — there's no
-protocol-level "explicitly null" — so the three-state semantic that
-motivates `Maybe<T>?` collapses to two-state, which `T?` already
-covers natively.
-
-- **Optional non-body field?** Use `T?` (e.g. `[FromQuery] int? age`,
-  `[FromForm] NonEmptyString? nickname`). The framework binds
-  "absent" to `null` and "present" to the parsed value.
-- **Three-state PATCH semantics?** Use `Maybe<T>?` from `[FromBody]`
-  with a JSON payload. The JSON converter distinguishes "property
-  omitted" (`null`), "explicit null" (`None`), and "value supplied"
-  (`Some`). That's the only wire format where all three are
-  unambiguously expressible.
-
-If a project today has `[FromForm] Maybe<T>` or `[FromQuery] Maybe<T>`
-parameters, switch them to `T?` (or move the contract to `[FromBody]`
-if real PATCH semantics are needed).
+`[FromRoute]`, `[FromHeader]`, and `[FromForm]`. Those wire formats
+model "present" vs "absent" only, so the three-state semantic
+collapses to two-state — `T?` covers it. Use `Maybe<T>?` from
+`[FromBody]` when real three-state PATCH semantics are needed; the
+JSON converter handles it.
 
 ## Wiring
 
