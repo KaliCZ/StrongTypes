@@ -32,7 +32,7 @@ Add packages only when the host project actually hits that stack:
 - **FsCheck** — only for property-based test projects.
 - **OpenApi.Microsoft** vs **OpenApi.Swashbuckle** — pick **one**, matching the spec generator the app already wires up. They are not interchangeable. `references/openapi.md` covers both pipelines.
 - **Wpf** — only for WPF apps that two-way bind to strong-typed VM properties. See `references/wpf.md`.
-- **AspNetCore** — only when a controller takes `NonEmptyEnumerable<T>` from a non-body source (forms, repeated query params, header lists). Don't add it to a JSON API; `[FromBody]` already handles it. `Maybe<T>` is intentionally unsupported on non-body slots — use `T?` there, or `Maybe<T>?` from `[FromBody]` for three-state PATCH. See `references/aspnetcore.md`.
+- **AspNetCore** — only when a controller takes `NonEmptyEnumerable<T>` from a non-body source (forms, repeated query params, header lists). A pure JSON API doesn't need it; `[FromBody]` already handles `NonEmptyEnumerable<T>` via the core JSON converters. See `references/aspnetcore.md`.
 
 ## Type catalog — what's in the box
 
