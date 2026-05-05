@@ -83,6 +83,7 @@
         content = content.Replace("srcset=\"docs/diagrams/", "srcset=\"" + RawBaseUrl + "docs/diagrams/");
         content = content.Replace("](Skill/", "](" + RawBaseUrl + "Skill/");
         content = content.Replace("](src/", "](" + BlobBaseUrl + "src/");
+        content = content.Replace("](license.txt)", "](" + BlobBaseUrl + "license.txt)");
         content = content.Replace("https://github.com/KaliCZ/StrongTypes/releases/latest/download/", ReleaseAssetBaseUrl);
         System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(DestinationPath));
         System.IO.File.WriteAllText(DestinationPath, content);
