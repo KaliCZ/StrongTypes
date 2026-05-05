@@ -64,7 +64,6 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
     {
         if (operation.Parameters is null) return;
         var clrType = ResolveParameterClrType(pd);
-        if (clrType is null) return;
 
         foreach (var p in operation.Parameters)
         {
@@ -80,7 +79,6 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
     {
         if (operation.RequestBody?.Content is not { } content) return;
         var clrType = ResolveParameterClrType(pd);
-        if (clrType is null) return;
 
         foreach (var contentType in s_formContentTypes)
         {
@@ -194,11 +192,10 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
         return [];
     }
 
-    // ApiParameterDescription.Type is the type the model binder reports —
-    // for strong-types that implement IParsable<T>, ASP.NET reports the
-    // string overload's input, hiding the wrapper. ModelMetadata.ModelType
-    // exposes the actual CLR type for both parameter slots and for
-    // properties of a flattened [FromForm] model.
-    private static Type? ResolveParameterClrType(ApiParameterDescription pd)
-        => pd.ModelMetadata?.ModelType ?? pd.ParameterDescriptor?.ParameterType ?? pd.Type;
+    // ApiParameterDescription.Type lies for strong types implementing IParsable<T> —
+    // it reports the string overload's input, hiding the wrapper. ModelMetadata.ModelType
+    // exposes the actual CLR type for both parameter slots and for properties of a
+    // flattened [FromForm] model.
+    private static Type ResolveParameterClrType(ApiParameterDescription pd)
+        => pd.ModelMetadata.ModelType;
 }

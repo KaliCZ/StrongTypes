@@ -72,7 +72,6 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
     {
         if (operation.Parameters is null) return;
         var clrType = ResolveParameterClrType(pd);
-        if (clrType is null) return;
         if (GetSlotAttributes(pd).Count == 0) return;
 
         foreach (var p in operation.Parameters)
@@ -89,7 +88,6 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
     {
         if (operation.RequestBody?.Content is not { } content) return;
         var clrType = ResolveParameterClrType(pd);
-        if (clrType is null) return;
         if (StrongTypeSchemaTypes.TryGetMaybeValue(clrType, out var maybeInner))
             clrType = maybeInner;
         if (GetSlotAttributes(pd).Count == 0) return;
@@ -144,13 +142,6 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
                 formParamCount++;
 
                 var clrType = ResolveParameterClrType(pd);
-                if (clrType is null)
-                {
-                    logger?.LogError(
-                        "StrongTypes form-body reshape skipped property '{PropertyName}' on operation '{OperationId}' because no CLR type could be resolved from its ApiParameterDescription. The emitted form schema may be incomplete.",
-                        pd.Name, operation.OperationId ?? "(unnamed)");
-                    continue;
-                }
 
                 // Maybe<T> bound from a non-body slot via the StrongTypes.AspNetCore
                 // model binder reads a single raw form-data value and wraps
@@ -226,7 +217,6 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
             {
                 if (pd.Source != BindingSource.Form) continue;
                 var clrType = ResolveParameterClrType(pd);
-                if (clrType is null) continue;
                 if (!StrongTypeSchemaTypes.TryGetMaybeValue(clrType, out var innerType)) continue;
                 if (!properties.ContainsKey(pd.Name)) continue;
 
@@ -291,6 +281,10 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
         return [];
     }
 
-    private static Type? ResolveParameterClrType(ApiParameterDescription pd)
-        => pd.ModelMetadata?.ModelType ?? pd.ParameterDescriptor?.ParameterType ?? pd.Type;
+    // ApiParameterDescription.Type lies for strong types implementing IParsable<T> —
+    // it reports the string overload's input, hiding the wrapper. ModelMetadata.ModelType
+    // exposes the actual CLR type for both parameter slots and for properties of a
+    // flattened [FromForm] model.
+    private static Type ResolveParameterClrType(ApiParameterDescription pd)
+        => pd.ModelMetadata.ModelType;
 }
