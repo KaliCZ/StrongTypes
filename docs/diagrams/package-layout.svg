@@ -121,7 +121,7 @@
   <text class="niche-title" x="439" y="213">Kalicz.StrongTypes.AspNetCore</text>
   <text class="niche-tag"   x="785" y="213" text-anchor="end">rarely needed</text>
   <circle class="niche-bullet" cx="445" cy="235" r="1.8"/>
-  <text class="niche-body" x="453" y="239"><tspan font-family="ui-monospace, Menlo, Consolas, monospace">Maybe&lt;T&gt;</tspan> / <tspan font-family="ui-monospace, Menlo, Consolas, monospace">NonEmptyEnumerable&lt;T&gt;</tspan> binders from forms</text>
+  <text class="niche-body" x="453" y="239"><tspan font-family="ui-monospace, Menlo, Consolas, monospace">NonEmptyEnumerable&lt;T&gt;</tspan> binder from forms</text>
 
   <!-- ========================================================== -->
   <!-- Utility packages (bottom-left) — EfCore + FsCheck stacked  -->
