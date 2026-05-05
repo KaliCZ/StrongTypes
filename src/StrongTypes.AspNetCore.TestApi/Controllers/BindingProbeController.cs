@@ -41,8 +41,6 @@ public sealed class BindingProbeController : ControllerBase
             tags = request.Tags?.Select(t => t.Value).ToArray(),
             counts = request.Counts?.Select(c => c.Value).ToArray(),
             digits = request.Digits?.Select(d => (int)d.Value).ToArray(),
-            displayNameState = MaybeState(request.DisplayName),
-            displayName = MaybeValue(request.DisplayName),
         });
 
     [HttpGet("query-nee-strong")]
@@ -56,17 +54,9 @@ public sealed class BindingProbeController : ControllerBase
             counts = counts.Select(c => c.Value).ToArray(),
             digits = digits.Select(d => (int)d.Value).ToArray(),
         });
-
-    private static string MaybeState<T>(Maybe<T>? maybe)
-        where T : notnull
-        => maybe is null ? "missing" : maybe.Value.IsSome ? "some" : "none";
-
-    private static string? MaybeValue(Maybe<NonEmptyString>? maybe)
-        => maybe is null ? null : maybe.Value.Match<string?>(v => v.Value, () => null);
 }
 
 public sealed record BindingProbeFormRequest(
     NonEmptyEnumerable<NonEmptyString>? Tags,
     NonEmptyEnumerable<Positive<int>>? Counts,
-    NonEmptyEnumerable<Digit>? Digits,
-    Maybe<NonEmptyString>? DisplayName);
+    NonEmptyEnumerable<Digit>? Digits);

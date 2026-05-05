@@ -3,9 +3,8 @@
 A small, niche companion package. **Most ASP.NET Core apps don't need
 it.** Reach for it only when:
 
-- A controller action takes `Maybe<T>` or `NonEmptyEnumerable<T>` from
-  `[FromForm]` (the primary use), `[FromQuery]`, `[FromHeader]`, or
-  `[FromRoute]`.
+- A controller action takes `NonEmptyEnumerable<T>` from `[FromForm]`,
+  `[FromQuery]`, `[FromHeader]`, or `[FromRoute]`.
 
 If the app talks JSON over `[FromBody]`, this package adds nothing —
 the JSON converters in the core `Kalicz.StrongTypes` package already
@@ -14,33 +13,17 @@ installing it for JSON APIs.
 
 ## When you DO need it
 
-Two specific shapes that the framework's built-in binders can't
-produce on their own:
+**`NonEmptyEnumerable<T>` from repeated form fields, query
+parameters, or header lists.** Multi-select inputs, checkbox groups,
+list-style filters (`?tags=a&tags=b&tags=c`). The binder enforces the
+non-empty invariant; an empty / missing source surfaces as a 400 with
+`ValidationProblemDetails`.
 
-1. **`Maybe<T>?` on a form-posted patch contract.** A single HTML
-   form field that needs three intents — *don't touch*, *clear*,
-   *set* — can't be expressed with `T?` alone. With this package,
-   `Maybe<T>?` binds: `null` = field omitted, `None` = field present
-   but empty, `Some(value)` = field set to a parsed value.
-
-   ```csharp
-   public sealed record ProfilePatch(Maybe<NonEmptyString>? DisplayName);
-
-   [HttpPost("profile")]
-   public IActionResult Patch([FromForm] ProfilePatch patch) { ... }
-   ```
-
-2. **`NonEmptyEnumerable<T>` from repeated form fields or query
-   parameters.** Multi-select inputs, checkbox groups, list-style
-   filters (`?tags=a&tags=b&tags=c`). The binder enforces the
-   non-empty invariant; an empty / missing source surfaces as a 400
-   with `ValidationProblemDetails`.
-
-   ```csharp
-   [HttpPost("articles")]
-   public IActionResult Create(
-       [FromForm] NonEmptyEnumerable<NonEmptyString> tags) { ... }
-   ```
+```csharp
+[HttpPost("articles")]
+public IActionResult Create(
+    [FromForm] NonEmptyEnumerable<NonEmptyString> tags) { ... }
+```
 
 Every other strong-type wrapper (`NonEmptyString`, `Email`, `Digit`,
 `Positive<T>`, `Negative<T>`, `NonNegative<T>`, `NonPositive<T>`)
@@ -50,18 +33,35 @@ they implement `IParsable<TSelf>` and ASP.NET Core's built-in
 
 ## When you DO NOT need it
 
-- **JSON APIs.** `[FromBody]` round-trips both `Maybe<T>` and
-  `NonEmptyEnumerable<T>` (and arbitrary nesting of them) via the
-  JSON converters in the core package. No extra reference required.
+- **JSON APIs.** `[FromBody]` round-trips `NonEmptyEnumerable<T>`
+  (and arbitrary nesting with `Maybe<T>`) via the JSON converters in
+  the core package. No extra reference required.
 - **Single-string strong types from non-body sources.** If the action
   signature is `[FromQuery] NonEmptyString` or
   `[FromRoute] Positive<int>`, ASP.NET Core's built-in `TryParse`
   binder already handles it — `IParsable<TSelf>` is enough.
-- **Three-state semantics on a query string or header.** The binder
-  *will* bind `Maybe<T>` from those sources, but the third state
-  (omitted vs. present-but-empty) doesn't really survive on those
-  wire formats. Use `T?` instead — the distinction isn't
-  controllable by the caller.
+
+## `Maybe<T>` is not supported on non-body slots
+
+`Maybe<T>` is **intentionally unsupported** on `[FromQuery]`,
+`[FromRoute]`, `[FromHeader]`, and `[FromForm]`. The wire formats for
+those slots only model "present" vs "absent" — there's no
+protocol-level "explicitly null" — so the three-state semantic that
+motivates `Maybe<T>?` collapses to two-state, which `T?` already
+covers natively.
+
+- **Optional non-body field?** Use `T?` (e.g. `[FromQuery] int? age`,
+  `[FromForm] NonEmptyString? nickname`). The framework binds
+  "absent" to `null` and "present" to the parsed value.
+- **Three-state PATCH semantics?** Use `Maybe<T>?` from `[FromBody]`
+  with a JSON payload. The JSON converter distinguishes "property
+  omitted" (`null`), "explicit null" (`None`), and "value supplied"
+  (`Some`). That's the only wire format where all three are
+  unambiguously expressible.
+
+If a project today has `[FromForm] Maybe<T>` or `[FromQuery] Maybe<T>`
+parameters, switch them to `T?` (or move the contract to `[FromBody]`
+if real PATCH semantics are needed).
 
 ## Wiring
 
@@ -72,13 +72,14 @@ builder.Services.AddControllers();
 builder.Services.AddStrongTypes();          // from StrongTypes.AspNetCore
 ```
 
-`AddStrongTypes()` inserts both `IModelBinderProvider`s at the front
-of `MvcOptions.ModelBinderProviders`, ahead of the framework's
-collection / simple-type providers.
+`AddStrongTypes()` inserts the `NonEmptyEnumerable<T>`
+`IModelBinderProvider` at the front of
+`MvcOptions.ModelBinderProviders`, ahead of the framework's
+collection providers.
 
 ## Element type support
 
-Both binders parse each raw string via `IParsable<T>`. Element types
+The binder parses each raw string via `IParsable<T>`. Element types
 that work:
 
 - BCL primitives that implement `IParsable<T>` — `int`, `long`,
@@ -88,18 +89,17 @@ that work:
   `ValidationProblemDetails`, with the failing field named in
   `ModelState`.
 
-**Not supported** — wrapper-of-wrapper combinations on non-body
-sources: `NonEmptyEnumerable<Maybe<T>>`,
-`Maybe<NonEmptyEnumerable<T>>`,
-`NonEmptyEnumerable<NonEmptyEnumerable<T>>`. There's no clean wire
-form for them on a query string / header / form. Use `[FromBody]` if
-you need that nesting.
+**Not supported** —
+`NonEmptyEnumerable<NonEmptyEnumerable<T>>` on non-body sources.
+There's no clean wire form for nested collections on a query string /
+header / form. Use `[FromBody]` if that nesting is needed.
 
 ## Decision rule
 
 > **Default: don't add this package.** Only add it when a controller
-> action needs `Maybe<T>` or `NonEmptyEnumerable<T>` from a non-body
-> source — and that's not just a workaround for "I want a strong
-> type in my query string." For single-value wrappers from query /
-> route / header, the framework already handles them; for JSON APIs,
-> `[FromBody]` already handles them.
+> action needs `NonEmptyEnumerable<T>` from a non-body source — and
+> that's not just a workaround for "I want a strong type in my query
+> string." For single-value wrappers from query / route / header, the
+> framework already handles them; for JSON APIs, `[FromBody]` already
+> handles `NonEmptyEnumerable<T>` and `Maybe<T>` (including
+> three-state PATCH).

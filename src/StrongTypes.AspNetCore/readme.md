@@ -4,19 +4,29 @@
 
 A small companion package to
 [Kalicz.StrongTypes](https://www.nuget.org/packages/Kalicz.StrongTypes).
-You only need it if you want to bind `NonEmptyEnumerable<T>` or
-`Maybe<T>` from `[FromForm]` (the primary expected use), or from
-`[FromQuery]`, `[FromHeader]`, or `[FromRoute]`.
+You only need it if you want to bind `NonEmptyEnumerable<T>` from
+`[FromForm]`, `[FromQuery]`, `[FromHeader]`, or `[FromRoute]`.
 
 If you're writing a standard JSON API, you don't need this package.
-`[FromBody]` round-tripping for both wrappers — and arbitrary nesting
-of them — already works through the JSON converters that ship with
-the main `Kalicz.StrongTypes` package.
+`[FromBody]` round-tripping for `NonEmptyEnumerable<T>` — and
+arbitrary nesting with the other wrappers — already works through
+the JSON converters that ship with the main `Kalicz.StrongTypes`
+package.
 
 The other wrappers (`NonEmptyString`, `Email`, `Digit`, the numeric
 ones) bind from every non-body source out of the box because they
 implement `IParsable<TSelf>` and ASP.NET Core's built-in `TryParse`
 binder picks them up — no extra package needed for those either.
+
+`Maybe<T>` is intentionally **not** supported on non-body slots. On
+the wire, a query / route / header value is either present or
+absent — there is no protocol-level "explicitly null" — so the
+three-state semantic that motivates `Maybe<T>?` collapses to
+two-state, which `T?` already covers. Forms have the same problem
+(`application/x-www-form-urlencoded` carries strings, not nulls), so
+they're excluded for the same reason. Use `Maybe<T>` from
+`[FromBody]` if you need three-state PATCH semantics — the JSON
+converter handles that natively.
 
 ## Install
 
@@ -33,28 +43,11 @@ builder.Services.AddControllers();
 builder.Services.AddStrongTypes();
 ```
 
-`AddStrongTypes()` inserts both binder providers at the front of
-`MvcOptions.ModelBinderProviders`, so they run before the default
-collection / simple-type binders.
+`AddStrongTypes()` inserts the `NonEmptyEnumerable<T>` binder
+provider at the front of `MvcOptions.ModelBinderProviders`, so it
+runs before the default collection binders.
 
-## Examples
-
-A form-posted patch contract — the original motivation for the
-package. `Maybe<T>?` distinguishes the three update intents that a
-single field on an HTML form has to express:
-
-```csharp
-[HttpPost("profile")]
-public IActionResult PatchProfile([FromForm] ProfilePatch patch)
-{
-    // DisplayName == null: field omitted, leave it alone.
-    // DisplayName == None: field was present but empty, clear it.
-    // DisplayName == Some(value): set it to a non-empty string.
-    return Ok();
-}
-
-public sealed record ProfilePatch(Maybe<NonEmptyString>? DisplayName);
-```
+## Example
 
 A multi-value form field (or query string) that must be non-empty:
 
@@ -71,7 +64,7 @@ public IActionResult Create([FromForm] NonEmptyEnumerable<NonEmptyString> tags)
 
 ## Supported element types
 
-Both binders parse each raw string via `IParsable<T>` on the element
+The binder parses each raw string via `IParsable<T>` on the element
 type. That covers:
 
 - Every BCL primitive and value type that implements `IParsable<T>`
@@ -85,8 +78,7 @@ type. That covers:
   `Email`) surface as 400 + `ValidationProblemDetails`.
 
 Wrapper-of-wrapper combinations
-(`NonEmptyEnumerable<Maybe<T>>`, `Maybe<NonEmptyEnumerable<T>>`,
-`NonEmptyEnumerable<NonEmptyEnumerable<T>>`) are genuinely out of
+(`NonEmptyEnumerable<NonEmptyEnumerable<T>>`) are genuinely out of
 scope: they have no clean wire form on a non-body source. Use
 `[FromBody]` for those — the JSON converters in the main package
 handle arbitrary nesting.
