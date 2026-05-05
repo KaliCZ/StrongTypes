@@ -64,7 +64,6 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
     {
         if (operation.Parameters is null) return;
         var clrType = ResolveParameterClrType(pd);
-        if (clrType is null) return;
 
         foreach (var p in operation.Parameters)
         {
@@ -80,7 +79,6 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
     {
         if (operation.RequestBody?.Content is not { } content) return;
         var clrType = ResolveParameterClrType(pd);
-        if (clrType is null) return;
 
         foreach (var contentType in s_formContentTypes)
         {
@@ -100,6 +98,15 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
 
     private static IOpenApiSchema PaintSlot(IOpenApiSchema? existing, Type clrType, ApiParameterDescription pd)
     {
+        // Maybe<T> bound from a non-body slot via the StrongTypes.AspNetCore
+        // model binder reads a single raw form-data value and wraps it as
+        // Some/None — the wire is the inner T, not the body-side
+        // {"Value":<T>} wrapper object the JSON converter emits. Unwrap
+        // here so the rest of this pass paints the inner shape and merges
+        // slot annotations against it.
+        if (StrongTypeSchemaTypes.TryGetMaybeValue(clrType, out var maybeInner))
+            clrType = maybeInner;
+
         // Mutate the existing schema when possible so any keywords the
         // pipeline already wrote (description, default, caller-applied
         // [StringLength] on the IParsable string overload, …) survive the
@@ -152,6 +159,17 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
             return true;
         }
 
+        if (StrongTypeSchemaTypes.TryGetNonEmptyEnumerableElement(clrType, out var elementType))
+        {
+            SchemaPaint.ClearWrapperShape(schema);
+            schema.Type = JsonSchemaType.Array;
+            SchemaPaint.TightenMinItems(schema, 1);
+            var itemsSchema = new OpenApiSchema();
+            if (TryPaintWireShape(itemsSchema, elementType))
+                schema.Items = itemsSchema;
+            return true;
+        }
+
         return false;
     }
 
@@ -174,11 +192,10 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
         return [];
     }
 
-    // ApiParameterDescription.Type is the type the model binder reports —
-    // for strong-types that implement IParsable<T>, ASP.NET reports the
-    // string overload's input, hiding the wrapper. ModelMetadata.ModelType
-    // exposes the actual CLR type for both parameter slots and for
-    // properties of a flattened [FromForm] model.
-    private static Type? ResolveParameterClrType(ApiParameterDescription pd)
-        => pd.ModelMetadata?.ModelType ?? pd.ParameterDescriptor?.ParameterType ?? pd.Type;
+    // ApiParameterDescription.Type lies for strong types implementing IParsable<T> —
+    // it reports the string overload's input, hiding the wrapper. ModelMetadata.ModelType
+    // exposes the actual CLR type for both parameter slots and for properties of a
+    // flattened [FromForm] model.
+    private static Type ResolveParameterClrType(ApiParameterDescription pd)
+        => pd.ModelMetadata.ModelType;
 }
