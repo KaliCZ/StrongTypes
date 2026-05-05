@@ -274,28 +274,6 @@ public abstract partial class OpenApiDocumentTestsBase
             : """{"type":"array","minItems":2,"items":{"type":"number","format":"double","maximum":0,"exclusiveMaximum":true}}""");
     }
 
-    /// <summary>
-    /// <see cref="Maybe{T}"/> bound from a non-body slot via
-    /// <c>StrongTypes.AspNetCore</c>'s model binder reads a single raw
-    /// form-data value, parses it as <typeparamref name="T"/>, and wraps
-    /// the result in <c>Some</c>/<c>None</c>. The wire is therefore the
-    /// inner <typeparamref name="T"/> — not the body-side
-    /// <c>{"Value":&lt;T&gt;}</c> wrapper object the JSON converter
-    /// emits. Both pipelines must paint the inner shape on every
-    /// <c>[FromForm]</c> <see cref="Maybe{T}"/> property; recursion
-    /// matches what we already do for <see cref="NonEmptyEnumerable{T}"/>.
-    /// </summary>
-    [Fact]
-    public async Task FromForm_Maybe_FormBody_RendersInnerWireShapeForEachProperty()
-    {
-        var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-maybe");
-        AssertFormBodyHasObjectShape(formSchema, "Greeting", "Quantity", "ContactEmail");
-
-        AssertFormPropertyNonEmptyStringSchema(formSchema, "Greeting");
-        AssertFormPropertyPositiveIntSchema(formSchema, "Quantity", Version);
-        AssertFormPropertyEmailSchema(formSchema, "ContactEmail");
-    }
-
     [Fact]
     public async Task FromForm_Mixed_FormBody_RendersBothPrimitivesAndWrappersWithAnnotations()
     {

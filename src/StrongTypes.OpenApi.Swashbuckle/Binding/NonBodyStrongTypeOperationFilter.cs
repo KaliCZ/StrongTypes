@@ -49,7 +49,6 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
         if (descriptions is null || descriptions.Count == 0) return;
 
         ReshapeFormAllOfIntoProperties(operation, descriptions, context.SchemaGenerator, context.SchemaRepository, logger);
-        ReshapeMaybeFormPropertiesIntoInnerWireShape(operation, descriptions, context.SchemaGenerator, context.SchemaRepository);
 
         foreach (var pd in descriptions)
         {
@@ -88,8 +87,6 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
     {
         if (operation.RequestBody?.Content is not { } content) return;
         var clrType = ResolveParameterClrType(pd);
-        if (StrongTypeSchemaTypes.TryGetMaybeValue(clrType, out var maybeInner))
-            clrType = maybeInner;
         if (GetSlotAttributes(pd).Count == 0) return;
 
         foreach (var contentType in s_formContentTypes)
@@ -143,15 +140,6 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
 
                 var clrType = ResolveParameterClrType(pd);
 
-                // Maybe<T> bound from a non-body slot via the StrongTypes.AspNetCore
-                // model binder reads a single raw form-data value and wraps
-                // it as Some/None — the wire is the inner T, not the
-                // body-side {"Value":<T>} wrapper object. Generate the
-                // schema for the inner T so consumers see the field's
-                // actual on-the-wire shape.
-                if (StrongTypeSchemaTypes.TryGetMaybeValue(clrType, out var maybeInner))
-                    clrType = maybeInner;
-
                 // For primitives, hand Swashbuckle the form record's
                 // PropertyInfo so its generator surfaces caller annotations
                 // (`[StringLength]`, `[Range]`, …) directly. For wrappers
@@ -185,47 +173,6 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
             formSchema.Properties = properties;
             formSchema.AllOf = null;
             formSchema.Type ??= JsonSchemaType.Object;
-        }
-    }
-
-    /// <summary>
-    /// Replaces the per-property schemas of <see cref="Maybe{T}"/>-typed
-    /// form fields with the inner type's wire shape. The body-side Maybe
-    /// schema is the wrapper object (<c>{"type":"object","properties":{"Value":&lt;T&gt;}}</c>)
-    /// the JSON converter emits, but the <c>StrongTypes.AspNetCore</c>
-    /// model binder reads non-body slots as a single raw value of the
-    /// inner type, so the form-data wire is the inner type. Runs after
-    /// <see cref="ReshapeFormAllOfIntoProperties"/> so it covers both the
-    /// reshaped path and the case where Swashbuckle natively emitted a
-    /// properties map.
-    /// </summary>
-    private static void ReshapeMaybeFormPropertiesIntoInnerWireShape(
-        OpenApiOperation operation,
-        IList<ApiParameterDescription> descriptions,
-        ISchemaGenerator schemaGenerator,
-        SchemaRepository schemaRepository)
-    {
-        if (operation.RequestBody?.Content is not { } content) return;
-
-        foreach (var contentType in s_formContentTypes)
-        {
-            if (!content.TryGetValue(contentType, out var media)) continue;
-            if (media.Schema is not OpenApiSchema formSchema) continue;
-            if (formSchema.Properties is not { Count: > 0 } properties) continue;
-
-            foreach (var pd in descriptions)
-            {
-                if (pd.Source != BindingSource.Form) continue;
-                var clrType = ResolveParameterClrType(pd);
-                if (!StrongTypeSchemaTypes.TryGetMaybeValue(clrType, out var innerType)) continue;
-                if (!properties.ContainsKey(pd.Name)) continue;
-
-                MemberInfo? memberInfo = null;
-                if (!StrongTypeSchemaTypes.IsInlineable(innerType))
-                    memberInfo = ResolveFormPropertyMember(pd);
-
-                properties[pd.Name] = schemaGenerator.GenerateSchema(innerType, schemaRepository, memberInfo);
-            }
         }
     }
 
