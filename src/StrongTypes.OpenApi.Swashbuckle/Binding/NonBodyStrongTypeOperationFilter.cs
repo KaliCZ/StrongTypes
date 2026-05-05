@@ -285,6 +285,5 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
     // it reports the string overload's input, hiding the wrapper. ModelMetadata.ModelType
     // exposes the actual CLR type for both parameter slots and for properties of a
     // flattened [FromForm] model.
-    private static Type ResolveParameterClrType(ApiParameterDescription pd)
-        => pd.ModelMetadata.ModelType;
+    private static Type ResolveParameterClrType(ApiParameterDescription pd) => pd.ModelMetadata.ModelType;
 }
