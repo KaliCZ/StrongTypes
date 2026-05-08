@@ -3,9 +3,10 @@
 [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes.EfCore?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/) [![Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.EfCore?label=downloads)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
 EF Core plumbing for [Kalicz.StrongTypes](https://www.nuget.org/packages/Kalicz.StrongTypes).
-Lets you use `NonEmptyString`, `Positive<T>`, `NonNegative<T>`, `Negative<T>`, and
-`NonPositive<T>` as regular entity properties — they round-trip through scalar
-columns, and LINQ predicates over them translate to server-side SQL.
+Lets you use `NonEmptyString`, `Positive<T>`, `NonNegative<T>`, `Negative<T>`,
+`NonPositive<T>`, and `BoundedInt<TBounds>` as regular entity properties — they
+round-trip through scalar columns, and LINQ predicates over them translate to
+server-side SQL.
 
 ## Install
 
