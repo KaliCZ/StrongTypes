@@ -16,8 +16,16 @@ namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 /// </summary>
 public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder().Build();
-    private readonly PostgreSqlContainer _pgContainer = new PostgreSqlBuilder().Build();
+    private const string DockerGroupLabel = "com.docker.compose.project";
+    private const string DockerGroupName = "StrongTypes";
+
+    private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder()
+        .WithLabel(DockerGroupLabel, DockerGroupName)
+        .Build();
+
+    private readonly PostgreSqlContainer _pgContainer = new PostgreSqlBuilder()
+        .WithLabel(DockerGroupLabel, DockerGroupName)
+        .Build();
 
     async ValueTask IAsyncLifetime.InitializeAsync()
     {
