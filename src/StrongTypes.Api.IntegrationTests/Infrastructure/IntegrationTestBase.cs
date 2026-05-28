@@ -27,7 +27,35 @@ public abstract class IntegrationTestBase<TEntity, T, TNullable>(TestWebApplicat
     protected DbSet<TEntity> SqlSet => SqlDb.Set<TEntity>();
     protected DbSet<TEntity> PgSet => PgDb.Set<TEntity>();
 
+    /// <summary>
+    /// Whether the SQL Server provider is backed by a real SQL Server on this host.
+    /// <see langword="false"/> only on a local host that opted into skipping SQL Server.
+    /// Guard every SQL-Server-specific assertion with this.
+    /// </summary>
+    protected bool SqlServerAvailable => factory.SqlServerAvailable;
+
     protected static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    /// <summary>
+    /// Asserts the SQL Server row matches when SQL Server is available; a no-op
+    /// otherwise. The in-memory stub used when SQL Server is skipped does not
+    /// exercise the real wire path, so asserting against it would be a false pass.
+    /// </summary>
+    protected async Task AssertSqlServerEntity(Guid id, T expectedValue, TNullable expectedNullableValue)
+    {
+        if (!SqlServerAvailable)
+        {
+            return;
+        }
+        await AssertEntity(SqlSet, id, expectedValue, expectedNullableValue);
+    }
+
+    /// <summary>
+    /// Skips a provider-parametrized test for the <c>sql-server</c> provider when
+    /// SQL Server is unavailable on this host; a no-op for any other provider.
+    /// </summary>
+    protected void SkipIfSqlServerUnavailable(string provider) =>
+        Assert.SkipWhen(provider == "sql-server" && !SqlServerAvailable, "SQL Server is not available on this host.");
 
     /// <summary>
     /// Fetches the entity with the given id from the supplied DbSet and asserts

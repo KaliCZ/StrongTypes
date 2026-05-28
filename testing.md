@@ -91,6 +91,44 @@ persisted state on both `SqlSet` and `PgSet`), invalid payloads returning
 `400`, and `null` handling for the nullable variant. If the type has a
 custom JSON converter, add converter-only tests under `Tests/ConverterTests`.
 
+### SQL Server availability and skipping
+
+The `mcr.microsoft.com/mssql/server` image is amd64-only; on an ARM64 host
+(e.g. a Snapdragon dev box) it starts under emulation and `sqlservr`
+segfaults, so the container never becomes ready. PostgreSQL has native ARM
+images and is **always required**. SQL Server is required too, with one
+deliberately narrow escape hatch:
+
+- **By default — and always in CI — a SQL Server that fails to start is a
+  hard failure.** The fixture throws and the whole run goes red. There is
+  no warning-and-continue path.
+- **Skipping is opt-in and local-only.** Set
+  `STRONGTYPES_SKIP_SQLSERVER_IF_UNAVAILABLE=1` to let a host fall back to
+  skipping the SQL-Server-backed assertions when the container can't start.
+  The opt-in is **ignored under CI** (`CI`, `GITHUB_ACTIONS`, or `TF_BUILD`
+  set), so a stray value can never downgrade a CI failure into a silent
+  skip. The default (no opt-in) and the CI guard both fail safe — toward a
+  crash, never a skip.
+
+When SQL Server is skipped, the fixture swaps it for an in-memory stub so
+the dual-write endpoints still boot and PostgreSQL round-trips keep
+running. The stub does **not** exercise the real SQL Server wire path, so
+its assertions are *skipped*, never run green against it. Guard SQL-Server
+work accordingly:
+
+- In a test deriving from `IntegrationTestBase`, assert the SQL Server row
+  via `AssertSqlServerEntity(id, value, nullableValue)` (a no-op when SQL
+  Server is unavailable) rather than `AssertEntity(SqlSet, …)`; PostgreSQL
+  assertions stay unconditional via `AssertEntity(PgSet, …)`.
+- In a provider-parametrized test (`[Theory]` over `Providers`), call
+  `SkipIfSqlServerUnavailable(provider)` as the first statement.
+- For any other SQL-Server-only assertion, gate it on the
+  `SqlServerAvailable` property.
+
+Tests that touch no database (the `BindingTests` and the collection-JSON
+round-trips) need neither provider's assertions and run on any host once
+the PostgreSQL container is up.
+
 ## OpenAPI integration tests — `StrongTypes.OpenApi.IntegrationTests`
 
 Verifies the schema each type produces in **both** supported OpenAPI

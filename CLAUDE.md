@@ -141,6 +141,13 @@ PostgreSQL (via Testcontainers). Every write endpoint persists to both
 `DbContext`s and every read endpoint reads from one specific provider,
 so tests can assert the full wire-to-DB path on each.
 
+Because writes hit both `DbContext`s, the harness needs both providers
+present. PostgreSQL is always required; SQL Server is required too, except
+that a local (non-CI) host may opt into skipping it when the amd64-only
+image won't start — see the "SQL Server availability and skipping" section
+of [`testing.md`](testing.md). CI never skips: a SQL Server that fails to
+start is always a hard failure there, never a silent skip.
+
 Current state: uses plain `string` / `string?`. Strong-type converters
 (EF Core value converters, JSON converters) will be wired in once the
 parallel work on those lands.
