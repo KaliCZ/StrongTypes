@@ -1,3 +1,4 @@
+using DotNet.Testcontainers.Containers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +20,8 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
     private const string DockerGroupLabel = "com.docker.compose.project";
     private const string DockerGroupName = "StrongTypes";
 
+    private static readonly TimeSpan ContainerStartTimeout = TimeSpan.FromSeconds(120);
+
     private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder()
         .WithLabel(DockerGroupLabel, DockerGroupName)
         .Build();
@@ -31,13 +34,31 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
     {
         // Start both containers in parallel; containers must be up before the
         // host is built so that ConfigureAppConfiguration can read their connection strings.
-        await Task.WhenAll(_sqlContainer.StartAsync(), _pgContainer.StartAsync());
+        await Task.WhenAll(
+            StartContainerAsync(_sqlContainer, "SQL Server"),
+            StartContainerAsync(_pgContainer, "PostgreSQL"));
 
         // Accessing Services triggers the lazy host build.
         using var scope = Services.CreateScope();
         var sp = scope.ServiceProvider;
         await sp.GetRequiredService<SqlServerDbContext>().Database.EnsureCreatedAsync();
         await sp.GetRequiredService<PostgreSqlDbContext>().Database.EnsureCreatedAsync();
+    }
+
+    private static async Task StartContainerAsync(IContainer container, string name)
+    {
+        using var cts = new CancellationTokenSource(ContainerStartTimeout);
+        try
+        {
+            await container.StartAsync(cts.Token);
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            throw new TimeoutException(
+                $"The {name} test container did not start within {ContainerStartTimeout.TotalSeconds:0}s. " +
+                "It either failed to start or never began accepting connections — check the container logs. " +
+                "On ARM64 hosts this can also happen when the image has no native ARM build, as the emulated process may crash on startup.");
+        }
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
