@@ -20,7 +20,7 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
     private const string DockerGroupLabel = "com.docker.compose.project";
     private const string DockerGroupName = "StrongTypes";
 
-    private static readonly TimeSpan ContainerStartTimeout = TimeSpan.FromSeconds(120);
+    private static readonly TimeSpan ContainerStartTimeout = TimeSpan.FromSeconds(45);
 
     private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder()
         .WithLabel(DockerGroupLabel, DockerGroupName)
