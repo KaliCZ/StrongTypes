@@ -19,19 +19,19 @@ namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 /// </summary>
 /// <remarks>
 /// PostgreSQL is required everywhere. SQL Server is required too — except on a
-/// local host that cannot run the amd64-only <c>mssql/server</c> image (e.g. an
-/// ARM64 dev box), where it may be skipped via an explicit opt-in. See
+/// host that cannot run the amd64-only <c>mssql/server</c> image (e.g. an ARM64
+/// dev box), where it may be skipped via an explicit opt-in. See
 /// <see cref="SqlServerAvailable"/> for what callers must guard, and the
 /// <c>STRONGTYPES_SKIP_SQLSERVER_IF_UNAVAILABLE</c> env var below for the gate.
-/// CI never takes the skip path: there, a SQL Server that fails to start is a
-/// hard failure of the whole test run, never a silent skip.
+/// Absent the opt-in, a SQL Server that fails to start is a hard failure of the
+/// whole test run, never a silent skip.
 /// </remarks>
 public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private const string DockerGroupLabel = "com.docker.compose.project";
     private const string DockerGroupName = "StrongTypes";
 
-    // Local, non-CI opt-in to skip SQL Server; the gate is SqlServerSkipPermitted.
+    // Opt-in to skip SQL Server when it can't start; the gate is SqlServerSkipPermitted.
     private const string SkipSqlServerEnvVar = "STRONGTYPES_SKIP_SQLSERVER_IF_UNAVAILABLE";
 
     private static readonly TimeSpan ContainerStartTimeout = TimeSpan.FromSeconds(45);
@@ -46,11 +46,11 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
 
     /// <summary>
     /// Whether the SQL Server container is up and backed by a real SQL Server.
-    /// <see langword="false"/> only on a local host that opted into skipping and
-    /// where SQL Server could not start — in CI this is always <see langword="true"/>
-    /// or the fixture throws. Tests must skip every SQL-Server-specific assertion
-    /// when this is <see langword="false"/>; the in-memory stub that keeps the
-    /// dual-write API booting does not exercise the real SQL Server wire path.
+    /// <see langword="false"/> only on a host that opted into skipping and where
+    /// SQL Server could not start — without the opt-in the fixture throws instead.
+    /// Tests must skip every SQL-Server-specific assertion when this is
+    /// <see langword="false"/>; the in-memory stub that keeps the dual-write API
+    /// booting does not exercise the real SQL Server wire path.
     /// </summary>
     public bool SqlServerAvailable { get; private set; }
 
@@ -69,9 +69,9 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
             if (!SqlServerSkipPermitted)
             {
                 throw new InvalidOperationException(
-                    "The SQL Server test container failed to start and skipping is not permitted in this environment. " +
-                    $"Set {SkipSqlServerEnvVar}=1 to allow skipping the SQL-Server-backed tests on a local, non-CI host " +
-                    "(e.g. an ARM64 box that cannot run the amd64-only mssql/server image). CI always requires SQL Server.",
+                    "The SQL Server test container failed to start and skipping is not permitted. " +
+                    $"Set {SkipSqlServerEnvVar}=1 to allow skipping the SQL-Server-backed tests on a host " +
+                    "that cannot run the amd64-only mssql/server image (e.g. an ARM64 box).",
                     ex);
             }
             SqlServerAvailable = false;
@@ -84,16 +84,9 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
         await sp.GetRequiredService<PostgreSqlDbContext>().Database.EnsureCreatedAsync();
     }
 
-    // Opt-in set AND not CI. Default and any CI env both forbid skipping, so a
-    // missing or stray flag fails safe toward a hard crash rather than a skip.
-    private static bool SqlServerSkipPermitted => SkipOptIn && !RunningInCi;
-
-    private static bool SkipOptIn => EnvFlag(SkipSqlServerEnvVar);
-
-    private static bool RunningInCi =>
-        EnvFlag("CI")
-        || Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is { Length: > 0 }
-        || Environment.GetEnvironmentVariable("TF_BUILD") is { Length: > 0 };
+    // Skipping is opt-in via the env flag. Absent the flag, a SQL Server that
+    // fails to start is a hard crash — the default fails safe toward a crash.
+    private static bool SqlServerSkipPermitted => EnvFlag(SkipSqlServerEnvVar);
 
     private static bool EnvFlag(string name) =>
         Environment.GetEnvironmentVariable(name) is { } value
