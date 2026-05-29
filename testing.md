@@ -93,37 +93,25 @@ custom JSON converter, add converter-only tests under `Tests/ConverterTests`.
 
 ### SQL Server availability and skipping
 
-The `mcr.microsoft.com/mssql/server` image is amd64-only; on an ARM64 host
-(e.g. a Snapdragon dev box) it starts under emulation and `sqlservr`
-segfaults, so the container never becomes ready. PostgreSQL has native ARM
-images and is **always required**. SQL Server is required too, with one
-deliberately narrow escape hatch:
+The `mcr.microsoft.com/mssql/server` image is amd64-only, so on an ARM64
+host (e.g. a Snapdragon dev box) `sqlservr` segfaults under emulation and
+the container never starts. PostgreSQL has native ARM images and is
+**always required**; SQL Server is too, with one narrow escape hatch: set
+`STRONGTYPES_SKIP_SQLSERVER=1` to skip it entirely (the container is never
+started). Without the opt-in, a SQL Server that fails to start is a hard
+failure — the fixture throws and the run goes red. The flag is honoured
+wherever it is set, so don't set it in CI: there is no separate CI guard.
 
-- **By default the SQL Server container is started and any failure to start
-  is a hard failure.** The fixture throws and the whole run goes red. There
-  is no warning-and-continue path.
-- **Skipping is opt-in.** Set `STRONGTYPES_SKIP_SQLSERVER=1` to skip SQL
-  Server entirely — the container is never started and the SQL-Server-backed
-  assertions are skipped. Without the opt-in the fixture fails safe — toward
-  a crash, never a skip. The flag is honoured wherever it is set, so do not
-  set it in CI: there is no separate CI guard, and a stray value will
-  silently downgrade a CI failure into a skip.
-
-When SQL Server is skipped, the fixture swaps it for an in-memory stub so
-the dual-write endpoints still boot and PostgreSQL round-trips keep
-running. The stub does **not** exercise the real SQL Server wire path, so
-its assertions are *skipped*, never run green against it. Guard SQL-Server
-work accordingly:
+When skipped, the fixture swaps in an in-memory stub so the dual-write
+endpoints still boot, but it does **not** exercise the real SQL Server wire
+path — guard every SQL-Server assertion accordingly:
 
 - In a test deriving from `IntegrationTestBase`, assert the persisted row
-  via `AssertEntity(id, value, nullableValue)`. It checks PostgreSQL
-  unconditionally and SQL Server only when it is available on this host, so
-  a single call covers both providers without leaking the skip logic into
-  the test body.
+  via `AssertEntity(id, value, nullableValue)` — it checks PostgreSQL
+  unconditionally and SQL Server only when available.
 - In a provider-parametrized test (`[Theory]` over `Providers`), call
   `SkipIfSqlServerUnavailable(provider)` as the first statement.
-- For any other SQL-Server-only assertion, gate it on the
-  `SqlServerAvailable` property.
+- For any other SQL-Server-only assertion, gate it on `SqlServerAvailable`.
 
 Tests that touch no database (the `BindingTests` and the collection-JSON
 round-trips) need neither provider's assertions and run on any host once
