@@ -34,7 +34,7 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
     // Opt-in to skip SQL Server entirely (the container is never started).
     private const string SkipSqlServerEnvVar = "STRONGTYPES_SKIP_SQLSERVER";
 
-    private static readonly TimeSpan ContainerStartTimeout = TimeSpan.FromSeconds(45);
+    private static readonly TimeSpan ContainerStartTimeout = TimeSpan.FromSeconds(30);
 
     private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder()
         .WithLabel(DockerGroupLabel, DockerGroupName)
@@ -87,12 +87,12 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
         {
             await container.StartAsync(cts.Token);
         }
-        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        catch (Exception e)
         {
-            throw new TimeoutException(
-                $"The {name} test container did not start within {ContainerStartTimeout.TotalSeconds:0}s. "
-                + "It either failed to start or never began accepting connections — check the container logs."
-                + (skipHint is null ? "" : " " + skipHint));
+            throw new Exception(
+                $"The {name} test container failed to start — check the container logs."
+                + (skipHint is null ? "" : " " + skipHint),
+                e);
         }
     }
 
