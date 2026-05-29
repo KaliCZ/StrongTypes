@@ -40,6 +40,8 @@ public sealed class NonEmptyStringFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task EqualTo_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var a = await Seed(Prefix + "alpha", null);
         var b = await Seed(Prefix + "beta", null);
         var needle = NonEmptyString.Create(Prefix + "alpha");
@@ -53,6 +55,8 @@ public sealed class NonEmptyStringFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task NotEqualTo_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var a = await Seed(Prefix + "alpha", null);
         var b = await Seed(Prefix + "beta", null);
         var needle = NonEmptyString.Create(Prefix + "alpha");
@@ -69,6 +73,8 @@ public sealed class NonEmptyStringFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task NullNullable_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var withNull = await Seed(Prefix + "null", null);
         var withValue = await Seed(Prefix + "nonnull", NonEmptyString.Create("x"));
 
@@ -84,6 +90,8 @@ public sealed class NonEmptyStringFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task NotNullNullable_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var withNull = await Seed(Prefix + "null", null);
         var withValue = await Seed(Prefix + "nonnull", NonEmptyString.Create("x"));
 
@@ -99,6 +107,8 @@ public sealed class NonEmptyStringFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task OrderBy_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var c = await Seed(Prefix + "c", null);
         var a = await Seed(Prefix + "a", null);
         var b = await Seed(Prefix + "b", null);
@@ -115,6 +125,8 @@ public sealed class NonEmptyStringFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task UnwrapContains_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var match = await Seed(Prefix + "needle-haystack", null);
         var noMatch = await Seed(Prefix + "other", null);
 
@@ -130,6 +142,8 @@ public sealed class NonEmptyStringFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task UnwrapStartsWith_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var match = await Seed(Prefix + "prefix-match", null);
         var noMatch = await Seed(Prefix + "other", null);
 
@@ -145,6 +159,8 @@ public sealed class NonEmptyStringFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task UnwrapEndsWith_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var suffix = $"-{Guid.NewGuid():N}-tail";
         var match = await Seed(Prefix + "m" + suffix, null);
         var noMatch = await Seed(Prefix + "other", null);
@@ -163,6 +179,8 @@ public sealed class NonEmptyStringFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task EfFunctionsLike_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var match = await Seed(Prefix + "apple", null);
         var noMatch = await Seed(Prefix + "banana", null);
 

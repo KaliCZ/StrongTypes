@@ -91,6 +91,32 @@ persisted state on both `SqlSet` and `PgSet`), invalid payloads returning
 `400`, and `null` handling for the nullable variant. If the type has a
 custom JSON converter, add converter-only tests under `Tests/ConverterTests`.
 
+### SQL Server availability and skipping
+
+The `mcr.microsoft.com/mssql/server` image is amd64-only, so on an ARM64
+host (e.g. a Snapdragon dev box) `sqlservr` segfaults under emulation and
+the container never starts. PostgreSQL has native ARM images and is
+**always required**; SQL Server is too, with one narrow escape hatch: set
+`STRONGTYPES_SKIP_SQLSERVER=1` to skip it entirely (the container is never
+started). Without the opt-in, a SQL Server that fails to start is a hard
+failure — the fixture throws and the run goes red. The flag is honoured
+wherever it is set, so don't set it in CI: there is no separate CI guard.
+
+When skipped, the fixture swaps in an in-memory stub so the dual-write
+endpoints still boot, but it does **not** exercise the real SQL Server wire
+path — guard every SQL-Server assertion accordingly:
+
+- In a test deriving from `IntegrationTestBase`, assert the persisted row
+  via `AssertEntity(id, value, nullableValue)` — it checks PostgreSQL
+  unconditionally and SQL Server only when available.
+- In a provider-parametrized test (`[Theory]` over `Providers`), call
+  `SkipIfSqlServerUnavailable(provider)` as the first statement.
+- For any other SQL-Server-only assertion, gate it on `SqlServerAvailable`.
+
+Tests that touch no database (the `BindingTests` and the collection-JSON
+round-trips) need neither provider's assertions and run on any host once
+the PostgreSQL container is up.
+
 ## OpenAPI integration tests — `StrongTypes.OpenApi.IntegrationTests`
 
 Verifies the schema each type produces in **both** supported OpenAPI

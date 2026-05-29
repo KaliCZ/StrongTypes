@@ -41,6 +41,8 @@ public sealed class MailAddressFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task EqualTo_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var a = await Seed("alpha", null);
         var b = await Seed("beta", null);
         var needle = MailAddress.Create($"{Prefix}alpha@example.com");
@@ -54,6 +56,8 @@ public sealed class MailAddressFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task UnwrapStartsWith_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var match = await Seed("prefix-match", null);
         var noMatch = await Seed("other", null);
 
@@ -69,6 +73,8 @@ public sealed class MailAddressFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task UnwrapContains_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var match = await Seed("needle-haystack", null);
         var noMatch = await Seed("other", null);
 
@@ -86,6 +92,8 @@ public sealed class MailAddressFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task EfFunctionsLike_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var match = await Seed("apple", null);
         var noMatch = await Seed("banana", null);
 

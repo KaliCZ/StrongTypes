@@ -123,16 +123,14 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     {
         var created = await Post(CreateEndpoint, new { value, nullableValue = value });
         var expected = Create(value);
-        await AssertEntity(SqlSet, created.Id, expected, ToNullable(expected));
-        await AssertEntity(PgSet, created.Id, expected, ToNullable(expected));
+        await AssertEntity(created.Id, expected, ToNullable(expected));
     }
 
     [Fact]
     public async Task ValidValueWithNullNullable_PersistsInBothDatabases()
     {
         var created = await Post(CreateEndpoint, new { value = (object?)FirstValid, nullableValue = (object?)null });
-        await AssertEntity(SqlSet, created.Id, Create(FirstValid), NullNullable);
-        await AssertEntity(PgSet, created.Id, Create(FirstValid), NullNullable);
+        await AssertEntity(created.Id, Create(FirstValid), NullNullable);
     }
 
     // ── Create: invalid (non-null) ───────────────────────────────────────
@@ -180,10 +178,13 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         await SqlDb.SaveChangesAsync(Ct);
         await PgDb.SaveChangesAsync(Ct);
 
-        var sqlJson = await Get(SqlServerGetEndpoint(entity.Id));
-        Assert.Equal(entity.Id, sqlJson.GetProperty("id").GetGuid());
-        AssertJsonEquals(sqlJson.GetProperty("value"), FirstValid);
-        AssertJsonEquals(sqlJson.GetProperty("nullableValue"), FirstValid);
+        if (SqlServerAvailable)
+        {
+            var sqlJson = await Get(SqlServerGetEndpoint(entity.Id));
+            Assert.Equal(entity.Id, sqlJson.GetProperty("id").GetGuid());
+            AssertJsonEquals(sqlJson.GetProperty("value"), FirstValid);
+            AssertJsonEquals(sqlJson.GetProperty("nullableValue"), FirstValid);
+        }
 
         var pgJson = await Get(PostgreSqlGetEndpoint(entity.Id));
         Assert.Equal(entity.Id, pgJson.GetProperty("id").GetGuid());
@@ -200,9 +201,12 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         await SqlDb.SaveChangesAsync(Ct);
         await PgDb.SaveChangesAsync(Ct);
 
-        var sqlJson = await Get(SqlServerGetEndpoint(entity.Id));
-        Assert.Equal(JsonValueKind.Null, sqlJson.GetProperty("nullableValue").ValueKind);
-        AssertJsonEquals(sqlJson.GetProperty("value"), FirstValid);
+        if (SqlServerAvailable)
+        {
+            var sqlJson = await Get(SqlServerGetEndpoint(entity.Id));
+            Assert.Equal(JsonValueKind.Null, sqlJson.GetProperty("nullableValue").ValueKind);
+            AssertJsonEquals(sqlJson.GetProperty("value"), FirstValid);
+        }
 
         var pgJson = await Get(PostgreSqlGetEndpoint(entity.Id));
         Assert.Equal(JsonValueKind.Null, pgJson.GetProperty("nullableValue").ValueKind);
@@ -218,8 +222,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         await Put(UpdateEndpoint(created.Id), new { value = UpdatedValid, nullableValue = UpdatedValid });
 
         var updated = Create(UpdatedValid);
-        await AssertEntity(SqlSet, created.Id, updated, ToNullable(updated));
-        await AssertEntity(PgSet, created.Id, updated, ToNullable(updated));
+        await AssertEntity(created.Id, updated, ToNullable(updated));
     }
 
     [Fact]
@@ -228,8 +231,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         var created = await Post(CreateEndpoint, new { value = (object?)FirstValid, nullableValue = (object?)null });
         await Put(UpdateEndpoint(created.Id), new { value = (object?)FirstValid, nullableValue = (object?)UpdatedValid });
 
-        await AssertEntity(SqlSet, created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
-        await AssertEntity(PgSet, created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
+        await AssertEntity(created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
     }
 
     [Fact]
@@ -238,8 +240,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         var created = await Post(CreateEndpoint, new { value = FirstValid, nullableValue = FirstValid });
         await Put(UpdateEndpoint(created.Id), new { value = (object?)FirstValid, nullableValue = (object?)null });
 
-        await AssertEntity(SqlSet, created.Id, Create(FirstValid), NullNullable);
-        await AssertEntity(PgSet, created.Id, Create(FirstValid), NullNullable);
+        await AssertEntity(created.Id, Create(FirstValid), NullNullable);
     }
 
     // ── Patch ────────────────────────────────────────────────────────────
@@ -258,8 +259,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var expected = Create(FirstValid);
-        await AssertEntity(SqlSet, created.Id, expected, ToNullable(expected));
-        await AssertEntity(PgSet, created.Id, expected, ToNullable(expected));
+        await AssertEntity(created.Id, expected, ToNullable(expected));
     }
 
     [Fact]
@@ -270,8 +270,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         var response = await Patch(PatchEndpoint(created.Id), new { value = UpdatedValid });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        await AssertEntity(SqlSet, created.Id, Create(UpdatedValid), ToNullable(Create(FirstValid)));
-        await AssertEntity(PgSet, created.Id, Create(UpdatedValid), ToNullable(Create(FirstValid)));
+        await AssertEntity(created.Id, Create(UpdatedValid), ToNullable(Create(FirstValid)));
     }
 
     [Fact]
@@ -284,8 +283,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var expected = Create(FirstValid);
-        await AssertEntity(SqlSet, created.Id, expected, ToNullable(expected));
-        await AssertEntity(PgSet, created.Id, expected, ToNullable(expected));
+        await AssertEntity(created.Id, expected, ToNullable(expected));
     }
 
     [Fact]
@@ -296,8 +294,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         var response = await Patch(PatchEndpoint(created.Id), new { nullableValue = new { Value = UpdatedValid } });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        await AssertEntity(SqlSet, created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
-        await AssertEntity(PgSet, created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
+        await AssertEntity(created.Id, Create(FirstValid), ToNullable(Create(UpdatedValid)));
     }
 
     [Fact]
@@ -308,8 +305,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         var response = await Patch(PatchEndpoint(created.Id), new { nullableValue = new { } });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        await AssertEntity(SqlSet, created.Id, Create(FirstValid), NullNullable);
-        await AssertEntity(PgSet, created.Id, Create(FirstValid), NullNullable);
+        await AssertEntity(created.Id, Create(FirstValid), NullNullable);
     }
 
     [Fact]
@@ -320,8 +316,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         var response = await Patch(PatchEndpoint(created.Id), new { nullableValue = new { Value = (object?)null } });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        await AssertEntity(SqlSet, created.Id, Create(FirstValid), NullNullable);
-        await AssertEntity(PgSet, created.Id, Create(FirstValid), NullNullable);
+        await AssertEntity(created.Id, Create(FirstValid), NullNullable);
     }
 
     [Fact]
@@ -332,8 +327,7 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
         var response = await Patch(PatchEndpoint(created.Id), new { value = UpdatedValid, nullableValue = new { Value = UpdatedValid } });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        await AssertEntity(SqlSet, created.Id, Create(UpdatedValid), ToNullable(Create(UpdatedValid)));
-        await AssertEntity(PgSet, created.Id, Create(UpdatedValid), ToNullable(Create(UpdatedValid)));
+        await AssertEntity(created.Id, Create(UpdatedValid), ToNullable(Create(UpdatedValid)));
     }
 
     [Fact]

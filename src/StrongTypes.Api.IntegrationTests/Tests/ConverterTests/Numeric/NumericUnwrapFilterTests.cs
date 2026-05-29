@@ -28,6 +28,8 @@ public sealed class NumericUnwrapFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task Positive_UnwrapArithmetic_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var small = PositiveIntEntity.Create(Positive<int>.Create(3), null);
         var large = PositiveIntEntity.Create(Positive<int>.Create(7), null);
         SqlDb.Add(small); SqlDb.Add(large);
@@ -49,6 +51,8 @@ public sealed class NumericUnwrapFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task NonNegative_UnwrapArithmetic_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var zero = NonNegativeIntEntity.Create(NonNegative<int>.Create(0), null);
         var big = NonNegativeIntEntity.Create(NonNegative<int>.Create(10), null);
         SqlDb.Add(zero); SqlDb.Add(big);
@@ -70,6 +74,8 @@ public sealed class NumericUnwrapFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task Negative_UnwrapArithmetic_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var small = NegativeIntEntity.Create(Negative<int>.Create(-1), null);
         var large = NegativeIntEntity.Create(Negative<int>.Create(-100), null);
         SqlDb.Add(small); SqlDb.Add(large);
@@ -91,6 +97,8 @@ public sealed class NumericUnwrapFilterTests(TestWebApplicationFactory factory)
     [Theory, MemberData(nameof(Providers))]
     public async Task NonPositive_UnwrapArithmetic_TranslatesToSql(string provider)
     {
+        SkipIfSqlServerUnavailable(provider);
+
         var zero = NonPositiveIntEntity.Create(NonPositive<int>.Create(0), null);
         var negative = NonPositiveIntEntity.Create(NonPositive<int>.Create(-5), null);
         SqlDb.Add(zero); SqlDb.Add(negative);
