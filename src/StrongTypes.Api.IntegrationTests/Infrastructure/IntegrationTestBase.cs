@@ -37,17 +37,18 @@ public abstract class IntegrationTestBase<TEntity, T, TNullable>(TestWebApplicat
     protected static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     /// <summary>
-    /// Asserts the SQL Server row matches when SQL Server is available; a no-op
-    /// otherwise. The in-memory stub used when SQL Server is skipped does not
-    /// exercise the real wire path, so asserting against it would be a false pass.
+    /// Asserts the persisted row matches in both providers: PostgreSQL always, and
+    /// SQL Server only when it is available on this host. When SQL Server is skipped
+    /// its in-memory stub is not asserted against — it does not exercise the real
+    /// wire path, so a match there would be a false pass.
     /// </summary>
-    protected async Task AssertSqlServerEntity(Guid id, T expectedValue, TNullable expectedNullableValue)
+    protected async Task AssertEntity(Guid id, T expectedValue, TNullable expectedNullableValue)
     {
-        if (!SqlServerAvailable)
+        await AssertEntity(PgSet, id, expectedValue, expectedNullableValue);
+        if (SqlServerAvailable)
         {
-            return;
+            await AssertEntity(SqlSet, id, expectedValue, expectedNullableValue);
         }
-        await AssertEntity(SqlSet, id, expectedValue, expectedNullableValue);
     }
 
     /// <summary>
@@ -57,11 +58,7 @@ public abstract class IntegrationTestBase<TEntity, T, TNullable>(TestWebApplicat
     protected void SkipIfSqlServerUnavailable(string provider) =>
         Assert.SkipWhen(provider == "sql-server" && !SqlServerAvailable, "SQL Server is not available on this host.");
 
-    /// <summary>
-    /// Fetches the entity with the given id from the supplied DbSet and asserts
-    /// that its Value and NullableValue match the expected values.
-    /// </summary>
-    protected static async Task AssertEntity(
+    private static async Task AssertEntity(
         DbSet<TEntity> set,
         Guid id,
         T expectedValue,

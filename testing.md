@@ -116,10 +116,11 @@ running. The stub does **not** exercise the real SQL Server wire path, so
 its assertions are *skipped*, never run green against it. Guard SQL-Server
 work accordingly:
 
-- In a test deriving from `IntegrationTestBase`, assert the SQL Server row
-  via `AssertSqlServerEntity(id, value, nullableValue)` (a no-op when SQL
-  Server is unavailable) rather than `AssertEntity(SqlSet, …)`; PostgreSQL
-  assertions stay unconditional via `AssertEntity(PgSet, …)`.
+- In a test deriving from `IntegrationTestBase`, assert the persisted row
+  via `AssertEntity(id, value, nullableValue)`. It checks PostgreSQL
+  unconditionally and SQL Server only when it is available on this host, so
+  a single call covers both providers without leaking the skip logic into
+  the test body.
 - In a provider-parametrized test (`[Theory]` over `Providers`), call
   `SkipIfSqlServerUnavailable(provider)` as the first statement.
 - For any other SQL-Server-only assertion, gate it on the
