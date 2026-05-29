@@ -103,8 +103,8 @@ deliberately narrow escape hatch:
   fixture throws and the whole run goes red. There is no
   warning-and-continue path.
 - **Skipping is opt-in.** Set `STRONGTYPES_SKIP_SQLSERVER_IF_UNAVAILABLE=1`
-  (or `true`) to let a host fall back to skipping the SQL-Server-backed
-  assertions when the container can't start. Without the opt-in the fixture
+  to let a host fall back to skipping the SQL-Server-backed assertions when
+  the container can't start. Without the opt-in the fixture
   fails safe — toward a crash, never a skip. The flag is honoured wherever
   it is set, so do not set it in CI: there is no separate CI guard, and a
   stray value will silently downgrade a CI failure into a skip.

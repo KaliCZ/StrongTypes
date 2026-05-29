@@ -86,11 +86,7 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
 
     // Skipping is opt-in via the env flag. Absent the flag, a SQL Server that
     // fails to start is a hard crash — the default fails safe toward a crash.
-    private static bool SqlServerSkipPermitted => EnvFlag(SkipSqlServerEnvVar);
-
-    private static bool EnvFlag(string name) =>
-        Environment.GetEnvironmentVariable(name) is { } value
-        && (value == "1" || value.Equals("true", StringComparison.OrdinalIgnoreCase));
+    private static bool SqlServerSkipPermitted => Environment.GetEnvironmentVariable(SkipSqlServerEnvVar) == "1";
 
     private static async Task StartContainerAsync(IContainer container, string name)
     {
