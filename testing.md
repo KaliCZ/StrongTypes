@@ -99,15 +99,15 @@ segfaults, so the container never becomes ready. PostgreSQL has native ARM
 images and is **always required**. SQL Server is required too, with one
 deliberately narrow escape hatch:
 
-- **By default a SQL Server that fails to start is a hard failure.** The
-  fixture throws and the whole run goes red. There is no
-  warning-and-continue path.
-- **Skipping is opt-in.** Set `STRONGTYPES_SKIP_SQLSERVER_IF_UNAVAILABLE=1`
-  to let a host fall back to skipping the SQL-Server-backed assertions when
-  the container can't start. Without the opt-in the fixture
-  fails safe — toward a crash, never a skip. The flag is honoured wherever
-  it is set, so do not set it in CI: there is no separate CI guard, and a
-  stray value will silently downgrade a CI failure into a skip.
+- **By default the SQL Server container is started and any failure to start
+  is a hard failure.** The fixture throws and the whole run goes red. There
+  is no warning-and-continue path.
+- **Skipping is opt-in.** Set `STRONGTYPES_SKIP_SQLSERVER=1` to skip SQL
+  Server entirely — the container is never started and the SQL-Server-backed
+  assertions are skipped. Without the opt-in the fixture fails safe — toward
+  a crash, never a skip. The flag is honoured wherever it is set, so do not
+  set it in CI: there is no separate CI guard, and a stray value will
+  silently downgrade a CI failure into a skip.
 
 When SQL Server is skipped, the fixture swaps it for an in-memory stub so
 the dual-write endpoints still boot and PostgreSQL round-trips keep

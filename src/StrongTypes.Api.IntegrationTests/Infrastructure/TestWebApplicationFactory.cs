@@ -20,19 +20,19 @@ namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 /// <remarks>
 /// PostgreSQL is required everywhere. SQL Server is required too — except on a
 /// host that cannot run the amd64-only <c>mssql/server</c> image (e.g. an ARM64
-/// dev box), where it may be skipped via an explicit opt-in. See
+/// dev box), where it can be skipped via an explicit opt-in. See
 /// <see cref="SqlServerAvailable"/> for what callers must guard, and the
-/// <c>STRONGTYPES_SKIP_SQLSERVER_IF_UNAVAILABLE</c> env var below for the gate.
-/// Absent the opt-in, a SQL Server that fails to start is a hard failure of the
-/// whole test run, never a silent skip.
+/// <c>STRONGTYPES_SKIP_SQLSERVER</c> env var below for the gate. Absent the
+/// opt-in the container is started, and any failure to start is a hard failure
+/// of the whole test run, never a silent skip.
 /// </remarks>
 public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private const string DockerGroupLabel = "com.docker.compose.project";
     private const string DockerGroupName = "StrongTypes";
 
-    // Opt-in to skip SQL Server when it can't start; the gate is SqlServerSkipPermitted.
-    private const string SkipSqlServerEnvVar = "STRONGTYPES_SKIP_SQLSERVER_IF_UNAVAILABLE";
+    // Opt-in to skip SQL Server entirely (the container is never started).
+    private const string SkipSqlServerEnvVar = "STRONGTYPES_SKIP_SQLSERVER";
 
     private static readonly TimeSpan ContainerStartTimeout = TimeSpan.FromSeconds(45);
 
@@ -46,36 +46,28 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
 
     /// <summary>
     /// Whether the SQL Server container is up and backed by a real SQL Server.
-    /// <see langword="false"/> only on a host that opted into skipping and where
-    /// SQL Server could not start — without the opt-in the fixture throws instead.
-    /// Tests must skip every SQL-Server-specific assertion when this is
-    /// <see langword="false"/>; the in-memory stub that keeps the dual-write API
-    /// booting does not exercise the real SQL Server wire path.
+    /// <see langword="false"/> only on a host that opted into skipping via the
+    /// env var, where the container is never started. Tests must skip every
+    /// SQL-Server-specific assertion when this is <see langword="false"/>; the
+    /// in-memory stub that keeps the dual-write API booting does not exercise
+    /// the real SQL Server wire path.
     /// </summary>
     public bool SqlServerAvailable { get; private set; }
 
     async ValueTask IAsyncLifetime.InitializeAsync()
     {
-        // PostgreSQL is mandatory on every host; a start failure always throws.
-        await StartContainerAsync(_pgContainer, "PostgreSQL");
+        SqlServerAvailable = !SqlServerSkipped;
 
-        try
+        // PostgreSQL is mandatory on every host; SQL Server too unless skipped.
+        // Start them concurrently — a start failure or timeout on either throws.
+        var startups = new List<Task> { StartContainerAsync(_pgContainer, "PostgreSQL") };
+        if (SqlServerAvailable)
         {
-            await StartContainerAsync(_sqlContainer, "SQL Server");
-            SqlServerAvailable = true;
+            startups.Add(StartContainerAsync(_sqlContainer, "SQL Server",
+                $"If this host cannot run the amd64-only mssql/server image (e.g. an ARM64 box), "
+                + $"set {SkipSqlServerEnvVar}=1 to skip the SQL-Server-backed tests."));
         }
-        catch (Exception ex)
-        {
-            if (!SqlServerSkipPermitted)
-            {
-                throw new InvalidOperationException(
-                    "The SQL Server test container failed to start and skipping is not permitted. " +
-                    $"Set {SkipSqlServerEnvVar}=1 to allow skipping the SQL-Server-backed tests on a host " +
-                    "that cannot run the amd64-only mssql/server image (e.g. an ARM64 box).",
-                    ex);
-            }
-            SqlServerAvailable = false;
-        }
+        await Task.WhenAll(startups);
 
         // Accessing Services triggers the lazy host build.
         using var scope = Services.CreateScope();
@@ -84,11 +76,11 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
         await sp.GetRequiredService<PostgreSqlDbContext>().Database.EnsureCreatedAsync();
     }
 
-    // Skipping is opt-in via the env flag. Absent the flag, a SQL Server that
-    // fails to start is a hard crash — the default fails safe toward a crash.
-    private static bool SqlServerSkipPermitted => Environment.GetEnvironmentVariable(SkipSqlServerEnvVar) == "1";
+    // Skipping SQL Server is opt-in; absent the flag, the container is started
+    // and any start failure or timeout is a hard crash.
+    private static bool SqlServerSkipped => Environment.GetEnvironmentVariable(SkipSqlServerEnvVar) == "1";
 
-    private static async Task StartContainerAsync(IContainer container, string name)
+    private static async Task StartContainerAsync(IContainer container, string name, string? skipHint = null)
     {
         using var cts = new CancellationTokenSource(ContainerStartTimeout);
         try
@@ -98,9 +90,9 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
             throw new TimeoutException(
-                $"The {name} test container did not start within {ContainerStartTimeout.TotalSeconds:0}s. " +
-                "It either failed to start or never began accepting connections — check the container logs. " +
-                "On ARM64 hosts this can also happen when the image has no native ARM build, as the emulated process may crash on startup.");
+                $"The {name} test container did not start within {ContainerStartTimeout.TotalSeconds:0}s. "
+                + "It either failed to start or never began accepting connections — check the container logs."
+                + (skipHint is null ? "" : " " + skipHint));
         }
     }
 
