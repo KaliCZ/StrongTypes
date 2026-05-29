@@ -56,7 +56,9 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
 
     async ValueTask IAsyncLifetime.InitializeAsync()
     {
-        SqlServerAvailable = !SqlServerSkipped;
+        // Skipping SQL Server is opt-in; absent the flag the container is started
+        // and any failure to start is a hard crash (see StartContainerAsync).
+        SqlServerAvailable = Environment.GetEnvironmentVariable(SkipSqlServerEnvVar) != "1";
 
         // PostgreSQL is mandatory on every host; SQL Server too unless skipped.
         // Start them concurrently — a start failure or timeout on either throws.
@@ -75,10 +77,6 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
         await sp.GetRequiredService<SqlServerDbContext>().Database.EnsureCreatedAsync();
         await sp.GetRequiredService<PostgreSqlDbContext>().Database.EnsureCreatedAsync();
     }
-
-    // Skipping SQL Server is opt-in; absent the flag, the container is started
-    // and any start failure or timeout is a hard crash.
-    private static bool SqlServerSkipped => Environment.GetEnvironmentVariable(SkipSqlServerEnvVar) == "1";
 
     private static async Task StartContainerAsync(IContainer container, string name, string? skipHint = null)
     {
