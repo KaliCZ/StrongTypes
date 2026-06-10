@@ -109,7 +109,7 @@ jobs:
     # as a repo secret.
     - name: Upload coverage to Codecov
       if: ${{ !cancelled() && hashFiles('coverage-report/Cobertura.xml') != '' }}
-      uses: codecov/codecov-action@v6
+      uses: codecov/codecov-action@v7
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: coverage-report/Cobertura.xml
