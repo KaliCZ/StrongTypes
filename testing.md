@@ -14,6 +14,7 @@ needs to touch depends on what the type does:
 | Has a `System.Text.Json` converter | `StrongTypes.Tests` + `StrongTypes.Api.IntegrationTests` |
 | Is meant to be stored in a database | `StrongTypes.Api.IntegrationTests` (covers both SQL Server and PostgreSQL) |
 | Appears in an ASP.NET Core request/response | `StrongTypes.OpenApi.IntegrationTests` |
+| Binds from a non-body source, or affects MVC error handling | `StrongTypes.AspNetCore.IntegrationTests` |
 | Ships an analyzer or code fix | `StrongTypes.Analyzers.Tests` |
 
 ## Unit tests — `StrongTypes.Tests`
@@ -91,6 +92,19 @@ persisted state on both `SqlSet` and `PgSet`), invalid payloads returning
 `400`, and `null` handling for the nullable variant. If the type has a
 custom JSON converter, add converter-only tests under `Tests/ConverterTests`.
 
+A `400` from an invalid body is not just a status code — the shared
+`EntityTests` base asserts the full `ValidationProblemDetails` shape
+(`AssertValidationProblem`: `application/problem+json`, `status`/`title`,
+a non-empty `errors` object) and the error key. Because `StrongTypes.Api`
+does **not** call `AddStrongTypes`, these are the raw framework keys: a
+malformed non-null value is keyed by its System.Text.Json path
+(`$.value` / `$.nullableValue`), uniform across every type; a `null` value
+is keyed either `$.value` (struct, or a reference converter that rejects
+null at parse time) or `Value` (a reference converter that maps null
+through, then trips the implicit-required check) — so the null assertion
+accepts the field key with or without the `$.` prefix rather than pinning
+the mechanism.
+
 ### SQL Server availability and skipping
 
 The `mcr.microsoft.com/mssql/server` image is amd64-only, so on an ARM64
@@ -116,6 +130,32 @@ path — guard every SQL-Server assertion accordingly:
 Tests that touch no database (the `BindingTests` and the collection-JSON
 round-trips) need neither provider's assertions and run on any host once
 the PostgreSQL container is up.
+
+## ASP.NET Core integration tests — `StrongTypes.AspNetCore.IntegrationTests`
+
+Covers the `Kalicz.StrongTypes.AspNetCore` package against the
+`StrongTypes.AspNetCore.TestApi` host (`WebApplicationFactory<Program>`,
+no database, so these run on any host without containers):
+
+- **Model binding** (`BindingTests`) — `NonEmptyEnumerable<T>` from
+  `[FromForm]` / `[FromQuery]` / `[FromHeader]` / `[FromRoute]`.
+- **JSON error-key normalization** (`JsonBodyErrorKeyTests`) — the
+  opt-out feature that rewrites a failed body's error key from the
+  System.Text.Json path (`$.value`) to the property name (`Value`). Test
+  it in **both** modes from one parameterized suite: a `bool normalize`
+  theory parameter picks between two `WebApplicationFactory` variants
+  (`NormalizedJsonErrorKeysFactory` / `RawJsonErrorKeysFactory`, the
+  latter setting `NormalizeJsonErrorKeys = false` via `ConfigureTestServices`).
+  Cover a reference strong type and a struct strong type so both
+  failure mechanisms (parse-time converter failure → `$.value`;
+  reference null → implicit-required `Value`) are exercised. The pure
+  key-rewriting logic is unit-tested separately in
+  `JsonValidationErrorKeyNormalizerTests` (casing variants, nested/array
+  segments, pass-through of non-`$` keys).
+
+Don't duplicate the whole per-type `EntityTests` matrix here — the
+normalization is type-agnostic (it rewrites the path string, never
+inspecting the type), so a reference + struct representative is enough.
 
 ## OpenAPI integration tests — `StrongTypes.OpenApi.IntegrationTests`
 

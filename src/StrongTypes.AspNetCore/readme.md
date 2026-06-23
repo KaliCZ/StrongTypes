@@ -4,14 +4,21 @@
 
 A small companion package to
 [Kalicz.StrongTypes](https://www.nuget.org/packages/Kalicz.StrongTypes).
-You only need it if you want to bind `NonEmptyEnumerable<T>` from
-`[FromForm]`, `[FromQuery]`, `[FromHeader]`, or `[FromRoute]`.
+It does two things:
 
-If you're writing a standard JSON API, you don't need this package.
+1. Binds `NonEmptyEnumerable<T>` from `[FromForm]`, `[FromQuery]`,
+   `[FromHeader]`, or `[FromRoute]`.
+2. Normalizes JSON request-body validation error keys so a failed
+   strong type is reported under its property name (`Value`) rather
+   than the System.Text.Json path (`$.value`) — see
+   [JSON error-key normalization](#json-error-key-normalization).
+
+For *binding*, a standard JSON API doesn't need this package.
 `[FromBody]` round-tripping for `NonEmptyEnumerable<T>` — and
 arbitrary nesting with the other wrappers — already works through
 the JSON converters that ship with the main `Kalicz.StrongTypes`
-package.
+package. The error-key normalization is the reason a JSON API might
+still want it.
 
 The other wrappers (`NonEmptyString`, `Email`, `Digit`, the numeric
 ones) bind from every non-body source out of the box because they
@@ -45,7 +52,38 @@ builder.Services.AddStrongTypes();
 
 `AddStrongTypes()` inserts the `NonEmptyEnumerable<T>` binder
 provider at the front of `MvcOptions.ModelBinderProviders`, so it
-runs before the default collection binders.
+runs before the default collection binders, and enables JSON
+error-key normalization. Configure via the overload:
+
+```csharp
+builder.Services.AddStrongTypes(o =>
+{
+    o.NormalizeJsonErrorKeys = true;                      // default; false to opt out
+    o.JsonErrorKeyCasing = JsonErrorKeyCasing.PascalCase; // default
+});
+```
+
+## JSON error-key normalization
+
+When a strong type fails to deserialize from a JSON request body, the
+System.Text.Json input formatter keys the `ValidationProblemDetails`
+error by the **JSON path** (`$.value`), whereas data-annotation and
+model-binding errors key by the **property name** (`Value`).
+`AddStrongTypes()` rewrites the `$.`-prefixed body keys to the
+property-name form so the API reports one key convention.
+
+- **Opt-out, on by default.** Set `NormalizeJsonErrorKeys = false` to
+  keep the raw `$.value` paths.
+- **Scope.** Affects only the automatic `[ApiController]`
+  `ValidationProblemDetails` response — not System.Text.Json itself,
+  raw `JsonSerializer` calls, or minimal-API binding. Model-binding
+  errors (no `$.` prefix) pass through untouched. It rewrites every
+  JSON-body error key, not only strong-type ones.
+- **Casing** (`JsonErrorKeyCasing`): `PascalCase` (default, matching
+  the C# property name data annotations use by default), `CamelCase`,
+  or `StripOnly` (drop the `$.` prefix, keep the wire casing). A custom
+  `[JsonPropertyName]` that isn't just a re-cased property name can't
+  be recovered from the path.
 
 ## Example
 

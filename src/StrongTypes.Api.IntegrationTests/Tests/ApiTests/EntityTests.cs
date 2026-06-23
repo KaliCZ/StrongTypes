@@ -137,12 +137,19 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     // Each invalid value is tested in both slots independently; the other
     // slot holds FirstValid so the test isolates the one field being checked.
 
+    // A malformed non-null value fails inside the JSON converter while positioned
+    // on the property, so System.Text.Json keys the error by its path: "$.value"
+    // / "$.nullableValue". This harness wires no normalization (it does not call
+    // AddStrongTypes), so these are the raw framework keys — uniform across every
+    // strong type, the same shape a malformed BCL primitive (int, Guid) produces.
+
     [Theory]
     [MemberData(InvalidInputsMember)]
     public async Task InvalidValue_ReturnsBadRequest(TWire invalid)
     {
         var response = await Client.PostAsJsonAsync(CreateEndpoint, new { value = (object?)invalid, nullableValue = (object?)FirstValid }, Ct);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await AssertValidationProblem(response);
+        Assert.Contains("$.value", errors.EnumerateObject().Select(p => p.Name));
     }
 
     [Theory]
@@ -150,20 +157,29 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     public async Task InvalidNullableValue_ReturnsBadRequest(TWire invalid)
     {
         var response = await Client.PostAsJsonAsync(CreateEndpoint, new { value = (object?)FirstValid, nullableValue = (object?)invalid }, Ct);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await AssertValidationProblem(response);
+        Assert.Contains("$.nullableValue", errors.EnumerateObject().Select(p => p.Name));
     }
 #pragma warning restore xUnit1015
 
     // ── Create: null ─────────────────────────────────────────────────────
     // Value is non-nullable, so null Value is a 400. Null NullableValue is the
     // legit case covered by ValidValueWithNullNullable_PersistsInBothDatabases.
+    //
+    // The error key for a null value is mechanism-dependent: a struct (or a
+    // reference converter that rejects null) fails at parse time -> "$.value",
+    // while a reference converter that maps null through trips the post-binding
+    // implicit-required check -> the C# name "Value". Both are valid; this asserts
+    // the value field is flagged without pinning which mechanism caught it.
 
     [Fact]
     public async Task NullValue_ReturnsBadRequest()
     {
         var response = await Client.PostAsJsonAsync(
             CreateEndpoint, new { value = (object?)null, nullableValue = (object?)FirstValid }, Ct);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await AssertValidationProblem(response);
+        var keys = errors.EnumerateObject().Select(p => p.Name).ToArray();
+        Assert.Contains(keys, k => k is "$.value" or "value" or "Value");
     }
 
     // ── Get ──────────────────────────────────────────────────────────────
@@ -335,6 +351,24 @@ public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebAp
     {
         var response = await Patch(PatchEndpoint(Guid.NewGuid()), new { value = UpdatedValid });
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    /// <summary>
+    /// Asserts a 400 carrying a well-formed <c>ValidationProblemDetails</c>
+    /// (RFC 9457 problem+json with a non-empty <c>errors</c> map) and returns the
+    /// <c>errors</c> object so callers can assert specific keys.
+    /// </summary>
+    private static async Task<JsonElement> AssertValidationProblem(HttpResponseMessage response)
+    {
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        Assert.Equal(400, problem.GetProperty("status").GetInt32());
+        Assert.Equal("One or more validation errors occurred.", problem.GetProperty("title").GetString());
+        var errors = problem.GetProperty("errors");
+        Assert.Equal(JsonValueKind.Object, errors.ValueKind);
+        Assert.NotEmpty(errors.EnumerateObject());
+        return errors;
     }
 
     private static void AssertJsonEquals(JsonElement element, TWire expected)

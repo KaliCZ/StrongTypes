@@ -60,7 +60,19 @@ public sealed class NumericStrongTypeJsonConverterFactory : JsonConverterFactory
 
         public override TWrapper Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            var value = JsonSerializer.Deserialize<T>(ref reader, options)!;
+            T value;
+            try
+            {
+                value = JsonSerializer.Deserialize<T>(ref reader, options)!;
+            }
+            catch (JsonException ex)
+            {
+                // The nested Deserialize<T> loses the property position, so its
+                // path surfaces as the document root. Rethrow path-less and the
+                // serializer reattaches the correct path (e.g. "$.value").
+                throw new JsonException($"The JSON value could not be converted to {typeof(TWrapper).Name}.", ex);
+            }
+
             return s_tryCreate(value)
                 ?? throw new JsonException($"The JSON value '{value}' cannot be converted to {typeof(TWrapper).Name}.");
         }
