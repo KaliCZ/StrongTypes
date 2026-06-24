@@ -95,6 +95,29 @@ public sealed class NumericUnwrapFilterTests(TestWebApplicationFactory factory)
     }
 
     [Theory, MemberData(nameof(Providers))]
+    public async Task BoundedInt_UnwrapArithmetic_TranslatesToSql(string provider)
+    {
+        SkipIfSqlServerUnavailable(provider);
+
+        var small = BoundedIntEntity.Create(BoundedInt<PageSizeBounds>.Create(3), null);
+        var large = BoundedIntEntity.Create(BoundedInt<PageSizeBounds>.Create(70), null);
+        SqlDb.Add(small); SqlDb.Add(large);
+        PgDb.Add(small); PgDb.Add(large);
+        await SqlDb.SaveChangesAsync(Ct);
+        await PgDb.SaveChangesAsync(Ct);
+
+        var set = provider == "sql-server" ? SqlDb.BoundedIntEntities : PgDb.BoundedIntEntities;
+
+        var ids = await set
+            .Where(e => (e.Id == small.Id || e.Id == large.Id) && (long)e.Value.Unwrap() * 2 > 10)
+            .Select(e => e.Id)
+            .ToListAsync(Ct);
+
+        Assert.DoesNotContain(small.Id, ids);
+        Assert.Contains(large.Id, ids);
+    }
+
+    [Theory, MemberData(nameof(Providers))]
     public async Task NonPositive_UnwrapArithmetic_TranslatesToSql(string provider)
     {
         SkipIfSqlServerUnavailable(provider);

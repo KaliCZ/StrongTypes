@@ -6,6 +6,15 @@ public sealed class NonEmptyStringEntity : EntityBase<NonEmptyStringEntity, NonE
 
 public sealed class EmailEntity : EntityBase<EmailEntity, MailAddress, MailAddress?>;
 
+/// <summary>Witness giving <see cref="BoundedInt{TBounds}"/> a 1..100 page-size range.</summary>
+public readonly struct PageSizeBounds : IBounds<int>
+{
+    public static int Min => 1;
+    public static int Max => 100;
+}
+
+public sealed class BoundedIntEntity : EntityBase<BoundedIntEntity, BoundedInt<PageSizeBounds>, BoundedInt<PageSizeBounds>?>;
+
 public sealed class PositiveIntEntity : EntityBase<PositiveIntEntity, Positive<int>, Positive<int>?>;
 public sealed class NonNegativeIntEntity : EntityBase<NonNegativeIntEntity, NonNegative<int>, NonNegative<int>?>;
 public sealed class NegativeIntEntity : EntityBase<NegativeIntEntity, Negative<int>, Negative<int>?>;

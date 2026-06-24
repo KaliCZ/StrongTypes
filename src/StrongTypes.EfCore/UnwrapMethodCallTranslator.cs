@@ -23,6 +23,7 @@ public sealed class UnwrapMethodCallTranslator(
         UnwrapOn(typeof(NonNegativeExtensions)),
         UnwrapOn(typeof(NegativeExtensions)),
         UnwrapOn(typeof(NonPositiveExtensions)),
+        UnwrapOn(typeof(BoundedIntExtensions)),
     ];
 
     private static MethodInfo UnwrapOn(Type extensionsType) =>

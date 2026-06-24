@@ -27,4 +27,19 @@ public static class NumericWrapperPainter
         else
             SchemaPaint.TightenUpperBound(schema, bound.Value, bound.Exclusive);
     }
+
+    /// <summary>
+    /// Paints a closed inclusive range <c>[min, max]</c> over the underlying
+    /// primitive — the wire shape for <see cref="BoundedInt{TBounds}"/>, whose
+    /// witness type carries both bounds at once.
+    /// </summary>
+    public static void PaintRange(OpenApiSchema schema, Type underlying, decimal min, decimal max)
+    {
+        var info = PrimitiveSchemaMap.TryGet(underlying, out var i) ? i : new PrimitiveSchemaMap.Info(JsonSchemaType.Number, null);
+        SchemaPaint.ClearWrapperShape(schema);
+        schema.Type = info.Type;
+        schema.Format = info.Format;
+        SchemaPaint.TightenLowerBound(schema, min, floorExclusive: false);
+        SchemaPaint.TightenUpperBound(schema, max, floorExclusive: false);
+    }
 }

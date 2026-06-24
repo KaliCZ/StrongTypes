@@ -7,6 +7,7 @@ public class PostgreSqlDbContext(DbContextOptions<PostgreSqlDbContext> options) 
 {
     public DbSet<NonEmptyStringEntity> NonEmptyStringEntities { get; set; }
     public DbSet<EmailEntity> EmailEntities { get; set; }
+    public DbSet<BoundedIntEntity> BoundedIntEntities { get; set; }
 
     public DbSet<PositiveIntEntity> PositiveIntEntities { get; set; }
     public DbSet<NonNegativeIntEntity> NonNegativeIntEntities { get; set; }

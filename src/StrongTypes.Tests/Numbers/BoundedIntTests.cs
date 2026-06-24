@@ -23,6 +23,15 @@ public readonly struct SingletonBounds : IBounds<int>
     public static int Max => 7;
 }
 
+// Spans the entire int domain. Exercises the offset-storage trick
+// (_offset = value - Min): for this range value - Min overflows, but
+// two's-complement modular arithmetic makes Value round-trip exactly.
+public readonly struct FullRangeBounds : IBounds<int>
+{
+    public static int Min => int.MinValue;
+    public static int Max => int.MaxValue;
+}
+
 public class BoundedIntTests
 {
     private static bool IsInPageRange(int value) =>
@@ -228,11 +237,38 @@ public class BoundedIntTests
     }
 
     [Fact]
-    public void Create_ErrorMessage_MentionsBounds()
+    public void Create_ErrorMessage_InterpolatesWitnessBounds()
     {
         var ex = Assert.Throws<ArgumentException>(() => BoundedInt<PageSizeBounds>.Create(0));
-        Assert.Contains("1", ex.Message);
-        Assert.Contains("100", ex.Message);
+        // The witness bounds are interpolated at runtime — the literal
+        // "{TBounds.Min}" placeholder must not survive into the message.
+        Assert.Contains("between 1 and 100 (inclusive)", ex.Message);
+        Assert.Contains("was '0'", ex.Message);
+        Assert.DoesNotContain("TBounds", ex.Message);
+    }
+
+    // ── Full-range bounds: offset-storage round-trip ────────────────────
+
+    [Property]
+    public void FullRange_AcceptsEveryValue_AndRoundTrips(int value)
+    {
+        var bounded = BoundedInt<FullRangeBounds>.Create(value);
+        Assert.Equal(value, bounded.Value);
+        Assert.Equal(value, (int)bounded);
+    }
+
+    [Fact]
+    public void FullRange_Boundaries_RoundTrip()
+    {
+        Assert.Equal(int.MinValue, BoundedInt<FullRangeBounds>.Create(int.MinValue).Value);
+        Assert.Equal(int.MaxValue, BoundedInt<FullRangeBounds>.Create(int.MaxValue).Value);
+        Assert.Equal(0, BoundedInt<FullRangeBounds>.Create(0).Value);
+    }
+
+    [Fact]
+    public void FullRange_Default_RepresentsMin()
+    {
+        Assert.Equal(int.MinValue, default(BoundedInt<FullRangeBounds>).Value);
     }
 
     [Fact]

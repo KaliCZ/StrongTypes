@@ -62,6 +62,15 @@ public sealed class DigitEntityController : ControllerBase
 }
 
 [ApiController]
+[Route("bounded-int-entities")]
+public sealed class BoundedIntEntityController : ControllerBase
+{
+    [HttpPost]
+    public IActionResult Create(StructEntityRequest<BoundedInt<PageSizeBounds>> request)
+        => Ok(new EntityResponse(Guid.NewGuid()));
+}
+
+[ApiController]
 [Route("non-positive-decimal-entities")]
 public sealed class NonPositiveDecimalEntityController : ControllerBase
 {
