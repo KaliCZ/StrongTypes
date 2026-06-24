@@ -68,25 +68,12 @@ app.UseSwaggerUI();
 | `NonEmptyEnumerable<T>` / `INonEmptyEnumerable<T>`                | `{ "type": "array", "minItems": 1, "items": <T schema> }`                       |
 | `Maybe<T>`                                                        | `{ "type": "object", "properties": { "Value": <T schema> } }`                   |
 | `IEnumerable<T>` where `T` is a strong-type wrapper               | `{ "type": "array", "items": <T schema> }` (no `minItems` — element schema only) |
+| `T?` (any nullable wrapper, e.g. `NonEmptyString?`)               | the wrapper's shape above plus its nullability — `nullable: true` (3.0) or `"null"` joined into `type` (3.1), so `NonEmptyString?` → `{ "type": "string", "minLength": 1, "nullable": true }` |
 
 The `Maybe<T>` filter unwraps `Nullable<Maybe<T>>` internally — that
 matters because `Maybe<T>` implements `IEnumerable<T>`, so a
 `Maybe<T>?`-typed property would otherwise be coerced into an array
 shape before any filter can see it.
-
-### Nullable wrappers (`NonEmptyString?`, `Positive<int>?`, …)
-
-A nullable wrapper keeps the wire shape above *and* its nullability, so
-a generated client still sees the value can be `null`:
-
-- **3.0:** `nullable: true` is added — e.g. `NonEmptyString?` →
-  `{ "type": "string", "minLength": 1, "nullable": true }`.
-- **3.1:** `"null"` joins the `type` — e.g.
-  `{ "type": ["string", "null"], "minLength": 1 }`.
-
-Both adapters do this, so migrating a field from `string?` to
-`NonEmptyString?` tightens the contract without dropping `| null` from
-codegen.
 
 ## Data annotations on wrapper-typed properties
 
