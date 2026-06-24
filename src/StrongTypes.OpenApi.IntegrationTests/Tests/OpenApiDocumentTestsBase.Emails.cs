@@ -16,10 +16,10 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     [Fact]
-    public async Task Nullable_Email_Property_Still_Renders_As_String_With_Format_Email_And_Length_Bounds()
+    public async Task Nullable_Email_Property_Keeps_Nullability_And_Renders_As_String_With_Format_Email_And_Length_Bounds()
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/email-entities"));
-        AssertEmailSchema(UnwrapNullableProperty(Property(body, "nullableValue"), Version));
+        AssertEmailSchema(AssertNullableAndUnwrap(Property(body, "nullableValue"), Version));
     }
 }

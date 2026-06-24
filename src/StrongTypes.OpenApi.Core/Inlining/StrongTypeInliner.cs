@@ -217,6 +217,12 @@ public static class StrongTypeInliner
     {
         var result = CloneWireShape(wrapper);
 
+        // A nullable member (`NonEmptyString?`, `Positive<int>?`, …) carries the
+        // null bit on the use-site wrapper; the wrapper component is non-nullable.
+        // Carry it onto the inlined wire shape so the published contract keeps the
+        // member's nullability instead of silently dropping it.
+        if (SchemaPaint.IsNullable(useSite)) SchemaPaint.MarkNullable(result);
+
         if (useSite.MinLength is { } minL) SchemaPaint.TightenMinLength(result, minL);
         if (useSite.MaxLength is { } maxL) SchemaPaint.TightenMaxLength(result, maxL);
         if (useSite.MinItems is { } minI) SchemaPaint.TightenMinItems(result, minI);

@@ -28,6 +28,12 @@ namespace StrongTypes.OpenApi.Swashbuckle;
 /// merged shape on the wire is <c>{ type: string, minLength: 1, maxLength: 50 }</c>.
 /// The wrapper-typed surface matches whatever Swashbuckle natively supports
 /// for the equivalent primitive-typed property — no more, no less.
+///
+/// The same property position is also where a nullable wrapper
+/// (<c>NonEmptyString?</c>, <c>Positive&lt;int&gt;?</c>, …) gets its null
+/// marker: Swashbuckle drops the member's nullability when it renders the
+/// property as a bare <c>$ref</c>, so this filter records it on the use-site
+/// wrapper for the inliner to carry onto the merged wire shape.
 /// </summary>
 public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
 {
@@ -37,32 +43,49 @@ public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
         if (concrete.Properties is null || concrete.Properties.Count == 0) return;
         if (context.MemberInfo is not null || context.ParameterInfo is not null) return;
 
+        var nullability = new NullabilityInfoContext();
         var clrProperties = context.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
         foreach (var clrProperty in clrProperties)
         {
             var jsonName = ResolveJsonName(clrProperty);
             if (!concrete.Properties.TryGetValue(jsonName, out var propSchema)) continue;
 
-            var attrs = clrProperty.GetCustomAttributes(inherit: true).OfType<Attribute>().ToArray();
-            if (attrs.Length == 0) continue;
-
             var surrogate = StrongTypeSchemaTypes.ResolveWireType(clrProperty.PropertyType);
             if (surrogate is null) continue;
 
-            var generated = context.SchemaGenerator.GenerateSchema(surrogate, context.SchemaRepository, memberInfo: clrProperty);
-            if (generated is not OpenApiSchema source) continue;
+            var isNullable = IsNullableMember(clrProperty, nullability);
+
+            // Swashbuckle renders a wrapper-typed property as a bare `$ref` to
+            // the wrapper component, which in OpenAPI 3.0 cannot carry the
+            // member's caller annotations *or* its nullability. Only act when
+            // there is something to layer on — a caller annotation or a `T?`
+            // member; otherwise leave the bare `$ref` for the inliner.
+            OpenApiSchema? source = null;
+            if (clrProperty.GetCustomAttributes(inherit: true).OfType<Attribute>().Any())
+                source = context.SchemaGenerator.GenerateSchema(surrogate, context.SchemaRepository, memberInfo: clrProperty) as OpenApiSchema;
+
+            if (source is null && !isNullable) continue;
 
             if (propSchema is OpenApiSchema inline && inline.Type is not null)
             {
-                CopyAnnotationKeywords(source, inline);
+                if (source is not null) CopyAnnotationKeywords(source, inline);
+                if (isNullable) SchemaPaint.MarkNullable(inline);
                 continue;
             }
 
             var wrapper = new OpenApiSchema { AllOf = [propSchema] };
-            CopyAnnotationKeywords(source, wrapper);
+            if (source is not null) CopyAnnotationKeywords(source, wrapper);
+            if (isNullable) SchemaPaint.MarkNullable(wrapper);
             StrongTypeInlineMarker.Set(wrapper);
             concrete.Properties[jsonName] = wrapper;
         }
+    }
+
+    private static bool IsNullableMember(PropertyInfo property, NullabilityInfoContext context)
+    {
+        if (Nullable.GetUnderlyingType(property.PropertyType) is not null) return true;
+        if (property.PropertyType.IsValueType) return false;
+        return context.Create(property).ReadState == NullabilityState.Nullable;
     }
 
     private static void CopyAnnotationKeywords(OpenApiSchema source, OpenApiSchema target)

@@ -49,26 +49,26 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     [Fact]
-    public async Task Nullable_Positive_Int_Property_Still_Renders_As_Integer_With_ExclusiveMinimum_Zero()
+    public async Task Nullable_Positive_Int_Property_Keeps_Nullability_And_Renders_As_Integer_With_ExclusiveMinimum_Zero()
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/positive-int-entities"));
-        AssertPositiveIntSchema(UnwrapNullableProperty(Property(body, "nullableValue"), Version), Version);
+        AssertPositiveIntSchema(AssertNullableAndUnwrap(Property(body, "nullableValue"), Version), Version);
     }
 
     [Fact]
-    public async Task Nullable_Positive_Int_On_Dedicated_Nullables_Endpoint_Renders_As_Integer_With_ExclusiveMinimum_Zero()
+    public async Task Nullable_Positive_Int_On_Dedicated_Nullables_Endpoint_Keeps_Nullability_And_Renders_As_Integer_With_ExclusiveMinimum_Zero()
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
-        AssertPositiveIntSchema(UnwrapNullableProperty(Property(body, "nullablePositiveInt"), Version), Version);
+        AssertPositiveIntSchema(AssertNullableAndUnwrap(Property(body, "nullablePositiveInt"), Version), Version);
     }
 
     [Fact]
-    public async Task Nullable_Digit_On_Dedicated_Nullables_Endpoint_Renders_As_Integer_With_Zero_To_Nine_Bounds()
+    public async Task Nullable_Digit_On_Dedicated_Nullables_Endpoint_Keeps_Nullability_And_Renders_As_Integer_With_Zero_To_Nine_Bounds()
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
-        AssertDigitSchema(UnwrapNullableProperty(Property(body, "nullableDigit"), Version));
+        AssertDigitSchema(AssertNullableAndUnwrap(Property(body, "nullableDigit"), Version));
     }
 }

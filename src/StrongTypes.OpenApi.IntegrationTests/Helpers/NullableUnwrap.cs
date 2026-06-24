@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Xunit;
 
 namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
@@ -72,6 +73,79 @@ internal static class NullableUnwrap
             return allOf[0];
 
         return schema;
+    }
+
+    /// <summary>
+    /// Asserts the property actually encodes <c>T?</c> nullability — in
+    /// whichever shape the pipeline uses for <paramref name="version"/> — and
+    /// returns the inner wire schema with the null marker stripped, ready for
+    /// a strict deep-compare against the wrapper's non-null wire form.
+    ///
+    /// Unlike <see cref="UnwrapNullableProperty"/>, which tolerates a missing
+    /// marker (returning the schema unchanged), this fails when no marker is
+    /// found — so it pins the bug fix: a nullable wrapper must keep its
+    /// nullability instead of silently dropping it. Accepted shapes:
+    /// <list type="bullet">
+    ///   <item>3.0 flat (Swashbuckle): <c>{ …wire, "nullable": true }</c>.</item>
+    ///   <item>3.0 union (Microsoft): <c>{ "oneOf": [ …wire ], "nullable": true }</c>.</item>
+    ///   <item>3.1 union (Microsoft): <c>{ "oneOf": [ {"type":"null"}, …wire ] }</c>.</item>
+    ///   <item>3.1 flat: <c>{ "type": ["X","null"], … }</c>.</item>
+    /// </list>
+    /// </summary>
+    internal static JsonElement AssertNullableAndUnwrap(JsonElement schema, OpenApiVersion version)
+    {
+        AssertVersionMarkers(schema, version);
+
+        foreach (var keyword in new[] { "oneOf", "anyOf" })
+        {
+            if (!schema.TryGetProperty(keyword, out var union) || union.ValueKind != JsonValueKind.Array) continue;
+
+            var wire = UnwrapNullableUnion(schema, keyword, version);
+            if (version == OpenApiVersion.V3_0)
+                Assert.True(IsFlatNullable3_0(schema), $"3.0 union nullable must carry nullable:true: {schema.GetRawText()}");
+            else
+                Assert.True(
+                    union.EnumerateArray().Any(IsNullBranch3_1),
+                    $"3.1 union must carry a {{\"type\":\"null\"}} branch: {schema.GetRawText()}");
+            return wire;
+        }
+
+        if (version == OpenApiVersion.V3_0)
+        {
+            Assert.True(IsFlatNullable3_0(schema), $"expected nullable:true on a nullable property: {schema.GetRawText()}");
+            return RemoveKey(schema, "nullable");
+        }
+
+        Assert.True(TypeArrayHasNull(schema), $"expected a \"null\" member in the type array: {schema.GetRawText()}");
+        return CollapseNullFromTypeArray(schema);
+    }
+
+    private static bool IsFlatNullable3_0(JsonElement schema) =>
+        schema.TryGetProperty("nullable", out var n) && n.ValueKind == JsonValueKind.True;
+
+    private static bool TypeArrayHasNull(JsonElement schema) =>
+        schema.TryGetProperty("type", out var t)
+        && t.ValueKind == JsonValueKind.Array
+        && t.EnumerateArray().Any(e => e.ValueKind == JsonValueKind.String && e.GetString() == "null");
+
+    private static JsonElement RemoveKey(JsonElement schema, string key)
+    {
+        var node = JsonNode.Parse(schema.GetRawText())!.AsObject();
+        node.Remove(key);
+        return JsonDocument.Parse(node.ToJsonString()).RootElement;
+    }
+
+    private static JsonElement CollapseNullFromTypeArray(JsonElement schema)
+    {
+        var node = JsonNode.Parse(schema.GetRawText())!.AsObject();
+        if (node["type"] is JsonArray arr)
+        {
+            var nonNull = arr.Where(e => e?.GetValue<string>() != "null").Select(e => e!.GetValue<string>()).ToList();
+            node["type"] = nonNull.Count == 1
+                ? JsonValue.Create(nonNull[0])
+                : new JsonArray(nonNull.Select(s => (JsonNode)JsonValue.Create(s)!).ToArray());
+        }
+        return JsonDocument.Parse(node.ToJsonString()).RootElement;
     }
 
     private static JsonElement UnwrapNullableUnion(JsonElement schema, string keyword, OpenApiVersion version)

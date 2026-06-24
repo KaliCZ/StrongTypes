@@ -74,6 +74,20 @@ matters because `Maybe<T>` implements `IEnumerable<T>`, so a
 `Maybe<T>?`-typed property would otherwise be coerced into an array
 shape before any filter can see it.
 
+### Nullable wrappers (`NonEmptyString?`, `Positive<int>?`, …)
+
+A nullable wrapper keeps the wire shape above *and* its nullability, so
+a generated client still sees the value can be `null`:
+
+- **3.0:** `nullable: true` is added — e.g. `NonEmptyString?` →
+  `{ "type": "string", "minLength": 1, "nullable": true }`.
+- **3.1:** `"null"` joins the `type` — e.g.
+  `{ "type": ["string", "null"], "minLength": 1 }`.
+
+Both adapters do this, so migrating a field from `string?` to
+`NonEmptyString?` tightens the contract without dropping `| null` from
+codegen.
+
 ## Data annotations on wrapper-typed properties
 
 ASP.NET Core's OpenAPI pipelines drop every `ValidationAttribute`
