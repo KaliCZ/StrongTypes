@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json;
 using FsCheck.Xunit;
 using Xunit;
@@ -98,5 +99,78 @@ public class IntervalJsonConverterTests
 
         var roundTripped = JsonSerializer.Deserialize<ClosedInterval<int>>(json, options);
         Assert.Equal(interval, roundTripped);
+    }
+
+    [Fact]
+    public void Read_MissingProperty_Throws()
+    {
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<ClosedInterval<int>>("""{"Start":1}"""));
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<ClosedInterval<int>>("""{"End":1}"""));
+    }
+
+    [Fact]
+    public void Read_NonObjectToken_Throws()
+    {
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ClosedInterval<int>>("5"));
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ClosedInterval<int>>("[1,10]"));
+    }
+
+    [Fact]
+    public void Read_IgnoresUnknownProperties()
+    {
+        var interval = JsonSerializer.Deserialize<ClosedInterval<int>>(
+            """{"Start":1,"Unknown":{"nested":true},"End":10,"Extra":42}""");
+        Assert.Equal(ClosedInterval<int>.Create(1, 10), interval);
+    }
+
+    [Fact]
+    public void Read_PropertyOrderDoesNotMatter()
+    {
+        var interval = JsonSerializer.Deserialize<ClosedInterval<int>>("""{"End":10,"Start":1}""");
+        Assert.Equal(ClosedInterval<int>.Create(1, 10), interval);
+    }
+
+    // Endpoints are any IComparable<T> struct, not just int. A DateOnly range is the
+    // canonical real-world case and proves the endpoint's own converter (date format)
+    // composes with the interval converter.
+    [Fact]
+    public void DateOnly_RoundTrips()
+    {
+        var interval = ClosedInterval<DateOnly>.Create(new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31));
+        var json = JsonSerializer.Serialize(interval);
+        Assert.Equal("""{"Start":"2026-01-01","End":"2026-12-31"}""", json);
+        Assert.Equal(interval, JsonSerializer.Deserialize<ClosedInterval<DateOnly>>(json));
+    }
+
+    [Fact]
+    public void DateTimeInterval_OpenEnded_RoundTrips()
+    {
+        var from = IntervalFrom<DateTime>.Create(new DateTime(2026, 6, 24, 0, 0, 0, DateTimeKind.Utc), null);
+        var roundTripped = JsonSerializer.Deserialize<IntervalFrom<DateTime>>(JsonSerializer.Serialize(from));
+        Assert.Equal(from, roundTripped);
+    }
+
+    // The client-facing message must not leak the arity-suffixed CLR name
+    // ("ClosedInterval`1") — see IntervalJsonConverterFactory.
+    [Fact]
+    public void InvariantViolation_Message_IsHumanReadable()
+    {
+        var ex = Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<ClosedInterval<int>>("""{"Start":5,"End":1}"""));
+        Assert.Contains("ClosedInterval", ex.Message);
+        Assert.DoesNotContain("`", ex.Message);
+    }
+
+    // A type mismatch in an endpoint is rethrown path-less (inner exception
+    // preserved) so System.Text.Json can reattach the property path — the fix
+    // that keeps the API error key at "$.value" rather than the document root.
+    [Fact]
+    public void EndpointTypeMismatch_ThrowsJsonExceptionPreservingInner()
+    {
+        var ex = Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<ClosedInterval<int>>("""{"Start":1,"End":"not-a-number"}"""));
+        Assert.NotNull(ex.InnerException);
     }
 }

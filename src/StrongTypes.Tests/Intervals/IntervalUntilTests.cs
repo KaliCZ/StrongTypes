@@ -57,4 +57,24 @@ public class IntervalUntilTests
         Assert.Equal(interval, copy);
         Assert.Equal(interval.GetHashCode(), copy.GetHashCode());
     }
+
+    [Fact]
+    public void Contains_UpperBoundClosed_LowerBoundOpenWhenStartAbsent()
+    {
+        var openStart = IntervalUntil<int>.Create(null, 10);
+        Assert.True(openStart.Contains(10));
+        Assert.True(openStart.Contains(int.MinValue));
+        Assert.False(openStart.Contains(11));
+
+        var bounded = IntervalUntil<int>.Create(0, 10);
+        Assert.True(bounded.Contains(0));
+        Assert.False(bounded.Contains(-1));
+    }
+
+    [Fact]
+    public void ToString_RendersOpenLowerBound()
+    {
+        Assert.Equal("(-∞, 10]", IntervalUntil<int>.Create(null, 10).ToString());
+        Assert.Equal("[1, 10]", IntervalUntil<int>.Create(1, 10).ToString());
+    }
 }

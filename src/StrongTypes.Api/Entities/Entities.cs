@@ -35,3 +35,8 @@ public sealed class PositiveDoubleEntity : EntityBase<PositiveDoubleEntity, Posi
 public sealed class NonNegativeDoubleEntity : EntityBase<NonNegativeDoubleEntity, NonNegative<double>, NonNegative<double>?>;
 public sealed class NegativeDoubleEntity : EntityBase<NegativeDoubleEntity, Negative<double>, Negative<double>?>;
 public sealed class NonPositiveDoubleEntity : EntityBase<NonPositiveDoubleEntity, NonPositive<double>, NonPositive<double>?>;
+
+public sealed class ClosedIntervalEntity : EntityBase<ClosedIntervalEntity, ClosedInterval<int>, ClosedInterval<int>?>;
+public sealed class IntervalEntity : EntityBase<IntervalEntity, Interval<int>, Interval<int>?>;
+public sealed class IntervalFromEntity : EntityBase<IntervalFromEntity, IntervalFrom<int>, IntervalFrom<int>?>;
+public sealed class IntervalUntilEntity : EntityBase<IntervalUntilEntity, IntervalUntil<int>, IntervalUntil<int>?>;

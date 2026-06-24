@@ -37,4 +37,12 @@ public class SqlServerDbContext(DbContextOptions<SqlServerDbContext> options) : 
     public DbSet<NonNegativeDoubleEntity> NonNegativeDoubleEntities { get; set; }
     public DbSet<NegativeDoubleEntity> NegativeDoubleEntities { get; set; }
     public DbSet<NonPositiveDoubleEntity> NonPositiveDoubleEntities { get; set; }
+
+    public DbSet<ClosedIntervalEntity> ClosedIntervalEntities { get; set; }
+    public DbSet<IntervalEntity> IntervalEntities { get; set; }
+    public DbSet<IntervalFromEntity> IntervalFromEntities { get; set; }
+    public DbSet<IntervalUntilEntity> IntervalUntilEntities { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder) =>
+        modelBuilder.ConfigureIntervalEntities();
 }

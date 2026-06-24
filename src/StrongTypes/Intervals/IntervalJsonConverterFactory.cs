@@ -50,6 +50,10 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
     private sealed class Inner<TInterval, TStart, TEnd> : JsonConverter<TInterval>
         where TInterval : struct
     {
+        // Friendly name for error messages: the arity-suffixed CLR name
+        // ("ClosedInterval`1") would leak into client-facing validation errors.
+        private static readonly string s_name = typeof(TInterval).Name.Split('`')[0];
+
         private static readonly Func<TInterval, TStart> s_getStart = BuildGetter<TStart>("Start");
         private static readonly Func<TInterval, TEnd> s_getEnd = BuildGetter<TEnd>("End");
         private static readonly Func<TStart, TEnd, TInterval?> s_tryCreate = BuildTryCreate();
@@ -75,7 +79,7 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
         {
             if (reader.TokenType != JsonTokenType.StartObject)
             {
-                throw new JsonException($"Expected start of object for {typeof(TInterval).Name}.");
+                throw new JsonException($"Expected a JSON object with '{NameOf("Start", options)}' and '{NameOf("End", options)}' properties for {s_name}.");
             }
 
             var startName = NameOf("Start", options);
@@ -91,27 +95,27 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
                 {
                     if (!sawStart || !sawEnd)
                     {
-                        throw new JsonException($"{typeof(TInterval).Name} requires both '{startName}' and '{endName}' properties.");
+                        throw new JsonException($"{s_name} requires both '{startName}' and '{endName}' properties.");
                     }
                     return s_tryCreate(start, end)
-                        ?? throw new JsonException($"The JSON value cannot be converted to {typeof(TInterval).Name}: invariant violated.");
+                        ?? throw new JsonException($"{s_name} requires '{startName}' to be less than or equal to '{endName}'.");
                 }
 
                 if (reader.TokenType != JsonTokenType.PropertyName)
                 {
-                    throw new JsonException($"Unexpected token while reading {typeof(TInterval).Name}.");
+                    throw new JsonException($"Unexpected token while reading {s_name}.");
                 }
 
                 var name = reader.GetString();
                 reader.Read();
                 if (string.Equals(name, startName, StringComparison.Ordinal))
                 {
-                    start = JsonSerializer.Deserialize<TStart>(ref reader, options)!;
+                    start = ReadEndpoint<TStart>(ref reader, options, startName);
                     sawStart = true;
                 }
                 else if (string.Equals(name, endName, StringComparison.Ordinal))
                 {
-                    end = JsonSerializer.Deserialize<TEnd>(ref reader, options)!;
+                    end = ReadEndpoint<TEnd>(ref reader, options, endName);
                     sawEnd = true;
                 }
                 else
@@ -120,7 +124,25 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
                 }
             }
 
-            throw new JsonException($"Unterminated JSON object while reading {typeof(TInterval).Name}.");
+            throw new JsonException($"Unterminated JSON object while reading {s_name}.");
+        }
+
+        // The nested Deserialize loses the property position, so a failure (null
+        // for a required endpoint, a type mismatch) surfaces with the document
+        // root as its path. Rethrow path-less and the serializer reattaches the
+        // correct path (e.g. "$.value") — matching the numeric converter and the
+        // error-key contract codified in #106.
+        private static TEndpoint ReadEndpoint<TEndpoint>(
+            ref Utf8JsonReader reader, JsonSerializerOptions options, string property)
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<TEndpoint>(ref reader, options)!;
+            }
+            catch (JsonException ex)
+            {
+                throw new JsonException($"The JSON value for '{property}' could not be converted for {s_name}.", ex);
+            }
         }
 
         public override void Write(Utf8JsonWriter writer, TInterval value, JsonSerializerOptions options)

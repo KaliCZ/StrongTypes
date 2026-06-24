@@ -85,4 +85,39 @@ public class IntervalTests
         if (smaller == larger) return;
         Assert.Throws<ArgumentException>(() => Interval<int>.Create(larger, smaller));
     }
+
+    [Fact]
+    public void Contains_RespectsBothBounds()
+    {
+        var closed = Interval<int>.Create(0, 10);
+        Assert.True(closed.Contains(0));
+        Assert.True(closed.Contains(10));
+        Assert.True(closed.Contains(5));
+        Assert.False(closed.Contains(-1));
+        Assert.False(closed.Contains(11));
+    }
+
+    [Fact]
+    public void Contains_UnboundedSidesAcceptEverythingPastTheOpenEnd()
+    {
+        Assert.True(Interval<int>.Create(null, null).Contains(int.MinValue));
+        Assert.True(Interval<int>.Create(null, null).Contains(int.MaxValue));
+
+        var from = Interval<int>.Create(0, null);
+        Assert.True(from.Contains(int.MaxValue));
+        Assert.False(from.Contains(-1));
+
+        var until = Interval<int>.Create(null, 0);
+        Assert.True(until.Contains(int.MinValue));
+        Assert.False(until.Contains(1));
+    }
+
+    [Fact]
+    public void ToString_RendersOpenAndClosedBounds()
+    {
+        Assert.Equal("(-∞, +∞)", Interval<int>.Create(null, null).ToString());
+        Assert.Equal("(-∞, 10]", Interval<int>.Create(null, 10).ToString());
+        Assert.Equal("[1, +∞)", Interval<int>.Create(1, null).ToString());
+        Assert.Equal("[1, 10]", Interval<int>.Create(1, 10).ToString());
+    }
 }

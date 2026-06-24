@@ -39,6 +39,12 @@ Columns are the underlying type — `nvarchar` for `NonEmptyString`, `int`
 for `Positive<int>`, `decimal(...)` for `NonNegative<decimal>`, and the
 nullable form becomes a nullable column.
 
+The interval types (`ClosedInterval<T>`, `Interval<T>`, `IntervalFrom<T>`,
+`IntervalUntil<T>`) are the exception: `UseStrongTypes()` does **not** auto-map
+them — they're objects, not scalars. Map each interval property explicitly with
+`entity.HasIntervalJsonConversion(e => e.Window)` (one JSON column). See
+`references/intervals.md`.
+
 ## Querying
 
 Equality, null checks, ordering, and grouping work directly on the

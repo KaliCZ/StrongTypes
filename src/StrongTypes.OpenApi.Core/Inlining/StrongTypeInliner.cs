@@ -209,6 +209,9 @@ public static class StrongTypeInliner
             Properties = source.Properties is null
                 ? null
                 : new Dictionary<string, IOpenApiSchema>(source.Properties, StringComparer.Ordinal),
+            Required = source.Required is null
+                ? null
+                : new HashSet<string>(source.Required, StringComparer.Ordinal),
         };
         return clone;
     }

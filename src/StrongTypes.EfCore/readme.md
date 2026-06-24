@@ -64,6 +64,21 @@ Column shape on the database is the underlying type — `nvarchar` for
 `NonNegative<decimal>`, etc. Same for the nullable form
 (`NonEmptyString?`, `Positive<int>?`) — EF maps it to a nullable column.
 
+## Intervals
+
+The interval types (`ClosedInterval<T>`, `Interval<T>`, `IntervalFrom<T>`,
+`IntervalUntil<T>`) are objects, not scalars, so `UseStrongTypes()` does not
+auto-map them. Map each interval property explicitly to a single JSON column,
+which round-trips through the type's validating converter:
+
+```csharp
+modelBuilder.Entity<Booking>()
+    .HasIntervalJsonConversion(b => b.Window);
+```
+
+For a nullable interval property, attach the converter directly:
+`.Property(e => e.Window).HasConversion(new IntervalJsonValueConverter<ClosedInterval<int>>())`.
+
 ## Filtering
 
 Equality, null checks, ordering, and grouping work directly on the strong type:

@@ -11,9 +11,11 @@ public static class StrongTypesOpenApiExtensions
     /// <summary>
     /// Registers schema transformers so <see cref="NonEmptyString"/>, the
     /// numeric strong-type wrappers, <see cref="NonEmptyEnumerable{T}"/> /
-    /// <see cref="INonEmptyEnumerable{T}"/>, and <see cref="Maybe{T}"/>
-    /// render in the generated OpenAPI document as the JSON shape their
-    /// converters actually produce.
+    /// <see cref="INonEmptyEnumerable{T}"/>, <see cref="Maybe{T}"/>, and the
+    /// interval types (<see cref="ClosedInterval{T}"/>, <see cref="Interval{T}"/>,
+    /// <see cref="IntervalFrom{T}"/>, <see cref="IntervalUntil{T}"/>) render in
+    /// the generated OpenAPI document as the JSON shape their converters
+    /// actually produce.
     /// </summary>
     /// <param name="options">The OpenAPI options being configured.</param>
     public static OpenApiOptions AddStrongTypes(this OpenApiOptions options)
@@ -24,6 +26,7 @@ public static class StrongTypesOpenApiExtensions
         options.AddSchemaTransformer<NumericStrongTypeSchemaTransformer>();
         options.AddSchemaTransformer<NonEmptyEnumerableSchemaTransformer>();
         options.AddSchemaTransformer<MaybeSchemaTransformer>();
+        options.AddSchemaTransformer<IntervalSchemaTransformer>();
         options.AddSchemaTransformer<StrongTypeCollectionShapeTransformer>();
         options.AddOperationTransformer<NonBodyStrongTypeOperationTransformer>();
         options.AddDocumentTransformer<StrongTypesComponentSchemaFiller>();

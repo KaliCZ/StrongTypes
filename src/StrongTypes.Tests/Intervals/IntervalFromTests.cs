@@ -57,4 +57,24 @@ public class IntervalFromTests
         Assert.Equal(interval, copy);
         Assert.Equal(interval.GetHashCode(), copy.GetHashCode());
     }
+
+    [Fact]
+    public void Contains_LowerBoundClosed_UpperBoundOpenWhenEndAbsent()
+    {
+        var openEnded = IntervalFrom<int>.Create(0, null);
+        Assert.True(openEnded.Contains(0));
+        Assert.True(openEnded.Contains(int.MaxValue));
+        Assert.False(openEnded.Contains(-1));
+
+        var bounded = IntervalFrom<int>.Create(0, 10);
+        Assert.True(bounded.Contains(10));
+        Assert.False(bounded.Contains(11));
+    }
+
+    [Fact]
+    public void ToString_RendersOpenUpperBound()
+    {
+        Assert.Equal("[1, +∞)", IntervalFrom<int>.Create(1, null).ToString());
+        Assert.Equal("[1, 10]", IntervalFrom<int>.Create(1, 10).ToString());
+    }
 }
