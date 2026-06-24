@@ -50,6 +50,14 @@ internal static class BindingSchemaAsserts
     internal static void AssertFormPropertyDigitSchema(JsonElement formSchema, string propertyName)
         => AssertDigitSchema(GetFormProperty(formSchema, propertyName));
 
+    // ── BoundedInt<TBounds> ──────────────────────────────────────────────
+    // The witness type's inclusive [Min, Max] range becomes a plain
+    // minimum/maximum pair. PageSizeBounds carries 1..100. Inclusive bounds
+    // don't depend on OpenAPI version — there's no exclusive boundary.
+
+    internal static void AssertPageSizeBoundedIntSchema(JsonElement schema)
+        => AssertJsonEquals(schema, """{"type":"integer","format":"int32","minimum":1,"maximum":100}""");
+
     // ── Other numeric wrappers ──────────────────────────────────────────
     // Inclusive-bound shapes (NonNegative, NonPositive) don't depend on
     // OpenAPI version — there's no exclusive boundary to encode. Exclusive

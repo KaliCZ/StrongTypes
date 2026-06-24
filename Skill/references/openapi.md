@@ -65,6 +65,7 @@ app.UseSwaggerUI();
 | `NonNegative<T>`                                                  | underlying primitive with `minimum: 0`                                          |
 | `Negative<T>`                                                     | underlying primitive with `exclusiveMaximum: 0` (3.1) or `maximum: 0, exclusiveMaximum: true` (3.0) |
 | `NonPositive<T>`                                                  | underlying primitive with `maximum: 0`                                          |
+| `BoundedInt<TBounds>`                                            | `{ "type": "integer", "format": "int32", "minimum": Min, "maximum": Max }` (witness bounds) |
 | `NonEmptyEnumerable<T>` / `INonEmptyEnumerable<T>`                | `{ "type": "array", "minItems": 1, "items": <T schema> }`                       |
 | `Maybe<T>`                                                        | `{ "type": "object", "properties": { "Value": <T schema> } }`                   |
 | `IEnumerable<T>` where `T` is a strong-type wrapper               | `{ "type": "array", "items": <T schema> }` (no `minItems` — element schema only) |

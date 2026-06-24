@@ -46,6 +46,7 @@ demand when about to write code against that surface.
 | ------------------------------------------------------------------- | ------------------------------------ | ---------------------------------- |
 | `NonEmptyString`                                                    | non-null, non-empty, non-whitespace  | `references/nonemptystring.md`     |
 | `Positive<T>` / `NonNegative<T>` / `Negative<T>` / `NonPositive<T>` | sign constraint on any `INumber<T>`  | `references/numeric.md`            |
+| `BoundedInt<TBounds>`                                               | `int` in a closed `[Min, Max]` range | `references/numeric.md`            |
 | `NonEmptyEnumerable<T>` / `INonEmptyEnumerable<T>`                  | at least one element                 | `references/nonemptyenumerable.md` |
 | `Digit`                                                             | a single `'0'`–`'9'` character       | `references/parsing.md`            |
 

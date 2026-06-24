@@ -4,6 +4,13 @@ namespace StrongTypes.OpenApi.TestApi.Shared;
 
 public sealed record StructEntityRequest<T>(T Value, T? NullableValue) where T : struct;
 
+/// <summary>Witness type giving <see cref="BoundedInt{TBounds}"/> a 1..100 range — a page-size invariant carried in the type.</summary>
+public readonly struct PageSizeBounds : IBounds<int>
+{
+    public static int Min => 1;
+    public static int Max => 100;
+}
+
 public sealed record DecimalEntityRequest(NonPositive<decimal> Value, decimal PlainValue);
 
 public sealed record ReferenceEntityRequest<T>(T Value, T? NullableValue) where T : class;
@@ -34,6 +41,7 @@ public sealed record NullableStrongTypesRequest(
     NonEmptyString? NullableNonEmptyString,
     Positive<int>? NullablePositiveInt,
     Digit? NullableDigit,
+    BoundedInt<PageSizeBounds>? NullableBoundedInt,
     NonEmptyEnumerable<NonEmptyString>? NullableNonEmptyStringArray,
     NonEmptyEnumerable<Positive<int>>? NullableNonEmptyPositiveIntArray);
 

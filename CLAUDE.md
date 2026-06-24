@@ -91,6 +91,72 @@ Rules:
   globally yet, so add `#nullable enable` at the top of each new file.
 - Do **not** return `Option<T>` from new code.
 
+## Adding a new strong type — integration checklist
+
+A strong type is only "done" when it is wired through **every** package
+that the rest of the library already supports for its shape. This list is
+the single place that enumerates those wiring points; miss one and the
+type works in isolation but silently breaks for consumers (no DB
+converter, a `{}` OpenAPI schema, no WPF binding, …). Walk it top to
+bottom for every new type, and tick only what applies to that type's
+shape.
+
+**Core — always** (`src/StrongTypes/<Feature>/`)
+
+- [ ] The type, following the `TryCreate` / `Create` pattern above.
+- [ ] JSON converter. For a numeric wrapper this is just
+  `[NumericWrapper]` + `[JsonConverter(typeof(NumericStrongTypeJsonConverterFactory))]`
+  on the `partial struct` — the source generator and factory do the
+  rest. Other shapes ship a hand-written `JsonConverter`.
+- [ ] `AsX` / `ToX` (or equivalent) extension methods in the feature
+  folder.
+
+**EF Core** (`src/StrongTypes.EfCore/`) — if the type can be stored in a column
+
+- [ ] `StrongTypesConvention` — add the type to **both** `IsStrongType`
+  and `ResolveConverter` so the value converter is attached during
+  property discovery.
+- [ ] `UnwrapMethodCallTranslator` — add the type's generated
+  `<Type>Extensions` to `UnwrapMethodDefinitions` so `.Unwrap()`
+  translates to a bare column in LINQ. (Every source-generated wrapper
+  gets an `Unwrap`; if you skip this the convention still stores the
+  type but server-side predicates on `.Unwrap()` throw.)
+
+**Analyzers** (`src/StrongTypes.Analyzers/`) — if the type is EF-Core-storable
+
+- [ ] `MissingEfCorePackageAnalyzer` — recognize the type so the
+  "reference the EfCore package" diagnostic fires for consumers who
+  map it without the package.
+
+**OpenAPI — both pipelines** (`src/StrongTypes.OpenApi.*`) — if it appears in a request/response
+
+- [ ] `StrongTypeSchemaTypes` (Core) — a detection helper and a branch in
+  `ResolveWireType` returning the underlying wire type.
+- [ ] A **Microsoft** schema transformer **and** a **Swashbuckle** schema
+  filter, each registered in that package's `Startup.AddStrongTypes`.
+  A single-bound numeric wrapper just adds a row to
+  `NumericWrapperKinds`; a fixed/range type follows `Digit` /
+  `BoundedInt` (paint both bounds + set the inline marker).
+- [ ] Verify the document: generate it for both pipelines and confirm the
+  property carries the expected keywords and that **no `{}` wrapper
+  component leaks** into `components.schemas`. Only add a
+  `StrongTypesComponentSchemaFiller` (Microsoft) entry if the framework
+  actually dedups your type into an unpainted component — primitive-
+  painted types usually inline and need nothing.
+
+**WPF** (`src/StrongTypes.Wpf/`) — if the type is a scalar `IParsable<T>` value worth binding to a `TextBox`
+
+- [ ] `StrongTypesTypeDescriptionProvider.TryCreateConverter` — add the
+  type so WPF's binding pipeline finds a `TypeConverter`. (Non-scalar
+  shapes like `Maybe<T>` / `Result<T, TError>` don't apply.)
+
+**Tests** — see [`testing.md`](testing.md) for which test projects each
+shape requires and how to write each kind.
+
+**Docs** — main [`readme.md`](readme.md), the affected package readmes,
+and the `Skill/` (catalog row + reference) — see
+[`CONTRIBUTING.md`](CONTRIBUTING.md) and "Skill — keep it in sync" below.
+
 ## Tests
 
 All testing rules — unit, API integration, OpenAPI integration, and

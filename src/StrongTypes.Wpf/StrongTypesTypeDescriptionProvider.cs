@@ -28,7 +28,8 @@ internal sealed class StrongTypesTypeDescriptionProvider(TypeDescriptionProvider
         if (definition != typeof(Positive<>)
             && definition != typeof(NonNegative<>)
             && definition != typeof(Negative<>)
-            && definition != typeof(NonPositive<>))
+            && definition != typeof(NonPositive<>)
+            && definition != typeof(BoundedInt<>))
             return null;
         var converterType = typeof(ParsableTypeConverter<>).MakeGenericType(type);
         return (TypeConverter)Activator.CreateInstance(converterType)!;

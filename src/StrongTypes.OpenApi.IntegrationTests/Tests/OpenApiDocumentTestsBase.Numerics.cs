@@ -49,6 +49,30 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     [Fact]
+    public async Task BoundedInt_Renders_As_Integer_With_Witness_Min_Max_Bounds()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/bounded-int-entities"));
+        AssertPageSizeBoundedIntSchema(Property(body, "value"));
+    }
+
+    [Fact]
+    public async Task Nullable_BoundedInt_Property_Still_Renders_With_Witness_Min_Max_Bounds()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/bounded-int-entities"));
+        AssertPageSizeBoundedIntSchema(UnwrapNullableProperty(Property(body, "nullableValue"), Version));
+    }
+
+    [Fact]
+    public async Task Nullable_BoundedInt_On_Dedicated_Nullables_Endpoint_Renders_With_Witness_Min_Max_Bounds()
+    {
+        var doc = await GetDocumentAsync();
+        var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
+        AssertPageSizeBoundedIntSchema(UnwrapNullableProperty(Property(body, "nullableBoundedInt"), Version));
+    }
+
+    [Fact]
     public async Task Nullable_Positive_Int_Property_Still_Renders_As_Integer_With_ExclusiveMinimum_Zero()
     {
         var doc = await GetDocumentAsync();

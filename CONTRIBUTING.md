@@ -23,6 +23,10 @@ wasted work if the design needs to change.
 - Match the conventions in [`CLAUDE.md`](CLAUDE.md) — it covers folder
   layout, the `TryCreate` / `Create` pattern, comment style, and line
   wrapping rules. Those rules apply to every contributor.
+- Adding a new strong type? Follow the **"Adding a new strong type —
+  integration checklist"** in [`CLAUDE.md`](CLAUDE.md). It enumerates
+  every package the type must be wired through (EF Core, both OpenAPI
+  pipelines, WPF, analyzers) so it isn't left half-supported.
 - PRs are squash-merged.
 
 ## Testing

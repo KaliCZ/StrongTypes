@@ -90,6 +90,67 @@ underlying primitive. `Positive<int>` on the wire is `42`, not
 `{ "Value": 42 }`. Invalid values (`0` for `Positive<int>`, `-1` for
 `NonNegative<int>`, …) fail with `JsonException` at deserialization.
 
+## `BoundedInt<TBounds>` — a closed `[Min, Max]` range
+
+When the invariant is a range rather than a sign, use `BoundedInt<TBounds>`:
+an `int` constrained to a closed `[Min, Max]` range carried by a **witness
+type**. The bounds live on the type, so the rule travels with every
+signature — `BoundedInt<PageSizeBounds>` *is* a 1..100 integer.
+
+```csharp
+public readonly struct PageSizeBounds : IBounds<int>
+{
+    public static int Min => 1;
+    public static int Max => 100;
+}
+
+BoundedInt<PageSizeBounds>? p  = BoundedInt<PageSizeBounds>.TryCreate(input); // null if outside [1,100]
+BoundedInt<PageSizeBounds>  p2 = BoundedInt<PageSizeBounds>.Create(input);    // throws if outside
+BoundedInt<PageSizeBounds>? p3 = input.AsBounded<PageSizeBounds>();           // null if outside
+BoundedInt<PageSizeBounds>  p4 = input.ToBounded<PageSizeBounds>();           // throws if outside
+
+void GetUsers(BoundedInt<PageSizeBounds> pageSize) { … }   // 1..100 enforced at the boundary
+```
+
+- Both endpoints are **inclusive**. `Create` outside the range throws with a
+  message naming the bounds (`"… must be between 1 and 100 (inclusive)…"`).
+- `default(BoundedInt<TBounds>)` wraps `TBounds.Min`, so the default still
+  satisfies the invariant.
+- You get the same free surface as the sign wrappers (equality, comparison,
+  implicit `→ int`, `.Value` / `.Unwrap()`, JSON round-trip, `.Min` / `.Max`
+  extensions) **except** `Sum` — a bounded range is not closed under addition.
+- Write the witness as a small `readonly struct` with `=> literal` getters so
+  the JIT can inline the bounds.
+- OpenAPI: renders as `{ "type": "integer", "format": "int32", "minimum": Min,
+  "maximum": Max }`; EF Core stores it as a plain `int` column.
+
+## Defining your own validated wrapper
+
+`Positive<T>`, `BoundedInt<TBounds>`, and the rest are just `partial struct`s
+tagged with `[NumericWrapper]`. The source generator emits all the equality,
+comparison, conversion, `Create`, operator, and JSON boilerplate; the JSON
+converter factory recognises **any** struct carrying the attribute. To add a
+new validated numeric wrapper, write only the `Value` property and `TryCreate`:
+
+```csharp
+[NumericWrapper(InvariantDescription = "even")]
+[JsonConverter(typeof(NumericStrongTypeJsonConverterFactory))]
+public readonly partial struct EvenInt
+{
+    public int Value { get; }
+    private EvenInt(int value) { Value = value; }
+
+    public static EvenInt? TryCreate(int value)
+        => value % 2 == 0 ? new EvenInt(value) : null;
+}
+```
+
+That's the whole file. `Create` (throwing `"Value must be even, …"`), `==`,
+`<`, `IEquatable<int>`, `implicit operator int`, `ToString`, JSON
+round-tripping, and `EvenIntExtensions.Min` / `.Max` / `.Unwrap` are all
+generated from the attribute. The EfCore and OpenAPI packages pick it up
+automatically — no per-type registration.
+
 ## Modelling tips
 
 ```csharp

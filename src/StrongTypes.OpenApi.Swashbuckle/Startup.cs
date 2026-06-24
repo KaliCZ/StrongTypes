@@ -22,6 +22,7 @@ public static class StrongTypesSwashbuckleExtensions
         options.SchemaFilter<NonEmptyStringSchemaFilter>();
         options.SchemaFilter<EmailSchemaFilter>();
         options.SchemaFilter<DigitSchemaFilter>();
+        options.SchemaFilter<BoundedIntSchemaFilter>();
         options.SchemaFilter<NumericStrongTypeSchemaFilter>();
         options.SchemaFilter<NonEmptyEnumerableSchemaFilter>();
         options.SchemaFilter<MaybeSchemaFilter>();

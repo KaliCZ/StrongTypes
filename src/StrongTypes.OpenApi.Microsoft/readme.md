@@ -37,6 +37,8 @@ app.MapOpenApi();
 - `NonNegative<T>` &rarr; underlying primitive with `minimum: 0`
 - `Negative<T>` &rarr; underlying primitive with `exclusiveMaximum: 0`
 - `NonPositive<T>` &rarr; underlying primitive with `maximum: 0`
+- `BoundedInt<TBounds>` &rarr; `{ "type": "integer", "format": "int32" }` with the
+  witness type's inclusive `minimum` / `maximum` (e.g. `minimum: 1, maximum: 100`)
 - `NonEmptyEnumerable<T>` and `INonEmptyEnumerable<T>` &rarr;
   `{ "type": "array", "minItems": 1, "items": <T schema> }`
 - `Maybe<T>` &rarr; object wrapper `{ "Value": <T schema, nullable> }` matching the
