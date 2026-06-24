@@ -16,10 +16,18 @@ UI dependency, so the wiring lives here.
 ## Wiring
 
 Call `this.UseStrongTypes()` once in `App.OnStartup`. One call covers
-every strong type, including every closed instantiation of the
-generic numeric wrappers (`Positive<int>`, `Negative<decimal>`, …) —
-the package installs a `TypeDescriptionProvider` that synthesises the
+every strong type with a string round-trip — `NonEmptyString`, `Email`,
+`Digit`, and every closed instantiation of the generic numeric wrappers
+(`Positive<int>`, `Negative<decimal>`, …) — the package installs a
+`TypeDescriptionProvider` that synthesises an `IParsable<T>`-backed
 converter on demand the first time WPF asks for it.
+
+Composite types have no single-`TextBox` string form and so get no
+converter: bind their parts instead. An interval
+(`ClosedInterval<T>`, `Interval<T>`, `IntervalFrom<T>`,
+`IntervalUntil<T>`) binds field-by-field via `.Start` / `.End`;
+`Maybe<T>` and `NonEmptyEnumerable<T>` likewise bind through their
+members, not as a whole.
 
 ```csharp
 public partial class App : Application

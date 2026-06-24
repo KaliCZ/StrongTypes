@@ -10,7 +10,7 @@ WPF's binding pipeline routes `string → T` through `TypeDescriptor.GetConverte
 
 ## Usage
 
-Call `this.UseStrongTypes()` once in `App.OnStartup`. One call covers every strong type — including every closed instantiation of the generic numeric wrappers (`Positive<int>`, `Negative<decimal>`, …) — because the package installs a `TypeDescriptionProvider` that synthesizes the converter on demand the first time WPF asks for it.
+Call `this.UseStrongTypes()` once in `App.OnStartup`. One call covers every strong type that has a string round-trip — `NonEmptyString`, `Email`, `Digit`, and every closed instantiation of the generic numeric wrappers (`Positive<int>`, `Negative<decimal>`, …) — because the package installs a `TypeDescriptionProvider` that synthesizes an `IParsable<T>`-backed converter on demand the first time WPF asks for it. Composite types with no single-`TextBox` form (the interval types, `Maybe<T>`, `NonEmptyEnumerable<T>`) get no converter — bind their parts (`.Start` / `.End`, etc.) instead.
 
 ```csharp
 public partial class App : Application
