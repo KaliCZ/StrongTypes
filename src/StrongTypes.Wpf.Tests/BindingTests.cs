@@ -146,6 +146,84 @@ public class EmailBindingTests
     };
 }
 
+public class BoundedIntBindingTests
+{
+    [Fact]
+    public void OneWay_DisplaysCurrentValue()
+    {
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { PageSize = BoundedInt<PageSizeBounds>.Create(20) };
+            var textBox = new TextBox();
+            BindingOperations.SetBinding(textBox, TextBox.TextProperty, OneWay(nameof(vm.PageSize), vm));
+
+            Assert.Equal("20", textBox.Text);
+        });
+    }
+
+    [Fact]
+    public void TwoWay_ValidInput_UpdatesSource()
+    {
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { PageSize = BoundedInt<PageSizeBounds>.Create(20) };
+            var textBox = new TextBox();
+            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.PageSize), vm));
+
+            textBox.Text = "50";
+
+            Assert.Equal(BoundedInt<PageSizeBounds>.Create(50), vm.PageSize);
+        });
+    }
+
+    [Fact]
+    public void TwoWay_OutOfRangeInput_DoesNotMutateSourceAndRaisesValidationError()
+    {
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { PageSize = BoundedInt<PageSizeBounds>.Create(20) };
+            var textBox = new TextBox();
+            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.PageSize), vm));
+
+            textBox.Text = "101";
+
+            Assert.Equal(BoundedInt<PageSizeBounds>.Create(20), vm.PageSize);
+            Assert.True(System.Windows.Controls.Validation.GetHasError(textBox));
+        });
+    }
+
+    [Fact]
+    public void TwoWay_NonNumericInput_DoesNotMutateSourceAndRaisesValidationError()
+    {
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { PageSize = BoundedInt<PageSizeBounds>.Create(20) };
+            var textBox = new TextBox();
+            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.PageSize), vm));
+
+            textBox.Text = "abc";
+
+            Assert.Equal(BoundedInt<PageSizeBounds>.Create(20), vm.PageSize);
+            Assert.True(System.Windows.Controls.Validation.GetHasError(textBox));
+        });
+    }
+
+    private static Binding OneWay(string path, object source) => new(path)
+    {
+        Source = source,
+        Mode = BindingMode.OneWay,
+    };
+
+    private static Binding TwoWay(string path, object source) => new(path)
+    {
+        Source = source,
+        Mode = BindingMode.TwoWay,
+        UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
+        ValidatesOnExceptions = true,
+        NotifyOnValidationError = true,
+    };
+}
+
 public class PositiveIntBindingTests
 {
     [Fact]

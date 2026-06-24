@@ -17,7 +17,8 @@ UI dependency, so the wiring lives here.
 
 Call `this.UseStrongTypes()` once in `App.OnStartup`. One call covers
 every strong type, including every closed instantiation of the
-generic numeric wrappers (`Positive<int>`, `Negative<decimal>`, …) —
+generic numeric wrappers (`Positive<int>`, `Negative<decimal>`,
+`BoundedInt<PageSizeBounds>`, …) —
 the package installs a `TypeDescriptionProvider` that synthesises the
 converter on demand the first time WPF asks for it.
 

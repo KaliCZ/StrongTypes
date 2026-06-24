@@ -10,7 +10,7 @@ WPF's binding pipeline routes `string → T` through `TypeDescriptor.GetConverte
 
 ## Usage
 
-Call `this.UseStrongTypes()` once in `App.OnStartup`. One call covers every strong type — including every closed instantiation of the generic numeric wrappers (`Positive<int>`, `Negative<decimal>`, …) — because the package installs a `TypeDescriptionProvider` that synthesizes the converter on demand the first time WPF asks for it.
+Call `this.UseStrongTypes()` once in `App.OnStartup`. One call covers every strong type — including every closed instantiation of the generic numeric wrappers (`Positive<int>`, `Negative<decimal>`, `BoundedInt<PageSizeBounds>`, …) — because the package installs a `TypeDescriptionProvider` that synthesizes the converter on demand the first time WPF asks for it.
 
 ```csharp
 public partial class App : Application

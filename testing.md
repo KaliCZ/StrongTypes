@@ -15,6 +15,7 @@ needs to touch depends on what the type does:
 | Is meant to be stored in a database | `StrongTypes.Api.IntegrationTests` (covers both SQL Server and PostgreSQL) |
 | Appears in an ASP.NET Core request/response | `StrongTypes.OpenApi.IntegrationTests` |
 | Binds from a non-body source, or affects MVC error handling | `StrongTypes.AspNetCore.IntegrationTests` |
+| Is a scalar `IParsable<T>` value bindable in WPF | `StrongTypes.Wpf.Tests` |
 | Ships an analyzer or code fix | `StrongTypes.Analyzers.Tests` |
 
 ## Unit tests — `StrongTypes.Tests`
@@ -201,3 +202,24 @@ through the real Roslyn pipeline using `AnalyzerTester` /
 Cover both directions: the analyzer **fires** when the offending pattern
 is present and the required reference is missing, and is **silent** when
 the reference is present.
+
+## WPF binding tests — `StrongTypes.Wpf.Tests`
+
+Covers the `Kalicz.StrongTypes.Wpf` `TypeConverter` wiring — the bridge
+that lets WPF two-way-bind a `TextBox.Text` to a strong-typed view-model
+property. These run on `net10.0-windows` and must execute on an STA
+thread (wrap each test body in `StaThread.Run(...)`).
+
+When adding a scalar `IParsable<T>` type that should be bindable:
+
+1. Add a property of the type to `PersonViewModel` in
+   `StrongTypes.Wpf.TestApp` (declare any witness type, e.g. an
+   `IBounds<int>`, there too).
+2. Add a binding-test class mirroring `PositiveIntBindingTests`. Bind a
+   `TextBox` to the property and cover, at minimum: **OneWay** displays
+   the current value as text; **TwoWay** with valid input updates the
+   source; **TwoWay** with input that violates the invariant leaves the
+   source unchanged and sets `Validation.GetHasError(textBox)` (the
+   `Create` / `Parse` `ArgumentException` surfaces as a `ValidationError`
+   via `ValidatesOnExceptions`); and, for numeric types, **TwoWay** with
+   non-numeric input does the same.
