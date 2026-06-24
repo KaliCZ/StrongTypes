@@ -130,7 +130,7 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
-        var nullableArray = UnwrapNullableProperty(Property(body, "nullableNonEmptyStringArray"), Version);
+        var nullableArray = AssertNullableAndUnwrap(Property(body, "nullableNonEmptyStringArray"), Version);
 
         AssertInlineSchema(nullableArray);
         Assert.Equal("array", StringOrNull(nullableArray, "type"));
@@ -147,7 +147,7 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/nullable-strong-types"));
-        var nullableArray = UnwrapNullableProperty(Property(body, "nullableNonEmptyPositiveIntArray"), Version);
+        var nullableArray = AssertNullableAndUnwrap(Property(body, "nullableNonEmptyPositiveIntArray"), Version);
 
         AssertInlineSchema(nullableArray);
         Assert.Equal("array", StringOrNull(nullableArray, "type"));

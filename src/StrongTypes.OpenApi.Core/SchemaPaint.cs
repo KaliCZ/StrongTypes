@@ -36,6 +36,24 @@ public static class SchemaPaint
         schema.Items = null;
     }
 
+    /// <summary>
+    /// True when the schema's <c>type</c> carries the <c>null</c> bit — the
+    /// wire encoding of a nullable member. Serialized as <c>nullable: true</c>
+    /// in OpenAPI 3.0 and as a <c>"null"</c> member of the <c>type</c> array
+    /// in 3.1.
+    /// </summary>
+    public static bool IsNullable(OpenApiSchema schema)
+        => schema.Type is { } type && type.HasFlag(JsonSchemaType.Null);
+
+    /// <summary>
+    /// Adds the <c>null</c> bit to the schema's <c>type</c> while preserving
+    /// the existing primitive bits. Idempotent; the OpenAPI serializer maps
+    /// the bit to <c>nullable: true</c> (3.0) or a <c>"null"</c>-typed union
+    /// member (3.1) for the document version in force.
+    /// </summary>
+    public static void MarkNullable(OpenApiSchema schema)
+        => schema.Type = (schema.Type ?? JsonSchemaType.Null) | JsonSchemaType.Null;
+
     /// <summary>Raises <c>minLength</c> to <paramref name="floor"/>, keeping the caller's value when already at least as large.</summary>
     public static void TightenMinLength(OpenApiSchema schema, int floor)
     {
