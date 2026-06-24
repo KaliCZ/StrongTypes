@@ -12,7 +12,7 @@
     <RootNamespace>StrongTypes.AspNetCore</RootNamespace>
     <Authors>KaliCZ</Authors>
     <Copyright>Copyright © 2026 KaliCZ</Copyright>
-    <Description>ASP.NET Core MVC model binders for binding NonEmptyEnumerable&lt;T&gt; and Maybe&lt;T&gt; from [FromForm] (the primary use), [FromQuery], [FromHeader], or [FromRoute]. You don't need this package for standard JSON APIs — [FromBody] already round-trips both wrappers via the JSON converters in Kalicz.StrongTypes. Single registration call: services.AddStrongTypes().</Description>
+    <Description>ASP.NET Core MVC integration for Kalicz.StrongTypes: model binders for NonEmptyEnumerable&lt;T&gt; and Maybe&lt;T&gt; from [FromForm] (the primary use), [FromQuery], [FromHeader], or [FromRoute]; plus normalization of JSON request-body validation error keys (e.g. "$.value" to "Value") so they match data-annotation and model-binding keys. For [FromBody] both wrappers already round-trip via the JSON converters in Kalicz.StrongTypes. Single registration call: services.AddStrongTypes().</Description>
     <PackageTags>StrongTypes, AspNetCore, ModelBinding, NonEmptyEnumerable, Maybe</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -25,6 +25,9 @@
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="StrongTypes.AspNetCore.IntegrationTests" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />

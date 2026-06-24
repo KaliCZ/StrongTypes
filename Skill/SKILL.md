@@ -24,7 +24,7 @@ demand when about to write code against that surface.
 | `Kalicz.StrongTypes.OpenApi.Microsoft`   | Schema transformers for `Microsoft.AspNetCore.OpenApi` (`AddOpenApi()`) so wrappers render as the wire JSON shape, not the CLR shape. |
 | `Kalicz.StrongTypes.OpenApi.Swashbuckle` | The same idea for Swashbuckle's `AddSwaggerGen()` pipeline — schema filters that produce the wire JSON shape. |
 | `Kalicz.StrongTypes.Wpf`      | `TypeConverter` infrastructure for two-way MVVM binding to strong-typed view-model properties. One `this.UseStrongTypes()` call in `App.OnStartup`. |
-| `Kalicz.StrongTypes.AspNetCore` | **Niche** MVC model binder for `NonEmptyEnumerable<T>` from `[FromForm]` / `[FromQuery]` / `[FromHeader]` / `[FromRoute]`. **Not needed for JSON APIs** — `[FromBody]` round-trips it via the core JSON converters. |
+| `Kalicz.StrongTypes.AspNetCore` | MVC model binder for `NonEmptyEnumerable<T>` from `[FromForm]` / `[FromQuery]` / `[FromHeader]` / `[FromRoute]`, **plus** opt-out normalization of JSON request-body validation error keys (`$.value` → `Value`) so they match data-annotation / model-binding keys. The binder is niche; `[FromBody]` round-trips wrappers via the core JSON converters without it. |
 
 Add packages only when the host project actually hits that stack:
 
@@ -32,7 +32,7 @@ Add packages only when the host project actually hits that stack:
 - **FsCheck** — only for property-based test projects.
 - **OpenApi.Microsoft** vs **OpenApi.Swashbuckle** — pick **one**, matching the spec generator the app already wires up. They are not interchangeable. `references/openapi.md` covers both pipelines.
 - **Wpf** — only for WPF apps that two-way bind to strong-typed VM properties. See `references/wpf.md`.
-- **AspNetCore** — only when a controller takes `NonEmptyEnumerable<T>` from a non-body source (forms, repeated query params, header lists). A pure JSON API doesn't need it; `[FromBody]` already handles `NonEmptyEnumerable<T>` via the core JSON converters. See `references/aspnetcore.md`.
+- **AspNetCore** — add it when a controller takes `NonEmptyEnumerable<T>` from a non-body source (forms, repeated query params, header lists), **or** when you want JSON request-body validation errors keyed by the property name (`Value`) instead of the System.Text.Json path (`$.value`). The error-key normalization is on by default once `AddStrongTypes()` is called — opt out with `AddStrongTypes(o => o.NormalizeJsonErrorKeys = false)`, or set `o.JsonErrorKeyCasing`. The binder alone is niche — `[FromBody]` already round-trips `NonEmptyEnumerable<T>` via the core JSON converters — but the error-key normalization applies to any JSON API. See `references/aspnetcore.md`.
 
 ## Type catalog — what's in the box
 
@@ -67,7 +67,7 @@ demand when about to write code against that surface.
 | FsCheck: shared `Generators` class, shipped arbitraries       | `references/fscheck.md`         |
 | OpenAPI: `AddStrongTypes()` for either `AddOpenApi()` (`Kalicz.StrongTypes.OpenApi.Microsoft`) or `AddSwaggerGen()` (`Kalicz.StrongTypes.OpenApi.Swashbuckle`) | `references/openapi.md`         |
 | WPF: `this.UseStrongTypes()` in `App.OnStartup` for two-way MVVM binding | `references/wpf.md` |
-| ASP.NET Core MVC binders: `services.AddStrongTypes()` for `NonEmptyEnumerable<T>` from `[FromForm]` & friends (niche; not for JSON APIs) | `references/aspnetcore.md` |
+| ASP.NET Core MVC: `services.AddStrongTypes()` for `NonEmptyEnumerable<T>` from `[FromForm]` & friends, plus JSON request-body validation error-key normalization | `references/aspnetcore.md` |
 
 ## Design philosophy — picking the right wrapper
 
