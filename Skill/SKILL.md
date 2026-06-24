@@ -32,7 +32,7 @@ Add packages only when the host project actually hits that stack:
 - **FsCheck** — only for property-based test projects.
 - **OpenApi.Microsoft** vs **OpenApi.Swashbuckle** — pick **one**, matching the spec generator the app already wires up. They are not interchangeable. `references/openapi.md` covers both pipelines.
 - **Wpf** — only for WPF apps that two-way bind to strong-typed VM properties. See `references/wpf.md`.
-- **AspNetCore** — add it when a controller takes `NonEmptyEnumerable<T>` from a non-body source (forms, repeated query params, header lists), **or** when you want JSON request-body validation errors keyed by the property name (`Value`) instead of the System.Text.Json path (`$.value`). The binder alone is niche — `[FromBody]` already round-trips `NonEmptyEnumerable<T>` via the core JSON converters — but the error-key normalization applies to any JSON API. See `references/aspnetcore.md`.
+- **AspNetCore** — add it when a controller takes `NonEmptyEnumerable<T>` from a non-body source (forms, repeated query params, header lists), **or** when you want JSON request-body validation errors keyed by the property name (`Value`) instead of the System.Text.Json path (`$.value`). The error-key normalization is on by default once `AddStrongTypes()` is called — opt out with `AddStrongTypes(o => o.NormalizeJsonErrorKeys = false)`, or set `o.JsonErrorKeyCasing`. The binder alone is niche — `[FromBody]` already round-trips `NonEmptyEnumerable<T>` via the core JSON converters — but the error-key normalization applies to any JSON API. See `references/aspnetcore.md`.
 
 ## Type catalog — what's in the box
 
