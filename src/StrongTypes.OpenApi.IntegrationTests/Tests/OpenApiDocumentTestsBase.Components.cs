@@ -50,4 +50,24 @@ public abstract partial class OpenApiDocumentTestsBase
                 $"Inlineable wrapper component '{name}' should have been removed from components.schemas.");
         }
     }
+
+    // Inlining a wrapper whose storage type is itself an object (e.g.
+    // Email, backed by System.Net.Mail.MailAddress) makes the pipeline
+    // register that nested storage type as its own component. Once the
+    // wrapper is inlined and dropped, nothing references the nested
+    // component any more, so the inliner must GC it — leaving it behind
+    // is contract drift (openapi-typescript emits an unused interface).
+    [Fact]
+    public async Task No_Component_Schema_Is_Left_Unreferenced_After_Inlining()
+    {
+        var doc = await GetDocumentAsync();
+        var referenced = ReadReferencedSchemaNames(doc);
+
+        foreach (var name in ReadComponentSchemaNames(doc))
+        {
+            Assert.True(
+                referenced.Contains(name),
+                $"Component schema '{name}' is orphaned — no $ref points at it after inlining.");
+        }
+    }
 }

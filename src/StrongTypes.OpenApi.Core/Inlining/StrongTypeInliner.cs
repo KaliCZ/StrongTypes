@@ -28,7 +28,10 @@ public static class StrongTypeInliner
         }
         if (inlineable.Count == 0) return;
 
-        var ctx = new RewriteContext(inlineable, logger);
+        // `Referenced` accumulates every $ref the walk leaves in place (i.e.
+        // not inlined) so we can tell afterwards which components are still in
+        // use. The HashSet is shared across the by-value context copies.
+        var ctx = new RewriteContext(inlineable, new HashSet<string>(StringComparer.Ordinal), logger);
 
         // Walk every component (including the inlineable bodies themselves)
         // so refs to other inlineable wrappers nested inside an array
@@ -47,9 +50,31 @@ public static class StrongTypeInliner
 
         foreach (var name in inlineable.Keys)
             schemas.Remove(name);
+
+        RemoveUnreferencedStorageComponents(schemas, ctx.Referenced);
     }
 
-    private readonly record struct RewriteContext(IReadOnlyDictionary<string, OpenApiSchema> Inlineable, ILogger? Logger);
+    // Storage types that a strong-type wrapper exposes as a public property
+    // and that the generator therefore registers as their own component
+    // (e.g. Email.Value is a System.Net.Mail.MailAddress → a "MailAddress"
+    // component). Once the wrapper is inlined and dropped, nothing references
+    // these any more and downstream tools (openapi-typescript) emit them as
+    // dead noise. Extend this list when a new wrapper drags in another type.
+    private static readonly string[] GeneratedStorageComponentNames = ["MailAddress"];
+
+    // Drop a known storage component only when no surviving $ref points at it,
+    // so a consumer that genuinely uses the type (e.g. a DTO with a
+    // MailAddress property of its own) keeps its component.
+    private static void RemoveUnreferencedStorageComponents(IDictionary<string, IOpenApiSchema> schemas, HashSet<string> referenced)
+    {
+        foreach (var name in GeneratedStorageComponentNames)
+        {
+            if (!referenced.Contains(name)) schemas.Remove(name);
+        }
+    }
+
+    private readonly record struct RewriteContext(
+        IReadOnlyDictionary<string, OpenApiSchema> Inlineable, HashSet<string> Referenced, ILogger? Logger);
 
     private static void RewritePathItem(IOpenApiPathItem pathItem, RewriteContext ctx)
     {
@@ -152,8 +177,14 @@ public static class StrongTypeInliner
 
     private static IOpenApiSchema RewriteSlot(IOpenApiSchema slot, RewriteContext ctx)
     {
-        if (slot is OpenApiSchemaReference sref && ctx.Inlineable.TryGetValue(sref.Reference?.Id ?? string.Empty, out var refTarget))
-            return CloneWireShape(refTarget);
+        if (slot is OpenApiSchemaReference sref && sref.Reference?.Id is { } refId)
+        {
+            if (ctx.Inlineable.TryGetValue(refId, out var refTarget))
+                return CloneWireShape(refTarget);
+
+            ctx.Referenced.Add(refId);
+            return slot;
+        }
 
         if (slot is OpenApiSchema concrete)
         {
