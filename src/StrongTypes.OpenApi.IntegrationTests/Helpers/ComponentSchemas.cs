@@ -21,6 +21,40 @@ internal static class ComponentSchemas
     }
 
     /// <summary>
+    /// Returns the set of <c>components.schemas</c> names that some
+    /// <c>$ref</c> in the document points at. A component name absent
+    /// from this set is an orphan — defined but never referenced.
+    /// </summary>
+    internal static HashSet<string> ReadReferencedSchemaNames(JsonElement doc)
+    {
+        var referenced = new HashSet<string>(StringComparer.Ordinal);
+        CollectRefs(doc, referenced);
+        return referenced;
+    }
+
+    private static void CollectRefs(JsonElement element, HashSet<string> referenced)
+    {
+        const string prefix = "#/components/schemas/";
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (var prop in element.EnumerateObject())
+                {
+                    if (prop.NameEquals("$ref") && prop.Value.ValueKind == JsonValueKind.String
+                        && prop.Value.GetString() is { } path && path.StartsWith(prefix, StringComparison.Ordinal))
+                        referenced.Add(path[prefix.Length..]);
+                    else
+                        CollectRefs(prop.Value, referenced);
+                }
+                break;
+            case JsonValueKind.Array:
+                foreach (var item in element.EnumerateArray())
+                    CollectRefs(item, referenced);
+                break;
+        }
+    }
+
+    /// <summary>
     /// Identifies a component schema name as one of the wrapper types
     /// the inliner is expected to remove. Recognises both the Microsoft
     /// prefix style (<c>PositiveOf…</c>, <c>MaybeOf…</c>) and the

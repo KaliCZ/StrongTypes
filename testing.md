@@ -189,6 +189,18 @@ Use `OpenApiVersion`-aware helpers in `Helpers/ExclusiveBounds.cs` for
 anything that differs between OpenAPI 3.0 and 3.1 (e.g. exclusive
 bounds). Don't write version-conditional asserts inline.
 
+## OpenAPI Core unit tests — `StrongTypes.OpenApi.Core.Tests`
+
+Pipeline-independent logic in `StrongTypes.OpenApi.Core` (e.g. the
+`StrongTypeInliner`) is unit-tested here against the `Microsoft.OpenApi`
+object model directly — build an `OpenApiDocument` in memory, run the
+operation, assert on the result. Reach for this when the behaviour is a
+property of the shared Core code itself rather than of either HTTP
+pipeline (for cross-cutting behaviour both pipelines must exhibit, prefer
+the shared `OpenApiDocumentTestsBase` suite so it's verified end-to-end on
+each). The integration suite stays HTTP/JSON-only and does not reference
+Core.
+
 ## Analyzer tests — `StrongTypes.Analyzers.Tests`
 
 For every diagnostic and code fix, write both a "reports the diagnostic"
