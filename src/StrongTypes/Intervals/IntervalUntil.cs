@@ -18,8 +18,8 @@ public readonly struct IntervalUntil<T> : IEquatable<IntervalUntil<T>>
         End = end;
     }
 
-    public T? Start { get; }
-    public T End { get; }
+    public T? Start { get; private init; }
+    public T End { get; private init; }
 
     /// <summary>Wraps the pair, or returns <c>null</c> when <paramref name="start"/> is present and is greater than <paramref name="end"/>.</summary>
     [Pure]

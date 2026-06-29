@@ -137,22 +137,41 @@ path (`$.value`).
 
 ## EF Core
 
-`Kalicz.StrongTypes.EfCore` maps an interval to a single JSON column,
-round-tripping through the validating converter:
+`Kalicz.StrongTypes.EfCore` offers two persistence shapes; pick per property.
+
+**One JSON column** — `HasIntervalJsonConversion`. Round-trips through the
+validating converter, so it re-checks `Start <= End` on read:
 
 ```csharp
 modelBuilder.Entity<Booking>()
     .HasIntervalJsonConversion(b => b.Window);
 ```
 
-For a nullable interval property (`ClosedInterval<int>?`), map it with the
-underlying converter directly —
+For a nullable interval property, attach the converter directly —
 `.Property(e => e.Window).HasConversion(new IntervalJsonValueConverter<ClosedInterval<int>>())`.
 
-Don't reach for EF Core's `ComplexProperty` (two scalar columns): the interval's
-private constructor can't be bound as a complex type, and column-by-column
-materialization would skip the `Start <= End` validation the JSON converter
-enforces.
+**Two scalar columns** — `HasIntervalColumns`. Maps the interval as an EF Core
+complex type, so each endpoint becomes its own queryable, indexable column
+(`Window_Start`, `Window_End`), nullable exactly when the variant's endpoint is.
+Use this when you need to filter or index on an endpoint in SQL. It materializes
+straight from the columns, so it does **not** re-validate `Start <= End` on read
+— the database is trusted as the source of truth.
+
+```csharp
+modelBuilder.Entity<Booking>()
+    .HasIntervalColumns(b => b.Window);
+```
+
+For a *nullable* interval column property, map it with EF's `ComplexProperty`
+directly. The fully-open `Interval<T>` additionally needs a shadow discriminator
+so a null property stays distinct from an unbounded interval (both endpoints
+null) — otherwise EF can't tell `null` from `Interval(null, null)`:
+
+```csharp
+modelBuilder.Entity<Booking>()
+    .ComplexProperty(b => b.MaybeWindow)   // Interval<int>?
+    .HasDiscriminator();
+```
 
 ## Modelling tips
 

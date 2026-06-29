@@ -19,8 +19,8 @@ public readonly struct Interval<T> : IEquatable<Interval<T>>
         End = end;
     }
 
-    public T? Start { get; }
-    public T? End { get; }
+    public T? Start { get; private init; }
+    public T? End { get; private init; }
 
     /// <summary>Wraps the pair, or returns <c>null</c> when both endpoints are present and <paramref name="start"/> is greater than <paramref name="end"/>.</summary>
     [Pure]

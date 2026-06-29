@@ -41,8 +41,9 @@ nullable form becomes a nullable column.
 
 The interval types (`ClosedInterval<T>`, `Interval<T>`, `IntervalFrom<T>`,
 `IntervalUntil<T>`) are the exception: `UseStrongTypes()` does **not** auto-map
-them — they're objects, not scalars. Map each interval property explicitly with
-`entity.HasIntervalJsonConversion(e => e.Window)` (one JSON column). See
+them — they're objects, not scalars. Map each interval property explicitly,
+choosing `entity.HasIntervalJsonConversion(e => e.Window)` (one JSON column) or
+`entity.HasIntervalColumns(e => e.Window)` (two scalar endpoint columns). See
 `references/intervals.md`.
 
 ## Querying

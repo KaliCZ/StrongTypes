@@ -18,8 +18,8 @@ public readonly struct IntervalFrom<T> : IEquatable<IntervalFrom<T>>
         End = end;
     }
 
-    public T Start { get; }
-    public T? End { get; }
+    public T Start { get; private init; }
+    public T? End { get; private init; }
 
     /// <summary>Wraps the pair, or returns <c>null</c> when <paramref name="end"/> is present and <paramref name="start"/> is greater than it.</summary>
     [Pure]

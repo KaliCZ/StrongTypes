@@ -43,6 +43,14 @@ public class SqlServerDbContext(DbContextOptions<SqlServerDbContext> options) : 
     public DbSet<IntervalFromEntity> IntervalFromEntities { get; set; }
     public DbSet<IntervalUntilEntity> IntervalUntilEntities { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder) =>
+    public DbSet<ClosedIntervalColumnsEntity> ClosedIntervalColumnsEntities { get; set; }
+    public DbSet<IntervalColumnsEntity> IntervalColumnsEntities { get; set; }
+    public DbSet<IntervalFromColumnsEntity> IntervalFromColumnsEntities { get; set; }
+    public DbSet<IntervalUntilColumnsEntity> IntervalUntilColumnsEntities { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
         modelBuilder.ConfigureIntervalEntities();
+        modelBuilder.ConfigureIntervalColumnEntities();
+    }
 }

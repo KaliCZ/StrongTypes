@@ -68,8 +68,10 @@ Column shape on the database is the underlying type — `nvarchar` for
 
 The interval types (`ClosedInterval<T>`, `Interval<T>`, `IntervalFrom<T>`,
 `IntervalUntil<T>`) are objects, not scalars, so `UseStrongTypes()` does not
-auto-map them. Map each interval property explicitly to a single JSON column,
-which round-trips through the type's validating converter:
+auto-map them. Map each interval property explicitly, choosing one of two shapes.
+
+**One JSON column** — `HasIntervalJsonConversion`. Round-trips through the
+type's validating converter (re-checks `Start <= End` on read):
 
 ```csharp
 modelBuilder.Entity<Booking>()
@@ -78,6 +80,27 @@ modelBuilder.Entity<Booking>()
 
 For a nullable interval property, attach the converter directly:
 `.Property(e => e.Window).HasConversion(new IntervalJsonValueConverter<ClosedInterval<int>>())`.
+
+**Two scalar columns** — `HasIntervalColumns`. Maps the interval as an EF Core
+complex type, so each endpoint is its own queryable, indexable column
+(`Window_Start`, `Window_End`), nullable exactly when the variant's endpoint is.
+Materialization reads the columns directly, so unlike the JSON shape it does not
+re-validate `Start <= End`:
+
+```csharp
+modelBuilder.Entity<Booking>()
+    .HasIntervalColumns(b => b.Window);
+```
+
+For a *nullable* interval column property use EF's `ComplexProperty` directly;
+the fully-open `Interval<T>` also needs `.HasDiscriminator()` so a null property
+stays distinct from an unbounded interval (`Interval(null, null)`):
+
+```csharp
+modelBuilder.Entity<Booking>()
+    .ComplexProperty(b => b.MaybeWindow)   // Interval<int>?
+    .HasDiscriminator();
+```
 
 ## Filtering
 

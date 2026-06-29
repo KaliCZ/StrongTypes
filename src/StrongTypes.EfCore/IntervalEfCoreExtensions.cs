@@ -4,10 +4,15 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace StrongTypes.EfCore;
 
-/// <summary>EF Core configuration helper for the four interval types: <see cref="ClosedInterval{T}"/>, <see cref="Interval{T}"/>, <see cref="IntervalFrom{T}"/>, <see cref="IntervalUntil{T}"/>. Maps an interval property to a single JSON-encoded string column via <see cref="HasIntervalJsonConversion{TEntity,TInterval}"/>, round-tripping through the type's validating JSON converter. (EF Core's <c>ComplexProperty</c> mapping does not apply: the interval's private constructor cannot be bound as a complex type, and column-by-column materialization would bypass the <c>Start &lt;= End</c> invariant the converter enforces.)</summary>
+/// <summary>EF Core configuration helpers for the four interval types — <see cref="ClosedInterval{T}"/>, <see cref="Interval{T}"/>, <see cref="IntervalFrom{T}"/>, <see cref="IntervalUntil{T}"/> — offering both persistence shapes:
+/// <list type="bullet">
+/// <item><see cref="HasIntervalJsonConversion{TEntity,TInterval}"/> — one JSON string column, round-tripped through the type's validating JSON converter (re-checks <c>Start &lt;= End</c> on read).</item>
+/// <item><see cref="HasIntervalColumns{TEntity,TInterval}"/> — two scalar columns (one per endpoint, nullability following the variant), mapped as an EF Core complex type. Materializes directly from the columns, so it does <b>not</b> re-validate on read — the database is trusted as the source of truth.</item>
+/// </list>
+/// </summary>
 public static class IntervalEfCoreExtensions
 {
-    /// <summary>Maps the interval property to a single JSON string column. The same converter handles all four interval types.</summary>
+    /// <summary>Maps the interval property to a single JSON string column. The same converter handles all four interval types and re-validates the <c>Start &lt;= End</c> invariant on read.</summary>
     /// <typeparam name="TEntity">The entity type.</typeparam>
     /// <typeparam name="TInterval">The interval struct type.</typeparam>
     /// <param name="entity">The entity-type builder.</param>
@@ -18,4 +23,16 @@ public static class IntervalEfCoreExtensions
         where TEntity : class
         where TInterval : struct =>
         entity.Property(propertyExpression).HasConversion(new IntervalJsonValueConverter<TInterval>());
+
+    /// <summary>Maps the interval property to two scalar columns (<c>Start</c> and <c>End</c>) as an EF Core complex type, so each endpoint is its own queryable, indexable column. The endpoint columns are nullable exactly when the variant's endpoint is (<c>ClosedInterval</c> → both required; <c>IntervalFrom</c> → end nullable; and so on). Unlike the JSON shape, materialization reads the columns directly and does not re-check <c>Start &lt;= End</c>.</summary>
+    /// <typeparam name="TEntity">The entity type.</typeparam>
+    /// <typeparam name="TInterval">The interval struct type.</typeparam>
+    /// <param name="entity">The entity-type builder.</param>
+    /// <param name="propertyExpression">A lambda selecting the interval property.</param>
+    public static ComplexPropertyBuilder<TInterval> HasIntervalColumns<TEntity, TInterval>(
+        this EntityTypeBuilder<TEntity> entity,
+        Expression<Func<TEntity, TInterval>> propertyExpression)
+        where TEntity : class
+        where TInterval : struct =>
+        entity.ComplexProperty(propertyExpression);
 }
