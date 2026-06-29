@@ -35,3 +35,15 @@ public sealed class PositiveDoubleEntity : EntityBase<PositiveDoubleEntity, Posi
 public sealed class NonNegativeDoubleEntity : EntityBase<NonNegativeDoubleEntity, NonNegative<double>, NonNegative<double>?>;
 public sealed class NegativeDoubleEntity : EntityBase<NegativeDoubleEntity, Negative<double>, Negative<double>?>;
 public sealed class NonPositiveDoubleEntity : EntityBase<NonPositiveDoubleEntity, NonPositive<double>, NonPositive<double>?>;
+
+public sealed class ClosedIntervalEntity : EntityBase<ClosedIntervalEntity, ClosedInterval<int>, ClosedInterval<int>?>;
+public sealed class IntervalEntity : EntityBase<IntervalEntity, Interval<int>, Interval<int>?>;
+public sealed class IntervalFromEntity : EntityBase<IntervalFromEntity, IntervalFrom<int>, IntervalFrom<int>?>;
+public sealed class IntervalUntilEntity : EntityBase<IntervalUntilEntity, IntervalUntil<int>, IntervalUntil<int>?>;
+
+// Same four interval types, mapped to two scalar columns (Start/End) instead of
+// a single JSON column — exercises the HasIntervalColumns persistence shape.
+public sealed class ClosedIntervalColumnsEntity : EntityBase<ClosedIntervalColumnsEntity, ClosedInterval<int>, ClosedInterval<int>?>;
+public sealed class IntervalColumnsEntity : EntityBase<IntervalColumnsEntity, Interval<int>, Interval<int>?>;
+public sealed class IntervalFromColumnsEntity : EntityBase<IntervalFromColumnsEntity, IntervalFrom<int>, IntervalFrom<int>?>;
+public sealed class IntervalUntilColumnsEntity : EntityBase<IntervalUntilColumnsEntity, IntervalUntil<int>, IntervalUntil<int>?>;

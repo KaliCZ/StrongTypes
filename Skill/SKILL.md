@@ -48,6 +48,7 @@ demand when about to write code against that surface.
 | `Positive<T>` / `NonNegative<T>` / `Negative<T>` / `NonPositive<T>` | sign constraint on any `INumber<T>`  | `references/numeric.md`            |
 | `NonEmptyEnumerable<T>` / `INonEmptyEnumerable<T>`                  | at least one element                 | `references/nonemptyenumerable.md` |
 | `Digit`                                                             | a single `'0'`–`'9'` character       | `references/parsing.md`            |
+| `ClosedInterval<T>` / `Interval<T>` / `IntervalFrom<T>` / `IntervalUntil<T>` | ordered endpoints, `Start <= End`; the variant fixes which endpoints are bounded | `references/intervals.md` |
 
 **Algebraic types** (no validation; carry a value or an alternative)
 
@@ -195,8 +196,10 @@ Consequences:
 
 - No `JsonSerializerOptions.Converters.Add(...)` calls. It just works.
 - On-the-wire format matches the underlying primitive: `"hello"`,
-  `42`, `[1, 2, 3]`. The exception is `Maybe<T>`, which serialises as
-  `{ "Value": x }` / `{ "Value": null }` (or accepts `{}` for `None`).
+  `42`, `[1, 2, 3]`. Two exceptions: `Maybe<T>` serialises as
+  `{ "Value": x }` / `{ "Value": null }` (or accepts `{}` for `None`),
+  and the interval types serialise as `{ "Start": …, "End": … }` (both
+  keys always present; an open endpoint is `null`).
 - Invalid payloads throw `JsonException` at deserialization — in
   ASP.NET Core that's *before* your endpoint runs.
 - `Result<T, TError>` has **no** converter by design. Translate to a

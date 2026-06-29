@@ -42,6 +42,9 @@ app.UseSwaggerUI();
   `{ "type": "array", "minItems": 1, "items": <T schema> }`
 - `Maybe<T>` &rarr; object wrapper `{ "Value": <T schema> }` matching the
   converter's on-the-wire format.
+- `ClosedInterval<T>` / `Interval<T>` / `IntervalFrom<T>` / `IntervalUntil<T>` &rarr;
+  `{ "type": "object", "properties": { "Start": <T>, "End": <T> }, "required": ["Start", "End"] }`,
+  a bounded endpoint non-nullable and an open one nullable.
 
 ## Data annotations
 

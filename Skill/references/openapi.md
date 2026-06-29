@@ -67,6 +67,7 @@ app.UseSwaggerUI();
 | `NonPositive<T>`                                                  | underlying primitive with `maximum: 0`                                          |
 | `NonEmptyEnumerable<T>` / `INonEmptyEnumerable<T>`                | `{ "type": "array", "minItems": 1, "items": <T schema> }`                       |
 | `Maybe<T>`                                                        | `{ "type": "object", "properties": { "Value": <T schema> } }`                   |
+| `ClosedInterval<T>` / `Interval<T>` / `IntervalFrom<T>` / `IntervalUntil<T>` | `{ "type": "object", "properties": { "Start": <T schema>, "End": <T schema> }, "required": ["Start", "End"] }` — a bounded endpoint is non-nullable, an open one nullable |
 | `IEnumerable<T>` where `T` is a strong-type wrapper               | `{ "type": "array", "items": <T schema> }` (no `minItems` — element schema only) |
 | `T?` (any nullable wrapper, e.g. `NonEmptyString?`)               | the wrapper's shape above plus its nullability — `nullable: true` (3.0) or `"null"` joined into `type` (3.1), so `NonEmptyString?` → `{ "type": "string", "minLength": 1, "nullable": true }` |
 

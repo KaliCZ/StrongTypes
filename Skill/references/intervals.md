@@ -1,0 +1,191 @@
+# Interval types — `ClosedInterval<T>`, `Interval<T>`, `IntervalFrom<T>`, `IntervalUntil<T>`
+
+Four generic `readonly struct` types holding an ordered pair of endpoints with
+the invariant `Start <= End` (checked whenever both endpoints are present).
+`T` is any `struct, IComparable<T>` — `int`, `long`, `decimal`, `DateTime`,
+`DateOnly`, `TimeOnly`, and so on.
+
+The variant fixes **which endpoints are bounded**, so the compiler — not a
+runtime check — guarantees a bounded endpoint is never `null`. Pick the variant
+by which ends are open:
+
+| Type                | `Start` | `End` | Meaning                       |
+| ------------------- | ------- | ----- | ----------------------------- |
+| `ClosedInterval<T>` | `T`     | `T`   | bounded both ends             |
+| `IntervalFrom<T>`   | `T`     | `T?`  | "from X" — open upper bound   |
+| `IntervalUntil<T>`  | `T?`    | `T`   | "until Y" — open lower bound  |
+| `Interval<T>`       | `T?`    | `T?`  | either / both ends optional   |
+
+Every variant's `default` satisfies its invariant (`default(ClosedInterval<int>)`
+is `[0, 0]`; `default(Interval<int>)` is unbounded).
+
+## Factories
+
+Same `TryCreate` / `Create` split as the rest of the library. They reject
+`Start > End` (only when both endpoints are present — an open endpoint can't
+violate ordering). Construct through the static factories; these types have no
+`AsX` / `ToX` extensions because they take two arguments.
+
+```csharp
+ClosedInterval<int>?  r  = ClosedInterval<int>.TryCreate(1, 10);   // null if start > end
+ClosedInterval<int>   r  = ClosedInterval<int>.Create(1, 10);      // throws if start > end
+
+IntervalFrom<DateOnly>  fromToday = IntervalFrom<DateOnly>.Create(today, null);  // open-ended
+IntervalUntil<DateOnly> untilXmas = IntervalUntil<DateOnly>.Create(null, xmas);  // open start
+Interval<int>           anything  = Interval<int>.Create(null, null);            // unbounded
+```
+
+## What you get on every variant
+
+- `.Start` / `.End` — typed per the variant (bounded endpoints are `T`,
+  optional ones `T?`).
+- `Contains(T value)` — membership; an open end is treated as unbounded
+  in that direction.
+- `Deconstruct` — enables pattern matching. For `Interval<T>` this gives the
+  exhaustive four-arm switch over the bound cases.
+- `IEquatable<Self>`, `==` / `!=`, `GetHashCode`, `Equals(object?)`.
+- `ToString()` — interval notation, e.g. `[1, 10]`, `[1, +∞)`, `(-∞, 10]`,
+  `(-∞, +∞)`.
+- `System.Text.Json` converter via `[JsonConverter]`.
+- Implicit widening to the less-constrained variants (see below).
+
+```csharp
+var interval = Interval<DateTime>.Create(start, end);
+
+string label = interval switch
+{
+    (null, null)         => "unbounded",
+    (null, { } e)        => $"up to {e}",
+    ({ } s, null)        => $"from {s}",
+    ({ } s, { } e)       => $"{s}..{e}",
+};
+
+bool open = IntervalFrom<int>.Create(0, null).Contains(int.MaxValue);   // true
+```
+
+## Widening between variants
+
+A more-constrained variant widens **implicitly** to a less-constrained one —
+the conversion is total and lossless, so it never throws:
+
+- `ClosedInterval<T>` → `IntervalFrom<T>`, `IntervalUntil<T>`, or `Interval<T>`
+- `IntervalFrom<T>` → `Interval<T>`
+- `IntervalUntil<T>` → `Interval<T>`
+
+(There is no implicit `IntervalFrom` ↔ `IntervalUntil`: swapping which end is
+open would require the optional end to be present, which isn't guaranteed.)
+
+Because the conversion is implicit, this is also how you hold mixed variants in
+one collection — widen them all to `Interval<T>`. These are distinct `struct`
+types with no inheritance, but the operator runs on each element:
+
+```csharp
+Interval<int>[] windows =
+[
+    ClosedInterval<int>.Create(0, 10),   // widened
+    IntervalFrom<int>.Create(5, null),   // widened
+    Interval<int>.Create(null, null),
+];
+
+var matching = windows.Where(w => w.Contains(7));
+```
+
+`List<Interval<int>>` works the same way (`Add` takes `Interval<T>`). The
+elements are stored inline as structs — no boxing. To recover "is this fully
+bounded?" later, pattern-match the value (`w is ({ } s, { } e)`), which keys on
+the actual endpoints rather than how the value was originally constructed.
+
+Going the other way is **partial** — narrowing can fail when an endpoint that
+the target requires is open — so it follows the library's `As…` convention and
+returns a nullable, mirroring `TryCreate`:
+
+| On | Method | `null` when |
+| -- | ------ | ----------- |
+| `Interval<T>` | `AsClosed()` → `ClosedInterval<T>?` | either endpoint open |
+| `Interval<T>` | `AsFrom()` → `IntervalFrom<T>?` | lower endpoint open |
+| `Interval<T>` | `AsUntil()` → `IntervalUntil<T>?` | upper endpoint open |
+| `IntervalFrom<T>` | `AsClosed()` → `ClosedInterval<T>?` | upper endpoint open |
+| `IntervalUntil<T>` | `AsClosed()` → `ClosedInterval<T>?` | lower endpoint open |
+
+```csharp
+Interval<int> i = Interval<int>.Create(1, 10);
+ClosedInterval<int>? bounded = i.AsClosed();     // [1, 10]
+ClosedInterval<int>? open    = IntervalFrom<int>.Create(1, null).AsClosed();   // null
+```
+
+Each `As…` has a `To…` sibling that throws `InvalidOperationException` instead
+of returning `null` (the `Create`-style member of the pair) — `ToClosed()`,
+`ToFrom()`, `ToUntil()`. Use it when an open endpoint is a bug, not an expected
+case.
+
+## JSON
+
+On **write**, an interval is always an object with both keys present; an open
+endpoint is `null`:
+
+```json
+{ "Start": 1, "End": 10 }      // ClosedInterval<int>
+{ "Start": 1, "End": null }    // IntervalFrom<int>, open-ended
+{ "Start": null, "End": null } // Interval<int>, unbounded
+```
+
+On **read**, an absent key for an *optional* endpoint means `null` — so
+`IntervalUntil` accepts `{ "End": 10 }` and `Interval` accepts `{}`. Property
+names honour the active `JsonNamingPolicy` (camelCase under the web defaults).
+A payload is rejected with `JsonException` (which ASP.NET Core surfaces as a
+`400` keyed by the property path, `$.value`) when it violates the invariant
+(`Start > End`), omits or nulls a *required* endpoint, or isn't a JSON object.
+
+## EF Core
+
+`Kalicz.StrongTypes.EfCore` offers two persistence shapes.
+
+**One JSON column (the default).** Under `UseStrongTypes()`, every interval
+property auto-maps to a single JSON column named after the property — no
+per-property configuration — round-tripped through the validating converter
+(which re-checks `Start <= End` on read). If you are *not* using
+`UseStrongTypes()`, do the same mapping explicitly:
+
+```csharp
+modelBuilder.Entity<Booking>()
+    .HasIntervalJsonConversion(b => b.Window);
+```
+
+For a nullable interval property mapped explicitly, attach the converter directly —
+`.Property(e => e.Window).HasConversion(new IntervalJsonValueConverter<ClosedInterval<int>>())`.
+
+**Two scalar columns** — opt in with `HasIntervalColumns`. Maps the interval as an EF Core
+complex type, so each endpoint becomes its own queryable, indexable column
+(`Window_Start`, `Window_End`), nullable exactly when the variant's endpoint is.
+Use this when you need to filter or index on an endpoint in SQL. It materializes
+straight from the columns, so it does **not** re-validate `Start <= End` on read
+— the database is trusted as the source of truth.
+
+```csharp
+modelBuilder.Entity<Booking>()
+    .HasIntervalColumns(b => b.Window);
+```
+
+For a *nullable* interval column property, map it with EF's `ComplexProperty`
+directly. The fully-open `Interval<T>` additionally needs a shadow discriminator
+so a null property stays distinct from an unbounded interval (both endpoints
+null) — otherwise EF can't tell `null` from `Interval(null, null)`:
+
+```csharp
+modelBuilder.Entity<Booking>()
+    .ComplexProperty(b => b.MaybeWindow)   // Interval<int>?
+    .HasDiscriminator();
+```
+
+## Modelling tips
+
+Pick the variant that states the truth. A subscription that has started but
+may run forever is `IntervalFrom<DateOnly>`, not `Interval<DateOnly>` with a
+`Start` you have to remember is always set — the type already says so, and the
+compiler stops you constructing it without a start.
+
+```csharp
+public record Subscription(
+    NonEmptyString          Plan,
+    IntervalFrom<DateOnly>  ActivePeriod);   // started; open-ended until cancelled
+```

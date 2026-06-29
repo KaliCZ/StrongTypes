@@ -73,6 +73,7 @@ public sealed class NonEmptyString :
 
     [Pure]
     public NonEmptyString ToLower() => Create(Value.ToLower());
+    /// <exception cref="ArgumentNullException"><paramref name="culture"/> is <c>null</c>.</exception>
     [Pure]
     public NonEmptyString ToLower(CultureInfo culture) => Create(Value.ToLower(culture));
     [Pure]
@@ -80,6 +81,7 @@ public sealed class NonEmptyString :
 
     [Pure]
     public NonEmptyString ToUpper() => Create(Value.ToUpper());
+    /// <exception cref="ArgumentNullException"><paramref name="culture"/> is <c>null</c>.</exception>
     [Pure]
     public NonEmptyString ToUpper(CultureInfo culture) => Create(Value.ToUpper(culture));
     [Pure]

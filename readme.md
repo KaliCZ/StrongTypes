@@ -26,6 +26,7 @@ StrongTypes adds small, focused types that make everyday code safer and more exp
 - [Helpful Types](#helpful-types)
   - [`NonEmptyString`](#nonemptystring)
   - [Numeric wrappers: `Positive<T>`, `NonNegative<T>`, `Negative<T>`, `NonPositive<T>`](#numeric-wrappers)
+  - [Interval types: `ClosedInterval<T>`, `Interval<T>`, `IntervalFrom<T>`, `IntervalUntil<T>`](#interval-types)
   - [What you get for free](#what-you-get-for-free)
   - [JSON serialization](#json-serialization)
   - [EF Core persistence](#ef-core-persistence)
@@ -104,6 +105,45 @@ All defaults (e.g. `default(Positive<T>)`) still satisfy their invariants (e.g. 
 
 [↑ Back to contents](#contents)
 
+### Interval types
+
+A pair of ordered endpoints with the invariant `Start <= End`. Four `readonly struct` variants cover every combination of which endpoints are bounded, so the compiler — not a runtime check — enforces that a bounded endpoint can never be `null`. Endpoints are any `struct, IComparable<T>` (`int`, `DateTime`, `DateOnly`, `decimal`, …).
+
+| Type                  | `Start` | `End` | Use for                         |
+| --------------------- | ------- | ----- | ------------------------------- |
+| `ClosedInterval<T>`   | `T`     | `T`   | a fully-bounded range           |
+| `IntervalFrom<T>`     | `T`     | `T?`  | "from X" (open upper bound)     |
+| `IntervalUntil<T>`    | `T?`    | `T`   | "until Y" (open lower bound)    |
+| `Interval<T>`         | `T?`    | `T?`  | either/both bounds optional     |
+
+Same factory pattern; `TryCreate` / `Create` reject `Start > End` (when both endpoints are present):
+
+```csharp
+ClosedInterval<int>?  range  = ClosedInterval<int>.TryCreate(1, 10);   // null if start > end
+ClosedInterval<int>   must   = ClosedInterval<int>.Create(1, 10);      // throws if start > end
+IntervalFrom<DateOnly> openEnded = IntervalFrom<DateOnly>.Create(today, null); // "from today, no end"
+```
+
+`Contains` answers membership, and a `Deconstruct` lets `Interval<T>` drive an exhaustive switch over the four bound cases:
+
+```csharp
+bool inRange = range.Contains(5);   // true
+
+string label = interval switch
+{
+    (null, null)         => "unbounded",
+    (null, { } end)      => $"up to {end}",
+    ({ } start, null)    => $"from {start}",
+    ({ } start, { } end) => $"{start}..{end}",
+};
+```
+
+A more-constrained variant widens **implicitly** to a less-constrained one (`ClosedInterval<T>` → `IntervalFrom<T>` / `IntervalUntil<T>` / `Interval<T>`; `IntervalFrom<T>` and `IntervalUntil<T>` → `Interval<T>`) — the conversion is lossless and never throws. That also lets you hold mixed variants in one collection by widening them to `Interval<T>` (e.g. `Interval<int>[] x = [closed, from, open];`), stored inline as structs with no boxing. Narrowing back is partial, so it follows the `As…` convention and returns a nullable — `Interval<T>.AsClosed()` / `AsFrom()` / `AsUntil()` (and `AsClosed()` on the half-open variants) yield `null` when a required endpoint is open, each with a throwing `To…` sibling (`ToClosed()`, …) for when an open endpoint is a bug.
+
+On the wire each interval is a JSON object `{ "Start": …, "End": … }` (both keys always present; an open endpoint is `null`). Persist it with EF Core either as a single JSON column — `entity.HasIntervalJsonConversion(e => e.Interval)`, which round-trips through the validating converter — or as two scalar endpoint columns — `entity.HasIntervalColumns(e => e.Interval)`, which makes each endpoint queryable and indexable. See the [EF Core package readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md).
+
+[↑ Back to contents](#contents)
+
 ### What you get for free
 
 Every strong type in this library implements the full set of equality and comparison interfaces, so you can drop them into dictionaries, sorted collections, LINQ `OrderBy`, and equality checks without writing any boilerplate:
@@ -134,6 +174,8 @@ bool order = Positive<int>.Create(4) > 2;                         // true - expl
 All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]` — no converter registration and no custom `JsonSerializerOptions` required. The format is the same as the underlying primitive (`"hello"`, `42`, …), and invalid input surfaces as a `JsonException`.
 
 `Maybe<T>` has a special format of serialization, so Some serializes into `{ "Value": xxx }` and None into `{ "Value": null }`.
+
+The interval types serialize as an object `{ "Start": …, "End": … }` — on write, both keys are always present (an open endpoint is `null`). On read, an absent key for an *optional* endpoint means `null` (so `Interval` accepts `{}`); a payload that violates the invariant (`Start > End`) or omits/nulls a *required* endpoint surfaces as a `JsonException`.
 
 `Result<T, TError>` (and `Result<T>`) has no JSON converter I don't think you want to serialize that.
 
