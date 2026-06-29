@@ -124,6 +124,56 @@ public class IntervalConversionTests
         }
     }
 
+    [Property]
+    public void Interval_ToClosed_matches_AsClosed_or_throws(Interval<int> i)
+    {
+        var closed = i.AsClosed();
+        if (closed.HasValue)
+            Assert.Equal(closed.Value, i.ToClosed());
+        else
+            Assert.Throws<System.InvalidOperationException>(() => i.ToClosed());
+    }
+
+    [Property]
+    public void Interval_ToFrom_matches_AsFrom_or_throws(Interval<int> i)
+    {
+        var from = i.AsFrom();
+        if (from.HasValue)
+            Assert.Equal(from.Value, i.ToFrom());
+        else
+            Assert.Throws<System.InvalidOperationException>(() => i.ToFrom());
+    }
+
+    [Property]
+    public void Interval_ToUntil_matches_AsUntil_or_throws(Interval<int> i)
+    {
+        var until = i.AsUntil();
+        if (until.HasValue)
+            Assert.Equal(until.Value, i.ToUntil());
+        else
+            Assert.Throws<System.InvalidOperationException>(() => i.ToUntil());
+    }
+
+    [Property]
+    public void IntervalFrom_ToClosed_matches_AsClosed_or_throws(IntervalFrom<int> f)
+    {
+        var closed = f.AsClosed();
+        if (closed.HasValue)
+            Assert.Equal(closed.Value, f.ToClosed());
+        else
+            Assert.Throws<System.InvalidOperationException>(() => f.ToClosed());
+    }
+
+    [Property]
+    public void IntervalUntil_ToClosed_matches_AsClosed_or_throws(IntervalUntil<int> u)
+    {
+        var closed = u.AsClosed();
+        if (closed.HasValue)
+            Assert.Equal(closed.Value, u.ToClosed());
+        else
+            Assert.Throws<System.InvalidOperationException>(() => u.ToClosed());
+    }
+
     [Fact]
     public void Variants_widen_into_a_shared_Interval_collection()
     {

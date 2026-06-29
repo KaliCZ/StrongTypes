@@ -73,6 +73,27 @@ public readonly struct Interval<T> : IEquatable<Interval<T>>
     [Pure]
     public IntervalUntil<T>? AsUntil() => End.HasValue ? IntervalUntil<T>.TryCreate(Start, End.Value) : null;
 
+    /// <summary>Narrows to <see cref="ClosedInterval{T}"/>.</summary>
+    /// <exception cref="InvalidOperationException">Either endpoint is open.</exception>
+    [Pure]
+    public ClosedInterval<T> ToClosed() =>
+        AsClosed()
+            ?? throw new InvalidOperationException($"Interval<{typeof(T).Name}> cannot narrow to ClosedInterval; an endpoint is open.");
+
+    /// <summary>Narrows to <see cref="IntervalFrom{T}"/>.</summary>
+    /// <exception cref="InvalidOperationException">The lower endpoint is open.</exception>
+    [Pure]
+    public IntervalFrom<T> ToFrom() =>
+        AsFrom()
+            ?? throw new InvalidOperationException($"Interval<{typeof(T).Name}> cannot narrow to IntervalFrom; start is open.");
+
+    /// <summary>Narrows to <see cref="IntervalUntil{T}"/>.</summary>
+    /// <exception cref="InvalidOperationException">The upper endpoint is open.</exception>
+    [Pure]
+    public IntervalUntil<T> ToUntil() =>
+        AsUntil()
+            ?? throw new InvalidOperationException($"Interval<{typeof(T).Name}> cannot narrow to IntervalUntil; end is open.");
+
     [Pure]
     public override string ToString() => (Start, End) switch
     {

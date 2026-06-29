@@ -113,6 +113,11 @@ ClosedInterval<int>? bounded = i.AsClosed();     // [1, 10]
 ClosedInterval<int>? open    = IntervalFrom<int>.Create(1, null).AsClosed();   // null
 ```
 
+Each `As…` has a `To…` sibling that throws `InvalidOperationException` instead
+of returning `null` (the `Create`-style member of the pair) — `ToClosed()`,
+`ToFrom()`, `ToUntil()`. Use it when an open endpoint is a bug, not an expected
+case.
+
 ## JSON
 
 Each interval serialises as an object with **both** keys always present; an

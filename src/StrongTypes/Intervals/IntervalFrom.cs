@@ -67,6 +67,13 @@ public readonly struct IntervalFrom<T> : IEquatable<IntervalFrom<T>>
     [Pure]
     public ClosedInterval<T>? AsClosed() => End.HasValue ? ClosedInterval<T>.TryCreate(Start, End.Value) : null;
 
+    /// <summary>Narrows to <see cref="ClosedInterval{T}"/>.</summary>
+    /// <exception cref="InvalidOperationException">The upper endpoint is open.</exception>
+    [Pure]
+    public ClosedInterval<T> ToClosed() =>
+        AsClosed()
+            ?? throw new InvalidOperationException($"IntervalFrom<{typeof(T).Name}> cannot narrow to ClosedInterval; end is open.");
+
     [Pure]
     public override string ToString() =>
         End.HasValue ? $"[{Start}, {End.Value}]" : $"[{Start}, +∞)";
