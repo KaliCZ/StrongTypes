@@ -167,6 +167,18 @@ public abstract class IntervalEntityTests<TEntity, TInterval>(TestWebApplication
     }
 
     [Fact]
+    public async Task OmittedEndpoint_InValue_ReturnsBadRequestKeyedByValuePath()
+    {
+        // Every variant requires both keys present on the wire — an open endpoint
+        // is an explicit null, not an absent key — so omitting one is a 400.
+        var response = await Client.PostAsJsonAsync(
+            CreateEndpoint, new { value = new { Start = 1 }, nullableValue = ValidBody }, Ct);
+        var errors = await AssertValidationProblem(response);
+        Assert.True(errors.TryGetProperty("$.value", out var messages));
+        Assert.Contains("requires both", string.Join(" ", messages.EnumerateArray().Select(m => m.GetString())));
+    }
+
+    [Fact]
     public async Task NullValue_ReturnsBadRequest()
     {
         var response = await Client.PostAsJsonAsync(
