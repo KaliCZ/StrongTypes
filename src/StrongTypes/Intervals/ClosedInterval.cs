@@ -53,6 +53,15 @@ public readonly struct ClosedInterval<T> : IEquatable<ClosedInterval<T>>
     public static bool operator ==(ClosedInterval<T> left, ClosedInterval<T> right) => left.Equals(right);
     public static bool operator !=(ClosedInterval<T> left, ClosedInterval<T> right) => !left.Equals(right);
 
+    /// <summary>Widens to <see cref="IntervalFrom{T}"/> by relaxing the upper bound to optional. Always succeeds.</summary>
+    public static implicit operator IntervalFrom<T>(ClosedInterval<T> value) => IntervalFrom<T>.Create(value.Start, value.End);
+
+    /// <summary>Widens to <see cref="IntervalUntil{T}"/> by relaxing the lower bound to optional. Always succeeds.</summary>
+    public static implicit operator IntervalUntil<T>(ClosedInterval<T> value) => IntervalUntil<T>.Create(value.Start, value.End);
+
+    /// <summary>Widens to <see cref="Interval{T}"/> by relaxing both bounds to optional. Always succeeds.</summary>
+    public static implicit operator Interval<T>(ClosedInterval<T> value) => Interval<T>.Create(value.Start, value.End);
+
     [Pure]
     public override string ToString() => $"[{Start}, {End}]";
 }

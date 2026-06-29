@@ -138,6 +138,8 @@ string label = interval switch
 };
 ```
 
+A more-constrained variant widens **implicitly** to a less-constrained one (`ClosedInterval<T>` → `IntervalFrom<T>` / `IntervalUntil<T>` / `Interval<T>`; `IntervalFrom<T>` and `IntervalUntil<T>` → `Interval<T>`) — the conversion is lossless and never throws. That also lets you hold mixed variants in one collection by widening them to `Interval<T>` (e.g. `Interval<int>[] x = [closed, from, open];`), stored inline as structs with no boxing. Narrowing back is partial, so it follows the `As…` convention and returns a nullable — `Interval<T>.AsClosed()` / `AsFrom()` / `AsUntil()` (and `AsClosed()` on the half-open variants) yield `null` when a required endpoint is open.
+
 On the wire each interval is a JSON object `{ "Start": …, "End": … }` (both keys always present; an open endpoint is `null`). Persist it with EF Core via `entity.HasIntervalJsonConversion(e => e.Interval)`, which stores the interval in a single JSON column and round-trips through the validating converter — see the [EF Core package readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md).
 
 [↑ Back to contents](#contents)

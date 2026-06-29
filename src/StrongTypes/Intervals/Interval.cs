@@ -61,6 +61,18 @@ public readonly struct Interval<T> : IEquatable<Interval<T>>
     public static bool operator ==(Interval<T> left, Interval<T> right) => left.Equals(right);
     public static bool operator !=(Interval<T> left, Interval<T> right) => !left.Equals(right);
 
+    /// <summary>Narrows to <see cref="ClosedInterval{T}"/>, or <c>null</c> when either endpoint is open.</summary>
+    [Pure]
+    public ClosedInterval<T>? AsClosed() => Start.HasValue && End.HasValue ? ClosedInterval<T>.TryCreate(Start.Value, End.Value) : null;
+
+    /// <summary>Narrows to <see cref="IntervalFrom{T}"/>, or <c>null</c> when the lower endpoint is open.</summary>
+    [Pure]
+    public IntervalFrom<T>? AsFrom() => Start.HasValue ? IntervalFrom<T>.TryCreate(Start.Value, End) : null;
+
+    /// <summary>Narrows to <see cref="IntervalUntil{T}"/>, or <c>null</c> when the upper endpoint is open.</summary>
+    [Pure]
+    public IntervalUntil<T>? AsUntil() => End.HasValue ? IntervalUntil<T>.TryCreate(Start, End.Value) : null;
+
     [Pure]
     public override string ToString() => (Start, End) switch
     {

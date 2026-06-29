@@ -60,6 +60,13 @@ public readonly struct IntervalUntil<T> : IEquatable<IntervalUntil<T>>
     public static bool operator ==(IntervalUntil<T> left, IntervalUntil<T> right) => left.Equals(right);
     public static bool operator !=(IntervalUntil<T> left, IntervalUntil<T> right) => !left.Equals(right);
 
+    /// <summary>Widens to <see cref="Interval{T}"/> by relaxing the upper bound to optional. Always succeeds.</summary>
+    public static implicit operator Interval<T>(IntervalUntil<T> value) => Interval<T>.Create(value.Start, value.End);
+
+    /// <summary>Narrows to <see cref="ClosedInterval{T}"/>, or <c>null</c> when the lower endpoint is open.</summary>
+    [Pure]
+    public ClosedInterval<T>? AsClosed() => Start.HasValue ? ClosedInterval<T>.TryCreate(Start.Value, End) : null;
+
     [Pure]
     public override string ToString() =>
         Start.HasValue ? $"[{Start.Value}, {End}]" : $"(-∞, {End}]";

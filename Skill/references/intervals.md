@@ -47,6 +47,7 @@ Interval<int>           anything  = Interval<int>.Create(null, null);           
 - `ToString()` — interval notation, e.g. `[1, 10]`, `[1, +∞)`, `(-∞, 10]`,
   `(-∞, +∞)`.
 - `System.Text.Json` converter via `[JsonConverter]`.
+- Implicit widening to the less-constrained variants (see below).
 
 ```csharp
 var interval = Interval<DateTime>.Create(start, end);
@@ -60,6 +61,56 @@ string label = interval switch
 };
 
 bool open = IntervalFrom<int>.Create(0, null).Contains(int.MaxValue);   // true
+```
+
+## Widening between variants
+
+A more-constrained variant widens **implicitly** to a less-constrained one —
+the conversion is total and lossless, so it never throws:
+
+- `ClosedInterval<T>` → `IntervalFrom<T>`, `IntervalUntil<T>`, or `Interval<T>`
+- `IntervalFrom<T>` → `Interval<T>`
+- `IntervalUntil<T>` → `Interval<T>`
+
+(There is no implicit `IntervalFrom` ↔ `IntervalUntil`: swapping which end is
+open would require the optional end to be present, which isn't guaranteed.)
+
+Because the conversion is implicit, this is also how you hold mixed variants in
+one collection — widen them all to `Interval<T>`. These are distinct `struct`
+types with no inheritance, but the operator runs on each element:
+
+```csharp
+Interval<int>[] windows =
+[
+    ClosedInterval<int>.Create(0, 10),   // widened
+    IntervalFrom<int>.Create(5, null),   // widened
+    Interval<int>.Create(null, null),
+];
+
+var matching = windows.Where(w => w.Contains(7));
+```
+
+`List<Interval<int>>` works the same way (`Add` takes `Interval<T>`). The
+elements are stored inline as structs — no boxing. To recover "is this fully
+bounded?" later, pattern-match the value (`w is ({ } s, { } e)`), which keys on
+the actual endpoints rather than how the value was originally constructed.
+
+Going the other way is **partial** — narrowing can fail when an endpoint that
+the target requires is open — so it follows the library's `As…` convention and
+returns a nullable, mirroring `TryCreate`:
+
+| On | Method | `null` when |
+| -- | ------ | ----------- |
+| `Interval<T>` | `AsClosed()` → `ClosedInterval<T>?` | either endpoint open |
+| `Interval<T>` | `AsFrom()` → `IntervalFrom<T>?` | lower endpoint open |
+| `Interval<T>` | `AsUntil()` → `IntervalUntil<T>?` | upper endpoint open |
+| `IntervalFrom<T>` | `AsClosed()` → `ClosedInterval<T>?` | upper endpoint open |
+| `IntervalUntil<T>` | `AsClosed()` → `ClosedInterval<T>?` | lower endpoint open |
+
+```csharp
+Interval<int> i = Interval<int>.Create(1, 10);
+ClosedInterval<int>? bounded = i.AsClosed();     // [1, 10]
+ClosedInterval<int>? open    = IntervalFrom<int>.Create(1, null).AsClosed();   // null
 ```
 
 ## JSON
