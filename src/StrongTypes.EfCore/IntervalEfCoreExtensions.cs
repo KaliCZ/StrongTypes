@@ -6,8 +6,8 @@ namespace StrongTypes.EfCore;
 
 /// <summary>EF Core configuration helpers for the four interval types — <see cref="ClosedInterval{T}"/>, <see cref="Interval{T}"/>, <see cref="IntervalFrom{T}"/>, <see cref="IntervalUntil{T}"/> — offering both persistence shapes:
 /// <list type="bullet">
-/// <item><see cref="HasIntervalJsonConversion{TEntity,TInterval}"/> — one JSON string column, round-tripped through the type's validating JSON converter (re-checks <c>Start &lt;= End</c> on read).</item>
-/// <item><see cref="HasIntervalColumns{TEntity,TInterval}"/> — two scalar columns (one per endpoint, nullability following the variant), mapped as an EF Core complex type. Materializes directly from the columns, so it does <b>not</b> re-validate on read — the database is trusted as the source of truth.</item>
+/// <item><see cref="HasIntervalJsonConversion{TEntity,TInterval}"/> — one JSON string column, round-tripped through the type's validating JSON converter (re-checks <c>Start &lt;= End</c> on read). This is the <b>default</b> shape: with <c>UseStrongTypes()</c> every interval property is auto-mapped this way, so calling it by hand is only needed when not using the convention.</item>
+/// <item><see cref="HasIntervalColumns{TEntity,TInterval}"/> — two scalar columns (one per endpoint, nullability following the variant), mapped as an EF Core complex type. Opts out of the JSON default per property. Materializes directly from the columns, so it does <b>not</b> re-validate on read — the database is trusted as the source of truth.</item>
 /// </list>
 /// </summary>
 public static class IntervalEfCoreExtensions

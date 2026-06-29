@@ -7,9 +7,10 @@ using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaNavigation;
 namespace StrongTypes.OpenApi.IntegrationTests.Tests;
 
 // The four interval types serialize as { "Start": …, "End": … }; the schema must
-// describe that object — both keys required (the converter rejects a missing
-// one), each endpoint's nullability following the variant — rather than the
-// opaque schema a custom JsonConverter produces by default. The endpoint's
+// describe that object — each endpoint's nullability following the variant, and
+// only the required (non-nullable) endpoints listed in `required` (the converter
+// accepts omitting an optional key) — rather than the opaque schema a custom
+// JsonConverter produces by default. The endpoint's
 // integer/nullability encoding differs across pipelines and OpenAPI versions
 // (3.0 nullable:true vs 3.1 type:[…,"null"], Swashbuckle's clean type:integer vs
 // Microsoft's pattern-only plain-int form), so these assert the contract
@@ -21,7 +22,7 @@ public abstract partial class OpenApiDocumentTestsBase
     {
         var value = await IntervalValueSchema("/interval-entities/closed");
         AssertInlineSchema(value);
-        AssertIntervalObject(value);
+        AssertIntervalObject(value, "Start", "End");
         AssertIntegerEndpoint(Property(value, "Start"), nullable: false);
         AssertIntegerEndpoint(Property(value, "End"), nullable: false);
     }
@@ -30,7 +31,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task Interval_Renders_With_Both_Endpoints_Nullable()
     {
         var value = await IntervalValueSchema("/interval-entities/open");
-        AssertIntervalObject(value);
+        AssertIntervalObject(value);   // neither endpoint required
         AssertIntegerEndpoint(Property(value, "Start"), nullable: true);
         AssertIntegerEndpoint(Property(value, "End"), nullable: true);
     }
@@ -39,7 +40,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task IntervalFrom_Renders_With_NonNullable_Start_And_Nullable_End()
     {
         var value = await IntervalValueSchema("/interval-entities/from");
-        AssertIntervalObject(value);
+        AssertIntervalObject(value, "Start");
         AssertIntegerEndpoint(Property(value, "Start"), nullable: false);
         AssertIntegerEndpoint(Property(value, "End"), nullable: true);
     }
@@ -48,7 +49,7 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task IntervalUntil_Renders_With_Nullable_Start_And_NonNullable_End()
     {
         var value = await IntervalValueSchema("/interval-entities/until");
-        AssertIntervalObject(value);
+        AssertIntervalObject(value, "End");
         AssertIntegerEndpoint(Property(value, "Start"), nullable: true);
         AssertIntegerEndpoint(Property(value, "End"), nullable: false);
     }
@@ -59,7 +60,7 @@ public abstract partial class OpenApiDocumentTestsBase
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/interval-entities/closed"));
         var nullableValue = Resolve(doc, UnwrapNullableProperty(Property(body, "nullableValue"), Version));
-        AssertIntervalObject(nullableValue);
+        AssertIntervalObject(nullableValue, "Start", "End");
         AssertIntegerEndpoint(Property(nullableValue, "Start"), nullable: false);
         AssertIntegerEndpoint(Property(nullableValue, "End"), nullable: false);
     }
@@ -71,11 +72,15 @@ public abstract partial class OpenApiDocumentTestsBase
         return Resolve(doc, Property(body, "value"));
     }
 
-    private static void AssertIntervalObject(JsonElement schema)
+    private static void AssertIntervalObject(JsonElement schema, params string[] requiredEndpoints)
     {
         Assert.Equal("object", schema.GetProperty("type").GetString());
-        var required = schema.GetProperty("required").EnumerateArray().Select(e => e.GetString()!).ToHashSet();
-        Assert.Equal(new HashSet<string> { "Start", "End" }, required);
+        // An all-optional variant lists nothing required; the keyword may then be
+        // omitted entirely, so treat absent as the empty set.
+        var required = schema.TryGetProperty("required", out var r)
+            ? r.EnumerateArray().Select(e => e.GetString()!).ToHashSet()
+            : [];
+        Assert.Equal(requiredEndpoints.ToHashSet(), required);
     }
 
     // Tolerates every integer encoding the pipelines emit: Swashbuckle's

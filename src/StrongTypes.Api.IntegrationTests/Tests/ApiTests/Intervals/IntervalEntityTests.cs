@@ -44,6 +44,13 @@ public abstract class IntervalEntityTests<TEntity, TInterval>(TestWebApplication
     /// </summary>
     protected virtual object? NullRequiredEndpointBody => null;
 
+    /// <summary>
+    /// A wire body that omits a required endpoint key entirely (vs. sending it as
+    /// <c>null</c>), or <see langword="null"/> when the variant has no required
+    /// endpoint (<see cref="Interval{T}"/>).
+    /// </summary>
+    protected virtual object? OmittedRequiredEndpointBody => null;
+
     private string CreateEndpoint => $"/{RoutePrefix}";
     private string UpdateEndpoint(Guid id) => $"/{RoutePrefix}/{id}";
     private string SqlServerGetEndpoint(Guid id) => $"/{RoutePrefix}/{id}/sql-server";
@@ -167,15 +174,18 @@ public abstract class IntervalEntityTests<TEntity, TInterval>(TestWebApplication
     }
 
     [Fact]
-    public async Task OmittedEndpoint_InValue_ReturnsBadRequestKeyedByValuePath()
+    public async Task OmittedRequiredEndpoint_InValue_ReturnsBadRequestKeyedByValuePath()
     {
-        // Every variant requires both keys present on the wire — an open endpoint
-        // is an explicit null, not an absent key — so omitting one is a 400.
+        // An absent *optional* endpoint key is valid (that endpoint is null); an
+        // absent *required* one is a 400. Variants with no required endpoint
+        // (Interval) have nothing to omit here.
+        Assert.SkipWhen(OmittedRequiredEndpointBody is null, "Variant has no required endpoint.");
+
         var response = await Client.PostAsJsonAsync(
-            CreateEndpoint, new { value = new { Start = 1 }, nullableValue = ValidBody }, Ct);
+            CreateEndpoint, new { value = OmittedRequiredEndpointBody, nullableValue = ValidBody }, Ct);
         var errors = await AssertValidationProblem(response);
         Assert.True(errors.TryGetProperty("$.value", out var messages));
-        Assert.Contains("requires both", string.Join(" ", messages.EnumerateArray().Select(m => m.GetString())));
+        Assert.Contains("requires the", string.Join(" ", messages.EnumerateArray().Select(m => m.GetString())));
     }
 
     [Fact]

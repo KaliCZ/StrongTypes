@@ -21,4 +21,7 @@ public sealed class IntervalUntilEntityApiTests(TestWebApplicationFactory factor
 
     // End is required; a null End is a 400.
     protected override object? NullRequiredEndpointBody => new { Start = 5, End = (int?)null };
+
+    // ...and so is omitting End entirely. (Omitting Start is valid — it's optional.)
+    protected override object? OmittedRequiredEndpointBody => new { Start = 1 };
 }

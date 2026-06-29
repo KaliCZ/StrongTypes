@@ -67,11 +67,13 @@ Column shape on the database is the underlying type — `nvarchar` for
 ## Intervals
 
 The interval types (`ClosedInterval<T>`, `Interval<T>`, `IntervalFrom<T>`,
-`IntervalUntil<T>`) are objects, not scalars, so `UseStrongTypes()` does not
-auto-map them. Map each interval property explicitly, choosing one of two shapes.
+`IntervalUntil<T>`) auto-map too. By **default**, `UseStrongTypes()` stores each
+interval property in a **single JSON column** (named after the property),
+round-tripped through the type's validating converter (which re-checks
+`Start <= End` on read). No per-property configuration is needed.
 
-**One JSON column** — `HasIntervalJsonConversion`. Round-trips through the
-type's validating converter (re-checks `Start <= End` on read):
+If you are *not* using `UseStrongTypes()`, map an interval to a JSON column
+explicitly with `HasIntervalJsonConversion`:
 
 ```csharp
 modelBuilder.Entity<Booking>()
@@ -81,7 +83,7 @@ modelBuilder.Entity<Booking>()
 For a nullable interval property, attach the converter directly:
 `.Property(e => e.Window).HasConversion(new IntervalJsonValueConverter<ClosedInterval<int>>())`.
 
-**Two scalar columns** — `HasIntervalColumns`. Maps the interval as an EF Core
+**Two scalar columns** — opt in with `HasIntervalColumns`. Maps the interval as an EF Core
 complex type, so each endpoint is its own queryable, indexable column
 (`Window_Start`, `Window_End`), nullable exactly when the variant's endpoint is.
 Materialization reads the columns directly, so unlike the JSON shape it does not

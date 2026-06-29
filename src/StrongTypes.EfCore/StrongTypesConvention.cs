@@ -52,10 +52,17 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention
             return definition == typeof(Positive<>)
                 || definition == typeof(NonNegative<>)
                 || definition == typeof(Negative<>)
-                || definition == typeof(NonPositive<>);
+                || definition == typeof(NonPositive<>)
+                || IsIntervalDefinition(definition);
         }
         return false;
     }
+
+    private static bool IsIntervalDefinition(Type definition) =>
+        definition == typeof(ClosedInterval<>)
+        || definition == typeof(Interval<>)
+        || definition == typeof(IntervalFrom<>)
+        || definition == typeof(IntervalUntil<>);
 
     // EF Core applies ValueConverter only to non-null values, so the same
     // converter instance works for both Wrapper and Nullable<Wrapper> (and for
@@ -81,6 +88,11 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention
             {
                 var underlying = unwrapped.GetGenericArguments()[0];
                 var converterType = typeof(NumericStrongTypeValueConverter<,>).MakeGenericType(unwrapped, underlying);
+                return (ValueConverter)Activator.CreateInstance(converterType)!;
+            }
+            if (IsIntervalDefinition(definition))
+            {
+                var converterType = typeof(IntervalJsonValueConverter<>).MakeGenericType(unwrapped);
                 return (ValueConverter)Activator.CreateInstance(converterType)!;
             }
         }

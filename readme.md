@@ -175,7 +175,7 @@ All strong types ship with `System.Text.Json` converters attached via `[JsonConv
 
 `Maybe<T>` has a special format of serialization, so Some serializes into `{ "Value": xxx }` and None into `{ "Value": null }`.
 
-The interval types serialize as an object `{ "Start": …, "End": … }` (both keys always present; an open endpoint is `null`). A payload that violates the invariant — `Start > End`, or `null` for a bounded endpoint — surfaces as a `JsonException`.
+The interval types serialize as an object `{ "Start": …, "End": … }` — on write, both keys are always present (an open endpoint is `null`). On read, an absent key for an *optional* endpoint means `null` (so `Interval` accepts `{}`); a payload that violates the invariant (`Start > End`) or omits/nulls a *required* endpoint surfaces as a `JsonException`.
 
 `Result<T, TError>` (and `Result<T>`) has no JSON converter I don't think you want to serialize that.
 

@@ -120,8 +120,8 @@ case.
 
 ## JSON
 
-Each interval serialises as an object with **both** keys always present; an
-open endpoint is `null`:
+On **write**, an interval is always an object with both keys present; an open
+endpoint is `null`:
 
 ```json
 { "Start": 1, "End": 10 }      // ClosedInterval<int>
@@ -129,28 +129,32 @@ open endpoint is `null`:
 { "Start": null, "End": null } // Interval<int>, unbounded
 ```
 
-Property names honour the active `JsonNamingPolicy` (camelCase under the web
-defaults). A payload that violates the invariant — `Start > End`, a missing
-key, or `null` for a bounded endpoint — fails with `JsonException` at
-deserialization, which ASP.NET Core surfaces as a `400` keyed by the property
-path (`$.value`).
+On **read**, an absent key for an *optional* endpoint means `null` — so
+`IntervalUntil` accepts `{ "End": 10 }` and `Interval` accepts `{}`. Property
+names honour the active `JsonNamingPolicy` (camelCase under the web defaults).
+A payload is rejected with `JsonException` (which ASP.NET Core surfaces as a
+`400` keyed by the property path, `$.value`) when it violates the invariant
+(`Start > End`), omits or nulls a *required* endpoint, or isn't a JSON object.
 
 ## EF Core
 
-`Kalicz.StrongTypes.EfCore` offers two persistence shapes; pick per property.
+`Kalicz.StrongTypes.EfCore` offers two persistence shapes.
 
-**One JSON column** — `HasIntervalJsonConversion`. Round-trips through the
-validating converter, so it re-checks `Start <= End` on read:
+**One JSON column (the default).** Under `UseStrongTypes()`, every interval
+property auto-maps to a single JSON column named after the property — no
+per-property configuration — round-tripped through the validating converter
+(which re-checks `Start <= End` on read). If you are *not* using
+`UseStrongTypes()`, do the same mapping explicitly:
 
 ```csharp
 modelBuilder.Entity<Booking>()
     .HasIntervalJsonConversion(b => b.Window);
 ```
 
-For a nullable interval property, attach the converter directly —
+For a nullable interval property mapped explicitly, attach the converter directly —
 `.Property(e => e.Window).HasConversion(new IntervalJsonValueConverter<ClosedInterval<int>>())`.
 
-**Two scalar columns** — `HasIntervalColumns`. Maps the interval as an EF Core
+**Two scalar columns** — opt in with `HasIntervalColumns`. Maps the interval as an EF Core
 complex type, so each endpoint becomes its own queryable, indexable column
 (`Window_Start`, `Window_End`), nullable exactly when the variant's endpoint is.
 Use this when you need to filter or index on an endpoint in SQL. It materializes

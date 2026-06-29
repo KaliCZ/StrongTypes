@@ -40,11 +40,10 @@ for `Positive<int>`, `decimal(...)` for `NonNegative<decimal>`, and the
 nullable form becomes a nullable column.
 
 The interval types (`ClosedInterval<T>`, `Interval<T>`, `IntervalFrom<T>`,
-`IntervalUntil<T>`) are the exception: `UseStrongTypes()` does **not** auto-map
-them — they're objects, not scalars. Map each interval property explicitly,
-choosing `entity.HasIntervalJsonConversion(e => e.Window)` (one JSON column) or
-`entity.HasIntervalColumns(e => e.Window)` (two scalar endpoint columns). See
-`references/intervals.md`.
+`IntervalUntil<T>`) auto-map too: by default `UseStrongTypes()` stores each
+interval property in a **single JSON column** named after the property. To store
+**two scalar endpoint columns** instead, opt in per property with
+`entity.HasIntervalColumns(e => e.Window)`. See `references/intervals.md`.
 
 ## Querying
 

@@ -20,4 +20,7 @@ public sealed class ClosedIntervalEntityApiTests(TestWebApplicationFactory facto
 
     // Both endpoints are required; a null endpoint is a 400.
     protected override object? NullRequiredEndpointBody => new { Start = (int?)null, End = 5 };
+
+    // ...and so is omitting one entirely (here End).
+    protected override object? OmittedRequiredEndpointBody => new { Start = 1 };
 }

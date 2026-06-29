@@ -12,9 +12,10 @@ namespace StrongTypes.OpenApi.Swashbuckle;
 /// <code>
 /// { "type": "object", "properties": { "Start": &lt;T&gt;, "End": &lt;T&gt; }, "required": ["Start", "End"] }
 /// </code>
-/// Both keys are always present; each variant's nullability rides on the
-/// endpoint schema — a required endpoint renders non-nullable, an optional one
-/// nullable.
+/// Each variant's nullability rides on the endpoint schema — a required endpoint
+/// renders non-nullable, an optional one nullable — and only the required
+/// endpoints appear in <c>required</c>, since the converter accepts omitting an
+/// optional key.
 /// </summary>
 public sealed class IntervalSchemaFilter : ISchemaFilter
 {
@@ -35,7 +36,17 @@ public sealed class IntervalSchemaFilter : ISchemaFilter
             ["Start"] = startSchema,
             ["End"] = endSchema,
         };
-        concrete.Required = new HashSet<string>(StringComparer.Ordinal) { "Start", "End" };
+        concrete.Required = RequiredEndpoints(startType, endType);
         StrongTypeInlineMarker.Set(concrete);
+    }
+
+    // An endpoint is required exactly when its type is the bare value type; an
+    // optional endpoint is Nullable<T>, and the converter lets its key be omitted.
+    private static HashSet<string> RequiredEndpoints(Type startType, Type endType)
+    {
+        var required = new HashSet<string>(StringComparer.Ordinal);
+        if (Nullable.GetUnderlyingType(startType) is null) required.Add("Start");
+        if (Nullable.GetUnderlyingType(endType) is null) required.Add("End");
+        return required;
     }
 }

@@ -102,12 +102,37 @@ public class IntervalJsonConverterTests
     }
 
     [Fact]
-    public void Read_MissingProperty_Throws()
+    public void Read_OmittedRequiredEndpoint_Throws()
     {
+        // ClosedInterval requires both endpoints.
         Assert.Throws<JsonException>(() =>
             JsonSerializer.Deserialize<ClosedInterval<int>>("""{"Start":1}"""));
         Assert.Throws<JsonException>(() =>
             JsonSerializer.Deserialize<ClosedInterval<int>>("""{"End":1}"""));
+        // IntervalFrom requires Start; IntervalUntil requires End.
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<IntervalFrom<int>>("""{"End":10}"""));
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<IntervalUntil<int>>("""{"Start":1}"""));
+    }
+
+    [Fact]
+    public void Read_OmittedOptionalEndpoint_DefaultsToNull()
+    {
+        // Both endpoints optional: an empty object is the unbounded interval.
+        var open = JsonSerializer.Deserialize<Interval<int>>("{}");
+        Assert.Null(open.Start);
+        Assert.Null(open.End);
+
+        // Omitting the optional upper bound is open-ended.
+        var from = JsonSerializer.Deserialize<IntervalFrom<int>>("""{"Start":1}""");
+        Assert.Equal(1, from.Start);
+        Assert.Null(from.End);
+
+        // Omitting the optional lower bound is open-started.
+        var until = JsonSerializer.Deserialize<IntervalUntil<int>>("""{"End":10}""");
+        Assert.Null(until.Start);
+        Assert.Equal(10, until.End);
     }
 
     [Fact]

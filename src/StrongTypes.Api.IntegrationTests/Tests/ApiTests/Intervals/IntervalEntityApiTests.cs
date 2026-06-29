@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using StrongTypes.Api.Entities;
@@ -34,6 +35,21 @@ public sealed class IntervalEntityApiTests(TestWebApplicationFactory factory)
         var json = await Client.GetFromJsonAsync<JsonElement>($"/interval-entities/{created!.Id}/postgresql", Ct);
         var value = json.GetProperty("value");
         Assert.Equal(5, value.GetProperty("start").GetInt32());
+        Assert.Equal(JsonValueKind.Null, value.GetProperty("end").ValueKind);
+    }
+
+    [Fact]
+    public async Task EmptyObject_IsAcceptedAsUnboundedInterval()
+    {
+        // Both endpoints optional, so omitting both keys is the unbounded interval.
+        var response = await Client.PostAsJsonAsync(
+            "/interval-entities", new { value = new { }, nullableValue = (object?)null }, Ct);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<EntityResponse>(Ct);
+
+        var json = await Client.GetFromJsonAsync<JsonElement>($"/interval-entities/{created!.Id}/postgresql", Ct);
+        var value = json.GetProperty("value");
+        Assert.Equal(JsonValueKind.Null, value.GetProperty("start").ValueKind);
         Assert.Equal(JsonValueKind.Null, value.GetProperty("end").ValueKind);
     }
 }

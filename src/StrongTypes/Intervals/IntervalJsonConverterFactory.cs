@@ -54,6 +54,11 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
         // ("ClosedInterval`1") would leak into client-facing validation errors.
         private static readonly string s_name = typeof(TInterval).Name.Split('`')[0];
 
+        // An endpoint is required exactly when its type is the bare value type;
+        // an optional endpoint is Nullable<T>, so omitting its key means "null".
+        private static readonly bool s_startRequired = Nullable.GetUnderlyingType(typeof(TStart)) is null;
+        private static readonly bool s_endRequired = Nullable.GetUnderlyingType(typeof(TEnd)) is null;
+
         private static readonly Func<TInterval, TStart> s_getStart = BuildGetter<TStart>("Start");
         private static readonly Func<TInterval, TEnd> s_getEnd = BuildGetter<TEnd>("End");
         private static readonly Func<TStart, TEnd, TInterval?> s_tryCreate = BuildTryCreate();
@@ -93,9 +98,15 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
             {
                 if (reader.TokenType == JsonTokenType.EndObject)
                 {
-                    if (!sawStart || !sawEnd)
+                    // A missing key is fine for an optional endpoint (it stays null);
+                    // only a required endpoint must be present.
+                    if (!sawStart && s_startRequired)
                     {
-                        throw new JsonException($"{s_name} requires both '{startName}' and '{endName}' properties.");
+                        throw new JsonException($"{s_name} requires the '{startName}' property.");
+                    }
+                    if (!sawEnd && s_endRequired)
+                    {
+                        throw new JsonException($"{s_name} requires the '{endName}' property.");
                     }
                     return s_tryCreate(start, end)
                         ?? throw new JsonException($"{s_name} requires '{startName}' to be less than or equal to '{endName}'.");
