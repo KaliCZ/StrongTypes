@@ -10,6 +10,7 @@
   </Folder>
   <Folder Name="/EF Core package/">
     <Project Path="src/StrongTypes.EfCore/StrongTypes.EfCore.csproj" />
+    <Project Path="src/StrongTypes.EfCore.Tests/StrongTypes.EfCore.Tests.csproj" />
   </Folder>
   <Folder Name="/FsCheck package/">
     <Project Path="src/StrongTypes.FsCheck/StrongTypes.FsCheck.csproj" />

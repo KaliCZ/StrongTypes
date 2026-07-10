@@ -39,6 +39,29 @@ Columns are the underlying type — `nvarchar` for `NonEmptyString`, `int`
 for `Positive<int>`, `decimal(...)` for `NonNegative<decimal>`, and the
 nullable form becomes a nullable column.
 
+### Non-public backing properties
+
+The convention wires converters for non-public properties too — the common
+DDD pattern of an `internal`/`private` EF-mapped backing property behind a
+computed public view. Map the backing property as usual; you still don't
+call `HasConversion` (which also sidesteps the nullable-reference warning a
+hand-written `HasConversion(new …Converter())` raises on a `T?` property):
+
+```csharp
+public sealed class Brand
+{
+    public Guid Id { get; init; }
+    public NonEmptyString Name { get; init; }
+
+    internal NonEmptyString? AliasesInternal { get; set; }   // EF-mapped storage
+}
+
+protected override void OnModelCreating(ModelBuilder modelBuilder) =>
+    modelBuilder.Entity<Brand>()
+        .Property(brand => brand.AliasesInternal)
+        .HasColumnName("Aliases");                            // converter is automatic
+```
+
 ## Querying
 
 Equality, null checks, ordering, and grouping work directly on the

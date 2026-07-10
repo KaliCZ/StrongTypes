@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace StrongTypes.EfCore;
 
-/// <summary>Pre-declares every strong-type member as a scalar property with its value converter attached, ahead of EF Core's property-discovery pass.</summary>
-internal sealed class StrongTypesConvention : IEntityTypeAddedConvention
+/// <summary>Attaches the right value converter to every strong-type property: public ones are pre-declared ahead of EF Core's property-discovery pass; non-public ones (e.g. an <c>internal</c> DDD backing property) are caught as they are added.</summary>
+internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPropertyAddedConvention
 {
     public void ProcessEntityTypeAdded(
         IConventionEntityTypeBuilder entityTypeBuilder,
@@ -36,6 +36,19 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention
             }
             var propertyBuilder = entityTypeBuilder.Property(property.PropertyType, property.Name);
             propertyBuilder?.HasConversion(converter);
+        }
+    }
+
+    // ProcessEntityTypeAdded only scans public properties; a non-public mapped
+    // property (an internal/private DDD backing field) reaches the convention here.
+    public void ProcessPropertyAdded(
+        IConventionPropertyBuilder propertyBuilder,
+        IConventionContext<IConventionPropertyBuilder> context)
+    {
+        var converter = ResolveConverter(propertyBuilder.Metadata.ClrType);
+        if (converter is not null)
+        {
+            propertyBuilder.HasConversion(converter);
         }
     }
 
@@ -92,8 +105,10 @@ internal sealed class StrongTypesConventionSetPlugin : IConventionSetPlugin
 {
     public ConventionSet ModifyConventions(ConventionSet conventionSet)
     {
+        var convention = new StrongTypesConvention();
         // Insert at index 0 so we run before PropertyDiscoveryConvention.
-        conventionSet.EntityTypeAddedConventions.Insert(0, new StrongTypesConvention());
+        conventionSet.EntityTypeAddedConventions.Insert(0, convention);
+        conventionSet.PropertyAddedConventions.Add(convention);
         return conventionSet;
     }
 }

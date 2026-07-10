@@ -131,6 +131,25 @@ Tests that touch no database (the `BindingTests` and the collection-JSON
 round-trips) need neither provider's assertions and run on any host once
 the PostgreSQL container is up.
 
+## EF Core convention tests — `StrongTypes.EfCore.Tests`
+
+Provider-independent behaviour of the `StrongTypes.EfCore` convention —
+which value converter it attaches to which property — is unit-tested here,
+separate from the container-based round-trips in
+`StrongTypes.Api.IntegrationTests`. The tests build a `DbContext` model
+offline against the PostgreSQL provider (no server, no container:
+accessing `context.Model` runs the full relational validation) and assert
+on the resulting metadata — the converter type, the underlying column
+type, and nullability.
+
+Reach for this when the behaviour is a property of the convention itself
+rather than of a specific database: e.g. that a non-public
+(`internal`/`private`) mapped strong-type property gets its converter
+wired without a manual `HasConversion`, or that an explicit converter is
+left untouched. A missing converter makes model validation throw "could
+not be mapped", so an offline model build catches the regression; the
+wire-to-DB round-trip on real providers stays in the integration suite.
+
 ## ASP.NET Core integration tests — `StrongTypes.AspNetCore.IntegrationTests`
 
 Covers the `Kalicz.StrongTypes.AspNetCore` package against the
