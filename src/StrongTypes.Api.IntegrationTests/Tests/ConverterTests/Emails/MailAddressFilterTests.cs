@@ -9,7 +9,7 @@ namespace StrongTypes.Api.IntegrationTests.Tests;
 /// <summary>
 /// Verifies <c>MailAddress.Unwrap()</c> (plus equality and EF.Functions.Like)
 /// translates to server-side SQL on both providers when applied to the
-/// <see cref="EmailEntity"/>'s <see cref="MailAddress"/> column. Tests query
+/// <see cref="MailAddressEntity"/>'s <see cref="MailAddress"/> column. Tests query
 /// the <see cref="DbContext"/> directly so the LINQ translator is what we
 /// exercise — no HTTP plumbing in the way. Each test seeds rows with a
 /// unique local-part prefix and scopes assertions to those rows so it
@@ -17,11 +17,11 @@ namespace StrongTypes.Api.IntegrationTests.Tests;
 /// </summary>
 [Collection(IntegrationTestCollection.Name)]
 public sealed class MailAddressFilterTests(TestWebApplicationFactory factory)
-    : IntegrationTestBase<EmailEntity, MailAddress, MailAddress?>(factory)
+    : IntegrationTestBase<MailAddressEntity, MailAddress, MailAddress?>(factory)
 {
     public static TheoryData<string> Providers => new() { "sql-server", "postgresql" };
 
-    private DbSet<EmailEntity> Set(string provider) =>
+    private DbSet<MailAddressEntity> Set(string provider) =>
         provider == "sql-server" ? SqlSet : PgSet;
 
     // Unique per-test local-part prefix so each test's assertions are
@@ -30,7 +30,7 @@ public sealed class MailAddressFilterTests(TestWebApplicationFactory factory)
 
     private async Task<Guid> Seed(string localPart, MailAddress? nullableValue)
     {
-        var entity = EmailEntity.Create(MailAddress.Create($"{Prefix}{localPart}@example.com"), nullableValue);
+        var entity = MailAddressEntity.Create(MailAddress.Create($"{Prefix}{localPart}@example.com"), nullableValue);
         SqlSet.Add(entity);
         PgSet.Add(entity);
         await SqlDb.SaveChangesAsync(Ct);

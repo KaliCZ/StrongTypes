@@ -7,6 +7,7 @@ public class SqlServerDbContext(DbContextOptions<SqlServerDbContext> options) : 
 {
     public DbSet<NonEmptyStringEntity> NonEmptyStringEntities { get; set; }
     public DbSet<EmailEntity> EmailEntities { get; set; }
+    public DbSet<MailAddressEntity> MailAddressEntities { get; set; }
 
     public DbSet<PositiveIntEntity> PositiveIntEntities { get; set; }
     public DbSet<NonNegativeIntEntity> NonNegativeIntEntities { get; set; }

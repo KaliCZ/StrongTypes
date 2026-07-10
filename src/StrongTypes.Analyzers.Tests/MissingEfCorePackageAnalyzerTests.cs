@@ -133,6 +133,35 @@ public class MissingEfCorePackageAnalyzerTests
         Assert.NotEmpty(diagnostics.WhereId(MissingEfCorePackageAnalyzer.DiagnosticId));
     }
 
+    [Fact]
+    public async Task Detects_email_wrapper()
+    {
+        const string source = """
+            using Microsoft.EntityFrameworkCore;
+            using StrongTypes;
+
+            namespace Sample;
+
+            public class Contact
+            {
+                public int Id { get; set; }
+                public Email Address { get; set; } = null!;
+            }
+
+            public class SampleContext : DbContext
+            {
+                public DbSet<Contact> Contacts { get; set; } = null!;
+            }
+            """;
+
+        var diagnostics = await AnalyzerTester.RunAsync(
+            new MissingEfCorePackageAnalyzer(),
+            source,
+            TestReferences.With(TestReferences.EntityFrameworkCore));
+
+        Assert.NotEmpty(diagnostics.WhereId(MissingEfCorePackageAnalyzer.DiagnosticId));
+    }
+
     [Theory]
     [InlineData("Positive<int>")]
     [InlineData("NonNegative<long>")]

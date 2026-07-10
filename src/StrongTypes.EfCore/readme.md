@@ -3,9 +3,10 @@
 [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes.EfCore?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/) [![Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.EfCore?label=downloads)](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
 EF Core plumbing for [Kalicz.StrongTypes](https://www.nuget.org/packages/Kalicz.StrongTypes).
-Lets you use `NonEmptyString`, `Positive<T>`, `NonNegative<T>`, `Negative<T>`, and
-`NonPositive<T>` as regular entity properties — they round-trip through scalar
-columns, and LINQ predicates over them translate to server-side SQL.
+Lets you use `NonEmptyString`, `Email`, `MailAddress`, `Positive<T>`,
+`NonNegative<T>`, `Negative<T>`, and `NonPositive<T>` as regular entity
+properties — they round-trip through scalar columns, and LINQ predicates over
+them translate to server-side SQL.
 
 ## Install
 
@@ -49,6 +50,7 @@ public sealed class User
     public Guid Id { get; init; }
     public NonEmptyString Name { get; init; }
     public NonEmptyString? Nickname { get; init; }
+    public Email? ContactEmail { get; init; }
     public Positive<int> LoginCount { get; init; }
     public NonNegative<decimal> Balance { get; init; }
 }
@@ -60,9 +62,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 ```
 
 Column shape on the database is the underlying type — `nvarchar` for
-`NonEmptyString`, `int` for `Positive<int>`, `decimal(18,2)` for
-`NonNegative<decimal>`, etc. Same for the nullable form
-(`NonEmptyString?`, `Positive<int>?`) — EF maps it to a nullable column.
+`NonEmptyString` and for `Email` / `MailAddress` (the address string), `int`
+for `Positive<int>`, `decimal(18,2)` for `NonNegative<decimal>`, etc. Same for
+the nullable form (`NonEmptyString?`, `Email?`, `Positive<int>?`) — EF maps it
+to a nullable column.
+
+An email column can be either `Email` (the wrapper — re-checks the 254-char cap
+on read) or the BCL `MailAddress`; the two convert to each other implicitly, so
+store whichever your domain already holds.
 
 Non-public properties are wired too. An `internal`/`private` EF-mapped
 backing property — the usual DDD pattern behind a computed public view —

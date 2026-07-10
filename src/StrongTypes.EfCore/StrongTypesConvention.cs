@@ -55,7 +55,7 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPrope
     private static bool IsStrongType(Type clrType)
     {
         var unwrapped = Nullable.GetUnderlyingType(clrType) ?? clrType;
-        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(MailAddress))
+        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(Email) || unwrapped == typeof(MailAddress))
         {
             return true;
         }
@@ -79,6 +79,10 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPrope
         if (unwrapped == typeof(NonEmptyString))
         {
             return new NonEmptyStringValueConverter();
+        }
+        if (unwrapped == typeof(Email))
+        {
+            return new EmailValueConverter();
         }
         if (unwrapped == typeof(MailAddress))
         {
