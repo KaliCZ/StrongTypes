@@ -19,12 +19,12 @@ namespace StrongTypes.Api.IntegrationTests.Tests;
 public abstract partial class EntityTests<TSelf, TEntity, T, TNullable, TWire>
 {
     /// <summary>
-    /// Whether the nullable strong type supports value equality and ordering in a
-    /// query. <see langword="false"/> for <c>MailAddress</c>, which has neither a
-    /// natural order nor value equality; its converter is still covered by the
-    /// round-trip, null-filter, and read-invalid tests.
+    /// Orders two wrapped values the way the database orders the stored column, for
+    /// the <c>OrderBy</c> assertion. Override when the type's default CLR comparison
+    /// differs from its stored order — e.g. <c>MailAddress</c>, which isn't
+    /// <see cref="IComparable"/> and is stored as its address string.
     /// </summary>
-    protected virtual bool SupportsNullableValueComparison => true;
+    protected virtual IComparer<T> ValueComparer => Comparer<T>.Default;
 
     [Fact]
     public async Task NullableValue_RoundTripsNonNullAndNullThroughConverter()
@@ -68,8 +68,6 @@ public abstract partial class EntityTests<TSelf, TEntity, T, TNullable, TWire>
     [Fact]
     public async Task NullableValue_FilterByValue_TranslatesToSql()
     {
-        Assert.SkipWhen(!SupportsNullableValueComparison, "Nullable value has no query equality.");
-
         var match = await SeedAsync(FirstValid, ToNullable(Create(FirstValid)));
         var other = await SeedAsync(FirstValid, ToNullable(Create(UpdatedValid)));
         Guid[] seeded = [match, other];
@@ -88,14 +86,12 @@ public abstract partial class EntityTests<TSelf, TEntity, T, TNullable, TWire>
     [Fact]
     public async Task NullableValue_OrderBy_TranslatesToSql()
     {
-        Assert.SkipWhen(!SupportsNullableValueComparison, "Nullable value has no natural order.");
-
         var first = Create(FirstValid);
         var second = Create(UpdatedValid);
         var a = await SeedAsync(FirstValid, ToNullable(first));
         var b = await SeedAsync(FirstValid, ToNullable(second));
         Guid[] seeded = [a, b];
-        Guid[] expected = Comparer<T>.Default.Compare(first, second) <= 0 ? [a, b] : [b, a];
+        Guid[] expected = ValueComparer.Compare(first, second) <= 0 ? [a, b] : [b, a];
 
         await ForEachProvider(async set =>
         {

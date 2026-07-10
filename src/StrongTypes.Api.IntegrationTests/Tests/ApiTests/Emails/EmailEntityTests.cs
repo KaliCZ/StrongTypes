@@ -15,10 +15,10 @@ public sealed class EmailEntityTests(TestWebApplicationFactory factory)
     protected override string FirstValid => "alice@example.com";
     protected override string UpdatedValid => "bob@example.org";
 
-    // MailAddress has no natural ordering and no value equality — skip the
-    // compare-by-value nullable tests; its converter is still exercised by the
-    // round-trip, null-filter, and read-invalid cases.
-    protected override bool SupportsNullableValueComparison => false;
+    // MailAddress isn't IComparable; the column stores the address string, so the
+    // database orders by that. Mirror it here for the OrderBy assertion.
+    protected override IComparer<MailAddress> ValueComparer =>
+        Comparer<MailAddress>.Create((left, right) => string.CompareOrdinal(left.Address, right.Address));
 
     public static TheoryData<string> ValidInputs => new()
     {
