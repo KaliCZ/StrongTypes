@@ -15,6 +15,11 @@ public sealed class EmailEntityTests(TestWebApplicationFactory factory)
     protected override string FirstValid => "alice@example.com";
     protected override string UpdatedValid => "bob@example.org";
 
+    // MailAddress has no natural ordering and no value equality — skip the
+    // compare-by-value nullable tests; its converter is still exercised by the
+    // round-trip, null-filter, and read-invalid cases.
+    protected override bool SupportsNullableValueComparison => false;
+
     public static TheoryData<string> ValidInputs => new()
     {
         "alice@example.com",

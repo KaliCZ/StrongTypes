@@ -37,7 +37,7 @@ public interface IEntityTestData<TWire>
 /// <see cref="IEntityTestData{TWire}"/> — a missing data member is a CS0535
 /// build error instead of a silently skipped test.
 /// </remarks>
-public abstract class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebApplicationFactory factory)
+public abstract partial class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebApplicationFactory factory)
     : IntegrationTestBase<TEntity, T, TNullable>(factory)
     where TSelf : EntityTests<TSelf, TEntity, T, TNullable, TWire>, IEntityTestData<TWire>
     where TEntity : class, IEntity<TEntity, T, TNullable>
