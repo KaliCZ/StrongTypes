@@ -64,6 +64,25 @@ Column shape on the database is the underlying type — `nvarchar` for
 `NonNegative<decimal>`, etc. Same for the nullable form
 (`NonEmptyString?`, `Positive<int>?`) — EF maps it to a nullable column.
 
+Non-public properties are wired too. An `internal`/`private` EF-mapped
+backing property — the usual DDD pattern behind a computed public view —
+gets its converter automatically once you map it, so you never hand-write
+`HasConversion`:
+
+```csharp
+public sealed class Brand
+{
+    public Guid Id { get; init; }
+    public NonEmptyString Name { get; init; }
+    internal NonEmptyString? AliasesInternal { get; set; }   // EF-mapped storage
+}
+
+protected override void OnModelCreating(ModelBuilder modelBuilder) =>
+    modelBuilder.Entity<Brand>()
+        .Property(brand => brand.AliasesInternal)
+        .HasColumnName("Aliases");                            // converter is automatic
+```
+
 ## Filtering
 
 Equality, null checks, ordering, and grouping work directly on the strong type:
