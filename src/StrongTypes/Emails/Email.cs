@@ -13,6 +13,8 @@ public sealed class Email :
     IEquatable<Email>,
     IEquatable<MailAddress>,
     IEquatable<string>,
+    IComparable<Email>,
+    IComparable,
     IParsable<Email>
 {
     /// <summary>RFC 5321 deliverable cap. The forwarder path can be longer; this is the addr-spec limit clients should enforce on input.</summary>
@@ -94,6 +96,18 @@ public sealed class Email :
 
     [Pure]
     public override string ToString() => Address;
+
+    [Pure]
+    public int CompareTo(Email? other) =>
+        other is null ? 1 : string.Compare(Address, other.Address, StringComparison.OrdinalIgnoreCase);
+
+    int IComparable.CompareTo(object? obj) =>
+        obj switch
+        {
+            null => 1,
+            Email other => CompareTo(other),
+            _ => throw new ArgumentException($"Object must be of type {nameof(Email)}.", nameof(obj)),
+        };
 
     public static bool operator ==(Email? left, Email? right) =>
         left is null ? right is null : left.Equals(right);

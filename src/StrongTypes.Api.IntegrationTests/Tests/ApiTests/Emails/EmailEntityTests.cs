@@ -14,11 +14,6 @@ public sealed class EmailEntityTests(TestWebApplicationFactory factory)
     protected override string FirstValid => "alice@example.com";
     protected override string UpdatedValid => "bob@example.org";
 
-    // Email isn't IComparable; the column stores the address string, so the
-    // database orders by that. Mirror it here for the OrderBy assertion.
-    protected override IComparer<Email> ValueComparer =>
-        Comparer<Email>.Create((left, right) => string.CompareOrdinal(left.Address, right.Address));
-
     public static TheoryData<string> ValidInputs => new()
     {
         "alice@example.com",

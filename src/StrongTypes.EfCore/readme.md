@@ -51,6 +51,7 @@ public sealed class User
     public NonEmptyString Name { get; init; }
     public NonEmptyString? Nickname { get; init; }
     public Email? ContactEmail { get; init; }
+    public MailAddress? BackupEmail { get; init; }
     public Positive<int> LoginCount { get; init; }
     public NonNegative<decimal> Balance { get; init; }
 }
