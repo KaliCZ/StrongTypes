@@ -71,6 +71,27 @@ public sealed class NonPositiveDecimalEntityController : ControllerBase
 }
 
 [ApiController]
+[Route("interval-entities")]
+public sealed class IntervalEntitiesController : ControllerBase
+{
+    [HttpPost("closed")]
+    public IActionResult Closed(StructEntityRequest<FiniteInterval<int>> request)
+        => Ok(new EntityResponse(Guid.NewGuid()));
+
+    [HttpPost("open")]
+    public IActionResult Open(StructEntityRequest<Interval<int>> request)
+        => Ok(new EntityResponse(Guid.NewGuid()));
+
+    [HttpPost("from")]
+    public IActionResult From(StructEntityRequest<IntervalFrom<int>> request)
+        => Ok(new EntityResponse(Guid.NewGuid()));
+
+    [HttpPost("until")]
+    public IActionResult Until(StructEntityRequest<IntervalUntil<int>> request)
+        => Ok(new EntityResponse(Guid.NewGuid()));
+}
+
+[ApiController]
 [Route("collections")]
 public sealed class CollectionsController : ControllerBase
 {

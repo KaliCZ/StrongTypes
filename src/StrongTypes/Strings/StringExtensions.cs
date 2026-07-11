@@ -69,58 +69,86 @@ public static class StringExtensions
         where TEnum : struct, Enum =>
         Enum.TryParse<TEnum>(s, ignoreCase, out var v) ? v : null;
 
-    // --- Throwing variants. Same relationship as Create vs TryCreate: ---
-    // --- these delegate to the framework's Parse methods, which throw ---
-    // --- FormatException / OverflowException / ArgumentNullException. ---
-
     /// <summary>Wraps <paramref name="s"/> as a <see cref="NonEmptyString"/>.</summary>
     /// <param name="s">The string to validate.</param>
     /// <exception cref="ArgumentException"><paramref name="s"/> is null, empty, or whitespace.</exception>
     [Pure]
     public static NonEmptyString ToNonEmpty(this string? s) => NonEmptyString.Create(s);
 
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <c>null</c>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not in a valid numeric format.</exception>
+    /// <exception cref="OverflowException"><paramref name="s"/> represents a value outside the range of <see cref="byte"/>.</exception>
     [Pure]
     public static byte ToByte(this string? s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Integer) =>
         byte.Parse(s!, style, format);
 
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <c>null</c>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not in a valid numeric format.</exception>
+    /// <exception cref="OverflowException"><paramref name="s"/> represents a value outside the range of <see cref="short"/>.</exception>
     [Pure]
     public static short ToShort(this string? s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Integer) =>
         short.Parse(s!, style, format);
 
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <c>null</c>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not in a valid numeric format.</exception>
+    /// <exception cref="OverflowException"><paramref name="s"/> represents a value outside the range of <see cref="int"/>.</exception>
     [Pure]
     public static int ToInt(this string? s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Integer) =>
         int.Parse(s!, style, format);
 
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <c>null</c>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not in a valid numeric format.</exception>
+    /// <exception cref="OverflowException"><paramref name="s"/> represents a value outside the range of <see cref="long"/>.</exception>
     [Pure]
     public static long ToLong(this string? s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Integer) =>
         long.Parse(s!, style, format);
 
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <c>null</c>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not in a valid numeric format.</exception>
     [Pure]
     public static float ToFloat(this string? s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Float | NumberStyles.AllowThousands) =>
         float.Parse(s!, style, format);
 
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <c>null</c>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not in a valid numeric format.</exception>
     [Pure]
     public static double ToDouble(this string? s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Float | NumberStyles.AllowThousands) =>
         double.Parse(s!, style, format);
 
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <c>null</c>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not in a valid numeric format.</exception>
+    /// <exception cref="OverflowException"><paramref name="s"/> represents a value outside the range of <see cref="decimal"/>.</exception>
     [Pure]
     public static decimal ToDecimal(this string? s, IFormatProvider? format = null, NumberStyles style = NumberStyles.Number) =>
         decimal.Parse(s!, style, format);
 
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <c>null</c>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not <c>"True"</c> or <c>"False"</c>.</exception>
     [Pure]
     public static bool ToBool(this string? s) => bool.Parse(s!);
 
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <c>null</c>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not a recognised date and time.</exception>
     [Pure]
     public static DateTime ToDateTime(this string? s, IFormatProvider? format = null, DateTimeStyles style = DateTimeStyles.None) =>
         DateTime.Parse(s!, format, style);
 
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <c>null</c>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not a valid time-span format.</exception>
+    /// <exception cref="OverflowException">A parsed component of <paramref name="s"/> is out of range.</exception>
     [Pure]
     public static TimeSpan ToTimeSpan(this string? s, IFormatProvider? format = null) =>
         TimeSpan.Parse(s!, format);
 
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <c>null</c>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not in a recognised GUID format.</exception>
     [Pure]
     public static Guid ToGuid(this string? s) => Guid.Parse(s!);
 
+    /// <param name="s">The string to parse.</param>
+    /// <param name="format">The exact format specifier the input must match (e.g. <c>"D"</c>, <c>"N"</c>, <c>"B"</c>).</param>
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> or <paramref name="format"/> is <c>null</c>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> does not match <paramref name="format"/>.</exception>
     [Pure]
     public static Guid ToGuidExact(this string? s, string format = "D") => Guid.ParseExact(s!, format);
 
@@ -128,7 +156,8 @@ public static class StringExtensions
     /// <typeparam name="TEnum">The enum type.</typeparam>
     /// <param name="s">The name or numeric value to parse.</param>
     /// <param name="ignoreCase">When <c>true</c>, the name comparison is case-insensitive.</param>
-    /// <exception cref="ArgumentException">Parsing fails.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="s"/> is not the name or value of a member of <typeparamref name="TEnum"/>.</exception>
     [Pure]
     public static TEnum ToEnum<TEnum>(this string? s, bool ignoreCase = false)
         where TEnum : struct, Enum =>

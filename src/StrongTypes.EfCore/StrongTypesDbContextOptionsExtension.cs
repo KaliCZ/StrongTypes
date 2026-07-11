@@ -16,6 +16,7 @@ public sealed class StrongTypesDbContextOptionsExtension : IDbContextOptionsExte
     public void ApplyServices(IServiceCollection services)
     {
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IMethodCallTranslatorPlugin, UnwrapMethodCallTranslatorPlugin>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IMemberTranslatorPlugin, IntervalMemberTranslatorPlugin>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IConventionSetPlugin, StrongTypesConventionSetPlugin>());
     }
 
@@ -36,13 +37,15 @@ public sealed class StrongTypesDbContextOptionsExtension : IDbContextOptionsExte
 
 public static class StrongTypesDbContextOptionsBuilderExtensions
 {
-    /// <summary>Enables automatic value conversion of strong-type properties and server-side translation of <c>Unwrap()</c> in LINQ predicates.</summary>
+    /// <summary>Enables automatic value conversion of strong-type properties, server-side translation of <c>Unwrap()</c> and interval <c>Start</c>/<c>End</c> access in LINQ, re-validation of intervals on read (a stored row violating <c>Start &lt;= End</c> throws when materialized), and enforcement of each interval property's <see cref="IntervalBoundMode"/> on read and save.</summary>
     /// <param name="optionsBuilder">The options builder to configure.</param>
     public static DbContextOptionsBuilder UseStrongTypes(this DbContextOptionsBuilder optionsBuilder)
     {
-        var extension = optionsBuilder.Options.FindExtension<StrongTypesDbContextOptionsExtension>()
-            ?? new StrongTypesDbContextOptionsExtension();
-        ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
+        if (optionsBuilder.Options.FindExtension<StrongTypesDbContextOptionsExtension>() is null)
+        {
+            ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(new StrongTypesDbContextOptionsExtension());
+            optionsBuilder.AddInterceptors(IntervalIntegrityInterceptor.Instance);
+        }
         return optionsBuilder;
     }
 }

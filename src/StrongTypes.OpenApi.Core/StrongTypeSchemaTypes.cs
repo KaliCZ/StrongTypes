@@ -8,7 +8,8 @@ public static class StrongTypeSchemaTypes
     public static bool IsInlineable(Type? clrType)
     {
         return ResolveWireType(clrType) is not null
-            || TryGetMaybeValue(clrType, out _);
+            || TryGetMaybeValue(clrType, out _)
+            || TryGetIntervalEndpoints(clrType, out _, out _);
     }
 
     public static bool IsNonEmptyString(Type? clrType)
@@ -57,6 +58,33 @@ public static class StrongTypeSchemaTypes
 
         valueType = unwrapped.GetGenericArguments()[0];
         return true;
+    }
+
+    /// <summary>
+    /// Resolves the CLR types of an interval's <c>Start</c> and <c>End</c>
+    /// endpoints, reflecting each variant's nullability: a required endpoint is
+    /// the bare endpoint type, an optional one its <see cref="Nullable{T}"/>.
+    /// Both keys are always present on the wire regardless of nullability.
+    /// </summary>
+    public static bool TryGetIntervalEndpoints(Type? clrType, out Type startType, out Type endType)
+    {
+        startType = null!;
+        endType = null!;
+
+        var unwrapped = UnwrapNullable(clrType);
+        if (unwrapped is null || !unwrapped.IsGenericType) return false;
+        var definition = unwrapped.GetGenericTypeDefinition();
+
+        // The endpoint is a struct for every interval type, so Nullable<endpoint>
+        // is only well-formed once we know it's an interval — build it lazily.
+        var endpoint = unwrapped.GetGenericArguments()[0];
+        Type Nullable() => typeof(Nullable<>).MakeGenericType(endpoint);
+
+        if (definition == typeof(FiniteInterval<>)) { startType = endpoint; endType = endpoint; return true; }
+        if (definition == typeof(Interval<>)) { startType = Nullable(); endType = Nullable(); return true; }
+        if (definition == typeof(IntervalFrom<>)) { startType = endpoint; endType = Nullable(); return true; }
+        if (definition == typeof(IntervalUntil<>)) { startType = Nullable(); endType = endpoint; return true; }
+        return false;
     }
 
     public static Type? ResolveWireType(Type? clrType)
