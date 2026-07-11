@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 namespace StrongTypes;
 
 /// <summary><see cref="JsonConverterFactory"/> for the four interval types: <see cref="FiniteInterval{T}"/>, <see cref="Interval{T}"/>, <see cref="IntervalFrom{T}"/>, <see cref="IntervalUntil{T}"/>.</summary>
-/// <remarks>Each interval is read and written as a JSON object with <c>Start</c> and <c>End</c> properties. <c>StartInclusive</c> and <c>EndInclusive</c> are written only when <c>false</c> and read as <c>true</c> when absent. Values that violate the wrapper's invariant throw <see cref="JsonException"/>. Property names honour the active <see cref="JsonNamingPolicy"/>.</remarks>
+/// <remarks>Each interval is read and written as a JSON object with <c>Start</c> and <c>End</c> properties. <c>StartInclusive</c> and <c>EndInclusive</c> are carried per value: written only when <c>false</c> and read as <c>true</c> when absent. To pin a bound's inclusivity instead, apply an <see cref="IntervalJsonConverter{TInterval}"/> to that property. Values that violate the wrapper's invariant throw <see cref="JsonException"/>. Property names honour the active <see cref="JsonNamingPolicy"/>.</remarks>
 public sealed class IntervalJsonConverterFactory : JsonConverterFactory
 {
     private static readonly HashSet<Type> SupportedDefinitions =
@@ -28,14 +28,25 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
         && SupportedDefinitions.Contains(typeToConvert.GetGenericTypeDefinition());
 
     public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options) =>
-        s_converterCache.GetOrAdd(typeToConvert, static t =>
+        s_converterCache.GetOrAdd(typeToConvert, static t => CreateInner(t, IntervalBoundMode.Stored, IntervalBoundMode.Stored));
+
+    // Backs IntervalJsonConverter<TInterval>: the same reader/writer with the bounds pinned to fixed modes.
+    internal static JsonConverter<TInterval> CreateBoundConverter<TInterval>(IntervalBoundMode startMode, IntervalBoundMode endMode)
+        where TInterval : struct =>
+        (JsonConverter<TInterval>)CreateInner(typeof(TInterval), startMode, endMode);
+
+    private static JsonConverter CreateInner(Type interval, IntervalBoundMode startMode, IntervalBoundMode endMode)
+    {
+        if (!interval.IsGenericType || !SupportedDefinitions.Contains(interval.GetGenericTypeDefinition()))
         {
-            var definition = t.GetGenericTypeDefinition();
-            var endpoint = t.GetGenericArguments()[0];
-            var (startType, endType) = StartEndTypes(definition, endpoint);
-            var converterType = typeof(Inner<,,>).MakeGenericType(t, startType, endType);
-            return (JsonConverter)Activator.CreateInstance(converterType)!;
-        });
+            throw new InvalidOperationException($"{interval} is not a supported interval type.");
+        }
+        var definition = interval.GetGenericTypeDefinition();
+        var endpoint = interval.GetGenericArguments()[0];
+        var (startType, endType) = StartEndTypes(definition, endpoint);
+        var converterType = typeof(Inner<,,>).MakeGenericType(interval, startType, endType);
+        return (JsonConverter)Activator.CreateInstance(converterType, startMode, endMode)!;
+    }
 
     private static (Type Start, Type End) StartEndTypes(Type definition, Type endpoint)
     {
@@ -47,7 +58,7 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
         throw new InvalidOperationException($"Unsupported interval definition: {definition}.");
     }
 
-    private sealed class Inner<TInterval, TStart, TEnd> : JsonConverter<TInterval>
+    private sealed class Inner<TInterval, TStart, TEnd>(IntervalBoundMode startMode, IntervalBoundMode endMode) : JsonConverter<TInterval>
         where TInterval : struct
     {
         // The arity-suffixed CLR name ("FiniteInterval`1") would leak into client-facing validation errors.
@@ -62,6 +73,8 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
         private static readonly Func<TInterval, TEnd> s_getEnd = BuildGetter<TEnd>("End");
         private static readonly Func<TInterval, bool> s_getStartInclusive = BuildGetter<bool>("StartInclusive");
         private static readonly Func<TInterval, bool> s_getEndInclusive = BuildGetter<bool>("EndInclusive");
+        private static readonly Func<TInterval, bool> s_hasStart = BuildPresence("Start", s_startRequired);
+        private static readonly Func<TInterval, bool> s_hasEnd = BuildPresence("End", s_endRequired);
         private static readonly Func<TStart, TEnd, bool, bool, TInterval?> s_tryCreate = BuildTryCreate();
 
         private static Func<TInterval, TProp> BuildGetter<TProp>(string propertyName)
@@ -69,6 +82,18 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
             var param = Expression.Parameter(typeof(TInterval), "interval");
             var access = Expression.Property(param, propertyName);
             return Expression.Lambda<Func<TInterval, TProp>>(access, param).Compile();
+        }
+
+        // Whether the endpoint is present. A required endpoint always is; an optional (Nullable) one is when it HasValue.
+        private static Func<TInterval, bool> BuildPresence(string propertyName, bool required)
+        {
+            if (required)
+            {
+                return static _ => true;
+            }
+            var param = Expression.Parameter(typeof(TInterval), "interval");
+            var hasValue = Expression.Property(Expression.Property(param, propertyName), "HasValue");
+            return Expression.Lambda<Func<TInterval, bool>>(hasValue, param).Compile();
         }
 
         private static Func<TStart, TEnd, bool, bool, TInterval?> BuildTryCreate()
@@ -115,7 +140,8 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
                     {
                         throw new JsonException($"{s_name} requires the '{endName}' property.");
                     }
-                    return s_tryCreate(start, end, startInclusive, endInclusive)
+                    // A pinned bound ignores whatever the payload carried and takes the configured inclusivity.
+                    return s_tryCreate(start, end, ResolveRead(startMode, startInclusive), ResolveRead(endMode, endInclusive))
                         ?? throw new JsonException(
                             $"{s_name} requires '{startName}' to be less than or equal to '{endName}', with equal endpoints only when both are inclusive.");
                 }
@@ -179,15 +205,31 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
             JsonSerializer.Serialize(writer, s_getStart(value), options);
             writer.WritePropertyName(NameOf("End", options));
             JsonSerializer.Serialize(writer, s_getEnd(value), options);
-            if (!s_getStartInclusive(value))
-            {
-                writer.WriteBoolean(NameOf("StartInclusive", options), false);
-            }
-            if (!s_getEndInclusive(value))
-            {
-                writer.WriteBoolean(NameOf("EndInclusive", options), false);
-            }
+            WriteBound(writer, options, startMode, s_hasStart(value), s_getStartInclusive(value), "StartInclusive", "start");
+            WriteBound(writer, options, endMode, s_hasEnd(value), s_getEndInclusive(value), "EndInclusive", "end");
             writer.WriteEndObject();
+        }
+
+        private static bool ResolveRead(IntervalBoundMode mode, bool payloadInclusive) => mode switch
+        {
+            IntervalBoundMode.AlwaysInclusive => true,
+            IntervalBoundMode.AlwaysExclusive => false,
+            _ => payloadInclusive,
+        };
+
+        private static void WriteBound(
+            Utf8JsonWriter writer, JsonSerializerOptions options, IntervalBoundMode mode, bool present, bool inclusive, string flagName, string bound)
+        {
+            switch (mode)
+            {
+                case IntervalBoundMode.AlwaysInclusive when present && !inclusive:
+                    throw new JsonException($"{s_name} pins the {bound} bound as always-inclusive, but this value's {bound} bound is exclusive.");
+                case IntervalBoundMode.AlwaysExclusive when present && inclusive:
+                    throw new JsonException($"{s_name} pins the {bound} bound as always-exclusive, but this value's {bound} bound is inclusive.");
+                case IntervalBoundMode.Stored when !inclusive:
+                    writer.WriteBoolean(NameOf(flagName, options), false);
+                    break;
+            }
         }
 
         private static string NameOf(string clrName, JsonSerializerOptions options) =>

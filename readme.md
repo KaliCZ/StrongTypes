@@ -197,6 +197,8 @@ All strong types ship with `System.Text.Json` converters attached via `[JsonConv
 
 The interval types serialize as an object `{ "Start": …, "End": … }` — on write, both endpoint keys are always present (an unbounded endpoint is `null`) and `StartInclusive` / `EndInclusive` appear only when `false`. On read, an absent key for an *optional* endpoint means `null` (so `Interval` accepts `{}`) and an absent bound flag means `true`; a payload that violates the invariant (`Start > End`, or equal endpoints with an exclusive bound) or omits/nulls a *required* endpoint surfaces as a `JsonException`.
 
+To pin a bound's inclusivity for a property instead of carrying it per value (mirroring the EF `IntervalBoundMode`), subclass `IntervalJsonConverter<TInterval>` with the two modes and apply it with `[JsonConverter]` — an `AlwaysInclusive` / `AlwaysExclusive` bound is never written and is forced on read: `public sealed class HalfOpenIntervalConverter() : IntervalJsonConverter<FiniteInterval<int>>(IntervalBoundMode.AlwaysInclusive, IntervalBoundMode.AlwaysExclusive);`.
+
 `Result<T, TError>` (and `Result<T>`) has no JSON converter I don't think you want to serialize that.
 
 [↑ Back to contents](#contents)

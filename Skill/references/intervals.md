@@ -223,6 +223,35 @@ equal endpoints with an exclusive bound), omits or nulls a *required*
 endpoint, or isn't a JSON object. Equal endpoints with inclusive bounds are
 valid and deserialize to a single-value interval.
 
+### Pinning a bound's inclusivity
+
+The default converter carries each bound per value (the `Stored`
+`IntervalBoundMode`). To fix a bound for a specific property — mirroring the
+EF `IntervalBoundMode` — apply an `IntervalJsonConverter<TInterval>` with the
+two modes. An `AlwaysInclusive` / `AlwaysExclusive` bound is **never written**
+and is **forced** to that inclusivity on read (a contradicting payload flag is
+ignored); serializing a value whose bound contradicts the mode throws
+`JsonException`. Subclass it in one line and apply with `[JsonConverter]`:
+
+```csharp
+using StrongTypes;
+using System.Text.Json.Serialization;
+
+// [start, end) — start inclusive, end exclusive, neither flag on the wire.
+public sealed class HalfOpenIntervalConverter()
+    : IntervalJsonConverter<FiniteInterval<int>>(IntervalBoundMode.AlwaysInclusive, IntervalBoundMode.AlwaysExclusive);
+
+public sealed class Shift
+{
+    [JsonConverter(typeof(HalfOpenIntervalConverter))]
+    public FiniteInterval<int> Window { get; set; }   // { "Start": 9, "End": 17 } ⇒ [9, 17)
+}
+```
+
+Or add an instance to `JsonSerializerOptions.Converters` for options-wide use:
+`options.Converters.Add(new IntervalJsonConverter<FiniteInterval<int>>(IntervalBoundMode.AlwaysInclusive, IntervalBoundMode.AlwaysExclusive));`.
+Modes can be mixed per bound (e.g. `Stored` start, `AlwaysExclusive` end).
+
 ## EF Core
 
 `Kalicz.StrongTypes.EfCore` offers two persistence shapes. Both re-validate on
