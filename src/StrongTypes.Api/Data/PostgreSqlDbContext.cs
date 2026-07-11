@@ -52,10 +52,6 @@ public class PostgreSqlDbContext(DbContextOptions<PostgreSqlDbContext> options) 
     public DbSet<StoredBoundsIntervalEntity> StoredBoundsIntervalEntities { get; set; }
     public DbSet<ExclusiveEndIntervalEntity> ExclusiveEndIntervalEntities { get; set; }
 
-    public DbSet<ExplicitColumnsIntervalEntity> ExplicitColumnsIntervalEntities { get; set; }
-    public DbSet<AlwaysInclusiveColumnsIntervalEntity> AlwaysInclusiveColumnsIntervalEntities { get; set; }
-    public DbSet<AlwaysExclusiveColumnsIntervalEntity> AlwaysExclusiveColumnsIntervalEntities { get; set; }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         InternalBackingEntity.Configure(modelBuilder);
