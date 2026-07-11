@@ -103,6 +103,9 @@ not fit the scalar `TWire` bodies, so they use the parallel
 scenario added to one belongs in the other. Only the invalid-payload cases
 legitimately differ (a malformed scalar vs. `Start > End` / a missing required
 endpoint). A new type picks its base by wire shape, not by struct-vs-class.
+Unifying them behind one abstract base so this parity is enforced by
+construction rather than convention is tracked in
+[#116](https://github.com/KaliCZ/StrongTypes/issues/116).
 
 A `400` from an invalid body is not just a status code — the shared
 `EntityTests` base asserts the full `ValidationProblemDetails` shape

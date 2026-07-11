@@ -100,6 +100,13 @@ will need tests** (a new strong type, a converter, an analyzer, an API
 endpoint, …). It is the single source of truth; do not infer testing
 conventions from existing tests without checking it first.
 
+**Parity invariant (don't let it drift):** the API CRUD/PATCH suite exists as
+two parallel harnesses — `EntityTests` (scalar wire) and `IntervalEntityTests`
+(object wire) — that must cover the same create/get/update/PATCH surface. A
+scenario added to one belongs in the other. This is easy to break silently, so
+it is flagged here as well as in the "Two parallel CRUD harnesses" section of
+[`testing.md`](testing.md) and in the XML docs on both base classes.
+
 ## Skill — keep it in sync
 
 The `Skill/` directory ships a Claude / Codex skill that teaches the
