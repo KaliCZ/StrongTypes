@@ -4,7 +4,7 @@ using StrongTypes.EfCore;
 
 namespace StrongTypes.Api.Data;
 
-/// <summary>Opts the interval entities into the single-JSON-column shape and maps the bound-mode entities' non-default <see cref="IntervalBoundMode"/>s, identically for both DbContexts. The parallel <c>*ColumnsEntity</c> set stays unconfigured on purpose — it exercises the <c>UseStrongTypes()</c> two-endpoint-column default.</summary>
+/// <summary>Maps every interval-mapping configuration under test, identically for both DbContexts: the <c>*IntervalEntity</c> set opts into the single JSON column; the explicit-column entities pin each <see cref="IntervalBoundMode"/> entry point (no-arg default, both <c>AlwaysInclusive</c>, both <c>AlwaysExclusive</c>, per-value <c>Stored</c>, end-only <c>AlwaysExclusive</c>). The parallel <c>*ColumnsEntity</c> set stays unconfigured on purpose — it exercises the <c>UseStrongTypes()</c> two-endpoint-column default.</summary>
 internal static class IntervalEntityConfiguration
 {
     public static void ConfigureIntervalEntities(this ModelBuilder modelBuilder)
@@ -20,6 +20,19 @@ internal static class IntervalEntityConfiguration
             .HasIntervalColumns(e => e.NullableValue, startBound: IntervalBoundMode.Stored, endBound: IntervalBoundMode.Stored);
         modelBuilder.Entity<ExclusiveEndIntervalEntity>()
             .HasIntervalColumns(e => e.Value, endBound: IntervalBoundMode.AlwaysExclusive);
+
+        modelBuilder.Entity<ExplicitColumnsIntervalEntity>().HasIntervalColumns(e => e.Value);
+        modelBuilder.Entity<ExplicitColumnsIntervalEntity>().HasIntervalColumns(e => e.NullableValue);
+
+        modelBuilder.Entity<AlwaysInclusiveColumnsIntervalEntity>()
+            .HasIntervalColumns(e => e.Value, IntervalBoundMode.AlwaysInclusive, IntervalBoundMode.AlwaysInclusive);
+        modelBuilder.Entity<AlwaysInclusiveColumnsIntervalEntity>()
+            .HasIntervalColumns(e => e.NullableValue, IntervalBoundMode.AlwaysInclusive, IntervalBoundMode.AlwaysInclusive);
+
+        modelBuilder.Entity<AlwaysExclusiveColumnsIntervalEntity>()
+            .HasIntervalColumns(e => e.Value, IntervalBoundMode.AlwaysExclusive, IntervalBoundMode.AlwaysExclusive);
+        modelBuilder.Entity<AlwaysExclusiveColumnsIntervalEntity>()
+            .HasIntervalColumns(e => e.NullableValue, IntervalBoundMode.AlwaysExclusive, IntervalBoundMode.AlwaysExclusive);
     }
 
     private static void Configure<TEntity, TInterval>(ModelBuilder modelBuilder)

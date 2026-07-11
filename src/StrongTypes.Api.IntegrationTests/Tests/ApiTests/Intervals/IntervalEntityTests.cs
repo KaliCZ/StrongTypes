@@ -53,6 +53,7 @@ public abstract class IntervalEntityTests<TEntity, TInterval>(TestWebApplication
 
     private string CreateEndpoint => $"/{RoutePrefix}";
     private string UpdateEndpoint(Guid id) => $"/{RoutePrefix}/{id}";
+    private string PatchEndpoint(Guid id) => $"/{RoutePrefix}/{id}";
     private string SqlServerGetEndpoint(Guid id) => $"/{RoutePrefix}/{id}/sql-server";
     private string PostgreSqlGetEndpoint(Guid id) => $"/{RoutePrefix}/{id}/postgresql";
 
@@ -69,6 +70,12 @@ public abstract class IntervalEntityTests<TEntity, TInterval>(TestWebApplication
         var response = await Client.GetAsync(url, Ct);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         return await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+    }
+
+    private async Task<HttpResponseMessage> Patch(Guid id, object body)
+    {
+        using var content = JsonContent.Create(body);
+        return await Client.PatchAsync(PatchEndpoint(id), content, Ct);
     }
 
     private static TInterval ReadInterval(JsonElement element) => element.Deserialize<TInterval>(WireJson);
@@ -145,6 +152,51 @@ public abstract class IntervalEntityTests<TEntity, TInterval>(TestWebApplication
             UpdateEndpoint(id), new { value = UpdatedBody, nullableValue = (object?)null }, Ct);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         await AssertEntity(id, UpdatedValue, null);
+    }
+
+    // ── Patch ────────────────────────────────────────────────────────────
+    // The interval controllers inherit PATCH from StructTypeEntityControllerBase;
+    // these drive it with an interval-shaped body — the plumbing itself is already
+    // covered by the scalar struct types.
+
+    [Fact]
+    public async Task Patch_ValueOnly_UpdatesValueLeavesNullableValueUnchanged()
+    {
+        var id = await PostValid(ValidBody, ValidBody);
+
+        var response = await Patch(id, new { value = UpdatedBody });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await AssertEntity(id, UpdatedValue, ValidValue);
+    }
+
+    [Fact]
+    public async Task Patch_NullableValueSome_UpdatesNullableValueLeavesValueUnchanged()
+    {
+        var id = await PostValid(ValidBody, null);
+
+        var response = await Patch(id, new { nullableValue = new { Value = UpdatedBody } });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await AssertEntity(id, ValidValue, UpdatedValue);
+    }
+
+    [Fact]
+    public async Task Patch_NullableValueEmptyObject_ClearsNullableValue()
+    {
+        var id = await PostValid(ValidBody, ValidBody);
+
+        var response = await Patch(id, new { nullableValue = new { } });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await AssertEntity(id, ValidValue, null);
+    }
+
+    [Fact]
+    public async Task Patch_NonExistentId_ReturnsNotFound()
+    {
+        var response = await Patch(Guid.NewGuid(), new { value = UpdatedBody });
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     // ── Invalid payloads ─────────────────────────────────────────────────

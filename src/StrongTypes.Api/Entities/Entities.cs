@@ -52,3 +52,8 @@ public sealed class IntervalUntilColumnsEntity : EntityBase<IntervalUntilColumns
 // Non-default IntervalBoundMode mappings; see IntervalEntityConfiguration.
 public sealed class StoredBoundsIntervalEntity : EntityBase<StoredBoundsIntervalEntity, FiniteInterval<int>, FiniteInterval<int>?>;
 public sealed class ExclusiveEndIntervalEntity : EntityBase<ExclusiveEndIntervalEntity, FiniteInterval<int>, FiniteInterval<int>?>;
+
+// Explicit HasIntervalColumns entry points (both endpoints mapped identically); see IntervalEntityConfiguration.
+public sealed class ExplicitColumnsIntervalEntity : EntityBase<ExplicitColumnsIntervalEntity, FiniteInterval<int>, FiniteInterval<int>?>;
+public sealed class AlwaysInclusiveColumnsIntervalEntity : EntityBase<AlwaysInclusiveColumnsIntervalEntity, FiniteInterval<int>, FiniteInterval<int>?>;
+public sealed class AlwaysExclusiveColumnsIntervalEntity : EntityBase<AlwaysExclusiveColumnsIntervalEntity, FiniteInterval<int>, FiniteInterval<int>?>;
