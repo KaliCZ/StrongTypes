@@ -60,14 +60,15 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPrope
     private static ValueConverter? ResolveConverter(Type clrType)
     {
         var unwrapped = Nullable.GetUnderlyingType(clrType) ?? clrType;
-        return unwrapped switch
-        {
-            _ when unwrapped == typeof(NonEmptyString) => new NonEmptyStringValueConverter(),
-            _ when unwrapped == typeof(Email) => new EmailValueConverter(),
-            _ when unwrapped == typeof(MailAddress) => new MailAddressValueConverter(),
-            { IsGenericType: true } when IsNumericWrapper(unwrapped) => CreateNumericConverter(unwrapped),
-            _ => null,
-        };
+        if (unwrapped == typeof(NonEmptyString))
+            return new NonEmptyStringValueConverter();
+        if (unwrapped == typeof(Email))
+            return new EmailValueConverter();
+        if (unwrapped == typeof(MailAddress))
+            return new MailAddressValueConverter();
+        if (unwrapped.IsGenericType && IsNumericWrapper(unwrapped))
+            return CreateNumericConverter(unwrapped);
+        return null;
     }
 
     private static bool IsNumericWrapper(Type unwrapped)
