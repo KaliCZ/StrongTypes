@@ -52,23 +52,7 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPrope
         }
     }
 
-    private static bool IsStrongType(Type clrType)
-    {
-        var unwrapped = Nullable.GetUnderlyingType(clrType) ?? clrType;
-        if (unwrapped == typeof(NonEmptyString) || unwrapped == typeof(MailAddress))
-        {
-            return true;
-        }
-        if (unwrapped.IsGenericType)
-        {
-            var definition = unwrapped.GetGenericTypeDefinition();
-            return definition == typeof(Positive<>)
-                || definition == typeof(NonNegative<>)
-                || definition == typeof(Negative<>)
-                || definition == typeof(NonPositive<>);
-        }
-        return false;
-    }
+    private static bool IsStrongType(Type clrType) => ResolveConverter(clrType) is not null;
 
     // EF Core applies ValueConverter only to non-null values, so the same
     // converter instance works for both Wrapper and Nullable<Wrapper> (and for
@@ -77,27 +61,30 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPrope
     {
         var unwrapped = Nullable.GetUnderlyingType(clrType) ?? clrType;
         if (unwrapped == typeof(NonEmptyString))
-        {
             return new NonEmptyStringValueConverter();
-        }
+        if (unwrapped == typeof(Email))
+            return new EmailValueConverter();
         if (unwrapped == typeof(MailAddress))
-        {
             return new MailAddressValueConverter();
-        }
-        if (unwrapped.IsGenericType)
-        {
-            var definition = unwrapped.GetGenericTypeDefinition();
-            if (definition == typeof(Positive<>) ||
-                definition == typeof(NonNegative<>) ||
-                definition == typeof(Negative<>) ||
-                definition == typeof(NonPositive<>))
-            {
-                var underlying = unwrapped.GetGenericArguments()[0];
-                var converterType = typeof(NumericStrongTypeValueConverter<,>).MakeGenericType(unwrapped, underlying);
-                return (ValueConverter)Activator.CreateInstance(converterType)!;
-            }
-        }
+        if (unwrapped.IsGenericType && IsNumericWrapper(unwrapped))
+            return CreateNumericConverter(unwrapped);
         return null;
+    }
+
+    private static bool IsNumericWrapper(Type unwrapped)
+    {
+        var definition = unwrapped.GetGenericTypeDefinition();
+        return definition == typeof(Positive<>)
+            || definition == typeof(NonNegative<>)
+            || definition == typeof(Negative<>)
+            || definition == typeof(NonPositive<>);
+    }
+
+    private static ValueConverter CreateNumericConverter(Type unwrapped)
+    {
+        var underlying = unwrapped.GetGenericArguments()[0];
+        var converterType = typeof(NumericStrongTypeValueConverter<,>).MakeGenericType(unwrapped, underlying);
+        return (ValueConverter)Activator.CreateInstance(converterType)!;
     }
 }
 

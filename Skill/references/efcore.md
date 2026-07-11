@@ -30,14 +30,19 @@ public sealed class User
     public Guid Id { get; init; }
     public NonEmptyString Name { get; init; }
     public NonEmptyString? Nickname { get; init; }
+    public Email? ContactEmail { get; init; }
+    public MailAddress? BackupEmail { get; init; }
     public Positive<int>   LoginCount { get; init; }
     public NonNegative<decimal> Balance { get; init; }
 }
 ```
 
-Columns are the underlying type — `nvarchar` for `NonEmptyString`, `int`
-for `Positive<int>`, `decimal(...)` for `NonNegative<decimal>`, and the
-nullable form becomes a nullable column.
+Columns are the underlying type — `nvarchar` for `NonEmptyString` and for
+`Email` / `MailAddress` (the address string), `int` for `Positive<int>`,
+`decimal(...)` for `NonNegative<decimal>`, and the nullable form becomes a
+nullable column. An email column can be `Email` (the wrapper — re-checks the
+254-char cap on read) or the BCL `MailAddress`; they convert to each other
+implicitly, so store whichever your domain already holds.
 
 ### Non-public backing properties
 

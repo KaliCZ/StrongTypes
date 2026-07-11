@@ -252,6 +252,47 @@ public class EmailTests
     public void Equals_String_Null_False(Email email) =>
         Assert.False(email.Equals((string?)null));
 
+    // ── Comparison ────────────────────────────────────────────────────────
+    // Ordinal-ignore-case on the address, matching Equals so CompareTo == 0
+    // agrees with equality.
+
+    [Property]
+    public void CompareTo_SameAddress_Zero(Email email) =>
+        Assert.Equal(0, email.CompareTo(Email.Create(email.Address)));
+
+    [Property]
+    public void CompareTo_CaseInsensitive_Zero(Email email) =>
+        Assert.Equal(0, email.CompareTo(Email.Create(email.Address.ToUpperInvariant())));
+
+    [Property]
+    public void CompareTo_OrdersByAddressIgnoringCase(Email a, Email b)
+    {
+        var expected = string.Compare(a.Address, b.Address, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(Math.Sign(expected), Math.Sign(a.CompareTo(b)));
+    }
+
+    [Property]
+    public void CompareTo_Null_Positive(Email email) =>
+        Assert.True(email.CompareTo(null) > 0);
+
+    [Fact]
+    public void Sort_OrdersByAddressIgnoringCase()
+    {
+        var emails = new[] { Email.Create("charlie@x.com"), Email.Create("Alice@x.com"), Email.Create("bob@x.com") };
+        Array.Sort(emails);
+        Assert.Equal("Alice@x.com", emails[0].Address);
+        Assert.Equal("bob@x.com", emails[1].Address);
+        Assert.Equal("charlie@x.com", emails[2].Address);
+    }
+
+    [Property]
+    public void IComparable_CompareTo_Null_Positive(Email email) =>
+        Assert.True(((IComparable)email).CompareTo(null) > 0);
+
+    [Property]
+    public void IComparable_CompareTo_ForeignType_Throws(Email email) =>
+        Assert.Throws<ArgumentException>(() => ((IComparable)email).CompareTo(42));
+
     // ── Cross-type operators with NonEmptyString ──────────────────────────
 
     [Property]
