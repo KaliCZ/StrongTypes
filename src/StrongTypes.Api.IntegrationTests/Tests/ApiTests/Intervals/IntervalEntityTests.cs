@@ -9,13 +9,21 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
 /// <summary>
-/// Shared wire-to-DB suite for the four interval entities. Unlike the scalar
-/// strong types, an interval is an object on the wire (<c>{ "start": …, "end": … }</c>),
-/// so this base is purpose-built rather than reusing the scalar
-/// <c>EntityTests</c> harness. Each variant plugs in valid/updated/invalid
-/// bodies and asserts the full path: System.Text.Json converter → ASP.NET
-/// pipeline → <c>IntervalJsonValueConverter</c> against both providers.
+/// Shared wire-to-DB suite for the four interval entities: create, get, update, and
+/// PATCH round-trips — including the null / value / clear semantics of the nullable
+/// slot — through the System.Text.Json converter, the ASP.NET Core pipeline, and EF
+/// Core against both providers.
 /// </summary>
+/// <remarks>
+/// The object-wire twin of the scalar <see cref="EntityTests{TSelf, TEntity, T, TNullable, TWire}"/>.
+/// An interval serializes as an object (<c>{ "start": …, "end": … }</c>) rather than a
+/// scalar, so it cannot reuse that harness's scalar <c>TWire</c> bodies and assertions —
+/// hence a parallel base. The two cover the <b>same functional surface and must not
+/// drift</b>: the create / get / update / PATCH scenarios here mirror it one-for-one, and
+/// a scenario added to either base must be added to the other. Only the invalid-payload
+/// cases differ by nature (endpoint order or a missing required endpoint here, a malformed
+/// scalar there).
+/// </remarks>
 public abstract class IntervalEntityTests<TEntity, TInterval>(TestWebApplicationFactory factory)
     : IntegrationTestBase<TEntity, TInterval, TInterval?>(factory)
     where TEntity : class, IEntity<TEntity, TInterval, TInterval?>
@@ -145,19 +153,47 @@ public abstract class IntervalEntityTests<TEntity, TInterval>(TestWebApplication
     // ── Update ───────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task Update_PersistsNewIntervalInBothDatabases()
+    public async Task Update_PersistsNewValueAndNullableValueInBothDatabases()
     {
         var id = await PostValid(ValidBody, ValidBody);
-        var response = await Client.PutAsJsonAsync(
-            UpdateEndpoint(id), new { value = UpdatedBody, nullableValue = (object?)null }, Ct);
+        var response = await Client.PutAsJsonAsync(UpdateEndpoint(id), new { value = UpdatedBody, nullableValue = UpdatedBody }, Ct);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        await AssertEntity(id, UpdatedValue, null);
+        await AssertEntity(id, UpdatedValue, UpdatedValue);
+    }
+
+    [Fact]
+    public async Task Update_SetsNullableValueFromNullToValueInBothDatabases()
+    {
+        var id = await PostValid(ValidBody, null);
+        var response = await Client.PutAsJsonAsync(UpdateEndpoint(id), new { value = ValidBody, nullableValue = UpdatedBody }, Ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await AssertEntity(id, ValidValue, UpdatedValue);
+    }
+
+    [Fact]
+    public async Task Update_ClearsNullableValueToNullInBothDatabases()
+    {
+        var id = await PostValid(ValidBody, ValidBody);
+        var response = await Client.PutAsJsonAsync(UpdateEndpoint(id), new { value = ValidBody, nullableValue = (object?)null }, Ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await AssertEntity(id, ValidValue, null);
     }
 
     // ── Patch ────────────────────────────────────────────────────────────
-    // The interval controllers inherit PATCH from StructTypeEntityControllerBase;
-    // these drive it with an interval-shaped body — the plumbing itself is already
-    // covered by the scalar struct types.
+    // Same wire semantics as the scalar EntityTests PATCH suite; kept in lock-step
+    // (see the class remarks). "Empty" nullableValue on the wire ({}, {"Value":null})
+    // clears; null/absent skips.
+
+    [Fact]
+    public async Task Patch_EmptyBody_LeavesBothFieldsUnchanged()
+    {
+        var id = await PostValid(ValidBody, ValidBody);
+
+        var response = await Patch(id, new { });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await AssertEntity(id, ValidValue, ValidValue);
+    }
 
     [Fact]
     public async Task Patch_ValueOnly_UpdatesValueLeavesNullableValueUnchanged()
@@ -190,6 +226,39 @@ public abstract class IntervalEntityTests<TEntity, TInterval>(TestWebApplication
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         await AssertEntity(id, ValidValue, null);
+    }
+
+    [Fact]
+    public async Task Patch_ExplicitNullValue_LeavesValueUnchanged()
+    {
+        var id = await PostValid(ValidBody, ValidBody);
+
+        var response = await Patch(id, new { value = (object?)null, nullableValue = (object?)null });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await AssertEntity(id, ValidValue, ValidValue);
+    }
+
+    [Fact]
+    public async Task Patch_NullableValueWithExplicitNullInner_ClearsNullableValue()
+    {
+        var id = await PostValid(ValidBody, ValidBody);
+
+        var response = await Patch(id, new { nullableValue = new { Value = (object?)null } });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await AssertEntity(id, ValidValue, null);
+    }
+
+    [Fact]
+    public async Task Patch_UpdatesBothFieldsIndependently()
+    {
+        var id = await PostValid(ValidBody, null);
+
+        var response = await Patch(id, new { value = UpdatedBody, nullableValue = new { Value = UpdatedBody } });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await AssertEntity(id, UpdatedValue, UpdatedValue);
     }
 
     [Fact]
