@@ -55,6 +55,7 @@ public class PostgreSqlDbContext(DbContextOptions<PostgreSqlDbContext> options) 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         InternalBackingEntity.Configure(modelBuilder);
+        InternalBackingIntervalEntity.Configure(modelBuilder);
         modelBuilder.ConfigureIntervalEntities();
     }
 }

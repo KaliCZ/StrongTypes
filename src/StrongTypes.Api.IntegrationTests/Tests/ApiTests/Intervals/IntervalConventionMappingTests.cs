@@ -31,12 +31,29 @@ public class IntervalConventionMappingTests
         public Interval<int>? Window { get; set; }
     }
 
+    private sealed class NonPublicBackingHolder
+    {
+        public Guid Id { get; set; }
+        internal Interval<int>? Window { get; set; }
+    }
+
     private sealed class DefaultContext : DbContext
     {
         public DbSet<Holder> Holders => Set<Holder>();
         public DbSet<NullableHolder> NullableHolders => Set<NullableHolder>();
         protected override void OnConfiguring(DbContextOptionsBuilder o) =>
             o.UseSqlServer().UseStrongTypes();
+    }
+
+    // A non-public interval backing property (issue #112 for intervals): EF does not
+    // discover it by convention, so it is mapped explicitly as a complex property.
+    private sealed class NonPublicBackingContext : DbContext
+    {
+        public DbSet<NonPublicBackingHolder> Holders => Set<NonPublicBackingHolder>();
+        protected override void OnConfiguring(DbContextOptionsBuilder o) =>
+            o.UseSqlServer().UseStrongTypes();
+        protected override void OnModelCreating(ModelBuilder b) =>
+            b.Entity<NonPublicBackingHolder>().ComplexProperty(nameof(NonPublicBackingHolder.Window));
     }
 
     private sealed class NpgsqlJsonContext : DbContext
@@ -143,6 +160,22 @@ public class IntervalConventionMappingTests
         var discriminator = complex.ComplexType.GetProperties().Single(p => p.Name == "Discriminator");
         Assert.True(discriminator.IsShadowProperty());
         Assert.Equal(typeof(string), discriminator.ClrType);
+    }
+
+    [Fact]
+    public void ConventionShapesNonPublicIntervalBackingProperty()
+    {
+        using var ctx = new NonPublicBackingContext();
+        var complex = ctx.Model.FindEntityType(typeof(NonPublicBackingHolder))!
+            .GetComplexProperties().Single(p => p.Name == nameof(NonPublicBackingHolder.Window));
+
+        Assert.True(complex.IsNullable);
+        var members = complex.ComplexType.GetProperties().Select(p => p.Name).ToHashSet();
+        Assert.Contains(nameof(Interval<int>.Start), members);
+        Assert.Contains(nameof(Interval<int>.End), members);
+        Assert.DoesNotContain(nameof(Interval<int>.StartInclusive), members);
+        Assert.DoesNotContain(nameof(Interval<int>.EndInclusive), members);
+        Assert.Single(complex.ComplexType.GetProperties(), p => p.Name == "Discriminator" && p.IsShadowProperty());
     }
 
     [Fact]

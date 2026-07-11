@@ -10,8 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace StrongTypes.EfCore;
 
-/// <summary>Pre-declares every strong-type member ahead of EF Core's property-discovery pass: public scalar wrappers get their value converter, public intervals map to two endpoint columns, and non-public scalar wrappers (e.g. an <c>internal</c> DDD backing property) are caught as they are added.</summary>
-internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPropertyAddedConvention
+/// <summary>Pre-declares every strong-type member ahead of EF Core's property-discovery pass: public scalar wrappers get their value converter and public intervals map to two endpoint columns; a non-public backing property (e.g. an <c>internal</c> DDD field) is caught as it is added — a scalar wrapper via <see cref="IPropertyAddedConvention"/>, an interval via <see cref="IComplexPropertyAddedConvention"/>.</summary>
+internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPropertyAddedConvention, IComplexPropertyAddedConvention
 {
     public void ProcessEntityTypeAdded(
         IConventionEntityTypeBuilder entityTypeBuilder,
@@ -60,18 +60,39 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPrope
         }
     }
 
+    // The complex-property counterpart of ProcessPropertyAdded, for a non-public interval backing property.
+    public void ProcessComplexPropertyAdded(
+        IConventionComplexPropertyBuilder propertyBuilder,
+        IConventionContext<IConventionComplexPropertyBuilder> context)
+    {
+        var complexProperty = propertyBuilder.Metadata;
+        if (IntervalTypes.IsInterval(complexProperty.ComplexType.ClrType))
+        {
+            ConfigureIntervalComplexType(complexProperty.ComplexType.Builder, complexProperty.IsNullable);
+        }
+    }
+
     private static void AddIntervalColumns(IConventionEntityTypeBuilder entityTypeBuilder, PropertyInfo property)
     {
         var unwrapped = Nullable.GetUnderlyingType(property.PropertyType);
         var complexProperty = entityTypeBuilder.ComplexProperty(property, unwrapped ?? property.PropertyType, fromDataAnnotation: false);
-        if (unwrapped is not null)
+        ConfigureIntervalComplexType(complexProperty?.Metadata.ComplexType.Builder, unwrapped is not null);
+    }
+
+    private static void ConfigureIntervalComplexType(IConventionComplexTypeBuilder? typeBuilder, bool isNullable)
+    {
+        if (typeBuilder is null)
         {
-            // Shadow discriminator so a null property stays distinct from a stored all-NULL (unbounded) interval.
-            complexProperty?.Metadata.ComplexType.Builder.HasDiscriminator("Discriminator", typeof(string), fromDataAnnotation: false);
+            return;
+        }
+        // Shadow discriminator so a null property stays distinct from a stored all-NULL (unbounded) interval.
+        if (isNullable)
+        {
+            typeBuilder.HasDiscriminator("Discriminator", typeof(string), fromDataAnnotation: false);
         }
         // The default bound mode stores no flag columns; a Stored mode via HasIntervalColumns maps them back in.
-        complexProperty?.Metadata.ComplexType.Builder.Ignore("StartInclusive", fromDataAnnotation: false);
-        complexProperty?.Metadata.ComplexType.Builder.Ignore("EndInclusive", fromDataAnnotation: false);
+        typeBuilder.Ignore("StartInclusive", fromDataAnnotation: false);
+        typeBuilder.Ignore("EndInclusive", fromDataAnnotation: false);
     }
 
     private static bool IsStrongType(Type clrType)
@@ -137,6 +158,7 @@ internal sealed class StrongTypesConventionSetPlugin(IServiceProvider servicePro
         // Insert at index 0 so we run before PropertyDiscoveryConvention.
         conventionSet.EntityTypeAddedConventions.Insert(0, convention);
         conventionSet.PropertyAddedConventions.Add(convention);
+        conventionSet.ComplexPropertyAddedConventions.Add(convention);
         if (serviceProvider.GetService<IDatabaseProvider>()?.Name == "Npgsql.EntityFrameworkCore.PostgreSQL")
         {
             conventionSet.ModelFinalizingConventions.Add(new IntervalJsonColumnTypeConvention());
