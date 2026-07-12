@@ -98,11 +98,19 @@ protected override void OnModelCreating(ModelBuilder modelBuilder) =>
 ## Intervals
 
 The interval types (`FiniteInterval<T>`, `Interval<T>`, `IntervalFrom<T>`,
-`IntervalUntil<T>`) auto-map too. By **default**, `UseStrongTypes()` maps each
-interval property to **two scalar endpoint columns** as an EF Core complex type
-— each endpoint its own queryable, **indexable** column, nullable exactly when
-the variant's endpoint is. Endpoint access in LINQ translates to plain column
-references:
+`IntervalUntil<T>`) auto-map too, in one of two shapes: **two endpoint columns**
+(the `UseStrongTypes()` default) or **one JSON column**. Both re-validate the
+`Start <= End` invariant on read — a stored row that violates it throws when
+materialized (the JSON shape through its converter; the two-column shape through
+the validation `UseStrongTypes()` registers, so without that registration
+two-column reads trust the database).
+
+### Two endpoint columns (default)
+
+`UseStrongTypes()` maps each interval property to two scalar endpoint columns as
+an EF Core complex type — each endpoint its own queryable, **indexable** column,
+nullable exactly when the variant's endpoint is. Endpoint access in LINQ
+translates to plain column references:
 
 ```csharp
 var hits = await db.Bookings.Where(b => b.Window.Start <= at && at <= b.Window.End).ToListAsync();
@@ -114,14 +122,35 @@ interval property additionally gets a shadow discriminator column, keeping a
 `null` property distinct from a stored interval whose endpoints are all `NULL`
 (a fully-unbounded `Interval<T>`).
 
-**Bound inclusivity** is configured per bound with `IntervalBoundMode` on
-`HasIntervalColumns`. The default, `AlwaysInclusive`, stores no flag column;
-saving a value created with `startInclusive: false` / `endInclusive: false`
-throws with a message naming the fix. `AlwaysExclusive` fixes the opposite
-convention (also without a column) and restores it on read — it requires
-`UseStrongTypes()`. `Stored` adds a `StartInclusive` / `EndInclusive` `bit`
-column and round-trips each value's own bounds; the flag is a plain column,
-so `Where(b => !b.Window.EndInclusive)` translates:
+To **rename** the columns, pass `startName` / `endName` — this overload also
+returns the complex-property builder for further tweaks, and is how you get
+two-column mapping without `UseStrongTypes()`:
+
+```csharp
+modelBuilder.Entity<Booking>()
+    .HasIntervalColumns(b => b.Window, startName: "WindowStart", endName: "WindowEnd");
+```
+
+To **index** an endpoint, add the index in a migration — EF Core cannot declare
+an index over a complex-type member (`HasIndex(b => b.Window.Start)` is
+rejected), but the endpoint is a plain column on the entity's table:
+
+```csharp
+migrationBuilder.CreateIndex(name: "IX_Bookings_WindowStart", table: "Bookings", column: "WindowStart");
+```
+
+### Bound inclusivity
+
+Configured per bound with `IntervalBoundMode` on `HasIntervalColumns`:
+
+- **`AlwaysInclusive`** (the default) — no flag column; saving a value created
+  with `startInclusive: false` / `endInclusive: false` throws with a message
+  naming the fix.
+- **`AlwaysExclusive`** — fixes the opposite convention (also no column) and
+  restores it on read. Requires `UseStrongTypes()`.
+- **`Stored`** — adds a `StartInclusive` / `EndInclusive` `bit` column and
+  round-trips each value's own bounds. The flag is a plain column, so
+  `Where(b => !b.Window.EndInclusive)` translates.
 
 ```csharp
 modelBuilder.Entity<Shift>()
@@ -131,36 +160,19 @@ modelBuilder.Entity<Promo>()
     .HasIntervalColumns(p => p.Window, startBound: IntervalBoundMode.Stored, endBound: IntervalBoundMode.Stored);
 ```
 
-Only `Stored` makes a bound's flag queryable. Under `AlwaysInclusive` /
-`AlwaysExclusive` (and the single-JSON-column mapping) the flags aren't columns,
-so a `Where` / `OrderBy` over `StartInclusive` / `EndInclusive` can't translate
-and throws at query time — the endpoint values `Start` / `End` translate under
-every mapping.
+Only `Stored` makes a bound's flag queryable. Under the other modes (and the
+single-JSON-column mapping) the flags aren't columns, so a `Where` / `OrderBy`
+over `StartInclusive` / `EndInclusive` throws at query time — the endpoint
+values `Start` / `End` translate under every mapping.
 
-To rename the endpoint columns, pass `startName` / `endName` (or configure the
-returned complex-property builder — `HasIntervalColumns` returns it, and it is
-also how you get this mapping without `UseStrongTypes()`):
+### One JSON column
 
-```csharp
-modelBuilder.Entity<Booking>()
-    .HasIntervalColumns(b => b.Window, startName: "WindowStart", endName: "WindowEnd");
-```
-
-To index an endpoint: EF Core cannot declare an index over a complex-type
-member (`HasIndex(b => b.Window.Start)` is rejected), so add the index in a
-migration — the endpoint is a plain column on the entity's table:
-
-```csharp
-migrationBuilder.CreateIndex(name: "IX_Bookings_WindowStart", table: "Bookings", column: "WindowStart");
-```
-
-**One JSON column** — opt in with `HasIntervalJsonConversion`, on the entity
-builder or on the property builder (the latter also handles nullable
-properties). The interval round-trips through its validating JSON converter
-into a single column (`jsonb` on PostgreSQL, `nvarchar(max)` on SQL Server),
-and endpoint access in LINQ translates to a server-side JSON path lookup
-(`JSON_VALUE(...)` on SQL Server, `->>` on PostgreSQL) — still filterable and
-orderable, just not index-backed:
+Opt in with `HasIntervalJsonConversion`, on the entity builder or on the
+property builder (the latter also handles nullable properties). The interval
+round-trips through its validating JSON converter into a single column (`jsonb`
+on PostgreSQL, `nvarchar(max)` on SQL Server), and endpoint access in LINQ
+translates to a server-side JSON path lookup (`JSON_VALUE(...)` on SQL Server,
+`->>` on PostgreSQL) — still filterable and orderable, just not index-backed:
 
 ```csharp
 modelBuilder.Entity<Booking>()
@@ -170,11 +182,6 @@ modelBuilder.Entity<Booking>()
     .Property(b => b.MaybeWindow)              // FiniteInterval<int>?
     .HasIntervalJsonConversion();
 ```
-
-Both shapes re-validate on read: a stored row violating `Start <= End` throws
-when materialized — the JSON shape through its converter, the two-column shape
-through the validation `UseStrongTypes()` registers (without that registration,
-two-column reads trust the database).
 
 ## Filtering
 
