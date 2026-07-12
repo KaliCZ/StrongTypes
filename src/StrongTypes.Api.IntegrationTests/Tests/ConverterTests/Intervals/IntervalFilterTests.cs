@@ -107,26 +107,6 @@ public sealed class IntervalFilterTests(TestWebApplicationFactory factory)
     }
 
     [Theory, MemberData(nameof(Providers))]
-    public async Task StoredBoundFlag_TranslatesToSql(string provider)
-    {
-        SkipIfSqlServerUnavailable(provider);
-
-        var halfOpen = await Seed(
-            SqlDb.StoredBoundsIntervalEntities, PgDb.StoredBoundsIntervalEntities, FiniteInterval.Create(1, 10, endInclusive: false));
-        var inclusive = await Seed(SqlDb.StoredBoundsIntervalEntities, PgDb.StoredBoundsIntervalEntities, FiniteInterval.Create(1, 10));
-        var set = provider == "sql-server" ? SqlDb.StoredBoundsIntervalEntities : PgDb.StoredBoundsIntervalEntities;
-
-        var ids = await set
-            .FilterById(halfOpen, inclusive)
-            .Where(e => !e.Value.EndInclusive)
-            .Select(e => e.Id)
-            .ToListAsync(Ct);
-
-        Assert.Contains(halfOpen.Id, ids);
-        Assert.DoesNotContain(inclusive.Id, ids);
-    }
-
-    [Theory, MemberData(nameof(Providers))]
     public async Task EndpointEquality_OnJsonColumn_TranslatesToSql(string provider)
     {
         SkipIfSqlServerUnavailable(provider);

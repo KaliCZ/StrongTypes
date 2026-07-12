@@ -49,25 +49,8 @@ public sealed class IntervalColumnsEntity : EntityBase<IntervalColumnsEntity, In
 public sealed class IntervalFromColumnsEntity : EntityBase<IntervalFromColumnsEntity, IntervalFrom<int>, IntervalFrom<int>?>;
 public sealed class IntervalUntilColumnsEntity : EntityBase<IntervalUntilColumnsEntity, IntervalUntil<int>, IntervalUntil<int>?>;
 
-// Non-default IntervalBoundMode mappings; see IntervalEntityConfiguration.
-public sealed class StoredBoundsIntervalEntity : EntityBase<StoredBoundsIntervalEntity, FiniteInterval<int>, FiniteInterval<int>?>;
-public sealed class ExclusiveEndIntervalEntity : EntityBase<ExclusiveEndIntervalEntity, FiniteInterval<int>, FiniteInterval<int>?>;
-
-// Explicit HasIntervalColumns entry points across all four variants (both endpoints mapped
-// identically): no-arg default, both bounds AlwaysInclusive, both bounds AlwaysExclusive.
-// See IntervalEntityConfiguration.
+// Explicit HasIntervalColumns entry point across all four variants; see IntervalEntityConfiguration.
 public sealed class ExplicitColumnsFiniteIntervalEntity : EntityBase<ExplicitColumnsFiniteIntervalEntity, FiniteInterval<int>, FiniteInterval<int>?>;
-public sealed class AlwaysInclusiveColumnsFiniteIntervalEntity : EntityBase<AlwaysInclusiveColumnsFiniteIntervalEntity, FiniteInterval<int>, FiniteInterval<int>?>;
-public sealed class AlwaysExclusiveColumnsFiniteIntervalEntity : EntityBase<AlwaysExclusiveColumnsFiniteIntervalEntity, FiniteInterval<int>, FiniteInterval<int>?>;
-
 public sealed class ExplicitColumnsIntervalFromEntity : EntityBase<ExplicitColumnsIntervalFromEntity, IntervalFrom<int>, IntervalFrom<int>?>;
-public sealed class AlwaysInclusiveColumnsIntervalFromEntity : EntityBase<AlwaysInclusiveColumnsIntervalFromEntity, IntervalFrom<int>, IntervalFrom<int>?>;
-public sealed class AlwaysExclusiveColumnsIntervalFromEntity : EntityBase<AlwaysExclusiveColumnsIntervalFromEntity, IntervalFrom<int>, IntervalFrom<int>?>;
-
 public sealed class ExplicitColumnsIntervalUntilEntity : EntityBase<ExplicitColumnsIntervalUntilEntity, IntervalUntil<int>, IntervalUntil<int>?>;
-public sealed class AlwaysInclusiveColumnsIntervalUntilEntity : EntityBase<AlwaysInclusiveColumnsIntervalUntilEntity, IntervalUntil<int>, IntervalUntil<int>?>;
-public sealed class AlwaysExclusiveColumnsIntervalUntilEntity : EntityBase<AlwaysExclusiveColumnsIntervalUntilEntity, IntervalUntil<int>, IntervalUntil<int>?>;
-
 public sealed class ExplicitColumnsIntervalEntity : EntityBase<ExplicitColumnsIntervalEntity, Interval<int>, Interval<int>?>;
-public sealed class AlwaysInclusiveColumnsIntervalEntity : EntityBase<AlwaysInclusiveColumnsIntervalEntity, Interval<int>, Interval<int>?>;
-public sealed class AlwaysExclusiveColumnsIntervalEntity : EntityBase<AlwaysExclusiveColumnsIntervalEntity, Interval<int>, Interval<int>?>;

@@ -49,9 +49,6 @@ public class SqlServerDbContext(DbContextOptions<SqlServerDbContext> options) : 
     public DbSet<IntervalFromColumnsEntity> IntervalFromColumnsEntities { get; set; }
     public DbSet<IntervalUntilColumnsEntity> IntervalUntilColumnsEntities { get; set; }
 
-    public DbSet<StoredBoundsIntervalEntity> StoredBoundsIntervalEntities { get; set; }
-    public DbSet<ExclusiveEndIntervalEntity> ExclusiveEndIntervalEntities { get; set; }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         InternalBackingEntity.Configure(modelBuilder);

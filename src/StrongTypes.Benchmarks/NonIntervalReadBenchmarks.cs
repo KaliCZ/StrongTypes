@@ -6,8 +6,8 @@ using StrongTypes.EfCore;
 
 namespace StrongTypes.Benchmarks;
 
-// A plain entity with no interval and no strong type. Measures whether merely registering the
-// StrongTypes materialization interceptor (via UseStrongTypes) taxes reads of entities it never touches.
+// A plain entity with no interval and no strong type. Guards that UseStrongTypes adds no per-row read
+// overhead to entities it never touches — it registers no materialization interceptor.
 public sealed class ScalarRow
 {
     public int Id { get; set; }

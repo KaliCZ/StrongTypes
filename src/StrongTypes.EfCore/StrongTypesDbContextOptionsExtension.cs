@@ -37,14 +37,13 @@ public sealed class StrongTypesDbContextOptionsExtension : IDbContextOptionsExte
 
 public static class StrongTypesDbContextOptionsBuilderExtensions
 {
-    /// <summary>Enables automatic value conversion of strong-type properties, server-side translation of <c>Unwrap()</c> and interval <c>Start</c>/<c>End</c> access in LINQ, re-validation of intervals on read (a stored row violating <c>Start &lt;= End</c> throws when materialized), and enforcement of each interval property's <see cref="IntervalBoundMode"/> on read and save.</summary>
+    /// <summary>Enables automatic value conversion of strong-type properties, two-endpoint-column mapping of interval properties, and server-side translation of <c>Unwrap()</c> and interval <c>Start</c>/<c>End</c> access in LINQ. Interval read validation (a stored row violating <c>Start &lt;= End</c> throws when materialized) is intrinsic to the interval types and needs no registration.</summary>
     /// <param name="optionsBuilder">The options builder to configure.</param>
     public static DbContextOptionsBuilder UseStrongTypes(this DbContextOptionsBuilder optionsBuilder)
     {
         if (optionsBuilder.Options.FindExtension<StrongTypesDbContextOptionsExtension>() is null)
         {
             ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(new StrongTypesDbContextOptionsExtension());
-            optionsBuilder.AddInterceptors(IntervalIntegrityInterceptor.Instance);
         }
         return optionsBuilder;
     }
