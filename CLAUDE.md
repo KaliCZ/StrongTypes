@@ -100,12 +100,15 @@ will need tests** (a new strong type, a converter, an analyzer, an API
 endpoint, …). It is the single source of truth; do not infer testing
 conventions from existing tests without checking it first.
 
-**Parity invariant (don't let it drift):** the API CRUD/PATCH suite exists as
-two parallel harnesses — `EntityTests` (scalar wire) and `IntervalEntityTests`
-(object wire) — that must cover the same create/get/update/PATCH surface. A
-scenario added to one belongs in the other. This is easy to break silently, so
-it is flagged here as well as in the "Two parallel CRUD harnesses" section of
-[`testing.md`](testing.md) and in the XML docs on both base classes.
+**One shared CRUD surface (don't reintroduce drift):** the API CRUD/PATCH
+suite's create/get/update/PATCH scenarios live exactly once, in the abstract
+`EntityCrudTestsBase`, so the scalar and interval wire shapes cannot drift. Its
+two thin adapters — `EntityTests` (scalar wire) and `IntervalEntityTests`
+(object wire) — add only wire-shape-specific pieces (bodies, the read assertion,
+invalid-payload cases). A new shared scenario goes in `EntityCrudTestsBase`, not
+in an adapter. See the "One shared CRUD surface" section of
+[`testing.md`](testing.md) and the XML docs on `EntityCrudTestsBase` and its two
+adapters.
 
 ## Skill — keep it in sync
 

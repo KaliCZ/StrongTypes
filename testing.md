@@ -72,11 +72,12 @@ request pipeline, and the EF Core value converter against both providers.
   payloads (full entity bodies, `ValidationProblemDetails`, etc.) parse as
   `JsonElement` and pull fields by name — that verifies the on-the-wire
   HTTP contract directly.
-- **Test base class** — inherit from `IntegrationTestBase(factory)` to get
-  `Client`, `SqlDb`, `PgDb`, `Ct` (the current test's `CancellationToken`),
-  route constants/builders, HTTP wrappers (`Post`/`Put`/`Get`) that capture
-  `Client` and `Ct` implicitly and bake in `StringEntityResponse` on the
-  success path, `Body<T>(value, nullableValue)`, and `AssertStringEntity`.
+- **Test base classes** — `IntegrationTestBase(factory)` provides `Client`,
+  `SqlDb`, `PgDb`, `Ct` (the current test's `CancellationToken`),
+  `SqlServerAvailable`, and the generic `AssertEntity`. The CRUD harness base
+  `EntityCrudTestsBase` adds the route constants/builders and the HTTP wrappers
+  (`Post`/`Put`/`Patch`/`Get`) that capture `Client` and `Ct` implicitly and
+  bake in `EntityResponse` on the success path.
 - **CancellationTokens** — xunit.v3's `xUnit1051` analyzer requires
   `TestContext.Current.CancellationToken` be threaded into every async
   call that accepts one (`PostAsJsonAsync`, `PutAsJsonAsync`,
@@ -92,23 +93,25 @@ persisted state on both `SqlSet` and `PgSet`), invalid payloads returning
 `400`, and `null` handling for the nullable variant. If the type has a
 custom JSON converter, add converter-only tests under `Tests/ConverterTests`.
 
-**Two parallel CRUD harnesses, one functional surface.** The create / get /
-update / PATCH matrix (with the null / value / clear-nullable semantics) is the
-same for every type — what differs is only the wire shape. Scalar strong types
-(numbers, and the reference types `NonEmptyString` / `Email` / `MailAddress`,
-which all serialize as a single JSON scalar) use `EntityTests<…, TWire>`;
-intervals serialize as a JSON **object** (`{ "start": …, "end": … }`), which does
-not fit the scalar `TWire` bodies, so they use the parallel
-`IntervalEntityTests<TEntity, TInterval>`. **These two bases must not drift** — a
-scenario added to one belongs in the other. Only the invalid-payload cases
-legitimately differ (a malformed scalar vs. `Start > End` / a missing required
-endpoint). A new type picks its base by wire shape, not by struct-vs-class.
-Unifying them behind one abstract base so this parity is enforced by
-construction rather than convention is tracked in
-[#116](https://github.com/KaliCZ/StrongTypes/issues/116).
+**One shared CRUD surface, two wire-shape adapters.** The create / get / update /
+PATCH matrix (with the null / value / clear-nullable semantics) is the same for
+every type — what differs is only the wire shape — so it lives exactly once, in
+the abstract `EntityCrudTestsBase<TEntity, T, TNullable>`. Two thin adapters
+supply the wire-shape-specific pieces (the request body for a value, its
+strong-typed form, and the GET read assertion) and add their own invalid-payload
+cases: `EntityTests<…, TWire>` for scalar strong types (numbers, and the
+reference types `NonEmptyString` / `Email` / `MailAddress`, which all serialize as
+a single JSON scalar), and `IntervalEntityTests<TEntity, TInterval>` for
+intervals, which serialize as a JSON **object** (`{ "start": …, "end": … }`) that
+does not fit the scalar `TWire` bodies. Because the shared scenarios exist once,
+they cannot drift: a new create / get / update / PATCH scenario goes in
+`EntityCrudTestsBase` and every type gets it automatically. Only the
+invalid-payload cases legitimately differ (a malformed scalar vs. `Start > End` /
+a missing required endpoint), and those stay in the adapters. A new type picks
+its adapter by wire shape, not by struct-vs-class.
 
 A `400` from an invalid body is not just a status code — the shared
-`EntityTests` base asserts the full `ValidationProblemDetails` shape
+`EntityCrudTestsBase` asserts the full `ValidationProblemDetails` shape
 (`AssertValidationProblem`: `application/problem+json`, `status`/`title`,
 a non-empty `errors` object) and the error key. Because `StrongTypes.Api`
 does **not** call `AddStrongTypes`, these are the raw framework keys: a

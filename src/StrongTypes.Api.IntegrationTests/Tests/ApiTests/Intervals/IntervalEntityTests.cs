@@ -1,272 +1,43 @@
-using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using StrongTypes.Api.Entities;
 using StrongTypes.Api.IntegrationTests.Infrastructure;
-using StrongTypes.Api.Models;
 using Xunit;
 
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
 /// <summary>
-/// Shared wire-to-DB suite for the four interval entities: create, get, update, and
-/// PATCH round-trips — including the null / value / clear semantics of the nullable
-/// slot — through the System.Text.Json converter, the ASP.NET Core pipeline, and EF
-/// Core against both providers.
+/// The object-wire adapter over <see cref="EntityCrudTestsBase{TEntity, T, TNullable}"/>:
+/// interval strong types serialize as a JSON object (<c>{ "start": …, "end": … }</c>) rather
+/// than a scalar. It supplies the GET read assertion for the shared create / get / update /
+/// PATCH suite and adds the interval-only invalid-payload cases (<c>Start &gt; End</c> and a
+/// missing required endpoint). Concrete variants supply the wire bodies and their strong-typed
+/// forms.
 /// </summary>
-/// <remarks>
-/// The object-wire twin of the scalar <see cref="EntityTests{TSelf, TEntity, T, TNullable, TWire}"/>.
-/// An interval serializes as an object (<c>{ "start": …, "end": … }</c>) rather than a
-/// scalar, so it cannot reuse that harness's scalar <c>TWire</c> bodies and assertions —
-/// hence a parallel base. The two cover the <b>same functional surface and must not
-/// drift</b>: the create / get / update / PATCH scenarios here mirror it one-for-one, and
-/// a scenario added to either base must be added to the other. Only the invalid-payload
-/// cases differ by nature (endpoint order or a missing required endpoint here, a malformed
-/// scalar there).
-/// </remarks>
 public abstract class IntervalEntityTests<TEntity, TInterval>(TestWebApplicationFactory factory)
-    : IntegrationTestBase<TEntity, TInterval, TInterval?>(factory)
+    : EntityCrudTestsBase<TEntity, TInterval, TInterval?>(factory)
     where TEntity : class, IEntity<TEntity, TInterval, TInterval?>
     where TInterval : struct
 {
     private static readonly JsonSerializerOptions WireJson = new(JsonSerializerDefaults.Web);
 
-    protected abstract string RoutePrefix { get; }
-
-    /// <summary>A valid interval as an anonymous wire body, plus its strong-type form.</summary>
-    protected abstract object ValidBody { get; }
-    protected abstract TInterval ValidValue { get; }
-
-    /// <summary>A second valid interval distinct from <see cref="ValidValue"/>, for update tests.</summary>
-    protected abstract object UpdatedBody { get; }
-    protected abstract TInterval UpdatedValue { get; }
-
     /// <summary>A wire body whose endpoints violate <c>Start &lt;= End</c>. Every variant has one.</summary>
     protected abstract object StartAfterEndBody { get; }
 
     /// <summary>
-    /// A wire body that sends <c>null</c> for an endpoint the variant requires,
-    /// or <see langword="null"/> when the variant has no required endpoint
-    /// (<see cref="Interval{T}"/>). Used to assert the framework rejects a
-    /// missing-but-required endpoint with a 400.
+    /// A wire body that sends <c>null</c> for an endpoint the variant requires, or
+    /// <see langword="null"/> when the variant has no required endpoint (<see cref="Interval{T}"/>).
     /// </summary>
     protected virtual object? NullRequiredEndpointBody => null;
 
     /// <summary>
-    /// A wire body that omits a required endpoint key entirely (vs. sending it as
-    /// <c>null</c>), or <see langword="null"/> when the variant has no required
-    /// endpoint (<see cref="Interval{T}"/>).
+    /// A wire body that omits a required endpoint key entirely (vs. sending it as <c>null</c>),
+    /// or <see langword="null"/> when the variant has no required endpoint (<see cref="Interval{T}"/>).
     /// </summary>
     protected virtual object? OmittedRequiredEndpointBody => null;
 
-    private string CreateEndpoint => $"/{RoutePrefix}";
-    private string UpdateEndpoint(Guid id) => $"/{RoutePrefix}/{id}";
-    private string PatchEndpoint(Guid id) => $"/{RoutePrefix}/{id}";
-    private string SqlServerGetEndpoint(Guid id) => $"/{RoutePrefix}/{id}/sql-server";
-    private string PostgreSqlGetEndpoint(Guid id) => $"/{RoutePrefix}/{id}/postgresql";
-
-    private async Task<Guid> PostValid(object value, object? nullableValue)
-    {
-        var response = await Client.PostAsJsonAsync(CreateEndpoint, new { value, nullableValue }, Ct);
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var created = await response.Content.ReadFromJsonAsync<EntityResponse>(Ct);
-        return created!.Id;
-    }
-
-    private async Task<JsonElement> Get(string url)
-    {
-        var response = await Client.GetAsync(url, Ct);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        return await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-    }
-
-    private async Task<HttpResponseMessage> Patch(Guid id, object body)
-    {
-        using var content = JsonContent.Create(body);
-        return await Client.PatchAsync(PatchEndpoint(id), content, Ct);
-    }
-
-    private static TInterval ReadInterval(JsonElement element) => element.Deserialize<TInterval>(WireJson);
-
-    // ── Create + persist ─────────────────────────────────────────────────
-
-    [Fact]
-    public async Task ValidInterval_PersistsInBothDatabases()
-    {
-        var id = await PostValid(ValidBody, ValidBody);
-        await AssertEntity(id, ValidValue, ValidValue);
-    }
-
-    [Fact]
-    public async Task ValidValueWithNullNullable_PersistsInBothDatabases()
-    {
-        var id = await PostValid(ValidBody, null);
-        await AssertEntity(id, ValidValue, null);
-    }
-
-    // ── Read ─────────────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task Get_RoundTripsTheIntervalObjectFromBothDatabases()
-    {
-        var entity = TEntity.Create(ValidValue, ValidValue);
-        SqlSet.Add(entity);
-        PgSet.Add(entity);
-        await SqlDb.SaveChangesAsync(Ct);
-        await PgDb.SaveChangesAsync(Ct);
-
-        if (SqlServerAvailable)
-        {
-            var sqlJson = await Get(SqlServerGetEndpoint(entity.Id));
-            Assert.Equal(entity.Id, sqlJson.GetProperty("id").GetGuid());
-            Assert.Equal(ValidValue, ReadInterval(sqlJson.GetProperty("value")));
-            Assert.Equal(ValidValue, ReadInterval(sqlJson.GetProperty("nullableValue")));
-        }
-
-        var pgJson = await Get(PostgreSqlGetEndpoint(entity.Id));
-        Assert.Equal(entity.Id, pgJson.GetProperty("id").GetGuid());
-        Assert.Equal(ValidValue, ReadInterval(pgJson.GetProperty("value")));
-        Assert.Equal(ValidValue, ReadInterval(pgJson.GetProperty("nullableValue")));
-    }
-
-    [Fact]
-    public async Task Get_SerializesNullNullableValueAsJsonNullFromBothDatabases()
-    {
-        var entity = TEntity.Create(ValidValue, null);
-        SqlSet.Add(entity);
-        PgSet.Add(entity);
-        await SqlDb.SaveChangesAsync(Ct);
-        await PgDb.SaveChangesAsync(Ct);
-
-        if (SqlServerAvailable)
-        {
-            var sqlJson = await Get(SqlServerGetEndpoint(entity.Id));
-            Assert.Equal(JsonValueKind.Null, sqlJson.GetProperty("nullableValue").ValueKind);
-            Assert.Equal(ValidValue, ReadInterval(sqlJson.GetProperty("value")));
-        }
-
-        var pgJson = await Get(PostgreSqlGetEndpoint(entity.Id));
-        Assert.Equal(JsonValueKind.Null, pgJson.GetProperty("nullableValue").ValueKind);
-        Assert.Equal(ValidValue, ReadInterval(pgJson.GetProperty("value")));
-    }
-
-    // ── Update ───────────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task Update_PersistsNewValueAndNullableValueInBothDatabases()
-    {
-        var id = await PostValid(ValidBody, ValidBody);
-        var response = await Client.PutAsJsonAsync(UpdateEndpoint(id), new { value = UpdatedBody, nullableValue = UpdatedBody }, Ct);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        await AssertEntity(id, UpdatedValue, UpdatedValue);
-    }
-
-    [Fact]
-    public async Task Update_SetsNullableValueFromNullToValueInBothDatabases()
-    {
-        var id = await PostValid(ValidBody, null);
-        var response = await Client.PutAsJsonAsync(UpdateEndpoint(id), new { value = ValidBody, nullableValue = UpdatedBody }, Ct);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        await AssertEntity(id, ValidValue, UpdatedValue);
-    }
-
-    [Fact]
-    public async Task Update_ClearsNullableValueToNullInBothDatabases()
-    {
-        var id = await PostValid(ValidBody, ValidBody);
-        var response = await Client.PutAsJsonAsync(UpdateEndpoint(id), new { value = ValidBody, nullableValue = (object?)null }, Ct);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        await AssertEntity(id, ValidValue, null);
-    }
-
-    // ── Patch ────────────────────────────────────────────────────────────
-    // Same wire semantics as the scalar EntityTests PATCH suite; kept in lock-step
-    // (see the class remarks). "Empty" nullableValue on the wire ({}, {"Value":null})
-    // clears; null/absent skips.
-
-    [Fact]
-    public async Task Patch_EmptyBody_LeavesBothFieldsUnchanged()
-    {
-        var id = await PostValid(ValidBody, ValidBody);
-
-        var response = await Patch(id, new { });
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        await AssertEntity(id, ValidValue, ValidValue);
-    }
-
-    [Fact]
-    public async Task Patch_ValueOnly_UpdatesValueLeavesNullableValueUnchanged()
-    {
-        var id = await PostValid(ValidBody, ValidBody);
-
-        var response = await Patch(id, new { value = UpdatedBody });
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        await AssertEntity(id, UpdatedValue, ValidValue);
-    }
-
-    [Fact]
-    public async Task Patch_NullableValueSome_UpdatesNullableValueLeavesValueUnchanged()
-    {
-        var id = await PostValid(ValidBody, null);
-
-        var response = await Patch(id, new { nullableValue = new { Value = UpdatedBody } });
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        await AssertEntity(id, ValidValue, UpdatedValue);
-    }
-
-    [Fact]
-    public async Task Patch_NullableValueEmptyObject_ClearsNullableValue()
-    {
-        var id = await PostValid(ValidBody, ValidBody);
-
-        var response = await Patch(id, new { nullableValue = new { } });
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        await AssertEntity(id, ValidValue, null);
-    }
-
-    [Fact]
-    public async Task Patch_ExplicitNullValue_LeavesValueUnchanged()
-    {
-        var id = await PostValid(ValidBody, ValidBody);
-
-        var response = await Patch(id, new { value = (object?)null, nullableValue = (object?)null });
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        await AssertEntity(id, ValidValue, ValidValue);
-    }
-
-    [Fact]
-    public async Task Patch_NullableValueWithExplicitNullInner_ClearsNullableValue()
-    {
-        var id = await PostValid(ValidBody, ValidBody);
-
-        var response = await Patch(id, new { nullableValue = new { Value = (object?)null } });
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        await AssertEntity(id, ValidValue, null);
-    }
-
-    [Fact]
-    public async Task Patch_UpdatesBothFieldsIndependently()
-    {
-        var id = await PostValid(ValidBody, null);
-
-        var response = await Patch(id, new { value = UpdatedBody, nullableValue = new { Value = UpdatedBody } });
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        await AssertEntity(id, UpdatedValue, UpdatedValue);
-    }
-
-    [Fact]
-    public async Task Patch_NonExistentId_ReturnsNotFound()
-    {
-        var response = await Patch(Guid.NewGuid(), new { value = UpdatedBody });
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-    }
+    protected override void AssertJsonIsValidValue(JsonElement element) =>
+        Assert.Equal(ValidValue, element.Deserialize<TInterval>(WireJson));
 
     // ── Invalid payloads ─────────────────────────────────────────────────
 
@@ -302,16 +73,6 @@ public abstract class IntervalEntityTests<TEntity, TInterval>(TestWebApplication
     }
 
     [Fact]
-    public async Task NullValue_ReturnsBadRequest()
-    {
-        var response = await Client.PostAsJsonAsync(
-            CreateEndpoint, new { value = (object?)null, nullableValue = ValidBody }, Ct);
-        var errors = await AssertValidationProblem(response);
-        var keys = errors.EnumerateObject().Select(p => p.Name).ToArray();
-        Assert.Contains(keys, k => k is "$.value" or "value" or "Value");
-    }
-
-    [Fact]
     public async Task NullRequiredEndpoint_ReturnsBadRequest()
     {
         Assert.SkipWhen(NullRequiredEndpointBody is null, "Variant has no required endpoint.");
@@ -320,18 +81,5 @@ public abstract class IntervalEntityTests<TEntity, TInterval>(TestWebApplication
             CreateEndpoint, new { value = NullRequiredEndpointBody, nullableValue = ValidBody }, Ct);
         var errors = await AssertValidationProblem(response);
         Assert.True(errors.TryGetProperty("$.value", out _));
-    }
-
-    private static async Task<JsonElement> AssertValidationProblem(HttpResponseMessage response)
-    {
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
-        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        Assert.Equal(400, problem.GetProperty("status").GetInt32());
-        Assert.Equal("One or more validation errors occurred.", problem.GetProperty("title").GetString());
-        var errors = problem.GetProperty("errors");
-        Assert.Equal(JsonValueKind.Object, errors.ValueKind);
-        Assert.NotEmpty(errors.EnumerateObject());
-        return errors;
     }
 }

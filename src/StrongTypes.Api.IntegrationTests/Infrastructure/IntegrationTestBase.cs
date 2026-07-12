@@ -11,7 +11,7 @@ namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 /// the HTTP Client, both DbContexts, the current CancellationToken, and the
 /// generic <see cref="AssertEntity"/> helper that reads from a
 /// <see cref="DbSet{TEntity}"/>. HTTP route/body helpers live on the
-/// subclass that actually uses them (<c>EntityTests</c>).
+/// <c>EntityCrudTestsBase</c> subclass that actually uses them.
 /// </summary>
 public abstract class IntegrationTestBase<TEntity, T, TNullable>(TestWebApplicationFactory factory) : IDisposable
     where TEntity : class, IEntity<TEntity, T, TNullable>
