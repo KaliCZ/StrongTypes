@@ -33,7 +33,7 @@ public readonly struct Interval<T> : IEquatable<Interval<T>>
     /// <summary>Wraps the pair, or returns <c>null</c> when the pair describes a reversed or empty range: both endpoints present with <paramref name="start"/> greater than <paramref name="end"/>, or equal endpoints with an exclusive bound.</summary>
     [Pure]
     public static Interval<T>? TryCreate(T? start, T? end, bool startInclusive = true, bool endInclusive = true) =>
-        IntervalEndpoints.IsValidOrder(start, end, startInclusive, endInclusive)
+        IntervalHelpers.IsValidOrder(start, end, startInclusive, endInclusive)
             ? new Interval<T>(start, end) { StartInclusive = startInclusive, EndInclusive = endInclusive }
             : null;
 
@@ -49,15 +49,15 @@ public readonly struct Interval<T> : IEquatable<Interval<T>>
     public void Deconstruct(out T? start, out T? end) => (start, end) = (Start, End);
 
     [Pure]
-    public bool Contains(T value) => IntervalEndpoints.Contains(Start, End, StartInclusive, EndInclusive, value);
+    public bool Contains(T value) => IntervalHelpers.Contains(Start, End, StartInclusive, EndInclusive, value);
 
     /// <summary>Whether this interval and <paramref name="other"/> share at least one value. Intervals that touch at a shared endpoint overlap only when both touching bounds are inclusive.</summary>
     [Pure]
-    public bool Overlaps(Interval<T> other) => IntervalEndpoints.Overlaps(this, other);
+    public bool Overlaps(Interval<T> other) => IntervalHelpers.Overlaps(this, other);
 
     /// <summary>The intersection of this interval and <paramref name="other"/>, or <c>null</c> when they are disjoint.</summary>
     [Pure]
-    public Interval<T>? GetOverlap(Interval<T> other) => IntervalEndpoints.GetOverlap(this, other);
+    public Interval<T>? GetOverlap(Interval<T> other) => IntervalHelpers.GetOverlap(this, other);
 
     [Pure]
     public bool Equals(Interval<T> other) =>
@@ -112,7 +112,7 @@ public readonly struct Interval<T> : IEquatable<Interval<T>>
             ?? throw new InvalidOperationException($"Interval<{typeof(T).Name}> cannot narrow to IntervalUntil; end is unbounded.");
 
     [Pure]
-    public override string ToString() => IntervalEndpoints.Format(Start, End, StartInclusive, EndInclusive);
+    public override string ToString() => IntervalHelpers.Format(Start, End, StartInclusive, EndInclusive);
 }
 
 /// <summary>Factory helpers for <see cref="Interval{T}"/> with inferred type arguments. Only the all-<c>null</c> call needs an explicit type argument.</summary>

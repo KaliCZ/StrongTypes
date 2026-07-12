@@ -4,7 +4,7 @@ using System;
 namespace StrongTypes;
 
 // A null endpoint is unbounded; a bounded endpoint is inclusive or exclusive per its flag.
-internal static class IntervalEndpoints
+internal static class IntervalHelpers
 {
     public static bool IsValidOrder<T>(T? start, T? end, bool startInclusive, bool endInclusive) where T : struct, IComparable<T>
     {
@@ -29,15 +29,15 @@ internal static class IntervalEndpoints
         return true;
     }
 
-    public static bool Overlaps<T>(Interval<T> left, Interval<T> right) where T : struct, IComparable<T> =>
-        GetOverlap(left, right) is not null;
+    public static bool Overlaps<T>(Interval<T> left, Interval<T> right) where T : struct, IComparable<T>
+    {
+        var (start, end, startInclusive, endInclusive) = IntersectionBounds(left, right);
+        return IsValidOrder(start, end, startInclusive, endInclusive);
+    }
 
     public static Interval<T>? GetOverlap<T>(Interval<T> left, Interval<T> right) where T : struct, IComparable<T>
     {
-        var (start, startInclusive) = LaterStart(
-            (left.Start, left.StartInclusive), (right.Start, right.StartInclusive));
-        var (end, endInclusive) = EarlierEnd(
-            (left.End, left.EndInclusive), (right.End, right.EndInclusive));
+        var (start, end, startInclusive, endInclusive) = IntersectionBounds(left, right);
         return Interval<T>.TryCreate(start, end, startInclusive, endInclusive);
     }
 
@@ -46,6 +46,14 @@ internal static class IntervalEndpoints
         var startPart = start is { } s ? $"{(startInclusive ? '[' : '(')}{s}" : "(-∞";
         var endPart = end is { } e ? $"{e}{(endInclusive ? ']' : ')')}" : "+∞)";
         return $"{startPart}, {endPart}";
+    }
+
+    private static (T? Start, T? End, bool StartInclusive, bool EndInclusive) IntersectionBounds<T>(Interval<T> left, Interval<T> right)
+        where T : struct, IComparable<T>
+    {
+        var (start, startInclusive) = LaterStart((left.Start, left.StartInclusive), (right.Start, right.StartInclusive));
+        var (end, endInclusive) = EarlierEnd((left.End, left.EndInclusive), (right.End, right.EndInclusive));
+        return (start, end, startInclusive, endInclusive);
     }
 
     // On a tie the more restrictive bound wins: the shared value stays in only when both sides keep it.

@@ -33,7 +33,7 @@ public readonly struct IntervalFrom<T> : IEquatable<IntervalFrom<T>>
     /// <summary>Wraps the pair, or returns <c>null</c> when the pair describes a reversed or empty range: <paramref name="start"/> greater than a present <paramref name="end"/>, or equal endpoints with an exclusive bound.</summary>
     [Pure]
     public static IntervalFrom<T>? TryCreate(T start, T? end, bool startInclusive = true, bool endInclusive = true) =>
-        IntervalEndpoints.IsValidOrder(start, end, startInclusive, endInclusive)
+        IntervalHelpers.IsValidOrder(start, end, startInclusive, endInclusive)
             ? new IntervalFrom<T>(start, end) { StartInclusive = startInclusive, EndInclusive = endInclusive }
             : null;
 
@@ -49,15 +49,15 @@ public readonly struct IntervalFrom<T> : IEquatable<IntervalFrom<T>>
     public void Deconstruct(out T start, out T? end) => (start, end) = (Start, End);
 
     [Pure]
-    public bool Contains(T value) => IntervalEndpoints.Contains(Start, End, StartInclusive, EndInclusive, value);
+    public bool Contains(T value) => IntervalHelpers.Contains(Start, End, StartInclusive, EndInclusive, value);
 
     /// <summary>Whether this interval and <paramref name="other"/> share at least one value. Intervals that touch at a shared endpoint overlap only when both touching bounds are inclusive.</summary>
     [Pure]
-    public bool Overlaps(Interval<T> other) => IntervalEndpoints.Overlaps(this, other);
+    public bool Overlaps(Interval<T> other) => IntervalHelpers.Overlaps(this, other);
 
     /// <summary>The intersection of this interval and <paramref name="other"/>, or <c>null</c> when they are disjoint.</summary>
     [Pure]
-    public IntervalFrom<T>? GetOverlap(Interval<T> other) => IntervalEndpoints.GetOverlap(this, other)?.AsFrom();
+    public IntervalFrom<T>? GetOverlap(Interval<T> other) => IntervalHelpers.GetOverlap(this, other)?.AsFrom();
 
     [Pure]
     public bool Equals(IntervalFrom<T> other) =>
@@ -92,7 +92,7 @@ public readonly struct IntervalFrom<T> : IEquatable<IntervalFrom<T>>
             ?? throw new InvalidOperationException($"IntervalFrom<{typeof(T).Name}> cannot narrow to FiniteInterval; end is unbounded.");
 
     [Pure]
-    public override string ToString() => IntervalEndpoints.Format(Start, End, StartInclusive, EndInclusive);
+    public override string ToString() => IntervalHelpers.Format(Start, End, StartInclusive, EndInclusive);
 }
 
 /// <summary>Factory helpers for <see cref="IntervalFrom{T}"/> with inferred type arguments.</summary>

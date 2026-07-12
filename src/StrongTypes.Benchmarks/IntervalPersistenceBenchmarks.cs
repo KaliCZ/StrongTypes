@@ -45,6 +45,15 @@ file sealed class IntervalStoredContext(SqliteConnection connection) : DbContext
         .HasIntervalColumns(e => e.Window, startBound: IntervalBoundMode.Stored, endBound: IntervalBoundMode.Stored);
 }
 
+// Same two endpoint columns as the default, but no UseStrongTypes, so the integrity interceptor
+// never runs — the gap to IntervalDefault is exactly the interceptor's per-row read cost.
+file sealed class IntervalNoInterceptorContext(SqliteConnection connection) : DbContext
+{
+    public DbSet<IntervalRow> Rows => Set<IntervalRow>();
+    protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlite(connection);
+    protected override void OnModelCreating(ModelBuilder builder) => builder.Entity<IntervalRow>().HasIntervalColumns(e => e.Window);
+}
+
 internal static class IntervalBenchmarkDb
 {
     public static SqliteConnection OpenMemory()
@@ -135,6 +144,7 @@ public class IntervalReadBenchmarks
     private SqliteConnection _plain = null!;
     private SqliteConnection _default = null!;
     private SqliteConnection _stored = null!;
+    private SqliteConnection _noInterceptor = null!;
 
     [GlobalSetup]
     public void Setup()
@@ -142,6 +152,7 @@ public class IntervalReadBenchmarks
         _plain = IntervalBenchmarkDb.OpenMemory();
         _default = IntervalBenchmarkDb.OpenMemory();
         _stored = IntervalBenchmarkDb.OpenMemory();
+        _noInterceptor = IntervalBenchmarkDb.OpenMemory();
 
         using (var ctx = new PlainContext(_plain))
         {
@@ -161,6 +172,12 @@ public class IntervalReadBenchmarks
             for (var i = 0; i < N; i++) ctx.Rows.Add(new IntervalRow { Window = FiniteInterval.Create(i, i + 10) });
             ctx.SaveChanges();
         }
+        using (var ctx = new IntervalNoInterceptorContext(_noInterceptor))
+        {
+            ctx.Database.EnsureCreated();
+            for (var i = 0; i < N; i++) ctx.Rows.Add(new IntervalRow { Window = FiniteInterval.Create(i, i + 10) });
+            ctx.SaveChanges();
+        }
     }
 
     [GlobalCleanup]
@@ -169,6 +186,7 @@ public class IntervalReadBenchmarks
         _plain.Dispose();
         _default.Dispose();
         _stored.Dispose();
+        _noInterceptor.Dispose();
     }
 
     [Benchmark(Baseline = true)]
@@ -193,6 +211,15 @@ public class IntervalReadBenchmarks
     public long IntervalStored()
     {
         using var ctx = new IntervalStoredContext(_stored);
+        long sum = 0;
+        foreach (var row in ctx.Rows.AsNoTracking()) sum += row.Window.Start + row.Window.End;
+        return sum;
+    }
+
+    [Benchmark]
+    public long IntervalNoInterceptor()
+    {
+        using var ctx = new IntervalNoInterceptorContext(_noInterceptor);
         long sum = 0;
         foreach (var row in ctx.Rows.AsNoTracking()) sum += row.Window.Start + row.Window.End;
         return sum;
