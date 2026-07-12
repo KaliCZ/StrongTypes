@@ -52,7 +52,7 @@ public abstract partial class OpenApiDocumentTestsBase
     [InlineData("/interval-entities/open")]
     [InlineData("/interval-entities/from", "Start")]
     [InlineData("/interval-entities/until", "End")]
-    public async Task Interval_BoundFlags_Render_As_Optional_Booleans_Defaulting_To_True_On_Every_Variant(
+    public async Task Interval_BoundFlags_Render_As_Optional_Booleans_With_No_Default_On_Every_Variant(
         string path, params string[] requiredEndpoints)
     {
         var value = await IntervalValueSchema(path);
@@ -100,7 +100,7 @@ public abstract partial class OpenApiDocumentTestsBase
     private static void AssertBoundFlag(JsonElement schema)
     {
         Assert.Equal("boolean", schema.GetProperty("type").GetString());
-        Assert.True(schema.GetProperty("default").GetBoolean());
+        Assert.False(schema.TryGetProperty("default", out _), "inclusivity-on-omission is converter-dependent, so the schema must not pin a default");
     }
 
     // Tolerates every integer encoding the pipelines emit: Swashbuckle's

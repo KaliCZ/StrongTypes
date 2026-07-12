@@ -44,8 +44,8 @@ app.MapOpenApi();
 - `FiniteInterval<T>` / `Interval<T>` / `IntervalFrom<T>` / `IntervalUntil<T>` &rarr;
   `{ "type": "object", "properties": { "Start": <T>, "End": <T>, "StartInclusive": bool, "EndInclusive": bool }, "required": ["Start", "End"] }`,
   a bounded endpoint non-nullable and an open one nullable. The two inclusivity
-  flags are optional and default to `true`, matching the converter's
-  omit-when-inclusive wire format.
+  flags are optional booleans; the schema pins no default, since an omitted
+  flag's inclusivity is the applied converter's choice.
 
 ## Data annotations
 

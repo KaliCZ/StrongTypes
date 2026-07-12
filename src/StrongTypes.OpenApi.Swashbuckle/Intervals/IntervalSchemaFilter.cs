@@ -15,8 +15,7 @@ namespace StrongTypes.OpenApi.Swashbuckle;
 /// Each variant's nullability rides on the endpoint schema — a required endpoint
 /// renders non-nullable, an optional one nullable — and only the required
 /// endpoints appear in <c>required</c>, since the converter accepts omitting an
-/// optional key. The bound flags are optional booleans defaulting to <c>true</c>,
-/// matching the converter's omit-when-inclusive wire format.
+/// optional key. The bound flags render as optional booleans.
 /// </summary>
 public sealed class IntervalSchemaFilter : ISchemaFilter
 {
@@ -43,11 +42,8 @@ public sealed class IntervalSchemaFilter : ISchemaFilter
         StrongTypeInlineMarker.Set(concrete);
     }
 
-    private static OpenApiSchema BoundFlagSchema() => new()
-    {
-        Type = JsonSchemaType.Boolean,
-        Default = System.Text.Json.Nodes.JsonValue.Create(true),
-    };
+    // No schema default: which inclusivity an omitted flag implies is the applied converter's call, not the type's.
+    private static OpenApiSchema BoundFlagSchema() => new() { Type = JsonSchemaType.Boolean };
 
     // An endpoint is required exactly when its type is the bare value type; an
     // optional endpoint is Nullable<T>, and the converter lets its key be omitted.
