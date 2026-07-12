@@ -305,12 +305,11 @@ modelBuilder.Entity<Promo>()
 ```
 
 To rename the endpoint columns — or to get this mapping without
-`UseStrongTypes()` — configure the complex property via `HasIntervalColumns`:
+`UseStrongTypes()` — call `HasIntervalColumns` explicitly:
 
 ```csharp
-var window = modelBuilder.Entity<Booking>().HasIntervalColumns(b => b.Window);
-window.Property(i => i.Start).HasColumnName("WindowStart");
-window.Property(i => i.End).HasColumnName("WindowEnd");
+modelBuilder.Entity<Booking>()
+    .HasIntervalColumns(b => b.Window, startName: "WindowStart", endName: "WindowEnd");
 
 modelBuilder.Entity<Booking>()
     .HasIntervalColumns(b => b.MaybeWindow);   // Interval<int>? → endpoint columns + discriminator
