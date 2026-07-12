@@ -99,6 +99,14 @@ public class IntervalConventionMappingTests
             b.Entity<Holder>().HasIntervalColumns(e => e.Window, startBound: IntervalBoundMode.Stored, endBound: IntervalBoundMode.Stored);
     }
 
+    private sealed class NamedColumnsContext : DbContext
+    {
+        public DbSet<Holder> Holders => Set<Holder>();
+        protected override void OnConfiguring(DbContextOptionsBuilder o) => o.UseSqlServer();
+        protected override void OnModelCreating(ModelBuilder b) =>
+            b.Entity<Holder>().HasIntervalColumns(e => e.Window, startName: "WindowStart", endName: "WindowEnd");
+    }
+
     [Fact]
     public void HasIntervalColumnsMapsTwoColumnsWithoutTheConvention()
     {
@@ -226,5 +234,16 @@ public class IntervalConventionMappingTests
         using var ctx = new DefaultContext();
 
         Assert.Throws<InvalidOperationException>(() => ctx.Holders.Where(h => h.Window.StartInclusive).ToQueryString());
+    }
+
+    [Fact]
+    public void HasIntervalColumns_RenamesEndpointColumns()
+    {
+        using var ctx = new NamedColumnsContext();
+        var complex = ctx.Model.FindEntityType(typeof(Holder))!
+            .GetComplexProperties().Single(p => p.Name == nameof(Holder.Window));
+
+        Assert.Equal("WindowStart", complex.ComplexType.FindProperty(nameof(FiniteInterval<int>.Start))!.GetColumnName());
+        Assert.Equal("WindowEnd", complex.ComplexType.FindProperty(nameof(FiniteInterval<int>.End))!.GetColumnName());
     }
 }

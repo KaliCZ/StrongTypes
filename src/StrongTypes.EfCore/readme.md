@@ -137,14 +137,13 @@ so a `Where` / `OrderBy` over `StartInclusive` / `EndInclusive` can't translate
 and throws at query time — the endpoint values `Start` / `End` translate under
 every mapping.
 
-To rename the endpoint columns, configure the complex property —
-`HasIntervalColumns` returns its builder (and is also how you get this mapping
-without `UseStrongTypes()`):
+To rename the endpoint columns, pass `startName` / `endName` (or configure the
+returned complex-property builder — `HasIntervalColumns` returns it, and it is
+also how you get this mapping without `UseStrongTypes()`):
 
 ```csharp
-var window = modelBuilder.Entity<Booking>().HasIntervalColumns(b => b.Window);
-window.Property(i => i.Start).HasColumnName("WindowStart");
-window.Property(i => i.End).HasColumnName("WindowEnd");
+modelBuilder.Entity<Booking>()
+    .HasIntervalColumns(b => b.Window, startName: "WindowStart", endName: "WindowEnd");
 ```
 
 To index an endpoint: EF Core cannot declare an index over a complex-type
