@@ -137,6 +137,20 @@ public class IntervalDateExtensionsTests
     }
 
     [Fact]
+    public void Days_OnDateTimeInterval_CountsTheCoveredCalendarDays()
+    {
+        var stay = FiniteInterval.Create(new DateTime(2020, 1, 1, 14, 0, 0), new DateTime(2020, 1, 4, 10, 0, 0));
+        Assert.Equal(4, stay.Days());
+
+        var exclusiveMidnightEnd = FiniteInterval.Create(
+            new DateTime(2020, 1, 1, 8, 0, 0), new DateTime(2020, 1, 3, 0, 0, 0), endInclusive: false);
+        Assert.Equal(2, exclusiveMidnightEnd.Days());
+
+        var point = FiniteInterval.Create(new DateTime(2020, 1, 2, 10, 0, 0), new DateTime(2020, 1, 2, 10, 0, 0));
+        Assert.Equal(1, point.Days());
+    }
+
+    [Fact]
     public void ToDateOnly_DropsTheTimeOfDay()
     {
         Assert.Equal(new DateOnly(2020, 1, 2), new DateTime(2020, 1, 2, 23, 59, 59).ToDateOnly());

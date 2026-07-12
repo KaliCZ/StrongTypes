@@ -12,6 +12,10 @@ public static class IntervalDateExtensions
     public static int Days(this FiniteInterval<DateOnly> interval) =>
         interval.End.DayNumber - interval.Start.DayNumber + 1 - (interval.StartInclusive ? 0 : 1) - (interval.EndInclusive ? 0 : 1);
 
+    /// <summary>The number of calendar days the interval covers; a day counts when the interval reaches any instant of it.</summary>
+    [Pure]
+    public static int Days(this FiniteInterval<DateTime> interval) => interval.ToDateInterval().Days();
+
     /// <summary>The calendar day of <paramref name="moment"/>, dropping its time of day.</summary>
     [Pure]
     public static DateOnly ToDateOnly(this DateTime moment) => DateOnly.FromDateTime(moment);
