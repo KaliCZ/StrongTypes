@@ -136,22 +136,6 @@ All strong types ship with `System.Text.Json` converters attached via `[JsonConv
 
 `Maybe<T>` has a special format of serialization, so Some serializes into `{ "Value": xxx }` and None into `{ "Value": null }`.
 
-The interval types serialize as an object. Both endpoint keys are always written (an unbounded endpoint is `null`); the inclusivity flags appear only when `false` and default to `true` when read:
-
-```jsonc
-{ "Start": 9, "End": 17 }                         // [9, 17]  — flags omitted, so inclusive
-{ "Start": 9, "End": 17, "EndInclusive": false }  // [9, 17)
-```
-
-An absent *optional* endpoint reads as `null` (so `Interval` accepts `{}`); a payload that violates the invariant (`Start > End`, or equal endpoints with an exclusive bound) or omits a *required* endpoint surfaces as a `JsonException`.
-
-To pin a bound's inclusivity on a property instead of carrying it per value (mirroring the EF `IntervalBoundMode`), subclass [`IntervalJsonConverter<TInterval>`](src/StrongTypes/Intervals/IntervalJsonConverter.cs) with the two modes and apply it with `[JsonConverter]` — an `AlwaysInclusive` / `AlwaysExclusive` bound is never written and is forced on read:
-
-```csharp
-public sealed class HalfOpenInterval()
-    : IntervalJsonConverter<FiniteInterval<int>>(IntervalBoundMode.AlwaysInclusive, IntervalBoundMode.AlwaysExclusive);
-```
-
 `Result<T, TError>` (and `Result<T>`) has no JSON converter I don't think you want to serialize that.
 
 [↑ Back to contents](#contents)
@@ -314,6 +298,22 @@ Interval<int>[] mixed = [FiniteInterval.Create(1, 10), from];   // hold variants
 FiniteInterval<int> bad = mixed[0];                 // does NOT compile — an endpoint may be unbounded
 FiniteInterval<int>? maybe = mixed[0].AsFinite();   // null when an endpoint is unbounded
 FiniteInterval<int> sure = mixed[0].ToFinite();     // throws when an endpoint is unbounded
+```
+
+### JSON
+
+Serialized as an object. Both endpoint keys are always written (an unbounded endpoint is `null`); the inclusivity flags appear only when `false` and default to `true` when read:
+
+```jsonc
+{ "Start": 9, "End": 17 }                         // [9, 17]  — flags omitted, so inclusive
+{ "Start": 9, "End": 17, "EndInclusive": false }  // [9, 17)
+```
+
+An absent *optional* endpoint reads as `null` (so `Interval` accepts `{}`); a payload that violates the invariant (`Start > End`, or equal endpoints with an exclusive bound) or omits a *required* endpoint surfaces as a `JsonException`. To pin a bound's inclusivity on a property instead of carrying it per value (mirroring the EF `IntervalBoundMode`), subclass [`IntervalJsonConverter<TInterval>`](src/StrongTypes/Intervals/IntervalJsonConverter.cs):
+
+```csharp
+public sealed class HalfOpenInterval()
+    : IntervalJsonConverter<FiniteInterval<int>>(IntervalBoundMode.AlwaysInclusive, IntervalBoundMode.AlwaysExclusive);
 ```
 
 ### Persistence
