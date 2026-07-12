@@ -183,6 +183,14 @@ modelBuilder.Entity<Booking>()
     .HasIntervalJsonConversion();
 ```
 
+The JSON shape takes **no `IntervalBoundMode`** — bounds are stored per value in
+the payload (a flag written only when `false`, read as inclusive when absent).
+`AlwaysInclusive` / `AlwaysExclusive` exist to *drop a `bit` column* in the
+two-column shape; a JSON flag is already omittable per value, so there's nothing
+to configure here. For a pinned convention with no flags in the JSON, skip
+`HasIntervalJsonConversion` and map the column with a custom value converter over
+a subclassed `IntervalJsonConverter<TInterval>`.
+
 ## Filtering
 
 Equality, null checks, ordering, and grouping work directly on the strong type:
