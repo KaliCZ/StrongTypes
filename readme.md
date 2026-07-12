@@ -151,10 +151,9 @@ A more-constrained variant widens **implicitly** to a less-constrained one (`Fin
 On the wire each interval is a JSON object `{ "Start": …, "End": … }` (both endpoint keys always present; an unbounded endpoint is `null`); `StartInclusive` / `EndInclusive` appear only when `false` and default to `true` when absent. Persist it with EF Core either as two scalar endpoint columns (the `UseStrongTypes()` default; each endpoint a plain, indexable column — bound inclusivity is a per-bound mapping choice via `IntervalBoundMode`: fixed with no extra column, or stored per value in its own column) or as a single JSON column, which round-trips through the validating converter, with endpoint access in LINQ translating to a server-side JSON path lookup. Both shapes re-validate the interval invariant on read, so a corrupted row throws instead of materializing an invalid interval.
 
 ```csharp
-// Default: two endpoint columns — rename them via the complex-property builder.
-var window = modelBuilder.Entity<Booking>().HasIntervalColumns(b => b.Window);
-window.Property(i => i.Start).HasColumnName("WindowStart");
-window.Property(i => i.End).HasColumnName("WindowEnd");
+// Default: two endpoint columns — name them inline.
+modelBuilder.Entity<Booking>()
+    .HasIntervalColumns(b => b.Window, startName: "WindowStart", endName: "WindowEnd");
 
 // Or opt into a single JSON column instead.
 modelBuilder.Entity<Booking>().HasIntervalJsonConversion(b => b.Window);
