@@ -5,11 +5,15 @@
     <LangVersion>14.0</LangVersion>
     <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
+    <!-- Dev-only harness; its SQLite native lib isn't shipped, so don't fail the audit on it. -->
+    <NuGetAudit>false</NuGetAudit>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="[10.0.0,11.0.0)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
+    <ProjectReference Include="..\StrongTypes.EfCore\StrongTypes.EfCore.csproj" />
   </ItemGroup>
 </Project>

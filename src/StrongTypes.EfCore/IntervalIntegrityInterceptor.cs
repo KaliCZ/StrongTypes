@@ -18,7 +18,10 @@ internal sealed class IntervalIntegrityInterceptor : IMaterializationInterceptor
     public static readonly IntervalIntegrityInterceptor Instance = new();
 
     private static readonly ConditionalWeakTable<IEntityType, Action<object>[]> s_readProcessors = new();
-    private static readonly ConditionalWeakTable<IEntityType, Action<object>[]> s_saveCheckers = new();
+    private static readonly ConditionalWeakTable<IEntityType, SaveChecker[]> s_saveCheckers = new();
+    private static readonly ConditionalWeakTable<IModel, StrongBox<bool>> s_modelHasSaveCheckers = new();
+
+    private readonly record struct SaveChecker(IComplexProperty Property, Action<object> Check);
 
     private IntervalIntegrityInterceptor()
     {
@@ -48,7 +51,7 @@ internal sealed class IntervalIntegrityInterceptor : IMaterializationInterceptor
 
     private static void EnforceBoundModes(DbContext? context)
     {
-        if (context is null)
+        if (context is null || !ModelHasSaveCheckers(context.Model))
         {
             return;
         }
@@ -58,22 +61,36 @@ internal sealed class IntervalIntegrityInterceptor : IMaterializationInterceptor
             {
                 continue;
             }
-            foreach (var check in s_saveCheckers.GetValue(entry.Metadata, BuildSaveCheckers))
+            var added = entry.State == EntityState.Added;
+            foreach (var checker in s_saveCheckers.GetValue(entry.Metadata, BuildSaveCheckers))
             {
-                check(entry.Entity);
+                // A value already in the row passed this check when written; only re-check one that changed.
+                if (added || entry.ComplexProperty(checker.Property.Name).IsModified)
+                {
+                    checker.Check(entry.Entity);
+                }
             }
         }
     }
+
+    // A model that maps no bound-enforced interval skips the change-tracker scan entirely.
+    private static bool ModelHasSaveCheckers(IModel model) =>
+        s_modelHasSaveCheckers.GetValue(
+            model, static m => new StrongBox<bool>(m.GetEntityTypes().Any(e => IntervalComplexProperties(e).Any(NeedsSaveCheck)))).Value;
+
+    private static bool NeedsSaveCheck(IComplexProperty property) =>
+        BoundMode(property, IntervalAnnotations.StartBound) != IntervalBoundMode.Stored
+        || BoundMode(property, IntervalAnnotations.EndBound) != IntervalBoundMode.Stored;
 
     private static Action<object>[] BuildReadProcessors(IEntityType entityType) =>
         IntervalComplexProperties(entityType)
             .Select(p => BuildReadProcessor(entityType.ClrType, p))
             .ToArray();
 
-    private static Action<object>[] BuildSaveCheckers(IEntityType entityType) =>
+    private static SaveChecker[] BuildSaveCheckers(IEntityType entityType) =>
         IntervalComplexProperties(entityType)
-            .Select(p => BuildSaveChecker(entityType.ClrType, p))
-            .OfType<Action<object>>()
+            .Where(NeedsSaveCheck)
+            .Select(p => new SaveChecker(p, BuildSaveChecker(entityType.ClrType, p)))
             .ToArray();
 
     private static IEnumerable<IComplexProperty> IntervalComplexProperties(IEntityType entityType) =>
@@ -89,13 +106,12 @@ internal sealed class IntervalIntegrityInterceptor : IMaterializationInterceptor
             return BuildValidator(entityClrType, property);
         }
         var propertyInfo = property.PropertyInfo!;
-        var rebuild = FindShapeMethod(nameof(Rebuild), property.ClrType);
-        var displayName = $"{entityClrType.Name}.{property.Name}";
+        var rebuild = CompileRebuild(
+            FindShapeMethod(nameof(Rebuild), property.ClrType), property.ClrType, startMode, endMode, $"{entityClrType.Name}.{property.Name}");
         return instance =>
         {
             var value = propertyInfo.GetValue(instance);
-            var corrected = rebuild.Invoke(
-                null, BindingFlags.DoNotWrapExceptions, binder: null, [value, startMode, endMode, displayName], culture: null);
+            var corrected = rebuild(value);
             if (!Equals(corrected, value))
             {
                 propertyInfo.SetValue(instance, corrected);
@@ -103,19 +119,14 @@ internal sealed class IntervalIntegrityInterceptor : IMaterializationInterceptor
         };
     }
 
-    private static Action<object>? BuildSaveChecker(Type entityClrType, IComplexProperty property)
+    private static Action<object> BuildSaveChecker(Type entityClrType, IComplexProperty property)
     {
         var startMode = BoundMode(property, IntervalAnnotations.StartBound);
         var endMode = BoundMode(property, IntervalAnnotations.EndBound);
-        if (startMode == IntervalBoundMode.Stored && endMode == IntervalBoundMode.Stored)
-        {
-            return null;
-        }
         var propertyInfo = property.PropertyInfo!;
-        var check = FindShapeMethod(nameof(CheckBounds), property.ClrType);
-        var displayName = $"{entityClrType.Name}.{property.Name}";
-        return instance => check.Invoke(
-            null, BindingFlags.DoNotWrapExceptions, binder: null, [propertyInfo.GetValue(instance), startMode, endMode, displayName], culture: null);
+        var check = CompileCheck(
+            FindShapeMethod(nameof(CheckBounds), property.ClrType), property.ClrType, startMode, endMode, $"{entityClrType.Name}.{property.Name}");
+        return instance => check(propertyInfo.GetValue(instance));
     }
 
     private static IntervalBoundMode BoundMode(IComplexProperty property, string annotation) =>
@@ -128,6 +139,25 @@ internal sealed class IntervalIntegrityInterceptor : IMaterializationInterceptor
         var body = Expression.Call(
             FindShapeMethod(nameof(Validate), property.ClrType), value, Expression.Constant($"{entityClrType.Name}.{property.Name}"));
         return Expression.Lambda<Action<object>>(body, instance).Compile();
+    }
+
+    // object -> CheckBounds<T>((TInterval)object, ...): the per-row save check without a reflective invoke.
+    private static Action<object?> CompileCheck(
+        MethodInfo checkBounds, Type intervalClrType, IntervalBoundMode startMode, IntervalBoundMode endMode, string displayName)
+    {
+        var value = Expression.Parameter(typeof(object), "value");
+        var call = Expression.Call(checkBounds, Expression.Convert(value, intervalClrType),
+            Expression.Constant(startMode), Expression.Constant(endMode), Expression.Constant(displayName));
+        return Expression.Lambda<Action<object?>>(call, value).Compile();
+    }
+
+    private static Func<object?, object?> CompileRebuild(
+        MethodInfo rebuild, Type intervalClrType, IntervalBoundMode startMode, IntervalBoundMode endMode, string displayName)
+    {
+        var value = Expression.Parameter(typeof(object), "value");
+        var call = Expression.Call(rebuild, Expression.Convert(value, intervalClrType),
+            Expression.Constant(startMode), Expression.Constant(endMode), Expression.Constant(displayName));
+        return Expression.Lambda<Func<object?, object?>>(Expression.Convert(call, typeof(object)), value).Compile();
     }
 
     private static MethodInfo FindShapeMethod(string name, Type clrType)

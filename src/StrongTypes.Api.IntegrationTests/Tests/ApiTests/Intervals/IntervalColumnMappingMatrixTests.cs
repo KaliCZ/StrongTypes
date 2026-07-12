@@ -92,6 +92,21 @@ public abstract class IntervalColumnMappingMatrixTestsBase<TEntity, TInterval>(T
         Assert.Contains("AlwaysExclusive", exception.Message);
         db.ChangeTracker.Clear();
     }
+
+    /// <summary>The guard must run on update too, not just insert: changing a stored value to one with an inclusive bound must throw. <paramref name="inclusiveValue"/> must differ in its endpoints so EF registers the interval as modified (the inclusivity flags have no column of their own here).</summary>
+    protected async Task AssertRejectsInclusiveUpdate(TInterval seedExclusive, TInterval inclusiveValue)
+    {
+        var entity = TEntity.Create(seedExclusive, null);
+        PgSet.Add(entity);
+        await PgDb.SaveChangesAsync(Ct);
+        PgDb.ChangeTracker.Clear();
+
+        var loaded = await PgSet.FirstAsync(e => e.Id == entity.Id, Ct);
+        loaded.Value = inclusiveValue;
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => PgDb.SaveChangesAsync(Ct));
+        Assert.Contains("AlwaysExclusive", exception.Message);
+        PgDb.ChangeTracker.Clear();
+    }
 }
 
 /// <summary>Adds endpoint filter/order coverage for the <see cref="FiniteInterval{T}"/> configs, where the endpoint is a plain non-nullable column.</summary>
@@ -164,6 +179,9 @@ public sealed class AlwaysExclusiveColumnsFiniteIntervalMatrixTests(TestWebAppli
 
     [Fact]
     public Task RejectsAnInclusiveBoundOnSave() => AssertRejectsInclusiveSave(FiniteInterval.Create(1, 10));
+
+    [Fact]
+    public Task RejectsAnInclusiveBoundOnUpdate() => AssertRejectsInclusiveUpdate(First, FiniteInterval.Create(5, 20));
 }
 
 // ── IntervalFrom<int> ─────────────────────────────────────────────────────
@@ -193,6 +211,9 @@ public sealed class AlwaysExclusiveColumnsIntervalFromMatrixTests(TestWebApplica
 
     [Fact]
     public Task RejectsAnInclusiveBoundOnSave() => AssertRejectsInclusiveSave(IntervalFrom.Create(1, 10));
+
+    [Fact]
+    public Task RejectsAnInclusiveBoundOnUpdate() => AssertRejectsInclusiveUpdate(First, IntervalFrom.Create(5, 20));
 }
 
 // ── IntervalUntil<int> ────────────────────────────────────────────────────
@@ -222,6 +243,9 @@ public sealed class AlwaysExclusiveColumnsIntervalUntilMatrixTests(TestWebApplic
 
     [Fact]
     public Task RejectsAnInclusiveBoundOnSave() => AssertRejectsInclusiveSave(IntervalUntil.Create(1, 10));
+
+    [Fact]
+    public Task RejectsAnInclusiveBoundOnUpdate() => AssertRejectsInclusiveUpdate(First, IntervalUntil.Create(5, 20));
 }
 
 // ── Interval<int> ─────────────────────────────────────────────────────────
@@ -251,4 +275,7 @@ public sealed class AlwaysExclusiveColumnsIntervalMatrixTests(TestWebApplication
 
     [Fact]
     public Task RejectsAnInclusiveBoundOnSave() => AssertRejectsInclusiveSave(Interval.Create(1, 10));
+
+    [Fact]
+    public Task RejectsAnInclusiveBoundOnUpdate() => AssertRejectsInclusiveUpdate(First, Interval.Create(5, 20));
 }
