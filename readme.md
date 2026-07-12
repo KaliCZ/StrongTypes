@@ -139,14 +139,25 @@ string label = interval switch
 };
 ```
 
-`Overlaps` / `GetOverlap` intersect intervals of any variant mix. Intervals that touch at a shared endpoint overlap in that single point when both touching bounds are inclusive — pass `endInclusive: false` for back-to-back time windows that must not overlap. `GetOverlap` returns `null` for disjoint intervals and keeps the receiver's bounded endpoints — a `FiniteInterval<T>` receiver yields `FiniteInterval<T>?`. `DateTime` and `DateOnly` intervals bridge across: a `DateTime` interval `Contains` a `DateOnly` when it covers any instant of that day (and the reverse goes by the moment's calendar day), `ToDateInterval()` converts to the days the interval covers, and `Days()` counts the days a `FiniteInterval<DateOnly>` contains. Going the other way, `DateOnly.ToTimeInterval()` expands a day to its instants as a `FiniteInterval<DateTime>` and `DateTime.ToDateOnly()` drops a moment's time.
+`Overlaps` / `GetOverlap` intersect any variant mix (touching endpoints overlap only when both bounds are inclusive), and `DateTime` ↔ `DateOnly` intervals bridge across:
 
 ```csharp
 FiniteInterval.Create(10, 20).GetOverlap(IntervalFrom.Create(15, null));   // [15, 20]
-stay.Contains(new DateOnly(2026, 7, 4));   // does the DateTime interval touch that day?
+stay.Contains(new DateOnly(2026, 7, 4));      // DateTime interval covers any instant of that day?
+stay.ToDateInterval().Days();                 // calendar days it spans
+new DateOnly(2026, 7, 4).ToTimeInterval();    // a day as a FiniteInterval<DateTime>
+new DateTime(2026, 7, 4, 9, 0, 0).ToDateOnly();   // drop the time
 ```
 
-A more-constrained variant widens **implicitly** to a less-constrained one (`FiniteInterval<T>` → `IntervalFrom<T>` / `IntervalUntil<T>` / `Interval<T>`; `IntervalFrom<T>` and `IntervalUntil<T>` → `Interval<T>`) — the conversion is lossless (bound flags carry along) and never throws. That also lets you hold mixed variants in one collection by widening them to `Interval<T>` (e.g. `Interval<int>[] x = [finite, from, unbounded];`), stored inline as structs with no boxing. Narrowing back is partial, so it follows the `As…` convention and returns a nullable — `Interval<T>.AsFinite()` / `AsFrom()` / `AsUntil()` (and `AsFinite()` on the half-bounded variants) yield `null` when a required endpoint is unbounded, each with a throwing `To…` sibling (`ToFinite()`, …) for when an unbounded endpoint is a bug.
+A more-constrained variant **widens implicitly** to a less-constrained one (lossless, never throws); narrowing is partial, so it follows the `As…` / `To…` convention:
+
+```csharp
+IntervalFrom<int> from = FiniteInterval.Create(1, 10);          // widens implicitly
+Interval<int>[] mixed = [FiniteInterval.Create(1, 10), from];   // hold variants together, no boxing
+FiniteInterval<int> bad = mixed[0];                 // does NOT compile — an endpoint may be unbounded
+FiniteInterval<int>? maybe = mixed[0].AsFinite();   // null when an endpoint is unbounded
+FiniteInterval<int> sure = mixed[0].ToFinite();     // throws when an endpoint is unbounded
+```
 
 On the wire each interval is a JSON object `{ "Start": …, "End": … }` (both endpoint keys always present; an unbounded endpoint is `null`); `StartInclusive` / `EndInclusive` appear only when `false` and default to `true` when absent. Persist it with EF Core either as two scalar endpoint columns (the `UseStrongTypes()` default; each endpoint a plain, indexable column — bound inclusivity is a per-bound mapping choice via `IntervalBoundMode`: fixed with no extra column, or stored per value in its own column) or as a single JSON column, which round-trips through the validating converter, with endpoint access in LINQ translating to a server-side JSON path lookup. Both shapes re-validate the interval invariant on read, so a corrupted row throws instead of materializing an invalid interval.
 
@@ -155,8 +166,12 @@ On the wire each interval is a JSON object `{ "Start": …, "End": … }` (both 
 modelBuilder.Entity<Booking>()
     .HasIntervalColumns(b => b.Window, startName: "WindowStart", endName: "WindowEnd");
 
+// Pin a bound's inclusivity (no flag column) — e.g. half-open [start, end) windows.
+modelBuilder.Entity<Booking>()
+    .HasIntervalColumns(b => b.Shift, endBound: IntervalBoundMode.AlwaysExclusive);
+
 // Or opt into a single JSON column instead.
-modelBuilder.Entity<Booking>().HasIntervalJsonConversion(b => b.Window);
+modelBuilder.Entity<Booking>().HasIntervalJsonConversion(b => b.Archived);
 ```
 
 See the [EF Core package readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md).
