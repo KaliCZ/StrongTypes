@@ -43,8 +43,10 @@ app.UseSwaggerUI();
 - `Maybe<T>` &rarr; object wrapper `{ "Value": <T schema> }` matching the
   converter's on-the-wire format.
 - `FiniteInterval<T>` / `Interval<T>` / `IntervalFrom<T>` / `IntervalUntil<T>` &rarr;
-  `{ "type": "object", "properties": { "Start": <T>, "End": <T> }, "required": ["Start", "End"] }`,
-  a bounded endpoint non-nullable and an open one nullable.
+  `{ "type": "object", "properties": { "Start": <T>, "End": <T>, "StartInclusive": bool, "EndInclusive": bool }, "required": ["Start", "End"] }`,
+  a bounded endpoint non-nullable and an open one nullable. The two inclusivity
+  flags are optional and default to `true`, matching the converter's
+  omit-when-inclusive wire format.
 
 ## Data annotations
 
