@@ -16,6 +16,9 @@ internal static class IntervalHelpers
         return comparison < 0 || (comparison == 0 && startInclusive && endInclusive);
     }
 
+    public static InvalidOperationException Reversed<T>(string interval, T start, T end) where T : struct =>
+        new($"{interval} requires Start <= End, but Start ({start}) is greater than End ({end}).");
+
     public static bool Contains<T>(T? start, T? end, bool startInclusive, bool endInclusive, T value) where T : struct, IComparable<T>
     {
         if (start is { } s && (startInclusive ? s.CompareTo(value) > 0 : s.CompareTo(value) >= 0))

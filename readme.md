@@ -323,24 +323,23 @@ public sealed class HalfOpenIntervalConverter()
 
 ### Persistence
 
-Store into DB with EF Core as two (indexable) columns or as JSON.
+Store into a DB with EF Core as two (indexable) columns or as one JSON column.
+Two columns are **inclusive-only**; JSON keeps each value's inclusivity.
 
 ```csharp
-// Default: two endpoint columns.
+// Default: two endpoint columns (inclusive-only).
 
-// Explicitly name columns like this.
+// Name the columns explicitly.
 modelBuilder.Entity<Booking>()
     .HasIntervalColumns(b => b.Window, startName: "WindowStart", endName: "WindowEnd");
 
-// Pin a bound's inclusivity (no flag column) — e.g. half-open [start, end) windows.
-modelBuilder.Entity<Booking>()
-    .HasIntervalColumns(b => b.Shift, endBound: IntervalBoundMode.AlwaysExclusive);
-
-// Or opt into a single JSON column instead.
+// Need the inclusivity stored? A JSON column keeps each value's own bounds.
 modelBuilder.Entity<Booking>().HasIntervalJsonConversion(b => b.Archived);
 ```
 
-See the [EF Core package readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md).
+To keep inclusivity in relational columns, model the endpoints yourself and expose
+an unmapped computed interval — see the
+[EF Core package readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md).
 
 [↑ Back to contents](#contents)
 

@@ -18,6 +18,8 @@ public readonly struct FiniteInterval<T> : IEquatable<FiniteInterval<T>>
 
     private FiniteInterval(T start, T end)
     {
+        // EF materializes through this ctor, so this guard validates the interval on read.
+        if (start.CompareTo(end) > 0) throw IntervalHelpers.Reversed($"FiniteInterval<{typeof(T).Name}>", start, end);
         Start = start;
         End = end;
     }

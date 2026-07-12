@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.Mail;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +30,11 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPrope
         foreach (var property in clrType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
             if (property.GetMethod is null || property.SetMethod is null)
+            {
+                continue;
+            }
+            // We map interval/strong-type properties before EF's [NotMapped] convention runs, so honor it ourselves.
+            if (property.IsDefined(typeof(NotMappedAttribute), inherit: true))
             {
                 continue;
             }
@@ -90,7 +96,7 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPrope
         {
             typeBuilder.HasDiscriminator("Discriminator", typeof(string), fromDataAnnotation: false);
         }
-        // The default bound mode stores no flag columns; a Stored mode via HasIntervalColumns maps them back in.
+        // Two-column storage carries no inclusivity; both bounds read back inclusive.
         typeBuilder.Ignore("StartInclusive", fromDataAnnotation: false);
         typeBuilder.Ignore("EndInclusive", fromDataAnnotation: false);
     }

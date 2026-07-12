@@ -70,16 +70,14 @@ protected override void OnModelCreating(ModelBuilder modelBuilder) =>
 The interval types (`FiniteInterval<T>`, `Interval<T>`, `IntervalFrom<T>`,
 `IntervalUntil<T>`) auto-map too: by default `UseStrongTypes()` maps each
 interval property to **two scalar endpoint columns** (plain, indexable column
-references in LINQ; a nullable property adds a shadow discriminator). Bound
-inclusivity is a mapping choice per bound (`IntervalBoundMode` on
-`HasIntervalColumns`): the default `AlwaysInclusive` stores no flag column and
-rejects exclusive-bound values on save; `AlwaysExclusive` fixes the other
-convention; `Stored` adds a flag column and round-trips per-value bounds. To
-store a **single JSON column** instead (`jsonb` on PostgreSQL, endpoint access
-still translating to a server-side JSON path lookup, bound flags riding in the
-payload), opt in per property with
-`entity.HasIntervalJsonConversion(e => e.Window)`. Both shapes re-validate the
-interval invariant on read. See `references/intervals.md`.
+references in LINQ; a nullable property adds a shadow discriminator). The two
+columns are **inclusive-only** — they carry no inclusivity, so both bounds read
+back inclusive. To keep inclusivity, store a **single JSON column** instead
+(`jsonb` on PostgreSQL, endpoint access still translating to a server-side JSON
+path lookup, each value's bounds riding in the payload) — opt in per property
+with `entity.HasIntervalJsonConversion(e => e.Window)` — or model the endpoints
+as your own columns behind a `[NotMapped]` computed interval. Both shapes
+re-validate the interval invariant on read. See `references/intervals.md`.
 
 ## Querying
 

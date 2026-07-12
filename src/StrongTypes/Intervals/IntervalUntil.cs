@@ -18,6 +18,8 @@ public readonly struct IntervalUntil<T> : IEquatable<IntervalUntil<T>>
 
     private IntervalUntil(T? start, T end)
     {
+        // EF materializes through this ctor, so this guard validates the interval on read.
+        if (start is { } s && s.CompareTo(end) > 0) throw IntervalHelpers.Reversed($"IntervalUntil<{typeof(T).Name}>", s, end);
         Start = start;
         End = end;
     }

@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using StrongTypes.EfCore;
@@ -13,8 +14,7 @@ namespace StrongTypes.Api.IntegrationTests.Tests;
 /// <c>HasIntervalJsonConversion</c> opts into the single JSON column instead.
 /// Model-shape assertions only, against offline relational models: model building
 /// never opens a connection, so no connection string is configured and no
-/// containers are needed. Real-server round-tripping, ordering, and the full
-/// bound-mode matrix are covered by
+/// containers are needed. Real-server round-tripping and ordering are covered by
 /// <see cref="IntervalColumnMappingMatrixTestsBase{TEntity, TInterval}"/> against
 /// Testcontainers; the InMemory provider is unusable even here because it maps any
 /// struct as a scalar, hiding the complex default.
@@ -37,6 +37,22 @@ public class IntervalConventionMappingTests
     {
         public Guid Id { get; set; }
         internal Interval<int>? Window { get; set; }
+    }
+
+    // The manual "store inclusivity yourself" recipe: own scalar columns, an unmapped computed interval over them.
+    private sealed class ComputedIntervalHolder
+    {
+        public Guid Id { get; set; }
+        public int StartHour { get; set; }
+        public int EndHour { get; set; }
+        public bool EndInclusive { get; set; }
+
+        [NotMapped]
+        public FiniteInterval<int> Window
+        {
+            get => FiniteInterval.Create(StartHour, EndHour, endInclusive: EndInclusive);
+            set => (StartHour, EndHour, EndInclusive) = (value.Start, value.End, value.EndInclusive);
+        }
     }
 
     private sealed class DefaultContext : DbContext
@@ -86,17 +102,8 @@ public class IntervalConventionMappingTests
         protected override void OnModelCreating(ModelBuilder b)
         {
             b.Entity<Holder>().HasIntervalColumns(e => e.Window);
-            b.Entity<NullableHolder>().HasIntervalColumns(e => e.Window, endBound: IntervalBoundMode.Stored);
+            b.Entity<NullableHolder>().HasIntervalColumns(e => e.Window);
         }
-    }
-
-    private sealed class StoredBoundsContext : DbContext
-    {
-        public DbSet<Holder> Holders => Set<Holder>();
-        protected override void OnConfiguring(DbContextOptionsBuilder o) =>
-            o.UseSqlServer().UseStrongTypes();
-        protected override void OnModelCreating(ModelBuilder b) =>
-            b.Entity<Holder>().HasIntervalColumns(e => e.Window, startBound: IntervalBoundMode.Stored, endBound: IntervalBoundMode.Stored);
     }
 
     private sealed class NamedColumnsContext : DbContext
@@ -105,6 +112,13 @@ public class IntervalConventionMappingTests
         protected override void OnConfiguring(DbContextOptionsBuilder o) => o.UseSqlServer();
         protected override void OnModelCreating(ModelBuilder b) =>
             b.Entity<Holder>().HasIntervalColumns(e => e.Window, startName: "WindowStart", endName: "WindowEnd");
+    }
+
+    private sealed class ComputedIntervalContext : DbContext
+    {
+        public DbSet<ComputedIntervalHolder> Holders => Set<ComputedIntervalHolder>();
+        protected override void OnConfiguring(DbContextOptionsBuilder o) =>
+            o.UseSqlServer().UseStrongTypes();
     }
 
     [Fact]
@@ -125,10 +139,9 @@ public class IntervalConventionMappingTests
         Assert.True(nullableComplex.IsNullable);
         Assert.Single(nullableComplex.ComplexType.GetProperties(), p => p.Name == "Discriminator" && p.IsShadowProperty());
 
-        // endBound: Stored maps only the end flag column.
         var nullableMembers = nullableComplex.ComplexType.GetProperties().Select(p => p.Name).ToHashSet();
         Assert.DoesNotContain(nameof(Interval<int>.StartInclusive), nullableMembers);
-        Assert.Contains(nameof(Interval<int>.EndInclusive), nullableMembers);
+        Assert.DoesNotContain(nameof(Interval<int>.EndInclusive), nullableMembers);
     }
 
     [Fact]
@@ -144,19 +157,6 @@ public class IntervalConventionMappingTests
         Assert.Contains(nameof(FiniteInterval<int>.End), endpoints);
         Assert.DoesNotContain(nameof(FiniteInterval<int>.StartInclusive), endpoints);
         Assert.DoesNotContain(nameof(FiniteInterval<int>.EndInclusive), endpoints);
-    }
-
-    [Fact]
-    public void StoredBoundModeAddsFlagColumnsOverTheConventionDefault()
-    {
-        using var ctx = new StoredBoundsContext();
-        var complex = ctx.Model.FindEntityType(typeof(Holder))!
-            .GetComplexProperties().Single(p => p.Name == nameof(Holder.Window));
-
-        var members = complex.ComplexType.GetProperties().Select(p => p.Name).ToHashSet();
-        Assert.Contains(nameof(FiniteInterval<int>.StartInclusive), members);
-        Assert.Contains(nameof(FiniteInterval<int>.EndInclusive), members);
-        Assert.Equal(typeof(bool), complex.ComplexType.FindProperty(nameof(FiniteInterval<int>.StartInclusive))!.ClrType);
     }
 
     [Fact]
@@ -189,6 +189,19 @@ public class IntervalConventionMappingTests
     }
 
     [Fact]
+    public void ConventionLeavesANotMappedComputedIntervalUnmapped()
+    {
+        using var ctx = new ComputedIntervalContext();
+        var entity = ctx.Model.FindEntityType(typeof(ComputedIntervalHolder))!;
+
+        Assert.Empty(entity.GetComplexProperties());
+        Assert.Null(entity.FindProperty(nameof(ComputedIntervalHolder.Window)));
+        Assert.NotNull(entity.FindProperty(nameof(ComputedIntervalHolder.StartHour)));
+        Assert.NotNull(entity.FindProperty(nameof(ComputedIntervalHolder.EndHour)));
+        Assert.NotNull(entity.FindProperty(nameof(ComputedIntervalHolder.EndInclusive)));
+    }
+
+    [Fact]
     public void HasIntervalJsonConversionOptsIntoSingleJsonColumn()
     {
         using var ctx = new SqlServerJsonContext();
@@ -216,16 +229,6 @@ public class IntervalConventionMappingTests
         var window = ctx.Model.FindEntityType(typeof(Holder))!.FindProperty(nameof(Holder.Window))!;
 
         Assert.Equal("nvarchar(max)", window.GetColumnType());
-    }
-
-    [Fact]
-    public void StoredBoundMode_MakesTheInclusivityFlagsQueryable()
-    {
-        using var ctx = new StoredBoundsContext();
-
-        var sql = ctx.Holders.OrderBy(h => h.Window.StartInclusive).ThenBy(h => h.Window.EndInclusive).ToQueryString();
-        Assert.Contains(nameof(FiniteInterval<int>.StartInclusive), sql);
-        Assert.Contains(nameof(FiniteInterval<int>.EndInclusive), sql);
     }
 
     [Fact]
