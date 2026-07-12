@@ -47,12 +47,23 @@ public abstract partial class OpenApiDocumentTestsBase
         AssertIntegerEndpoint(Property(value, "End"), nullable: false);
     }
 
-    [Fact]
-    public async Task Interval_BoundFlags_Render_As_Optional_Booleans_Defaulting_To_True()
+    [Theory]
+    [InlineData("/interval-entities/closed", "Start", "End")]
+    [InlineData("/interval-entities/open")]
+    [InlineData("/interval-entities/from", "Start")]
+    [InlineData("/interval-entities/until", "End")]
+    public async Task Interval_BoundFlags_Render_As_Optional_Booleans_Defaulting_To_True_On_Every_Variant(
+        string path, params string[] requiredEndpoints)
     {
-        var value = await IntervalValueSchema("/interval-entities/closed");
+        var value = await IntervalValueSchema(path);
+        AssertIntervalObject(value, requiredEndpoints);
+
         AssertBoundFlag(Property(value, "StartInclusive"));
         AssertBoundFlag(Property(value, "EndInclusive"));
+
+        var required = RequiredSet(value);
+        Assert.DoesNotContain("StartInclusive", required);
+        Assert.DoesNotContain("EndInclusive", required);
     }
 
     [Fact]
@@ -76,13 +87,15 @@ public abstract partial class OpenApiDocumentTestsBase
     private static void AssertIntervalObject(JsonElement schema, params string[] requiredEndpoints)
     {
         Assert.Equal("object", schema.GetProperty("type").GetString());
-        // An all-optional variant lists nothing required; the keyword may then be
-        // omitted entirely, so treat absent as the empty set.
-        var required = schema.TryGetProperty("required", out var r)
+        Assert.Equal(requiredEndpoints.ToHashSet(), RequiredSet(schema));
+    }
+
+    // An all-optional variant lists nothing required; the keyword may then be
+    // omitted entirely, so treat absent as the empty set.
+    private static HashSet<string> RequiredSet(JsonElement schema)
+        => schema.TryGetProperty("required", out var r)
             ? r.EnumerateArray().Select(e => e.GetString()!).ToHashSet()
             : [];
-        Assert.Equal(requiredEndpoints.ToHashSet(), required);
-    }
 
     private static void AssertBoundFlag(JsonElement schema)
     {
