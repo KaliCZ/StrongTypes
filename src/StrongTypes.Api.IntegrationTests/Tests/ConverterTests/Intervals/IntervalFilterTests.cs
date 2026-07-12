@@ -40,7 +40,8 @@ public sealed class IntervalFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.FiniteIntervalColumnsEntities : PgDb.FiniteIntervalColumnsEntities;
 
         var ids = await set
-            .Where(e => (e.Id == match.Id || e.Id == noMatch.Id) && e.Value.Start == 1)
+            .FilterById(match, noMatch)
+            .Where(e => e.Value.Start == 1)
             .Select(e => e.Id)
             .ToListAsync(Ct);
 
@@ -58,7 +59,8 @@ public sealed class IntervalFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.FiniteIntervalColumnsEntities : PgDb.FiniteIntervalColumnsEntities;
 
         var ids = await set
-            .Where(e => (e.Id == containing.Id || e.Id == disjoint.Id) && e.Value.Start <= 5 && 5 <= e.Value.End)
+            .FilterById(containing, disjoint)
+            .Where(e => e.Value.Start <= 5 && 5 <= e.Value.End)
             .Select(e => e.Id)
             .ToListAsync(Ct);
 
@@ -77,7 +79,7 @@ public sealed class IntervalFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.FiniteIntervalColumnsEntities : PgDb.FiniteIntervalColumnsEntities;
 
         var ids = await set
-            .Where(e => e.Id == first.Id || e.Id == second.Id || e.Id == third.Id)
+            .FilterById(first, second, third)
             .OrderBy(e => e.Value.Start)
             .Select(e => e.Id)
             .ToListAsync(Ct);
@@ -95,7 +97,8 @@ public sealed class IntervalFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.IntervalFromColumnsEntities : PgDb.IntervalFromColumnsEntities;
 
         var ids = await set
-            .Where(e => (e.Id == open.Id || e.Id == bounded.Id) && e.Value.End == null)
+            .FilterById(open, bounded)
+            .Where(e => e.Value.End == null)
             .Select(e => e.Id)
             .ToListAsync(Ct);
 
@@ -114,7 +117,8 @@ public sealed class IntervalFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.StoredBoundsIntervalEntities : PgDb.StoredBoundsIntervalEntities;
 
         var ids = await set
-            .Where(e => (e.Id == halfOpen.Id || e.Id == inclusive.Id) && !e.Value.EndInclusive)
+            .FilterById(halfOpen, inclusive)
+            .Where(e => !e.Value.EndInclusive)
             .Select(e => e.Id)
             .ToListAsync(Ct);
 
@@ -132,7 +136,8 @@ public sealed class IntervalFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.FiniteIntervalEntities : PgDb.FiniteIntervalEntities;
 
         var ids = await set
-            .Where(e => (e.Id == match.Id || e.Id == noMatch.Id) && e.Value.Start == 1)
+            .FilterById(match, noMatch)
+            .Where(e => e.Value.Start == 1)
             .Select(e => e.Id)
             .ToListAsync(Ct);
 
@@ -150,7 +155,8 @@ public sealed class IntervalFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.FiniteIntervalEntities : PgDb.FiniteIntervalEntities;
 
         var ids = await set
-            .Where(e => (e.Id == containing.Id || e.Id == disjoint.Id) && e.Value.Start <= 5 && 5 <= e.Value.End)
+            .FilterById(containing, disjoint)
+            .Where(e => e.Value.Start <= 5 && 5 <= e.Value.End)
             .Select(e => e.Id)
             .ToListAsync(Ct);
 
@@ -169,7 +175,7 @@ public sealed class IntervalFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.FiniteIntervalEntities : PgDb.FiniteIntervalEntities;
 
         var ids = await set
-            .Where(e => e.Id == first.Id || e.Id == second.Id || e.Id == third.Id)
+            .FilterById(first, second, third)
             .OrderBy(e => e.Value.Start)
             .Select(e => e.Id)
             .ToListAsync(Ct);
@@ -187,7 +193,8 @@ public sealed class IntervalFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.IntervalFromEntities : PgDb.IntervalFromEntities;
 
         var ids = await set
-            .Where(e => (e.Id == open.Id || e.Id == bounded.Id) && e.Value.End == null)
+            .FilterById(open, bounded)
+            .Where(e => e.Value.End == null)
             .Select(e => e.Id)
             .ToListAsync(Ct);
 
@@ -205,7 +212,8 @@ public sealed class IntervalFilterTests(TestWebApplicationFactory factory)
         var set = provider == "sql-server" ? SqlDb.FiniteIntervalEntities : PgDb.FiniteIntervalEntities;
 
         var ids = await set
-            .Where(e => (e.Id == populated.Id || e.Id == empty.Id) && e.NullableValue!.Value.Start == 3)
+            .FilterById(populated, empty)
+            .Where(e => e.NullableValue!.Value.Start == 3)
             .Select(e => e.Id)
             .ToListAsync(Ct);
 
