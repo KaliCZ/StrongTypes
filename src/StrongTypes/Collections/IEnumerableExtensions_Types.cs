@@ -11,6 +11,7 @@ public static partial class IEnumerableExtensions
     /// <summary>Materializes <paramref name="source"/> as a read-only list (by copying).</summary>
     /// <typeparam name="T">The element type.</typeparam>
     /// <param name="source">The sequence to materialize.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> is <c>null</c>.</exception>
     [Pure]
     public static IReadOnlyList<T> ToReadOnlyList<T>(this IEnumerable<T> source) => source.ToArray();
 

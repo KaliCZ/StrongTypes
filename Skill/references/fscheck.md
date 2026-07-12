@@ -68,7 +68,10 @@ When you need a generator for some type `T`, in order:
    nullable form (~5% null), and a `Maybe<T>` form (~5% None). Names
    follow `<Shape><TypeName>` (e.g. `MaybeNonEmptyString`,
    `NullablePositiveInt`). Numeric coverage targets `int`; collection
-   coverage is `NonEmptyEnumerableInt`. Plain
+   coverage is `NonEmptyEnumerableInt`. The interval types ship as
+   `FiniteIntervalInt`, `IntervalInt`, `IntervalFromInt`, and
+   `IntervalUntilInt` (each always satisfying `Start <= End` and covering
+   its nullability cases and both bound inclusivities). Plain
    `Maybe<bool|int|long|double|char|string|Guid>` arbitraries ship too.
    List the shipped types with the IDE / decompiler / a quick `grep` of
    the FsCheck assembly's public surface — don't guess names.

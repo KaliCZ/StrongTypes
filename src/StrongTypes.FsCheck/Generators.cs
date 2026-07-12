@@ -161,6 +161,49 @@ public static class Generators
 
     #endregion
 
+    #region Intervals
+
+    /// <summary>Arbitrary <see cref="FiniteInterval{T}"/> of <see cref="int"/>. Always satisfies <c>Start &lt;= End</c>; covers inclusive and exclusive bounds.</summary>
+    public static Arbitrary<FiniteInterval<int>> FiniteIntervalInt { get; } =
+        Arb.From(
+            from a in ArbMap.Default.ArbFor<int>().Generator
+            from b in ArbMap.Default.ArbFor<int>().Generator
+            from startInclusive in ArbMap.Default.ArbFor<bool>().Generator
+            from endInclusive in ArbMap.Default.ArbFor<bool>().Generator
+            select a == b
+                ? FiniteInterval.Create(a, b)
+                : FiniteInterval.Create(System.Math.Min(a, b), System.Math.Max(a, b), startInclusive, endInclusive));
+
+    /// <summary>Arbitrary <see cref="Interval{T}"/> of <see cref="int"/> covering all four nullability combinations and both bound inclusivities.</summary>
+    public static Arbitrary<Interval<int>> IntervalInt { get; } =
+        Arb.From(Gen.Frequency(
+            (1, Gen.Constant(Interval.Create<int>(null, null))),
+            (3, from e in ArbMap.Default.ArbFor<int>().Generator
+                from inclusive in ArbMap.Default.ArbFor<bool>().Generator
+                select Interval.Create(null, e, endInclusive: inclusive)),
+            (3, from s in ArbMap.Default.ArbFor<int>().Generator
+                from inclusive in ArbMap.Default.ArbFor<bool>().Generator
+                select Interval.Create(s, null, startInclusive: inclusive)),
+            (3, FiniteIntervalInt.Generator.Select(c => (Interval<int>)c))));
+
+    /// <summary>Arbitrary <see cref="IntervalFrom{T}"/> of <see cref="int"/>. <c>Start</c> is always present; <c>End</c> is null ~25% of the time; both bound inclusivities occur.</summary>
+    public static Arbitrary<IntervalFrom<int>> IntervalFromInt { get; } =
+        Arb.From(Gen.Frequency(
+            (1, from s in ArbMap.Default.ArbFor<int>().Generator
+                from inclusive in ArbMap.Default.ArbFor<bool>().Generator
+                select IntervalFrom.Create(s, null, startInclusive: inclusive)),
+            (3, FiniteIntervalInt.Generator.Select(c => (IntervalFrom<int>)c))));
+
+    /// <summary>Arbitrary <see cref="IntervalUntil{T}"/> of <see cref="int"/>. <c>End</c> is always present; <c>Start</c> is null ~25% of the time; both bound inclusivities occur.</summary>
+    public static Arbitrary<IntervalUntil<int>> IntervalUntilInt { get; } =
+        Arb.From(Gen.Frequency(
+            (1, from e in ArbMap.Default.ArbFor<int>().Generator
+                from inclusive in ArbMap.Default.ArbFor<bool>().Generator
+                select IntervalUntil.Create(null, e, endInclusive: inclusive)),
+            (3, FiniteIntervalInt.Generator.Select(c => (IntervalUntil<int>)c))));
+
+    #endregion
+
     #region NonEmptyEnumerable<int>
 
     /// <summary>Arbitrary <see cref="NonEmptyEnumerable{T}"/> of <see cref="int"/>.</summary>

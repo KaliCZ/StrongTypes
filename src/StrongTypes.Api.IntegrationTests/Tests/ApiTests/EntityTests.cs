@@ -36,6 +36,12 @@ public interface IEntityTestData<TWire>
 /// each concrete subclass passes itself and must implement
 /// <see cref="IEntityTestData{TWire}"/> — a missing data member is a CS0535
 /// build error instead of a silently skipped test.
+/// <para>
+/// This is the scalar-wire harness. Interval types serialize as an object and use the
+/// parallel <see cref="IntervalEntityTests{TEntity, TInterval}"/>, which covers the same
+/// create / get / update / PATCH surface for the object wire shape. The two must stay in
+/// lock-step — a scenario added here must be added there, and vice versa.
+/// </para>
 /// </remarks>
 public abstract partial class EntityTests<TSelf, TEntity, T, TNullable, TWire>(TestWebApplicationFactory factory)
     : IntegrationTestBase<TEntity, T, TNullable>(factory)

@@ -39,6 +39,23 @@ public class PostgreSqlDbContext(DbContextOptions<PostgreSqlDbContext> options) 
     public DbSet<NegativeDoubleEntity> NegativeDoubleEntities { get; set; }
     public DbSet<NonPositiveDoubleEntity> NonPositiveDoubleEntities { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder) =>
+    public DbSet<FiniteIntervalEntity> FiniteIntervalEntities { get; set; }
+    public DbSet<IntervalEntity> IntervalEntities { get; set; }
+    public DbSet<IntervalFromEntity> IntervalFromEntities { get; set; }
+    public DbSet<IntervalUntilEntity> IntervalUntilEntities { get; set; }
+
+    public DbSet<FiniteIntervalColumnsEntity> FiniteIntervalColumnsEntities { get; set; }
+    public DbSet<IntervalColumnsEntity> IntervalColumnsEntities { get; set; }
+    public DbSet<IntervalFromColumnsEntity> IntervalFromColumnsEntities { get; set; }
+    public DbSet<IntervalUntilColumnsEntity> IntervalUntilColumnsEntities { get; set; }
+
+    public DbSet<StoredBoundsIntervalEntity> StoredBoundsIntervalEntities { get; set; }
+    public DbSet<ExclusiveEndIntervalEntity> ExclusiveEndIntervalEntities { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
         InternalBackingEntity.Configure(modelBuilder);
+        InternalBackingIntervalEntity.Configure(modelBuilder);
+        modelBuilder.ConfigureIntervalEntities();
+    }
 }

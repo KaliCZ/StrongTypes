@@ -8,7 +8,8 @@ public static class StrongTypeSchemaTypes
     public static bool IsInlineable(Type? clrType)
     {
         return ResolveWireType(clrType) is not null
-            || TryGetMaybeValue(clrType, out _);
+            || TryGetMaybeValue(clrType, out _)
+            || TryGetIntervalEndpoints(clrType, out _, out _);
     }
 
     public static bool IsNonEmptyString(Type? clrType)
@@ -57,6 +58,19 @@ public static class StrongTypeSchemaTypes
 
         valueType = unwrapped.GetGenericArguments()[0];
         return true;
+    }
+
+    /// <summary>
+    /// Resolves the CLR types of an interval's <c>Start</c> and <c>End</c>
+    /// endpoints, reflecting each variant's nullability: a required endpoint is
+    /// the bare endpoint type, an optional one its <see cref="Nullable{T}"/>.
+    /// Both keys are always present on the wire regardless of nullability.
+    /// </summary>
+    public static bool TryGetIntervalEndpoints(Type? clrType, out Type startType, out Type endType)
+    {
+        startType = null!;
+        endType = null!;
+        return clrType is not null && IntervalTypes.TryGetEndpoints(clrType, out startType, out endType);
     }
 
     public static Type? ResolveWireType(Type? clrType)

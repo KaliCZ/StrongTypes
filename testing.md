@@ -92,6 +92,21 @@ persisted state on both `SqlSet` and `PgSet`), invalid payloads returning
 `400`, and `null` handling for the nullable variant. If the type has a
 custom JSON converter, add converter-only tests under `Tests/ConverterTests`.
 
+**Two parallel CRUD harnesses, one functional surface.** The create / get /
+update / PATCH matrix (with the null / value / clear-nullable semantics) is the
+same for every type — what differs is only the wire shape. Scalar strong types
+(numbers, and the reference types `NonEmptyString` / `Email` / `MailAddress`,
+which all serialize as a single JSON scalar) use `EntityTests<…, TWire>`;
+intervals serialize as a JSON **object** (`{ "start": …, "end": … }`), which does
+not fit the scalar `TWire` bodies, so they use the parallel
+`IntervalEntityTests<TEntity, TInterval>`. **These two bases must not drift** — a
+scenario added to one belongs in the other. Only the invalid-payload cases
+legitimately differ (a malformed scalar vs. `Start > End` / a missing required
+endpoint). A new type picks its base by wire shape, not by struct-vs-class.
+Unifying them behind one abstract base so this parity is enforced by
+construction rather than convention is tracked in
+[#116](https://github.com/KaliCZ/StrongTypes/issues/116).
+
 A `400` from an invalid body is not just a status code — the shared
 `EntityTests` base asserts the full `ValidationProblemDetails` shape
 (`AssertValidationProblem`: `application/problem+json`, `status`/`title`,

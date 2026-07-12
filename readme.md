@@ -23,7 +23,7 @@ StrongTypes adds small, focused types that make everyday code safer and more exp
 ## Contents
 
 - [Use with Claude or Codex](#use-with-claude-or-codex)
-- [Helpful Types](#helpful-types)
+- [Helpful Scalar types](#helpful-scalar-types)
   - [`NonEmptyString`](#nonemptystring)
   - [Numeric wrappers: `Positive<T>`, `NonNegative<T>`, `Negative<T>`, `NonPositive<T>`](#numeric-wrappers)
   - [What you get for free](#what-you-get-for-free)
@@ -32,6 +32,7 @@ StrongTypes adds small, focused types that make everyday code safer and more exp
   - [OpenAPI / Swagger schema](#openapi--swagger-schema)
   - [WPF MVVM binding](#wpf-mvvm-binding)
 - [`NonEmptyEnumerable<T>`](#nonemptyenumerablet)
+- [Interval types](#interval-types)
 - [Parsing helpers](#parsing-helpers)
   - [Enums](#enums)
   - [Strings](#strings)
@@ -57,7 +58,7 @@ curl -L https://github.com/KaliCZ/StrongTypes/releases/latest/download/strongtyp
 [↑ Back to contents](#contents)
 
 
-## Helpful Types
+## Helpful Scalar types
 
 The `TryCreate` / `Create` split (and the `As…` / `To…` extensions that mirror it) is used across every validated type in the library — pick the factory that matches how you want to handle bad input at the call site:
 
@@ -242,6 +243,104 @@ Serializes as a JSON array; an empty JSON array is rejected with `JsonException`
 > ⚠ **Null elements in reference-typed collections** — a JSON array like `[null]` deserializes successfully into `NonEmptyEnumerable<string>` or `NonEmptyEnumerable<NonEmptyString>` even though the element type isn't annotated nullable. The same would happen with a plain `List<string>`.
 
 The same converter also serves `INonEmptyEnumerable<T>`, so properties typed as the interface round-trip the same way — deserialization still produces a concrete `NonEmptyEnumerable<T>` behind the interface reference.
+
+[↑ Back to contents](#contents)
+
+## Interval types
+
+A readonly struct with a condition `Start <= End`. Both are **inclusive by default**, but can be configured (see below). T may be any `struct, IComparable<T>` (`int`, `DateTime`, `DateOnly`, `decimal`, …).
+
+| Type                  | `Start` | `End` | Use for                                 |
+| --------------------- | ------- | ----- |-----------------------------------------|
+| `FiniteInterval<T>`   | `T`     | `T`   | a fully-bounded range                   |
+| `IntervalFrom<T>`     | `T`     | `T?`  | "from X" (end optional)                 |
+| `IntervalUntil<T>`    | `T?`    | `T`   | "until Y" (start optional)              |
+| `Interval<T>`         | `T?`    | `T?`  | both optional (but one must be present) |
+
+Same factory pattern; `TryCreate` / `Create` reject `Start > End`. `Start = End` is rejected unless both are inclusive.
+
+```csharp
+FiniteInterval<int>?  good  = FiniteInterval.TryCreate(1, 10);    // [1, 10]
+FiniteInterval<int>?  bad  = FiniteInterval.TryCreate(10, 1);    // null
+FiniteInterval<int>   time  = FiniteInterval.Create(9, 17, endInclusive: false);   // [9, 17)
+IntervalFrom<DateOnly> openEnded = IntervalFrom.Create(today, null); // "from today, no end"
+```
+
+`Contains` answers membership honoring each bound's inclusivity.
+
+```csharp
+bool inRange = range.Contains(10);   // true — bounds are inclusive by default
+bool atShiftEnd = time.Contains(17);   // false — created with endInclusive: false
+```
+
+`Deconstruct` lets `Interval<T>` drive an exhaustive switch over the four bound cases. Deconstruct is defined on all 4 types.
+```csharp
+string label = interval switch
+{
+    (null, null)         => "unbounded",
+    (null, { } end)      => $"up to {end}",
+    ({ } start, null)    => $"from {start}",
+    ({ } start, { } end) => $"{start}..{end}",
+};
+```
+
+`Overlaps` / `GetOverlap` intersect any variant mix (touching endpoints overlap only when both bounds are inclusive), and `DateTime` ↔ `DateOnly` intervals bridge across:
+
+```csharp
+time.GetOverlap(IntervalFrom.Create(15, null));   // [15, 17)
+
+var stay = FiniteInterval.Create(new DateOnly(2026, 7, 4), new DateOnly(2026, 7, 24));
+stay.Contains(new DateTime(2026, 7, 15, 14, 0, 0));      // We have helpers for checking DateOnly against DateTime and vice-versa
+stay.Days();   // amount of days - respects inclusivity of both start+end.
+```
+
+A more-constrained variant **widens implicitly** to a less-constrained one (lossless, never throws); narrowing is partial, so it follows the `As…` / `To…` convention:
+
+```csharp
+IntervalFrom<int> from = FiniteInterval.Create(1, 10);          // widens implicitly
+Interval<int>[] mixed = [FiniteInterval.Create(1, 10), from];   // implicit operators - all intervals can be added to an array of Interval<T>
+
+FiniteInterval<int> bad = mixed[0];                 // does NOT compile — an endpoint may be unbounded
+FiniteInterval<int>? maybe = mixed[0].AsFinite();   // null when an endpoint is unbounded
+FiniteInterval<int> sure = mixed[0].ToFinite();     // throws when an endpoint is unbounded
+```
+
+### JSON
+
+Serialized as an object. Both start + end are always written (even `null` value). Inclusivity defaults to true and skips writing when true.
+
+```jsonc
+{ "Start": 9, "End": 17 }                         // [9, 17]  — flags omitted, so inclusive
+{ "Start": 9, "End": 17, "EndInclusive": false }  // [9, 17)
+```
+
+Missing value reads as `null` (so `Interval` accepts `{}`, but FiniteInterval would crash); The error is `JsonException`. Use a subclass of [`IntervalJsonConverter<TInterval>`](src/StrongTypes/Intervals/IntervalJsonConverter.cs) to change the default inclusivity and apply it per property.
+
+```csharp
+public sealed class HalfOpenIntervalConverter()
+    : IntervalJsonConverter<FiniteInterval<int>>(IntervalBoundMode.AlwaysInclusive, IntervalBoundMode.AlwaysExclusive);
+```
+
+### Persistence
+
+Store into DB with EF Core as two (indexable) columns or as JSON.
+
+```csharp
+// Default: two endpoint columns.
+
+// Explicitly name columns like this.
+modelBuilder.Entity<Booking>()
+    .HasIntervalColumns(b => b.Window, startName: "WindowStart", endName: "WindowEnd");
+
+// Pin a bound's inclusivity (no flag column) — e.g. half-open [start, end) windows.
+modelBuilder.Entity<Booking>()
+    .HasIntervalColumns(b => b.Shift, endBound: IntervalBoundMode.AlwaysExclusive);
+
+// Or opt into a single JSON column instead.
+modelBuilder.Entity<Booking>().HasIntervalJsonConversion(b => b.Archived);
+```
+
+See the [EF Core package readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md).
 
 [↑ Back to contents](#contents)
 
