@@ -139,7 +139,7 @@ string label = interval switch
 };
 ```
 
-`Overlaps` / `GetOverlap` intersect intervals of any variant mix. Intervals that touch at a shared endpoint overlap in that single point when both touching bounds are inclusive — pass `endInclusive: false` for back-to-back time windows that must not overlap. `GetOverlap` returns `null` for disjoint intervals and keeps the receiver's bounded endpoints — a `FiniteInterval<T>` receiver yields `FiniteInterval<T>?`. `DateTime` and `DateOnly` intervals bridge across: a `DateTime` interval `Contains` a `DateOnly` when it covers any instant of that day (and the reverse goes by the moment's calendar day), `ToDateInterval()` converts to the days the interval covers, and `Days()` counts the days a `FiniteInterval<DateOnly>` contains.
+`Overlaps` / `GetOverlap` intersect intervals of any variant mix. Intervals that touch at a shared endpoint overlap in that single point when both touching bounds are inclusive — pass `endInclusive: false` for back-to-back time windows that must not overlap. `GetOverlap` returns `null` for disjoint intervals and keeps the receiver's bounded endpoints — a `FiniteInterval<T>` receiver yields `FiniteInterval<T>?`. `DateTime` and `DateOnly` intervals bridge across: a `DateTime` interval `Contains` a `DateOnly` when it covers any instant of that day (and the reverse goes by the moment's calendar day), `ToDateInterval()` converts to the days the interval covers, and `Days()` counts the days a `FiniteInterval<DateOnly>` contains. Going the other way, `DateOnly.ToTimeInterval()` expands a day to its instants as a `FiniteInterval<DateTime>` and `DateTime.ToDateOnly()` drops a moment's time.
 
 ```csharp
 FiniteInterval.Create(10, 20).GetOverlap(IntervalFrom.Create(15, null));   // [15, 20]

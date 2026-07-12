@@ -131,6 +131,12 @@ modelBuilder.Entity<Promo>()
     .HasIntervalColumns(p => p.Window, startBound: IntervalBoundMode.Stored, endBound: IntervalBoundMode.Stored);
 ```
 
+Only `Stored` makes a bound's flag queryable. Under `AlwaysInclusive` /
+`AlwaysExclusive` (and the single-JSON-column mapping) the flags aren't columns,
+so a `Where` / `OrderBy` over `StartInclusive` / `EndInclusive` can't translate
+and throws at query time — the endpoint values `Start` / `End` translate under
+every mapping.
+
 To rename the endpoint columns, configure the complex property —
 `HasIntervalColumns` returns its builder (and is also how you get this mapping
 without `UseStrongTypes()`):

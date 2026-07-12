@@ -135,4 +135,35 @@ public class IntervalDateExtensionsTests
             endInclusive);
         Assert.Equal(expected, interval.Days());
     }
+
+    [Fact]
+    public void ToDateOnly_DropsTheTimeOfDay()
+    {
+        Assert.Equal(new DateOnly(2020, 1, 2), new DateTime(2020, 1, 2, 23, 59, 59).ToDateOnly());
+        Assert.Equal(new DateOnly(2020, 1, 2), new DateTime(2020, 1, 2, 0, 0, 0).ToDateOnly());
+    }
+
+    [Fact]
+    public void ToTimeInterval_IsTheHalfOpenDay()
+    {
+        var day = new DateOnly(2020, 1, 2);
+        var window = day.ToTimeInterval();
+
+        Assert.Equal(day.ToDateTime(TimeOnly.MinValue), window.Start);
+        Assert.Equal(day.AddDays(1).ToDateTime(TimeOnly.MinValue), window.End);
+        Assert.True(window.StartInclusive);
+        Assert.False(window.EndInclusive);
+        Assert.True(window.Contains(new DateTime(2020, 1, 2, 12, 0, 0)));
+        Assert.False(window.Contains(new DateTime(2020, 1, 3, 0, 0, 0)));   // exclusive next-midnight
+    }
+
+    [Fact]
+    public void ToTimeInterval_CapsTheLastDayAtMaxValue()
+    {
+        var window = DateOnly.MaxValue.ToTimeInterval();
+
+        Assert.Equal(DateOnly.MaxValue.ToDateTime(TimeOnly.MinValue), window.Start);
+        Assert.Equal(DateTime.MaxValue, window.End);
+        Assert.True(window.EndInclusive);
+    }
 }

@@ -13,9 +13,11 @@ namespace StrongTypes.Api.IntegrationTests.Tests;
 /// <c>HasIntervalJsonConversion</c> opts into the single JSON column instead.
 /// Model-shape assertions only, against offline relational models: model building
 /// never opens a connection, so no connection string is configured and no
-/// containers are needed. Real-server behavior is covered by the Testcontainers
-/// suites; the InMemory provider is unusable even here because it maps any struct
-/// as a scalar, hiding the complex default.
+/// containers are needed. Real-server round-tripping, ordering, and the full
+/// bound-mode matrix are covered by
+/// <see cref="IntervalColumnMappingMatrixTestsBase{TEntity, TInterval}"/> against
+/// Testcontainers; the InMemory provider is unusable even here because it maps any
+/// struct as a scalar, hiding the complex default.
 /// </summary>
 public class IntervalConventionMappingTests
 {
@@ -206,5 +208,23 @@ public class IntervalConventionMappingTests
         var window = ctx.Model.FindEntityType(typeof(Holder))!.FindProperty(nameof(Holder.Window))!;
 
         Assert.Equal("nvarchar(max)", window.GetColumnType());
+    }
+
+    [Fact]
+    public void StoredBoundMode_MakesTheInclusivityFlagsQueryable()
+    {
+        using var ctx = new StoredBoundsContext();
+
+        var sql = ctx.Holders.OrderBy(h => h.Window.StartInclusive).ThenBy(h => h.Window.EndInclusive).ToQueryString();
+        Assert.Contains(nameof(FiniteInterval<int>.StartInclusive), sql);
+        Assert.Contains(nameof(FiniteInterval<int>.EndInclusive), sql);
+    }
+
+    [Fact]
+    public void DefaultMode_CannotQueryTheInclusivityFlags()
+    {
+        using var ctx = new DefaultContext();
+
+        Assert.Throws<InvalidOperationException>(() => ctx.Holders.Where(h => h.Window.StartInclusive).ToQueryString());
     }
 }

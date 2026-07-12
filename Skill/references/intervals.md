@@ -185,6 +185,9 @@ interval — `interval.Contains(day)` and
 `interval.ToDateInterval().Contains(day)` always agree; unbounded endpoints
 stay unbounded. `Days()` counts the days a `FiniteInterval<DateOnly>`
 contains (`[Jan 1, Jan 3]` is 3 days; an excluded endpoint day doesn't count).
+Going the other way, `DateOnly.ToTimeInterval()` expands a day to its instants as
+a `FiniteInterval<DateTime>` (half-open, `[midnight, next midnight)`), and
+`DateTime.ToDateOnly()` drops a moment's time of day.
 
 ```csharp
 var stay = FiniteInterval.Create(new DateTime(2026, 7, 1, 14, 0, 0), new DateTime(2026, 7, 4, 10, 0, 0));
@@ -192,6 +195,7 @@ var stay = FiniteInterval.Create(new DateTime(2026, 7, 1, 14, 0, 0), new DateTim
 stay.Contains(new DateOnly(2026, 7, 4));     // true — the stay reaches into that day
 stay.ToDateInterval();                       // FiniteInterval<DateOnly> [2026-07-01, 2026-07-04]
 stay.ToDateInterval().Days();                // 4 — July 1 through July 4
+new DateOnly(2026, 7, 4).ToTimeInterval();   // FiniteInterval<DateTime> [2026-07-04 00:00, 2026-07-05 00:00)
 
 var season = FiniteInterval.Create(new DateOnly(2026, 6, 1), new DateOnly(2026, 8, 31));   // June through August
 season.Contains(new DateTime(2026, 8, 31, 9, 30, 0));   // true — the end day is inclusive
