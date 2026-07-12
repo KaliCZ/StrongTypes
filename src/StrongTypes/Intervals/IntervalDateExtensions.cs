@@ -7,6 +7,22 @@ namespace StrongTypes;
 /// <summary>Bridges <see cref="DateTime"/> and <see cref="DateOnly"/> values and the intervals over them.</summary>
 public static class IntervalDateExtensions
 {
+    /// <summary>The number of calendar days the interval contains; an excluded endpoint day is not counted.</summary>
+    [Pure]
+    public static int Days(this FiniteInterval<DateOnly> interval) =>
+        interval.End.DayNumber - interval.Start.DayNumber + 1 - (interval.StartInclusive ? 0 : 1) - (interval.EndInclusive ? 0 : 1);
+
+    /// <summary>The calendar day of <paramref name="moment"/>, dropping its time of day.</summary>
+    [Pure]
+    public static DateOnly ToDateOnly(this DateTime moment) => DateOnly.FromDateTime(moment);
+
+    /// <summary>The instants of the calendar day <paramref name="day"/> as the half-open interval [midnight, next midnight); the last representable day is capped at <see cref="DateTime.MaxValue"/>.</summary>
+    [Pure]
+    public static FiniteInterval<DateTime> ToTimeInterval(this DateOnly day) =>
+        day == DateOnly.MaxValue
+            ? FiniteInterval.Create(day.ToDateTime(TimeOnly.MinValue), DateTime.MaxValue)
+            : FiniteInterval.Create(day.ToDateTime(TimeOnly.MinValue), day.AddDays(1).ToDateTime(TimeOnly.MinValue), endInclusive: false);
+
     /// <summary>Whether the interval covers any instant of the calendar day <paramref name="day"/>.</summary>
     [Pure]
     public static bool Contains(this FiniteInterval<DateTime> interval, DateOnly day) => CoversDay(interval, day);
@@ -58,22 +74,6 @@ public static class IntervalDateExtensions
     [Pure]
     public static Interval<DateOnly> ToDateInterval(this Interval<DateTime> interval) =>
         Interval.Create(interval.Start?.ToDateOnly(), CoveredEndDay(interval.End, interval.EndInclusive));
-
-    /// <summary>The number of calendar days the interval contains; an excluded endpoint day is not counted.</summary>
-    [Pure]
-    public static int Days(this FiniteInterval<DateOnly> interval) =>
-        interval.End.DayNumber - interval.Start.DayNumber + 1 - (interval.StartInclusive ? 0 : 1) - (interval.EndInclusive ? 0 : 1);
-
-    /// <summary>The calendar day of <paramref name="moment"/>, dropping its time of day.</summary>
-    [Pure]
-    public static DateOnly ToDateOnly(this DateTime moment) => DateOnly.FromDateTime(moment);
-
-    /// <summary>The instants of the calendar day <paramref name="day"/> as the half-open interval [midnight, next midnight); the last representable day is capped at <see cref="DateTime.MaxValue"/>.</summary>
-    [Pure]
-    public static FiniteInterval<DateTime> ToTimeInterval(this DateOnly day) =>
-        day == DateOnly.MaxValue
-            ? FiniteInterval.Create(day.ToDateTime(TimeOnly.MinValue), DateTime.MaxValue)
-            : FiniteInterval.Create(day.ToDateTime(TimeOnly.MinValue), day.AddDays(1).ToDateTime(TimeOnly.MinValue), endInclusive: false);
 
     private static bool CoversDay(Interval<DateTime> interval, DateOnly day) => interval.Overlaps(day.ToTimeInterval());
 
