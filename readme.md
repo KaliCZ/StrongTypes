@@ -248,29 +248,33 @@ The same converter also serves `INonEmptyEnumerable<T>`, so properties typed as 
 
 ## Interval types
 
-A pair of ordered endpoints with the invariant `Start <= End`. Both endpoints are **inclusive by default** (`[Start, End]`), and each bound can be excluded per value via the optional `startInclusive` / `endInclusive` factory parameters — so `[Start, End)`, `(Start, End]`, and `(Start, End)` are all expressible. Equal endpoints form a single-value interval and require both bounds inclusive; an *empty* interval is not constructible — model "no interval" as a nullable interval that is `null`. Four `readonly struct` variants cover every combination of which endpoints are *bounded*, so the compiler — not a runtime check — enforces that a bounded endpoint can never be `null`. Endpoints are any `struct, IComparable<T>` (`int`, `DateTime`, `DateOnly`, `decimal`, …).
+A readonly struct with a condition `Start <= End`. Both are **inclusive by default**, but can be configured (see below). T may be any `struct, IComparable<T>` (`int`, `DateTime`, `DateOnly`, `decimal`, …).
 
-| Type                  | `Start` | `End` | Use for                         |
-| --------------------- | ------- | ----- | ------------------------------- |
-| `FiniteInterval<T>`   | `T`     | `T`   | a fully-bounded range           |
-| `IntervalFrom<T>`     | `T`     | `T?`  | "from X" (no upper bound)     |
-| `IntervalUntil<T>`    | `T?`    | `T`   | "until Y" (no lower bound)    |
-| `Interval<T>`         | `T?`    | `T?`  | either/both bounds optional     |
+| Type                  | `Start` | `End` | Use for                                 |
+| --------------------- | ------- | ----- |-----------------------------------------|
+| `FiniteInterval<T>`   | `T`     | `T`   | a fully-bounded range                   |
+| `IntervalFrom<T>`     | `T`     | `T?`  | "from X" (end optional)                 |
+| `IntervalUntil<T>`    | `T?`    | `T`   | "until Y" (start optional)              |
+| `Interval<T>`         | `T?`    | `T?`  | both optional (but one must be present) |
 
-Same factory pattern; `TryCreate` / `Create` reject `Start > End` (when both endpoints are present) and equal endpoints with an exclusive bound. Non-generic companion classes infer the endpoint type from the arguments:
+Same factory pattern; `TryCreate` / `Create` reject `Start > End`. `Start = End` is rejected unless both are inclusive.
 
 ```csharp
-FiniteInterval<int>?  range  = FiniteInterval.TryCreate(1, 10);    // [1, 10], null if start > end
-FiniteInterval<int>   shift  = FiniteInterval.Create(9, 17, endInclusive: false);   // [9, 17)
+FiniteInterval<int>?  good  = FiniteInterval.TryCreate(1, 10);    // [1, 10]
+FiniteInterval<int>?  bad  = FiniteInterval.TryCreate(10, 1);    // null
+FiniteInterval<int>   time  = FiniteInterval.Create(9, 17, endInclusive: false);   // [9, 17)
 IntervalFrom<DateOnly> openEnded = IntervalFrom.Create(today, null); // "from today, no end"
 ```
 
-`Contains` answers membership honoring each bound's inclusivity, and a `Deconstruct` lets `Interval<T>` drive an exhaustive switch over the four bound cases:
+`Contains` answers membership honoring each bound's inclusivity.
 
 ```csharp
 bool inRange = range.Contains(10);   // true — bounds are inclusive by default
-bool atShiftEnd = shift.Contains(17);   // false — created with endInclusive: false
+bool atShiftEnd = time.Contains(17);   // false — created with endInclusive: false
+```
 
+`Deconstruct` lets `Interval<T>` drive an exhaustive switch over the four bound cases. Deconstruct is defined on all 4 types.
+```csharp
 string label = interval switch
 {
     (null, null)         => "unbounded",
@@ -283,18 +287,19 @@ string label = interval switch
 `Overlaps` / `GetOverlap` intersect any variant mix (touching endpoints overlap only when both bounds are inclusive), and `DateTime` ↔ `DateOnly` intervals bridge across:
 
 ```csharp
-FiniteInterval.Create(10, 20).GetOverlap(IntervalFrom.Create(15, null));   // [15, 20]
-stay.Contains(new DateOnly(2026, 7, 4));      // DateTime interval covers any instant of that day?
-stay.ToDateInterval().Days();                 // calendar days it spans
-new DateOnly(2026, 7, 4).ToTimeInterval();    // a day as a FiniteInterval<DateTime>
-new DateTime(2026, 7, 4, 9, 0, 0).ToDateOnly();   // drop the time
+time.GetOverlap(IntervalFrom.Create(15, null));   // [15, 17)
+
+var stay = FiniteInterval.Create(new DateOnly(2026, 7, 4), new DateOnly(2026, 7, 24));
+stay.Contains(new DateTime(2026, 7, 15, 14, 0, 0));      // We have helpers for checking DateOnly against DateTime and vice-versa
+stay.Days();   // amount of days - respects inclusivity of both start+end.
 ```
 
 A more-constrained variant **widens implicitly** to a less-constrained one (lossless, never throws); narrowing is partial, so it follows the `As…` / `To…` convention:
 
 ```csharp
 IntervalFrom<int> from = FiniteInterval.Create(1, 10);          // widens implicitly
-Interval<int>[] mixed = [FiniteInterval.Create(1, 10), from];   // hold variants together, no boxing
+Interval<int>[] mixed = [FiniteInterval.Create(1, 10), from];   // implicit operators - all intervals can be added to an array of Interval<T>
+
 FiniteInterval<int> bad = mixed[0];                 // does NOT compile — an endpoint may be unbounded
 FiniteInterval<int>? maybe = mixed[0].AsFinite();   // null when an endpoint is unbounded
 FiniteInterval<int> sure = mixed[0].ToFinite();     // throws when an endpoint is unbounded
@@ -302,26 +307,28 @@ FiniteInterval<int> sure = mixed[0].ToFinite();     // throws when an endpoint i
 
 ### JSON
 
-Serialized as an object. Both endpoint keys are always written (an unbounded endpoint is `null`); the inclusivity flags appear only when `false` and default to `true` when read:
+Serialized as an object. Both start + end are always written (even `null` value). Inclusivity defaults to true and skips writing when true.
 
 ```jsonc
 { "Start": 9, "End": 17 }                         // [9, 17]  — flags omitted, so inclusive
 { "Start": 9, "End": 17, "EndInclusive": false }  // [9, 17)
 ```
 
-An absent *optional* endpoint reads as `null` (so `Interval` accepts `{}`); a payload that violates the invariant (`Start > End`, or equal endpoints with an exclusive bound) or omits a *required* endpoint surfaces as a `JsonException`. To pin a bound's inclusivity on a property instead of carrying it per value (mirroring the EF `IntervalBoundMode`), subclass [`IntervalJsonConverter<TInterval>`](src/StrongTypes/Intervals/IntervalJsonConverter.cs):
+Missing value reads as `null` (so `Interval` accepts `{}`, but FiniteInterval would crash); The error is `JsonException`. Use a subclass of [`IntervalJsonConverter<TInterval>`](src/StrongTypes/Intervals/IntervalJsonConverter.cs) to change the default inclusivity and apply it per property.
 
 ```csharp
-public sealed class HalfOpenInterval()
+public sealed class HalfOpenIntervalConverter()
     : IntervalJsonConverter<FiniteInterval<int>>(IntervalBoundMode.AlwaysInclusive, IntervalBoundMode.AlwaysExclusive);
 ```
 
 ### Persistence
 
-Persist with EF Core as two indexable endpoint columns (the `UseStrongTypes()` default) or a single JSON column; both re-validate the invariant on read. Bound inclusivity is a per-bound mapping choice via `IntervalBoundMode` — fixed with no extra column, or `Stored` per value:
+Store into DB with EF Core as two (indexable) columns or as JSON.
 
 ```csharp
-// Default: two endpoint columns — name them inline.
+// Default: two endpoint columns.
+
+// Explicitly name columns like this.
 modelBuilder.Entity<Booking>()
     .HasIntervalColumns(b => b.Window, startName: "WindowStart", endName: "WindowEnd");
 
