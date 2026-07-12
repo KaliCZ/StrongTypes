@@ -70,21 +70,7 @@ public static class StrongTypeSchemaTypes
     {
         startType = null!;
         endType = null!;
-
-        var unwrapped = UnwrapNullable(clrType);
-        if (unwrapped is null || !unwrapped.IsGenericType) return false;
-        var definition = unwrapped.GetGenericTypeDefinition();
-
-        // The endpoint is a struct for every interval type, so Nullable<endpoint>
-        // is only well-formed once we know it's an interval — build it lazily.
-        var endpoint = unwrapped.GetGenericArguments()[0];
-        Type Nullable() => typeof(Nullable<>).MakeGenericType(endpoint);
-
-        if (definition == typeof(FiniteInterval<>)) { startType = endpoint; endType = endpoint; return true; }
-        if (definition == typeof(Interval<>)) { startType = Nullable(); endType = Nullable(); return true; }
-        if (definition == typeof(IntervalFrom<>)) { startType = endpoint; endType = Nullable(); return true; }
-        if (definition == typeof(IntervalUntil<>)) { startType = Nullable(); endType = endpoint; return true; }
-        return false;
+        return clrType is not null && IntervalTypes.TryGetEndpoints(clrType, out startType, out endType);
     }
 
     public static Type? ResolveWireType(Type? clrType)

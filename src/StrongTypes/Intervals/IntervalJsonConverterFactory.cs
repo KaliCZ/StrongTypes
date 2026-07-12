@@ -1,7 +1,6 @@
 #nullable enable
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
@@ -13,19 +12,9 @@ namespace StrongTypes;
 /// <remarks>Each interval is read and written as a JSON object with <c>Start</c> and <c>End</c> properties. <c>StartInclusive</c> and <c>EndInclusive</c> are carried per value: written only when <c>false</c> and read as <c>true</c> when absent. To pin a bound's inclusivity instead, apply an <see cref="IntervalJsonConverter{TInterval}"/> to that property. Values that violate the wrapper's invariant throw <see cref="JsonException"/>. Property names honour the active <see cref="JsonNamingPolicy"/>.</remarks>
 public sealed class IntervalJsonConverterFactory : JsonConverterFactory
 {
-    private static readonly HashSet<Type> SupportedDefinitions =
-    [
-        typeof(FiniteInterval<>),
-        typeof(Interval<>),
-        typeof(IntervalFrom<>),
-        typeof(IntervalUntil<>)
-    ];
-
     private static readonly ConcurrentDictionary<Type, JsonConverter> s_converterCache = new();
 
-    public override bool CanConvert(Type typeToConvert) =>
-        typeToConvert.IsGenericType
-        && SupportedDefinitions.Contains(typeToConvert.GetGenericTypeDefinition());
+    public override bool CanConvert(Type typeToConvert) => IntervalTypes.IsInterval(typeToConvert);
 
     public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options) =>
         s_converterCache.GetOrAdd(typeToConvert, static t => CreateInner(t, IntervalBoundMode.Stored, IntervalBoundMode.Stored));
@@ -37,25 +26,12 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
 
     private static JsonConverter CreateInner(Type interval, IntervalBoundMode startMode, IntervalBoundMode endMode)
     {
-        if (!interval.IsGenericType || !SupportedDefinitions.Contains(interval.GetGenericTypeDefinition()))
+        if (!IntervalTypes.TryGetEndpoints(interval, out var startType, out var endType))
         {
             throw new InvalidOperationException($"{interval} is not a supported interval type.");
         }
-        var definition = interval.GetGenericTypeDefinition();
-        var endpoint = interval.GetGenericArguments()[0];
-        var (startType, endType) = StartEndTypes(definition, endpoint);
         var converterType = typeof(Inner<,,>).MakeGenericType(interval, startType, endType);
         return (JsonConverter)Activator.CreateInstance(converterType, startMode, endMode)!;
-    }
-
-    private static (Type Start, Type End) StartEndTypes(Type definition, Type endpoint)
-    {
-        var nullable = typeof(Nullable<>).MakeGenericType(endpoint);
-        if (definition == typeof(FiniteInterval<>)) return (endpoint, endpoint);
-        if (definition == typeof(Interval<>)) return (nullable, nullable);
-        if (definition == typeof(IntervalFrom<>)) return (endpoint, nullable);
-        if (definition == typeof(IntervalUntil<>)) return (nullable, endpoint);
-        throw new InvalidOperationException($"Unsupported interval definition: {definition}.");
     }
 
     private sealed class Inner<TInterval, TStart, TEnd>(IntervalBoundMode startMode, IntervalBoundMode endMode) : JsonConverter<TInterval>
