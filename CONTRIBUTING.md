@@ -32,10 +32,11 @@ to touch, what to cover, how to write each kind of test — live in
 [`testing.md`](testing.md). Read it before writing tests or production
 code that will need them.
 
-The API CRUD/PATCH suite lives in two parallel harnesses — `EntityTests`
-(scalar wire types) and `IntervalEntityTests` (object wire) — that must stay at
-feature parity: a create/get/update/PATCH scenario added to one belongs in the
-other. See "Two parallel CRUD harnesses" in [`testing.md`](testing.md).
+The API CRUD/PATCH suite's shared create/get/update/PATCH scenarios live once in
+`EntityCrudTestsBase`, behind two thin wire-shape adapters — `EntityTests`
+(scalar wire types) and `IntervalEntityTests` (object wire). A new shared
+scenario goes in the base, so the two wire shapes cannot drift. See "One shared
+CRUD surface" in [`testing.md`](testing.md).
 
 ## Documentation
 
