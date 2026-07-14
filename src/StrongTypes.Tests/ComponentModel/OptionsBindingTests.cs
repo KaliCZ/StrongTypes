@@ -8,12 +8,7 @@ using Xunit;
 
 namespace StrongTypes.Tests;
 
-/// <summary>
-/// Binding an options class is what the <c>TypeConverter</c> exists for: without one,
-/// <c>ConfigurationBinder</c> finds no way to turn <c>"5"</c> into a strong type, treats
-/// the wrapper as a nested object graph, and silently leaves the property at its default —
-/// no exception, just a wrong value. These tests pin the whole path end to end.
-/// </summary>
+/// <summary>Without a <c>TypeConverter</c>, <c>ConfigurationBinder</c> cannot turn <c>"5"</c> into a strong type and silently leaves the property at its default rather than failing — so these assert the bound value, not merely that binding returned.</summary>
 public class OptionsBindingTests
 {
     private sealed class RetryOptions
@@ -65,12 +60,7 @@ public class OptionsBindingTests
         Assert.Equal(99, options.OptionalLimit?.Value);
     }
 
-    /// <summary>
-    /// The regression that motivated the converter. <c>default(Positive&lt;int&gt;)</c> is a
-    /// plausible-looking <c>1</c> — the offset encoding that keeps the invariant true for
-    /// <c>default</c> is exactly what makes a dropped config value impossible to spot — so
-    /// assert the bound value differs from the default rather than merely that it is set.
-    /// </summary>
+    /// <summary><c>default(Positive&lt;int&gt;)</c> is a plausible-looking <c>1</c>, so a dropped config value reads as a real one — hence asserting the bound value differs from the default.</summary>
     [Property]
     public void BoundValueComesFromConfiguration_NotTheDefault(int configured)
     {
@@ -104,8 +94,6 @@ public class OptionsBindingTests
     {
         var exception = Assert.Throws<InvalidOperationException>(() => BindViaOptions(Config((key, value))));
 
-        // The binder's own message carries the config path and the offending value; the
-        // invariant's reason survives as the inner exception the wrapper threw.
         Assert.Contains(key, exception.Message, StringComparison.Ordinal);
         Assert.Contains(value, exception.Message, StringComparison.Ordinal);
 

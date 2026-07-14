@@ -9,7 +9,8 @@ Library of focused C# value wrappers (`NonEmptyString`, `Positive<T>`,
 `NonEmptyEnumerable<T>`, …) and algebraic types (`Maybe<T>`,
 `Result<T, TError>`) that push invariants into the type system. Every
 wrapper ships a `System.Text.Json` converter, so invalid input fails at
-deserialization before any endpoint code runs.
+deserialization before any endpoint code runs, and a `TypeConverter`, so
+the same invariant validates `appsettings.json` as it binds.
 
 Per-type detail lives in `references/*.md` — load the relevant file on
 demand when about to write code against that surface.
@@ -62,6 +63,7 @@ demand when about to write code against that surface.
 | Topic                                                         | Reference                       |
 | ------------------------------------------------------------- | ------------------------------- |
 | Enum extensions (`Enum.Parse`, `AllValues`, `AllFlagValues`, `GetFlags`) and `string?` parsers (`AsInt`, `AsGuid`, `AsEnum<T>`, …) | `references/parsing.md`         |
+| Configuration / `IOptions<T>` binding — zero setup, invariant doubles as validation, `ValidateOnStart()` | `references/configuration.md`   |
 | `T?.Map`, `bool.MapTrue` / `MapFalse`                         | `references/map.md`             |
 | `IEnumerable<T>` extensions, `ReadOnlyList`, `Result` partition helpers | `references/collections.md`     |
 | EF Core: `UseStrongTypes` value converters, interval column mapping, `.Unwrap()` LINQ marker | `references/efcore.md`          |

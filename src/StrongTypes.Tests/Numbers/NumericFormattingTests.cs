@@ -5,12 +5,7 @@ using Xunit;
 
 namespace StrongTypes.Tests;
 
-/// <summary>
-/// Composite formatting silently ignores a format specifier on a type that is not
-/// <see cref="IFormattable"/> — <c>$"{price:C}"</c> compiles, never throws, and prints the
-/// unformatted number. These tests pin the specifier and the culture actually reaching the
-/// underlying value, for every numeric wrapper the generator emits.
-/// </summary>
+/// <summary>Composite formatting silently ignores a specifier on a type that is not <see cref="IFormattable"/> — <c>$"{price:C}"</c> compiles, never throws, and prints the unformatted number — so these pin the specifier and the culture reaching the underlying value.</summary>
 public class NumericFormattingTests
 {
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-DE");
@@ -124,9 +119,8 @@ public class NumericFormattingTests
 
     // ── Generic constraints ─────────────────────────────────────────────
     //
-    // The reason the span interfaces earn their place: without them a wrapper
-    // cannot be passed to generic code constrained on them, and no amount of
-    // reaching for .Value at the call site fixes that for the caller.
+    // What the span interfaces buy that reaching for .Value cannot: a caller's
+    // generic code constrained on them can accept a wrapper at all.
 
     private static string Render<T>(T value, string format) where T : IFormattable =>
         value.ToString(format, American);
