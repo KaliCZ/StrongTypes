@@ -23,7 +23,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
-    <ProjectReference Include="..\StrongTypes.Wpf\StrongTypes.Wpf.csproj" />
     <ProjectReference Include="..\StrongTypes.Wpf.TestApp\StrongTypes.Wpf.TestApp.csproj" />
   </ItemGroup>
 </Project>

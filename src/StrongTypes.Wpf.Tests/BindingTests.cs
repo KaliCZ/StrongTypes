@@ -4,9 +4,15 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using StrongTypes.Wpf.TestApp;
 using Xunit;
+using static StrongTypes.Wpf.Tests.Bindings;
 
 namespace StrongTypes.Wpf.Tests;
 
+/// <summary>
+/// WPF routes <c>string → T</c> through <see cref="System.ComponentModel.TypeDescriptor"/> and never
+/// consults <c>IParsable&lt;T&gt;</c>, so these are the only coverage proving the core
+/// <c>[TypeConverter]</c> satisfies the binding engine. No registration call is made anywhere.
+/// </summary>
 public class NonEmptyStringBindingTests
 {
     [Fact]
@@ -64,24 +70,9 @@ public class NonEmptyStringBindingTests
             textBox.Text = "   ";
 
             Assert.Equal(NonEmptyString.Create("Alice"), vm.Name);
-            Assert.True(System.Windows.Controls.Validation.GetHasError(textBox));
+            Assert.True(Validation.GetHasError(textBox));
         });
     }
-
-    private static Binding OneWay(string path, object source) => new(path)
-    {
-        Source = source,
-        Mode = BindingMode.OneWay,
-    };
-
-    private static Binding TwoWay(string path, object source) => new(path)
-    {
-        Source = source,
-        Mode = BindingMode.TwoWay,
-        UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
-        ValidatesOnExceptions = true,
-        NotifyOnValidationError = true,
-    };
 }
 
 public class EmailBindingTests
@@ -126,24 +117,9 @@ public class EmailBindingTests
             textBox.Text = "not-an-email";
 
             Assert.Equal(Email.Create("alice@example.com"), vm.Email);
-            Assert.True(System.Windows.Controls.Validation.GetHasError(textBox));
+            Assert.True(Validation.GetHasError(textBox));
         });
     }
-
-    private static Binding OneWay(string path, object source) => new(path)
-    {
-        Source = source,
-        Mode = BindingMode.OneWay,
-    };
-
-    private static Binding TwoWay(string path, object source) => new(path)
-    {
-        Source = source,
-        Mode = BindingMode.TwoWay,
-        UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
-        ValidatesOnExceptions = true,
-        NotifyOnValidationError = true,
-    };
 }
 
 public class PositiveIntBindingTests
@@ -188,7 +164,7 @@ public class PositiveIntBindingTests
             textBox.Text = "0";
 
             Assert.Equal(Positive<int>.Create(30), vm.Age);
-            Assert.True(System.Windows.Controls.Validation.GetHasError(textBox));
+            Assert.True(Validation.GetHasError(textBox));
         });
     }
 
@@ -204,22 +180,55 @@ public class PositiveIntBindingTests
             textBox.Text = "abc";
 
             Assert.Equal(Positive<int>.Create(30), vm.Age);
-            Assert.True(System.Windows.Controls.Validation.GetHasError(textBox));
+            Assert.True(Validation.GetHasError(textBox));
+        });
+    }
+}
+
+/// <summary>A non-generic struct wrapper — resolves its converter by attribute rather than through <c>StrongTypeConverter</c>'s open-generic bootstrap.</summary>
+public class DigitBindingTests
+{
+    [Fact]
+    public void OneWay_DisplaysCurrentValue()
+    {
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { Tier = Digit.Create('7') };
+            var textBox = new TextBox();
+            BindingOperations.SetBinding(textBox, TextBox.TextProperty, OneWay(nameof(vm.Tier), vm));
+
+            Assert.Equal("7", textBox.Text);
         });
     }
 
-    private static Binding OneWay(string path, object source) => new(path)
+    [Fact]
+    public void TwoWay_ValidInput_UpdatesSource()
     {
-        Source = source,
-        Mode = BindingMode.OneWay,
-    };
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { Tier = Digit.Create('7') };
+            var textBox = new TextBox();
+            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.Tier), vm));
 
-    private static Binding TwoWay(string path, object source) => new(path)
+            textBox.Text = "3";
+
+            Assert.Equal(Digit.Create('3'), vm.Tier);
+        });
+    }
+
+    [Fact]
+    public void TwoWay_InvalidInput_DoesNotMutateSourceAndRaisesValidationError()
     {
-        Source = source,
-        Mode = BindingMode.TwoWay,
-        UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
-        ValidatesOnExceptions = true,
-        NotifyOnValidationError = true,
-    };
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { Tier = Digit.Create('7') };
+            var textBox = new TextBox();
+            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.Tier), vm));
+
+            textBox.Text = "42";
+
+            Assert.Equal(Digit.Create('7'), vm.Tier);
+            Assert.True(Validation.GetHasError(textBox));
+        });
+    }
 }

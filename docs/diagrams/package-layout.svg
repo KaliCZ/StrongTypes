@@ -143,16 +143,16 @@
   <text class="card-body" x="53" y="427">Predefined value generators</text>
 
   <!-- ========================================================== -->
-  <!-- App surface (bottom-right) — currently just WPF            -->
+  <!-- App surface (bottom-right) — built into the core package    -->
   <!-- ========================================================== -->
   <rect class="group-bg group-border" x="415" y="285" width="390" height="160" rx="10" stroke-width="1.2"/>
   <text class="group-label" x="430" y="304">APP SURFACE</text>
 
-  <!-- WPF -->
+  <!-- WPF / WinForms -->
   <rect class="card-bg card-border" x="425" y="318" width="370" height="55" rx="6" stroke-width="1.5"/>
-  <text class="card-title" x="439" y="338">Kalicz.StrongTypes.Wpf</text>
+  <text class="card-title" x="439" y="338">WPF / WinForms</text>
   <circle class="sm-bullet" cx="445" cy="358" r="2"/>
-  <text class="card-body" x="453" y="362">Two-way MVVM binding</text>
+  <text class="card-body" x="453" y="362">Two-way MVVM binding — built in</text>
 
   <!-- CTA: invite issues for other UI frameworks -->
   <a href="https://github.com/KaliCZ/StrongTypes/issues/new" target="_blank">

@@ -53,7 +53,6 @@ as part of the same PR.
   [`StrongTypes.FsCheck`](src/StrongTypes.FsCheck/readme.md),
   [`StrongTypes.OpenApi.Microsoft`](src/StrongTypes.OpenApi.Microsoft/readme.md),
   [`StrongTypes.OpenApi.Swashbuckle`](src/StrongTypes.OpenApi.Swashbuckle/readme.md),
-  [`StrongTypes.Wpf`](src/StrongTypes.Wpf/readme.md),
   [`StrongTypes.AspNetCore`](src/StrongTypes.AspNetCore/readme.md))
   should reflect what the package actually does after your change. Update
   the one that matches.

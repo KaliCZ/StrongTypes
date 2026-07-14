@@ -77,6 +77,6 @@ earlier one.
 - **Nullable wrappers still enforce the invariant** when a value is present:
   `OptionalLimit` may be absent, but `-1` is rejected.
 - The same `TypeConverter` powers anything that goes through `TypeDescriptor` —
-  WinForms designers, `PropertyGrid`, and libraries doing generic
-  string↔object conversion. WPF users still call `this.UseStrongTypes()`
-  (see `references/wpf.md`).
+  WPF/WinForms two-way binding (`references/wpf.md`), designers,
+  `PropertyGrid`, and libraries doing generic string↔object conversion. It is
+  one mechanism on the type, so none of them need a registration call.

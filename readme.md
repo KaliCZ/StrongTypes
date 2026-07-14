@@ -2,7 +2,7 @@
 
 [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
-StrongTypes adds small, focused types that make everyday code safer and more expressive. Every type ships with `System.Text.Json` converters out of the box, so invalid JSON fails at deserialization. The types can be stored directly in EF Core entities via the EfCore package, OpenAPI documentation is supported through the Microsoft or Swashbuckle OpenAPI packages, and WPF is supported via the WPF package — see [Packages](#packages) below.
+StrongTypes adds small, focused types that make everyday code safer and more expressive. Every type ships with `System.Text.Json` converters out of the box, so invalid JSON fails at deserialization, and a `TypeConverter`, so the same invariant validates `appsettings.json` as it binds and WPF two-way bindings work with no setup. The types can be stored directly in EF Core entities via the EfCore package, and OpenAPI documentation is supported through the Microsoft or Swashbuckle OpenAPI packages — see [Packages](#packages) below.
 
 > 🤖 Letting Claude Code or Codex write code in a project that uses
 > StrongTypes? See [Use with Claude or Codex](#use-with-claude-or-codex)
@@ -28,6 +28,7 @@ StrongTypes adds small, focused types that make everyday code safer and more exp
   - [Numeric wrappers: `Positive<T>`, `NonNegative<T>`, `Negative<T>`, `NonPositive<T>`](#numeric-wrappers)
   - [What you get for free](#what-you-get-for-free)
   - [JSON serialization](#json-serialization)
+  - [Configuration binding](#configuration-binding)
   - [EF Core persistence](#ef-core-persistence)
   - [OpenAPI / Swagger schema](#openapi--swagger-schema)
   - [WPF MVVM binding](#wpf-mvvm-binding)
@@ -140,6 +141,34 @@ All strong types ship with `System.Text.Json` converters attached via `[JsonConv
 
 [↑ Back to contents](#contents)
 
+### Configuration binding
+
+All strong types ship a `TypeConverter` attached via `[TypeConverter]`, which is what `ConfigurationBinder` uses — so a wrapper works directly on an options class, and its invariant becomes the config validation rule:
+
+```csharp
+public sealed class RetryOptions
+{
+    public Positive<int> MaxRetries { get; set; }
+    public NonEmptyString? Name { get; set; }
+}
+
+builder.Services.AddOptions<RetryOptions>()
+    .Bind(builder.Configuration.GetSection("Retry"))
+    .ValidateOnStart();
+```
+
+A bad value fails with the path, the value, and the reason — no `[Range]` and no `IValidateOptions<T>` needed:
+
+```
+InvalidOperationException: Failed to convert configuration value '-5' at 'Retry:MaxRetries'
+                           to type 'StrongTypes.Positive`1[System.Int32]'.
+  ---> ArgumentException: Value must be positive, but was '-5'. (Parameter 'value')
+```
+
+Reach for `ValidateOnStart()`: options binding is lazy, so without it a bad value doesn't fail the deploy — it throws on the first request that reads `IOptions<T>.Value`.
+
+[↑ Back to contents](#contents)
+
 ### EF Core persistence
 
 If you want to store strong types directly on your EF Core entities, add the companion package [`Kalicz.StrongTypes.EfCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/). It provides the value converters needed to map `NonEmptyString`, `Positive<T>`, and other numeric types to their underlying column types. See the package [readme](https://github.com/KaliCZ/StrongTypes/blob/main/src/StrongTypes.EfCore/readme.md) for setup details.
@@ -162,9 +191,20 @@ Pick the one that matches the generator your app already uses. They're not inter
 
 ### WPF MVVM binding
 
-For WPF applications, add the package [`Kalicz.StrongTypes.Wpf`](https://www.nuget.org/packages/Kalicz.StrongTypes.Wpf/) to enable bindings including two-way. One `this.UseStrongTypes()` call in `App.OnStartup` to register.
+Nothing to install, nothing to call. WPF resolves `string → T` through `TypeDescriptor`, and every strong type carries a `[TypeConverter]`, so two-way bindings just work:
 
-Other UI frameworks (WinForms, MAUI, Avalonia, …) aren't covered yet — see [issue #94](https://github.com/KaliCZ/StrongTypes/issues/94).
+```xml
+<TextBox Text="{Binding Name,
+                        Mode=TwoWay,
+                        UpdateSourceTrigger=PropertyChanged,
+                        ValidatesOnExceptions=True}" />
+```
+
+…where `Name` is a view-model property of type `NonEmptyString`. `ValidatesOnExceptions=True` is the load-bearing piece: it turns the `ArgumentException` a strong type throws on invalid input into a `ValidationError`, driving WPF's standard red-border template. Without it the binding swallows the failure silently.
+
+> **Changed in v2.** This used to require the `Kalicz.StrongTypes.Wpf` package and a `this.UseStrongTypes()` call in `App.OnStartup`. Both are gone — the converters now live on the types. Drop the package reference and the call.
+
+The same `TypeDescriptor` mechanism backs WinForms and designers. MAUI and Avalonia aren't covered yet — see [issue #94](https://github.com/KaliCZ/StrongTypes/issues/94).
 
 [↑ Back to contents](#contents)
 
@@ -752,7 +792,6 @@ Result<Positive<int>[], string> ParseOrderQuantities(IEnumerable<int> inputs)
 | [`Kalicz.StrongTypes.OpenApi.Microsoft`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft/) | Schema transformers for `Microsoft.AspNetCore.OpenApi` (`AddOpenApi()`) so the generated document matches the wire JSON. | [readme](src/StrongTypes.OpenApi.Microsoft/readme.md) |
 | [`Kalicz.StrongTypes.OpenApi.Swashbuckle`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Swashbuckle/) | Schema filters for `Swashbuckle.AspNetCore` (`AddSwaggerGen()`) so the generated Swagger document matches the wire JSON. | [readme](src/StrongTypes.OpenApi.Swashbuckle/readme.md) |
 | [`Kalicz.StrongTypes.AspNetCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.AspNetCore/) | MVC model binder for `NonEmptyEnumerable<T>` from `[FromForm]`, `[FromQuery]`, `[FromHeader]`, and `[FromRoute]`, plus opt-out normalization of JSON request-body validation error keys (`$.value` → `Value`, configurable via `AddStrongTypes(o => o.NormalizeJsonErrorKeys = …)`). The binder isn't needed for JSON APIs — `[FromBody]` round-trips wrappers via the main package's JSON converters — but the error-key normalization applies to any JSON API. | [readme](src/StrongTypes.AspNetCore/readme.md) |
-| [`Kalicz.StrongTypes.Wpf`](https://www.nuget.org/packages/Kalicz.StrongTypes.Wpf/) | `TypeConverter`s that bridge `IParsable<T>` into `TypeDescriptor`, enabling two-way MVVM binding to strong types in WPF (and any framework that resolves converters via `TypeDescriptor`). | [readme](src/StrongTypes.Wpf/readme.md) |
 
 [↑ Back to contents](#contents)
 

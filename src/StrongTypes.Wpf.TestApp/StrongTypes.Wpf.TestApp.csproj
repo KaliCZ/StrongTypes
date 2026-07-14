@@ -13,6 +13,5 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
-    <ProjectReference Include="..\StrongTypes.Wpf\StrongTypes.Wpf.csproj" />
   </ItemGroup>
 </Project>

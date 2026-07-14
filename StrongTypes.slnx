@@ -33,7 +33,6 @@
     <Project Path="src/StrongTypes/StrongTypes.csproj" />
   </Folder>
   <Folder Name="/WPF/">
-    <Project Path="src/StrongTypes.Wpf/StrongTypes.Wpf.csproj" />
     <Project Path="src/StrongTypes.Wpf.TestApp/StrongTypes.Wpf.TestApp.csproj" />
     <Project Path="src/StrongTypes.Wpf.Tests/StrongTypes.Wpf.Tests.csproj" />
   </Folder>
