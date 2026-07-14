@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 
@@ -6,6 +7,7 @@ namespace StrongTypes;
 
 /// <summary>A decimal digit in the range <c>0</c>–<c>9</c>, parsed from a single character.</summary>
 /// <remarks>A character is accepted when <see cref="char.IsDigit(char)"/> returns <c>true</c>, which includes non-ASCII Unicode decimal digits whose numeric value folds into 0–9. <c>default(Digit)</c> represents <c>0</c>.</remarks>
+[TypeConverter(typeof(ParsableTypeConverter<Digit>))]
 public readonly struct Digit :
     IEquatable<Digit>,
     IEquatable<byte>,

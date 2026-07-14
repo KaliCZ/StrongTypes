@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.Contracts;
 using System.Numerics;
 using System.Text.Json.Serialization;
@@ -9,6 +10,7 @@ namespace StrongTypes;
 /// <remarks>Construct via <see cref="TryCreate"/> or <c>Create</c>. <c>default(NonPositive&lt;T&gt;)</c> wraps <c>T.Zero</c> and satisfies the invariant.</remarks>
 [NumericWrapper(InvariantDescription = "non-positive", GenerateSum = true)]
 [JsonConverter(typeof(NumericStrongTypeJsonConverterFactory))]
+[TypeConverter(typeof(StrongTypeConverter))]
 public readonly partial struct NonPositive<T>
     where T : INumber<T>
 {
