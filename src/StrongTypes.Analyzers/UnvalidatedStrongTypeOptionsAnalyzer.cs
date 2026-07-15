@@ -8,19 +8,22 @@ using Microsoft.CodeAnalysis.Operations;
 namespace StrongTypes.Analyzers;
 
 /// <summary>
-/// Fires when an options type carrying a strong type that must be configured is bound with
-/// <c>Bind</c> / <c>Configure</c>, which cannot notice the key is missing.
+/// Fires when an options type carrying a non-nullable reference wrapper is bound with <c>Bind</c> /
+/// <c>Configure</c>, which cannot notice the key is missing and leaves the property null.
 /// </summary>
 /// <remarks>
-/// A wrapper's invariant constrains every value it can hold; it cannot make the binder assign one.
-/// An unconfigured <c>NonEmptyString</c> is therefore <c>null</c> and an unconfigured
-/// <c>Positive&lt;int&gt;</c> is <c>1</c> — its default, an ordinary invariant-satisfying value.
-/// <c>ValidateOnStart()</c> does not help: binding an absent key succeeds without assigning, so
-/// nothing is raised.
+/// A wrapper's invariant constrains every value it can hold; it cannot make the binder assign one,
+/// and the binder assigns nothing for an absent key — so an unconfigured <c>NonEmptyString</c> is
+/// <c>null</c>, which is what the type says it can never be. <c>ValidateOnStart()</c> does not help:
+/// binding an absent key succeeds, so nothing is raised.
 /// <para>
-/// Only reported where <c>[Required]</c> would not already cover it — a struct wrapper, whose
-/// default is never null and so always passes <c>[Required]</c>, or a reference wrapper with no
-/// <c>[Required]</c> at all.
+/// Struct wrappers are not reported. An unconfigured <c>Positive&lt;int&gt;</c> is <c>1</c> — its
+/// default, and a value the type is happy to hold — so there is no contradiction to catch, and
+/// requiring configuration for it would be a policy rather than a fix.
+/// </para>
+/// <para>
+/// A property already carrying <c>[Required]</c> is not reported either: that genuinely covers a
+/// null reference.
 /// </para>
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -32,11 +35,11 @@ public sealed class UnvalidatedStrongTypeOptionsAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor Rule = new(
         id: DiagnosticId,
         title: "Bind strong-typed options with BindStrongTypes",
-        messageFormat: "Options type '{0}' requires configuration for {1}; bind with BindStrongTypes() so a missing key fails instead of silently defaulting",
+        messageFormat: "Options type '{0}' will bind {1} to null when the key is missing; bind with BindStrongTypes() so that fails instead",
         category: "Usage",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "Binding an absent configuration key succeeds without assigning, so a non-nullable strong type keeps a default: null for a reference wrapper, and for a struct wrapper an ordinary value ([Required] cannot see that default(Positive<int>) is 1 rather than a configured 1). Kalicz.StrongTypes.Configuration's BindStrongTypes() checks the section for each required key instead, taking required-ness from the declaration — Positive<int> is required, Positive<int>? is optional.",
+        description: "Binding an absent configuration key succeeds without assigning, so a non-nullable reference wrapper is left null — the one thing its type says it can never be — and nothing reports it. Kalicz.StrongTypes.Configuration's BindStrongTypes() fails on it instead, reading which properties are non-nullable from the declaration rather than from [Required] attributes. Struct wrappers are unaffected: an unconfigured Positive<int> is 1, a value the type is happy to hold.",
         helpLinkUri: "https://www.nuget.org/packages/Kalicz.StrongTypes.Configuration");
 
     private static readonly ImmutableHashSet<string> StrongTypeMetadataNames = ImmutableHashSet.Create(
@@ -88,7 +91,7 @@ public sealed class UnvalidatedStrongTypeOptionsAnalyzer : DiagnosticAnalyzer
                     return;
                 }
 
-                var unguarded = CollectPropertiesNeedingConfiguration(optionsType, requiredAttribute);
+                var unguarded = CollectPropertiesLeftNull(optionsType, requiredAttribute);
                 if (unguarded.Count == 0)
                 {
                     return;
@@ -119,8 +122,8 @@ public sealed class UnvalidatedStrongTypeOptionsAnalyzer : DiagnosticAnalyzer
                && SymbolEqualityComparer.Default.Equals(containing, configureExtensions);
     }
 
-    /// <summary>Properties whose absence nothing would notice: a struct wrapper (whose default satisfies <c>[Required]</c>) or an unannotated-as-nullable reference wrapper without <c>[Required]</c>.</summary>
-    private static List<IPropertySymbol> CollectPropertiesNeedingConfiguration(INamedTypeSymbol optionsType, INamedTypeSymbol? requiredAttribute)
+    /// <summary>Non-nullable reference wrappers with nothing guarding them — the only properties an absent key can leave in a state their type forbids.</summary>
+    private static List<IPropertySymbol> CollectPropertiesLeftNull(INamedTypeSymbol optionsType, INamedTypeSymbol? requiredAttribute)
     {
         var result = new List<IPropertySymbol>();
         for (var current = optionsType; current is not null; current = current.BaseType)
@@ -131,12 +134,12 @@ public sealed class UnvalidatedStrongTypeOptionsAnalyzer : DiagnosticAnalyzer
                 {
                     continue;
                 }
-                if (!IsStrongType(property.Type) || IsOptional(property))
+                // A value type has no invalid state to reach, so an absent key leaves nothing wrong.
+                if (property.Type.IsValueType || !IsStrongType(property.Type))
                 {
                     continue;
                 }
-                // A struct wrapper's default is never null, so [Required] always passes on it.
-                if (!property.Type.IsValueType && HasRequiredAttribute(property, requiredAttribute))
+                if (IsOptional(property) || HasRequiredAttribute(property, requiredAttribute))
                 {
                     continue;
                 }

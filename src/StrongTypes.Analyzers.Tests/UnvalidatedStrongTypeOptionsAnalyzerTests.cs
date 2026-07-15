@@ -46,38 +46,16 @@ public class UnvalidatedStrongTypeOptionsAnalyzerTests
 
     // ── Fires ───────────────────────────────────────────────────────────
 
-    /// <summary>The case nothing else catches: <c>default(Positive&lt;int&gt;)</c> is 1, so <c>[Required]</c> would pass even if it were there.</summary>
+    /// <summary>A non-nullable reference wrapper is the one an absent key leaves null — the state its type forbids.</summary>
     [Theory]
     [InlineData(BindRegistration)]
     [InlineData(ConfigureRegistration)]
-    public async Task Fires_for_a_non_nullable_struct_wrapper(string registration)
+    public async Task Fires_for_a_non_nullable_reference_wrapper(string registration)
     {
-        var diagnostics = await RunAsync(Source("    public Positive<int> MaxRetries { get; set; }", registration));
+        var diagnostics = await RunAsync(Source("    public NonEmptyString Name { get; set; } = null!;", registration));
 
         var diagnostic = Assert.Single(diagnostics.WhereId(UnvalidatedStrongTypeOptionsAnalyzer.DiagnosticId));
         Assert.Contains("RetryOptions", diagnostic.GetMessage(), StringComparison.Ordinal);
-        Assert.Contains("MaxRetries", diagnostic.GetMessage(), StringComparison.Ordinal);
-    }
-
-    /// <summary>A struct wrapper's default is never null, so <c>[Required]</c> cannot rescue it and the diagnostic still fires.</summary>
-    [Fact]
-    public async Task Fires_for_a_non_nullable_struct_wrapper_even_with_Required()
-    {
-        var diagnostics = await RunAsync(Source(
-            "    [Required] public Positive<int> MaxRetries { get; set; }",
-            BindRegistration));
-
-        Assert.Single(diagnostics.WhereId(UnvalidatedStrongTypeOptionsAnalyzer.DiagnosticId));
-    }
-
-    [Fact]
-    public async Task Fires_for_a_non_nullable_reference_wrapper_without_Required()
-    {
-        var diagnostics = await RunAsync(Source(
-            "    public NonEmptyString Name { get; set; } = null!;",
-            BindRegistration));
-
-        var diagnostic = Assert.Single(diagnostics.WhereId(UnvalidatedStrongTypeOptionsAnalyzer.DiagnosticId));
         Assert.Contains("Name", diagnostic.GetMessage(), StringComparison.Ordinal);
     }
 
@@ -86,12 +64,12 @@ public class UnvalidatedStrongTypeOptionsAnalyzerTests
     {
         var diagnostics = await RunAsync(Source("""
                 public NonEmptyString Name { get; set; } = null!;
-                public Positive<int> MaxRetries { get; set; }
+                public Email Contact { get; set; } = null!;
             """, BindRegistration));
 
         var diagnostic = Assert.Single(diagnostics.WhereId(UnvalidatedStrongTypeOptionsAnalyzer.DiagnosticId));
         Assert.Contains("Name", diagnostic.GetMessage(), StringComparison.Ordinal);
-        Assert.Contains("MaxRetries", diagnostic.GetMessage(), StringComparison.Ordinal);
+        Assert.Contains("Contact", diagnostic.GetMessage(), StringComparison.Ordinal);
     }
 
     // ── Silent ──────────────────────────────────────────────────────────
@@ -107,10 +85,24 @@ public class UnvalidatedStrongTypeOptionsAnalyzerTests
         Assert.Empty(diagnostics.WhereId(UnvalidatedStrongTypeOptionsAnalyzer.DiagnosticId));
     }
 
+    [Fact]
+    public async Task Silent_when_every_wrapper_is_nullable()
+    {
+        var diagnostics = await RunAsync(Source("    public NonEmptyString? Name { get; set; }", BindRegistration));
+
+        Assert.Empty(diagnostics.WhereId(UnvalidatedStrongTypeOptionsAnalyzer.DiagnosticId));
+    }
+
+    /// <summary>
+    /// A struct wrapper cannot be null, so an absent key leaves it at a default the type is happy to
+    /// hold — <c>Positive&lt;int&gt;</c> at 1. There is no contradiction to report, and requiring
+    /// configuration for it would be a policy rather than a fix.
+    /// </summary>
     [Theory]
+    [InlineData("    public Positive<int> MaxRetries { get; set; }")]
     [InlineData("    public Positive<int>? MaxRetries { get; set; }")]
-    [InlineData("    public NonEmptyString? Name { get; set; }")]
-    public async Task Silent_when_every_wrapper_is_nullable(string options)
+    [InlineData("    public Digit Tier { get; set; }")]
+    public async Task Silent_for_struct_wrappers(string options)
     {
         var diagnostics = await RunAsync(Source(options, BindRegistration));
 

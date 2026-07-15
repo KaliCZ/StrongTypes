@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -8,10 +7,9 @@ using Xunit;
 namespace StrongTypes.Configuration.Tests;
 
 /// <summary>
-/// <c>BindStrongTypes</c> exists for the key that isn't there. Binding an absent key succeeds
-/// without assigning, so nothing is raised and the property keeps a default — <c>null</c> for a
-/// reference wrapper, and for a struct wrapper an ordinary value that no <c>[Required]</c> can tell
-/// from a configured one.
+/// The binder assigns nothing for an absent key, so a property it never reaches keeps what the
+/// options class gave it. For a reference that is <c>null</c> — which a non-nullable declaration
+/// says is impossible — and nothing else notices, because binding itself succeeded.
 /// </summary>
 public class BindStrongTypesTests
 {
@@ -19,27 +17,23 @@ public class BindStrongTypesTests
     {
         public NonEmptyString Name { get; set; } = null!;
         public NonEmptyString? Nickname { get; set; }
-        public Positive<int> MaxRetries { get; set; }
-        public Positive<int>? Score { get; set; }
-        public Digit Tier { get; set; }
-    }
-
-    private sealed class MixedOptions
-    {
-        public NonEmptyString Name { get; set; } = null!;
+        public Email Contact { get; set; } = null!;
         public string PlainString { get; set; } = null!;
         public string? OptionalString { get; set; }
-        public int PlainInt { get; set; }
-        public int? OptionalInt { get; set; }
         public string WithDefault { get; set; } = "https://example.test";
-        public Positive<int> Retries { get; set; } = Positive<int>.Create(3);
+        public NestedOptions Nested { get; set; } = null!;
+        public List<string> Items { get; set; } = null!;
     }
 
-    /// <summary>No initialisers, so both are required and the presence check actually runs on them — which is the only way to exercise a section that has children rather than a value.</summary>
-    private sealed class RequiredCollectionOptions
+    /// <summary>Nothing here can be null, so nothing here is checked.</summary>
+    private sealed class ValueTypeOptions
     {
-        public List<string> Items { get; set; } = null!;
-        public NestedOptions Nested { get; set; } = null!;
+        public Positive<int> MaxRetries { get; set; }
+        public NonNegative<int> Delay { get; set; }
+        public Digit Tier { get; set; }
+        public bool Enabled { get; set; }
+        public int Timeout { get; set; }
+        public Positive<int>? Score { get; set; }
     }
 
     private sealed class NestedOptions
@@ -48,7 +42,15 @@ public class BindStrongTypesTests
     }
 
     private const string FullyConfigured = """
-        { "Retry": { "Name": "checkout", "MaxRetries": 5, "Tier": 7 } }
+        {
+          "Retry": {
+            "Name": "checkout",
+            "Contact": "ops@example.com",
+            "PlainString": "s",
+            "Nested": { "Inner": "y" },
+            "Items": [ "a", "b" ]
+          }
+        }
         """;
 
     private static IConfigurationSection Section(string json) =>
@@ -67,57 +69,60 @@ public class BindStrongTypesTests
     private static OptionsValidationException BindExpectingFailure<TOptions>(string json) where TOptions : class =>
         Assert.Throws<OptionsValidationException>(() => Bind<TOptions>(json));
 
+    private static string Failures(OptionsValidationException exception) => string.Join(" | ", exception.Failures);
+
     // ── The gap it closes ───────────────────────────────────────────────
 
-    /// <summary>The contrast, and the whole reason the package exists: plain <c>Bind</c> takes the same config without a murmur, leaving a null <c>NonEmptyString</c> and a <c>MaxRetries</c> of 1 that reads as deliberate.</summary>
+    /// <summary>The contrast, and the whole reason the package exists: plain <c>Bind</c> takes the same config without a murmur and hands back a <c>NonEmptyString</c> that is null.</summary>
     [Fact]
-    public void PlainBind_AcceptsTheSameMissingKeysSilently()
+    public void PlainBind_LeavesANonNullableWrapperNull()
     {
         var services = new ServiceCollection();
-        services.AddOptions<RetryOptions>().Bind(Section("""{ "Retry": { "Tier": 7 } }"""));
+        services.AddOptions<RetryOptions>().Bind(Section("""{ "Retry": { } }"""));
 
         var options = services.BuildServiceProvider().GetRequiredService<IOptions<RetryOptions>>().Value;
 
         Assert.Null(options.Name);
-        Assert.Equal(1, options.MaxRetries.Value);
-    }
-
-    /// <summary>The case that motivated the package: <c>default(Positive&lt;int&gt;)</c> is <c>1</c>, so nothing about the bound object says "never configured".</summary>
-    [Fact]
-    public void MissingNonNullableStructWrapper_Fails()
-    {
-        var exception = BindExpectingFailure<RetryOptions>("""{ "Retry": { "Name": "checkout", "Tier": 7 } }""");
-
-        Assert.Contains("'Retry:MaxRetries' is required but was not configured", string.Join(" | ", exception.Failures), StringComparison.Ordinal);
     }
 
     [Fact]
-    public void MissingNonNullableReferenceWrapper_Fails()
+    public void MissingNonNullableWrapper_Fails()
     {
-        var exception = BindExpectingFailure<RetryOptions>("""{ "Retry": { "MaxRetries": 5, "Tier": 7 } }""");
+        var exception = BindExpectingFailure<RetryOptions>("""{ "Retry": { } }""");
 
-        Assert.Contains("'Retry:Name' is required but was not configured", string.Join(" | ", exception.Failures), StringComparison.Ordinal);
+        Assert.Contains("'Retry:Name' is null", Failures(exception), StringComparison.Ordinal);
+        Assert.Contains("'Retry:Contact' is null", Failures(exception), StringComparison.Ordinal);
     }
 
+    /// <summary>A plain <c>string</c> declared non-nullable is as broken by a missing key as a wrapper is.</summary>
     [Fact]
-    public void EveryMissingKey_IsReportedTogether()
-    {
-        var exception = BindExpectingFailure<RetryOptions>("""{ "Retry": { "Tier": 7 } }""");
+    public void MissingNonNullablePlainReference_Fails() =>
+        Assert.Contains("'Retry:PlainString' is null", Failures(BindExpectingFailure<RetryOptions>("""{ "Retry": { } }""")), StringComparison.Ordinal);
 
-        var failures = string.Join(" | ", exception.Failures);
-        Assert.Contains("Retry:Name", failures, StringComparison.Ordinal);
-        Assert.Contains("Retry:MaxRetries", failures, StringComparison.Ordinal);
+    [Fact]
+    public void MissingNonNullableNestedObjectAndCollection_Fail()
+    {
+        var failures = Failures(BindExpectingFailure<RetryOptions>("""{ "Retry": { } }"""));
+
+        Assert.Contains("'Retry:Nested' is null", failures, StringComparison.Ordinal);
+        Assert.Contains("'Retry:Items' is null", failures, StringComparison.Ordinal);
     }
 
-    /// <summary>The failure has to name the config path, not just the property — that is what the reader goes and edits — and both ways out of it.</summary>
+    /// <summary>An explicit <c>null</c> is no better than an absent key, and plain binding accepts it even here.</summary>
     [Fact]
-    public void Failure_NamesTheConfigurationPathAndBothFixes()
+    public void ExplicitNull_Fails() =>
+        Assert.Contains("'Retry:Name' is null", Failures(BindExpectingFailure<RetryOptions>("""{ "Retry": { "Name": null } }""")), StringComparison.Ordinal);
+
+    /// <summary>The failure names the config path — what the reader goes and edits — plus every way out of it.</summary>
+    [Fact]
+    public void Failure_NamesTheConfigurationPathAndEveryWayOut()
     {
-        var exception = BindExpectingFailure<RetryOptions>("""{ "Retry": { "Name": "checkout", "Tier": 7 } }""");
+        var exception = BindExpectingFailure<RetryOptions>("""{ "Retry": { "Name": "checkout", "Contact": "a@b.test", "PlainString": "s", "Nested": { "Inner": "y" } } }""");
         var failure = Assert.Single(exception.Failures);
 
-        Assert.Contains("Retry:MaxRetries", failure, StringComparison.Ordinal);
-        Assert.Contains("RetryOptions.MaxRetries", failure, StringComparison.Ordinal);
+        Assert.Contains("'Retry:Items' is null", failure, StringComparison.Ordinal);
+        Assert.Contains("RetryOptions.Items", failure, StringComparison.Ordinal);
+        Assert.Contains("Configure it", failure, StringComparison.Ordinal);
         Assert.Contains("a default", failure, StringComparison.Ordinal);
         Assert.Contains("declare it nullable", failure, StringComparison.Ordinal);
     }
@@ -130,145 +135,41 @@ public class BindStrongTypesTests
         var options = Bind<RetryOptions>(FullyConfigured);
 
         Assert.Equal("checkout", options.Name.Value);
-        Assert.Equal(5, options.MaxRetries.Value);
-        Assert.Equal(7, options.Tier.Value);
-    }
-
-    [Fact]
-    public void MissingNullableWrappers_DoNotFail()
-    {
-        var options = Bind<RetryOptions>(FullyConfigured);
-
-        Assert.Null(options.Nickname);
-        Assert.Null(options.Score);
-    }
-
-    // ── Every property type, not only the wrappers ──────────────────────
-    //
-    // Opting in says the options class should be fully configured: an unconfigured
-    // string is exactly as silent as an unconfigured NonEmptyString.
-
-    [Fact]
-    public void MissingPlainProperties_AreRequiredToo()
-    {
-        var exception = BindExpectingFailure<MixedOptions>("""{ "Retry": { "Name": "checkout" } }""");
-        var failures = string.Join(" | ", exception.Failures);
-
-        Assert.Contains("Retry:PlainString", failures, StringComparison.Ordinal);
-        Assert.Contains("Retry:PlainInt", failures, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void NullablePlainProperties_AreOptional()
-    {
-        var exception = BindExpectingFailure<MixedOptions>("""{ "Retry": { "Name": "checkout" } }""");
-        var failures = string.Join(" | ", exception.Failures);
-
-        Assert.DoesNotContain("OptionalString", failures, StringComparison.Ordinal);
-        Assert.DoesNotContain("OptionalInt", failures, StringComparison.Ordinal);
-    }
-
-    /// <summary>A property the options class initialises has a stated fallback, so configuration is not required to supply one.</summary>
-    [Fact]
-    public void PropertiesWithADeclaredDefault_AreOptional()
-    {
-        var exception = BindExpectingFailure<MixedOptions>("""{ "Retry": { "Name": "checkout" } }""");
-        var failures = string.Join(" | ", exception.Failures);
-
-        Assert.DoesNotContain("WithDefault", failures, StringComparison.Ordinal);
-        Assert.DoesNotContain("Retries", failures, StringComparison.Ordinal);
-    }
-
-    /// <summary><c>= null!</c> appeases nullable reference types without declaring a fallback, so the property is still required.</summary>
-    [Fact]
-    public void NullBangInitialiser_IsNotADeclaredDefault()
-    {
-        var exception = BindExpectingFailure<MixedOptions>("""{ "Retry": { "PlainInt": 1 } }""");
-
-        Assert.Contains("Retry:Name", string.Join(" | ", exception.Failures), StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// A configured collection or nested object holds no scalar value of its own: the JSON array
-    /// flattens to <c>Retry:Items:0</c> / <c>Retry:Items:1</c> beneath a valueless <c>Retry:Items</c>
-    /// parent. Asking whether the section has a <c>Value</c> therefore calls this plainly-configured
-    /// pair missing; asking whether it <c>Exists()</c> does not.
-    /// </summary>
-    [Fact]
-    public void RequiredCollectionAndNestedObject_ConfiguredAsChildren_AreSeenAsConfigured()
-    {
-        var options = Bind<RequiredCollectionOptions>("""
-            { "Retry": { "Items": [ "a", "b" ], "Nested": { "Inner": "y" } } }
-            """);
-
+        Assert.Equal("ops@example.com", options.Contact.Address);
         Assert.Equal(["a", "b"], options.Items);
         Assert.Equal("y", options.Nested.Inner);
     }
 
-    /// <summary>The counterpart: <c>Exists()</c> must not simply wave everything through.</summary>
     [Fact]
-    public void RequiredCollectionAndNestedObject_WhenActuallyAbsent_Fail()
+    public void NullableProperties_AreNotChecked()
     {
-        var exception = BindExpectingFailure<RequiredCollectionOptions>("""{ "Retry": { "Unrelated": 1 } }""");
-        var failures = string.Join(" | ", exception.Failures);
+        var options = Bind<RetryOptions>(FullyConfigured);
 
-        Assert.Contains("Retry:Items", failures, StringComparison.Ordinal);
-        Assert.Contains("Retry:Nested", failures, StringComparison.Ordinal);
+        Assert.Null(options.Nickname);
+        Assert.Null(options.OptionalString);
     }
+
+    /// <summary>A declared default is never null, so it needs no check and no configuration.</summary>
+    [Fact]
+    public void PropertiesWithADeclaredDefault_NeedNoConfiguration() =>
+        Assert.Equal("https://example.test", Bind<RetryOptions>(FullyConfigured).WithDefault);
 
     /// <summary>
-    /// An empty array is a deliberate configuration — the provider records it as an empty value
-    /// rather than nothing — so the key is present and the requirement is met. The binder still
-    /// leaves the property null rather than building an empty list: this validates that the section
-    /// was configured, which is not the same question as whether the bound value is non-null, and
-    /// the two only coincide for a scalar.
+    /// A value type has no invalid state to reach: unconfigured, <c>Positive&lt;int&gt;</c> is its
+    /// default of 1 and <c>bool</c> is false — values those types are happy to hold. There is
+    /// nothing here for a null check to find, so none of these is required.
     /// </summary>
     [Fact]
-    public void RequiredCollection_ConfiguredEmpty_SatisfiesPresenceButBindsNull()
+    public void ValueTypeProperties_AreNeverRequired()
     {
-        var options = Bind<RequiredCollectionOptions>("""
-            { "Retry": { "Items": [], "Nested": { "Inner": "y" } } }
-            """);
+        var options = Bind<ValueTypeOptions>("""{ "Retry": { } }""");
 
-        Assert.Null(options.Items);
-    }
-
-    /// <summary>An empty object holds neither value nor children, so it says nothing and reads as absent.</summary>
-    [Fact]
-    public void RequiredNestedObject_ConfiguredEmpty_ReadsAsAbsent()
-    {
-        var exception = BindExpectingFailure<RequiredCollectionOptions>("""
-            { "Retry": { "Items": [ "a" ], "Nested": {} } }
-            """);
-
-        Assert.Contains("Retry:Nested", string.Join(" | ", exception.Failures), StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// An explicit <c>null</c> does not satisfy a required property. That also closes the hole plain
-    /// binding leaves, where <c>"Name": null</c> quietly nulls a non-nullable <c>NonEmptyString</c>
-    /// because nullability is erased before the binder runs.
-    /// </summary>
-    [Fact]
-    public void RequiredProperty_ExplicitNull_Fails()
-    {
-        var exception = BindExpectingFailure<RetryOptions>("""
-            { "Retry": { "Name": null, "MaxRetries": 5, "Tier": 7 } }
-            """);
-
-        Assert.Contains("Retry:Name", string.Join(" | ", exception.Failures), StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void MixedOptions_FullyConfigured_Binds()
-    {
-        var options = Bind<MixedOptions>("""{ "Retry": { "Name": "checkout", "PlainString": "s", "PlainInt": 42 } }""");
-
-        Assert.Equal("checkout", options.Name.Value);
-        Assert.Equal("s", options.PlainString);
-        Assert.Equal(42, options.PlainInt);
-        Assert.Equal("https://example.test", options.WithDefault);
-        Assert.Equal(3, options.Retries.Value);
+        Assert.Equal(1, options.MaxRetries.Value);
+        Assert.Equal(0, options.Delay.Value);
+        Assert.Equal(0, options.Tier.Value);
+        Assert.False(options.Enabled);
+        Assert.Equal(0, options.Timeout);
+        Assert.Null(options.Score);
     }
 
     /// <summary>Presence is the only question asked here; an invalid value is still the converter's failure, thrown while binding.</summary>
@@ -276,7 +177,7 @@ public class BindStrongTypesTests
     public void PresentButInvalidValue_StillThrowsTheInvariantFailure()
     {
         var exception = Assert.Throws<InvalidOperationException>(
-            () => Bind<RetryOptions>("""{ "Retry": { "Name": "checkout", "MaxRetries": -5, "Tier": 7 } }"""));
+            () => Bind<ValueTypeOptions>("""{ "Retry": { "MaxRetries": -5 } }"""));
 
         // Assert.Throws is exact-type, so reaching here already rules out a validation failure.
         Assert.IsType<ArgumentException>(exception.InnerException);
@@ -289,7 +190,7 @@ public class BindStrongTypesTests
     {
         var services = new ServiceCollection();
         services.AddOptions<RetryOptions>("configured").BindStrongTypes(Section(FullyConfigured));
-        services.AddOptions<RetryOptions>("incomplete").BindStrongTypes(Section("""{ "Retry": { "Tier": 7 } }"""));
+        services.AddOptions<RetryOptions>("incomplete").BindStrongTypes(Section("""{ "Retry": { } }"""));
 
         var monitor = services.BuildServiceProvider().GetRequiredService<IOptionsMonitor<RetryOptions>>();
 
@@ -299,19 +200,13 @@ public class BindStrongTypesTests
 
     // ── Nullable reference types disabled ───────────────────────────────
 
-    /// <summary>
-    /// An options class from an assembly compiled without nullable reference types declares no
-    /// intent for a reference wrapper, so it is treated as optional rather than guessed at. The
-    /// struct wrapper still carries its own distinction and is still required.
-    /// </summary>
+    /// <summary>An options class from an assembly compiled without nullable reference types declares no intent, so nothing is enforced rather than guessed at.</summary>
     [Fact]
-    public void UnannotatedAssembly_ReferenceWrapperIsOptional_StructWrapperIsStillRequired()
+    public void UnannotatedAssembly_IsNotPoliced()
     {
-        var exception = BindExpectingFailure<UnannotatedOptions>("""{ "Retry": { "Tier": 7 } }""");
-        var failures = string.Join(" | ", exception.Failures);
+        var options = Bind<UnannotatedOptions>("""{ "Retry": { } }""");
 
-        Assert.Contains("Retry:MaxRetries", failures, StringComparison.Ordinal);
-        Assert.DoesNotContain("Retry:Name", failures, StringComparison.Ordinal);
+        Assert.Null(options.Name);
     }
 
     // ── Guard rails ─────────────────────────────────────────────────────

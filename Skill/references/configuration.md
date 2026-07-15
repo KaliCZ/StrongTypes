@@ -81,33 +81,27 @@ OptionsValidationException: 'Retry:MaxRetries' is required but was not configure
                             Declare RetryOptions.MaxRetries nullable if it is optional.
 ```
 
-It works where `[Required]` cannot because it asks **configuration** whether the key is present,
-rather than asking the bound object whether it looks null — and `default(Positive<int>)` is `1`,
-which looks like a configured value.
-
-A property is **required when it is not nullable and the options class gives it no default**:
+It fails when a property **declared non-nullable is null after binding** — the one state an absent
+key can leave that the declaration forbids. Your nullable annotations already say which properties
+those are, so no `[Required]` has to repeat it:
 
 ```csharp
-public NonEmptyString Name { get; set; } = null!;          // required — null! declares no default
-public NonEmptyString? Nickname { get; set; }              // optional — nullable
-public Positive<int> MaxRetries { get; set; }              // required
-public string Endpoint { get; set; } = "https://x.test";   // optional — has a default
-public int? Timeout { get; set; }                          // optional
+public NonEmptyString Name { get; set; } = null!;          // fails unless configured
+public NonEmptyString? Nickname { get; set; }              // nullable — fine
+public string ApiKey { get; set; } = null!;                // fails unless configured
+public string Endpoint { get; set; } = "https://x.test";   // has a default — never null
 ```
 
-**Every property is checked, not only the wrappers** — opting in says the class should be fully
-configured, and a missing `string` is as silent as a missing `NonEmptyString`. It also rejects an
-explicit `"Name": null`, which plain binding accepts even on a non-nullable property.
+**Every reference property is covered, not only the wrappers** — a non-nullable `string` is as
+broken by a missing key as a `NonEmptyString`. A declared default needs nothing: it isn't null.
 
-What counts as configured is whether the **section** holds anything: `"Items": [ "a" ]` and
-`"Nested": { "X": 1 }` do (they have children), `"Items": []` does (an empty value, deliberately),
-while `"Nested": { }` and `"Name": null` do not. Note `"Items": []` satisfies the requirement but
-still binds `null` rather than an empty list — presence and non-nullness are different questions.
+**Value types are not checked, and don't need to be.** An unconfigured `Positive<int>` is `1` and an
+unconfigured `bool` is `false` — defaults, and values those types are happy to hold. There is no
+contradiction to catch, so this will not tell you that you forgot `MaxRetries`. Declare it
+`Positive<int>?` if "not configured" must be distinguishable; that is the only way the CLR offers.
 
-Two declarations cannot be read: a value type whose intended default *is* the CLR default
-(`bool Enabled { get; set; } = false`) is required, since it is indistinguishable from having no
-initialiser — declare it `bool?`; and a reference property in an assembly with
-`<Nullable>disable</Nullable>` carries no annotation and is treated as optional.
+An options class in an assembly with `<Nullable>disable</Nullable>` declares no intent, so nothing
+on it is enforced.
 
 Analyzer **ST0004** flags a plain `Bind` / `Configure` on an options type that needs this, with a
 code fix that rewrites the call. It stays quiet for a reference wrapper already carrying
@@ -122,33 +116,32 @@ there raises nothing — binding succeeds, it just doesn't assign — so the
 property keeps whatever the options class gave it. Since a real options class
 has no initialisers, that means:
 
-| declaration                     | key not in config | `[Required]` catches it? |
-| ------------------------------- | ----------------- | ------------------------ |
-| `NonEmptyString Name`           | **`null`**        | yes                      |
-| `Positive<int> MaxRetries`      | **`1`** (default) | **no**                   |
-| `Positive<int>? MaxRetries`     | `null`            | yes                      |
+| declaration                 | key not in config | is that a problem?                        |
+| --------------------------- | ----------------- | ----------------------------------------- |
+| `NonEmptyString Name`       | **`null`**        | **yes** — the type says it is never null   |
+| `Positive<int> MaxRetries`  | `1` (default)     | no — a value the type is happy to hold    |
+| `Positive<int>? MaxRetries` | `null`            | no — it is nullable                       |
 
-Two consequences worth internalising:
+**A non-nullable `NonEmptyString` can be null.** The invariant constrains every
+value the type can hold; it cannot make the binder assign one. Against an
+unconfigured key the wrapper is no better than `string`, and that is the only
+place an absent key produces a state the declaration forbids.
 
-- **A non-nullable `NonEmptyString` can be null.** The invariant constrains
-  every value the type can hold; it cannot make the binder assign one. The
-  wrapper is no better than `string` at surviving an unconfigured key.
-- **A non-nullable struct wrapper cannot be checked at all.**
-  `default(Positive<int>)` is `1` — a real, invariant-satisfying value — so
-  `[Required]` passes and nothing distinguishes "configured as 1" from "never
-  configured". **Declare it `Positive<int>?` when that distinction matters.**
-
-So the full guard is both:
+Guard it with `[Required]` and `ValidateDataAnnotations()` — or with
+`BindStrongTypes()` above, which reads the same intent from the nullable
+annotation instead of an attribute:
 
 ```csharp
 builder.Services.AddOptions<RetryOptions>()
     .Bind(builder.Configuration.GetSection("Retry"))
-    .ValidateDataAnnotations()   // [Required] → catches a missing value
-    .ValidateOnStart();          // → catches an invalid one, at startup
+    .ValidateDataAnnotations()   // [Required] → catches a null reference property
+    .ValidateOnStart();          // → catches an invalid value, at startup
 ```
 
-…with `[Required]` on each property that must be present, and struct wrappers
-declared nullable so `[Required]` has a null to find.
+Neither can help with a struct: `default(Positive<int>)` is `1`, so nothing
+distinguishes "configured as 1" from "never configured". Declare it
+`Positive<int>?` when that distinction matters — the CLR offers no other way
+to say it.
 
 ## `null` and `""` — the exact matrix
 

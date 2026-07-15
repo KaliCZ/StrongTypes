@@ -20,7 +20,7 @@ demand when about to write code against that surface.
 | Package                       | What it gives you                                                                                                  |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `Kalicz.StrongTypes`          | The core types (`NonEmptyString`, numeric wrappers, `NonEmptyEnumerable<T>`, `Maybe<T>`, `Result<T, TError>`, …).  |
-| `Kalicz.StrongTypes.Configuration` | `OptionsBuilder<T>.BindStrongTypes()` — binds a section and fails when any property that expects a value (not nullable, no default of its own) has no configuration key. Catches what `[Required]` cannot: `default(Positive<int>)` is `1`, never null. |
+| `Kalicz.StrongTypes.Configuration` | `OptionsBuilder<T>.BindStrongTypes()` — binds a section and fails when a property declared non-nullable is null once bound, which an absent key otherwise leaves silently. Reads intent from nullable annotations, so no `[Required]` per property. |
 | `Kalicz.StrongTypes.EfCore`   | EF Core value converters, interval column mapping (two endpoint columns by default, JSON opt-in), and LINQ translators (`.Unwrap()`, interval `Start`/`End`) so strong types sit directly on entity properties. |
 | `Kalicz.StrongTypes.FsCheck`  | FsCheck `Arbitrary<T>` generators registered via `[Properties(Arbitrary = new[] { typeof(Generators) })]`.         |
 | `Kalicz.StrongTypes.OpenApi.Microsoft`   | Schema transformers for `Microsoft.AspNetCore.OpenApi` (`AddOpenApi()`) so wrappers render as the wire JSON shape, not the CLR shape. |
@@ -29,7 +29,7 @@ demand when about to write code against that surface.
 
 Add packages only when the host project actually hits that stack:
 
-- **Configuration** — when a strong type sits on an options class and must be configured. Binding works without it (every wrapper carries a `TypeConverter`); the package is only about the key that isn't there. Skip it if every strong-typed option is nullable. See `references/configuration.md`.
+- **Configuration** — when a non-nullable reference property (`NonEmptyString`, `Email`, or a plain `string`) sits on an options class. Binding works without it (every wrapper carries a `TypeConverter`); the package only stops an absent key leaving that property null. Skip it if every reference property is nullable or has a default, or if you already use `[Required]`. See `references/configuration.md`.
 - **EfCore** — only if EF Core is in use.
 - **FsCheck** — only for property-based test projects.
 - **OpenApi.Microsoft** vs **OpenApi.Swashbuckle** — pick **one**, matching the spec generator the app already wires up. They are not interchangeable. `references/openapi.md` covers both pipelines.

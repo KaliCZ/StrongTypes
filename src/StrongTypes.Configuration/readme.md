@@ -2,7 +2,7 @@
 
 [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes.Configuration?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes.Configuration/) [![Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes.Configuration?label=downloads)](https://www.nuget.org/packages/Kalicz.StrongTypes.Configuration/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
-Makes an **unconfigured** strong type fail instead of quietly defaulting.
+Stops an options class binding a non-nullable property to `null`.
 
 ```csharp
 builder.Services.AddOptions<RetryOptions>()
@@ -17,87 +17,63 @@ bind: every wrapper carries a `TypeConverter`, so values bind and invalid ones t
 invariant's own message. **This package is only about the key that isn't there.**
 
 A wrapper's invariant constrains every value it can hold. It cannot make the binder assign one — the
-binder reaches in through reflection and never calls `Create`. So:
+binder reaches in through reflection and never calls `Create` — and for an absent key it assigns
+nothing at all. So:
 
 ```csharp
 public sealed class RetryOptions
 {
-    public NonEmptyString Name { get; set; }        // unconfigured -> null
-    public Positive<int> MaxRetries { get; set; }   // unconfigured -> 1
+    public NonEmptyString Name { get; set; } = null!;   // unconfigured -> null
 }
 ```
 
-`ValidateOnStart()` does not help: binding an absent key *succeeds*, it just doesn't assign, so
-nothing is raised. `[Required]` catches `Name`, because it is null — but **cannot** catch
-`MaxRetries`, because `default(Positive<int>)` is `1`, an ordinary invariant-satisfying value that
-looks exactly like a configured one. Neither does C#'s `required` keyword, which the binder's
-reflection walks straight past.
+`null`, in the one type whose entire purpose is to never be null. `ValidateOnStart()` does not help:
+binding an absent key *succeeds*, it just doesn't assign, so nothing is raised. C#'s `required`
+doesn't either — it's a compile-time rule and the binder's reflection walks past it. `[Required]`
+does work, but only if you remember it on every property.
 
 ## What it does
 
-`BindStrongTypes()` binds the section, then asks **the configuration** whether each key is present
-— rather than asking the bound object whether it looks null. That question has an answer for
-structs:
-
-```
-OptionsValidationException: 'Retry:MaxRetries' is required but was not configured.
-                            Declare RetryOptions.MaxRetries nullable if it is optional.
-```
-
-The declaration is the spec — no attributes. A property is **required when it is not nullable and
-the options class gives it no default of its own**:
+Fails when a property **declared non-nullable** is null after binding. Your nullable reference
+annotations already say which properties those are, so nothing has to repeat it:
 
 ```csharp
-public NonEmptyString Name { get; set; } = null!;          // required — null! declares no default
-public NonEmptyString? Nickname { get; set; }              // optional — nullable
-public Positive<int> MaxRetries { get; set; }              // required
-public Positive<int>? Score { get; set; }                  // optional — nullable
-public string Endpoint { get; set; } = "https://x.test";   // optional — has a default
-public string ApiKey { get; set; } = null!;                // required
-public int Timeout { get; set; }                           // required
-public int? Timeout { get; set; }                          // optional
+public NonEmptyString Name { get; set; } = null!;          // fails unless configured
+public NonEmptyString? Nickname { get; set; }              // nullable — fine
+public string ApiKey { get; set; } = null!;                // fails unless configured
+public string Endpoint { get; set; } = "https://x.test";   // has a default — never null
 ```
 
-**Every property is checked, not only the wrappers.** Opting in says this options class should be
-fully configured, and a missing `string` is exactly as silent as a missing `NonEmptyString`.
+```
+OptionsValidationException: 'Retry:Name' is null. Configure it, give RetryOptions.Name a default,
+                            or declare it nullable.
+```
 
-It also rejects an explicit `null`, which plain binding does not — `"Name": null` otherwise leaves
-a non-nullable `NonEmptyString` holding `null`, because nullability is erased before the binder runs.
-
-## What counts as configured
-
-The question is whether the **section** holds anything, not whether the bound value ends up non-null.
-For a scalar the two coincide; for a collection or nested object they need care, because those are
-sections with *children* and no value of their own — `"Items": [ "a", "b" ]` flattens to
-`Retry:Items:0` and `Retry:Items:1` beneath a valueless `Retry:Items`.
-
-| in `appsettings.json` | configured? |
-| --------------------- | ----------- |
-| `"Items": [ "a" ]`    | yes — has children |
-| `"Items": []`         | yes — recorded as an empty value, and a deliberate one |
-| `"Nested": { "X": 1 }`| yes — has children |
-| `"Nested": { }`       | no — neither value nor children |
-| `"Name": null`        | no — the key is there but says nothing |
-| key absent            | no |
-
-One wrinkle worth knowing: `"Items": []` satisfies the requirement, but the binder still leaves the
-property `null` rather than building an empty list. Presence and non-nullness are different
-questions, and this answers the first.
+**Every reference property is covered, not only the wrappers** — a `string` declared non-nullable is
+as broken by a missing key as a `NonEmptyString` is. A declared default needs no configuration and
+no annotation: it simply isn't null.
 
 Pair it with `ValidateOnStart()`. On its own the failure is still lazy — it surfaces on the first
 read of `IOptions<T>.Value`, not at startup.
 
-## Two declarations it cannot read
+## Value types are not checked, and don't need to be
 
-- **A value type whose intended default is the CLR default.** `bool Enabled { get; set; } = false`
-  is indistinguishable from `bool Enabled { get; set; }`, so it is required. Declare it `bool?` to
-  make it optional.
-- **A reference property in an assembly with `<Nullable>disable</Nullable>`.** It carries no
-  annotation, so it is treated as **optional** — with no intent declared there is nothing to
-  enforce. Struct properties are unaffected: `Positive<int>` vs `Positive<int>?` lives in the type
-  and is always readable.
+An unconfigured `Positive<int>` is `1`; an unconfigured `bool` is `false`. Those are defaults, and
+they are values those types are perfectly happy to hold — there is no contradiction to find. Only
+`null` in something that promised never to be null is one, and only a reference can manage it.
+
+So this will not tell you that you forgot to configure `MaxRetries`. If "not configured" has to be
+distinguishable from a configured default, declare it `Positive<int>?` and check for null yourself
+— that is the only way the CLR gives you to say it.
 
 ## When you don't need it
 
-- Every property on your options classes is nullable or has a default, so nothing is required.
-- You already have an `IValidateOptions<T>` covering presence.
+- Every reference property on your options classes is nullable or has a default.
+- You already use `[Required]` with `ValidateDataAnnotations()`, which covers the same ground with
+  an attribute per property.
+
+## Nullable reference types
+
+Intent is read from the assembly's nullable annotations. An options class in a project with
+`<Nullable>disable</Nullable>` carries none, so nothing on it is enforced — with no intent declared
+there is nothing to enforce.

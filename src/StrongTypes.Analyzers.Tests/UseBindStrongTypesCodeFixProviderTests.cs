@@ -15,7 +15,7 @@ public class UseBindStrongTypesCodeFixProviderTests
 
         public class RetryOptions
         {
-            public Positive<int> MaxRetries { get; set; }
+            public NonEmptyString Name { get; set; } = null!;
         }
 
         public static class Startup
