@@ -8,6 +8,11 @@
     <Project Path="src/StrongTypes.AspNetCore.TestApi/StrongTypes.AspNetCore.TestApi.csproj" />
     <Project Path="src/StrongTypes.AspNetCore/StrongTypes.AspNetCore.csproj" />
   </Folder>
+  <Folder Name="/Configuration package/">
+    <Project Path="src/StrongTypes.Configuration/StrongTypes.Configuration.csproj" />
+    <Project Path="src/StrongTypes.Configuration.Tests/StrongTypes.Configuration.Tests.csproj" />
+    <Project Path="src/StrongTypes.Configuration.Tests.NullableDisabled/StrongTypes.Configuration.Tests.NullableDisabled.csproj" />
+  </Folder>
   <Folder Name="/EF Core package/">
     <Project Path="src/StrongTypes.EfCore/StrongTypes.EfCore.csproj" />
   </Folder>
