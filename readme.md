@@ -167,6 +167,8 @@ InvalidOperationException: Failed to convert configuration value '-5' at 'Retry:
 
 Reach for `ValidateOnStart()`: options binding is lazy, so without it a bad value doesn't fail the deploy — it throws on the first request that reads `IOptions<T>.Value`.
 
+Two edges worth knowing, both inherited from `ConfigurationBinder` rather than introduced here. An explicit `"Name": null` nulls even a non-nullable `NonEmptyString` — nullability is erased by the time the binder runs, so omit the key instead of writing `null`. And `""` throws for every wrapper *except* a nullable struct one (`Positive<int>?`), where the BCL's `NullableConverter` maps it to `null` first. The full matrix is in the [skill reference](Skill/references/configuration.md).
+
 [↑ Back to contents](#contents)
 
 ### EF Core persistence

@@ -65,6 +65,36 @@ even with **no** `IValidateOptions<T>` registered. Always add it when options
 hold strong types — otherwise the invariant buys you a later crash, not an
 earlier one.
 
+## `null` and `""` — the exact matrix
+
+Not uniform, and not guessable. Measured; `ConfigurationBinder.Get<T>` and
+`IOptions<T>.Value` agree on **every** row:
+
+| in `appsettings.json` | `NonEmptyString` | `NonEmptyString?` | `Positive<int>` | `Positive<int>?` |
+| --------------------- | ---------------- | ----------------- | --------------- | ---------------- |
+| key absent            | default kept     | `null`            | `1` (`default`) | `null`           |
+| `null`                | **`null`**       | `null`            | `1` (`default`) | `null`           |
+| `""`                  | **throws**       | **throws**        | **throws**      | **`null`**       |
+| `"  "`                | **throws**       | **throws**        | throws (format) | throws (format)  |
+| valid                 | binds            | binds             | binds           | binds            |
+| invariant breach      | throws           | throws            | throws          | throws           |
+
+Three things in there surprise people:
+
+- **`""` is not uniform.** It throws for everything *except* a nullable **struct**
+  wrapper, where it binds to `null` — a nullable struct resolves to the BCL's
+  `NullableConverter`, which maps empty to null before our converter is consulted.
+  A nullable *reference* wrapper gets no such treatment (`NonEmptyString?` is the
+  same runtime type as `NonEmptyString`), so `""` reaches `Parse` and fails.
+  Don't reach for `""` to mean "unset" — omit the key.
+- **An explicit `null` nulls even a non-nullable reference property.** Nullability
+  is erased by the time the binder runs, so `"Name": null` leaves a
+  `NonEmptyString Name` holding `null`, exactly as it would a `string`. The
+  invariant constrains every value the type can hold; it cannot stop the binder
+  assigning none. Omit the key rather than writing `null`.
+- **An explicit `null` overwrites, an absent key does not.** `"Name": null` clears
+  a property initialised in the options class; leaving the key out keeps it.
+
 ## Things worth knowing
 
 - **A missing key leaves the default**, it does not throw. `default(Positive<int>)`
