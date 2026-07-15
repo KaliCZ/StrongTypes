@@ -64,7 +64,7 @@ demand when about to write code against that surface.
 | Topic                                                         | Reference                       |
 | ------------------------------------------------------------- | ------------------------------- |
 | Enum extensions (`Enum.Parse`, `AllValues`, `AllFlagValues`, `GetFlags`) and `string?` parsers (`AsInt`, `AsGuid`, `AsEnum<T>`, …) | `references/parsing.md`         |
-| Configuration / `IOptions<T>` binding — zero setup, invariant doubles as validation, `ValidateOnStart()` | `references/configuration.md`   |
+| Configuration / `IOptions<T>` binding — zero setup, invariant doubles as validation, `ValidateOnStart()`, and `BindStrongTypes()` (`Kalicz.StrongTypes.Configuration`) for the absent key | `references/configuration.md`   |
 | `T?.Map`, `bool.MapTrue` / `MapFalse`                         | `references/map.md`             |
 | `IEnumerable<T>` extensions, `ReadOnlyList`, `Result` partition helpers | `references/collections.md`     |
 | EF Core: `UseStrongTypes` value converters, interval column mapping, `.Unwrap()` LINQ marker | `references/efcore.md`          |

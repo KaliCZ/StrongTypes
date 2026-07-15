@@ -118,13 +118,10 @@ public class BindStrongTypesTests
     public void Failure_NamesTheConfigurationPathAndEveryWayOut()
     {
         var exception = BindExpectingFailure<RetryOptions>("""{ "Retry": { "Name": "checkout", "Contact": "a@b.test", "PlainString": "s", "Nested": { "Inner": "y" } } }""");
-        var failure = Assert.Single(exception.Failures);
 
-        Assert.Contains("'Retry:Items' is null", failure, StringComparison.Ordinal);
-        Assert.Contains("RetryOptions.Items", failure, StringComparison.Ordinal);
-        Assert.Contains("Configure it", failure, StringComparison.Ordinal);
-        Assert.Contains("a default", failure, StringComparison.Ordinal);
-        Assert.Contains("declare it nullable", failure, StringComparison.Ordinal);
+        Assert.Equal(
+            "'Retry:Items' is null. Configure it, give RetryOptions.Items a default, or declare it nullable.",
+            Assert.Single(exception.Failures));
     }
 
     // ── What it must not do ─────────────────────────────────────────────

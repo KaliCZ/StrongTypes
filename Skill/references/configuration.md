@@ -71,14 +71,9 @@ Add [`Kalicz.StrongTypes.Configuration`](https://www.nuget.org/packages/Kalicz.S
 and the declaration becomes the spec — no `[Required]`, no `ValidateDataAnnotations()`:
 
 ```csharp
-builder.Services.AddOptions<RetryOptions>()
-    .BindStrongTypes(builder.Configuration.GetSection("Retry"))
+builder.Services.AddOptions<ClientOptions>()
+    .BindStrongTypes(builder.Configuration.GetSection("Client"))
     .ValidateOnStart();
-```
-
-```
-OptionsValidationException: 'Retry:MaxRetries' is required but was not configured.
-                            Declare RetryOptions.MaxRetries nullable if it is optional.
 ```
 
 It fails when a property **declared non-nullable is null after binding** — the one state an absent
@@ -86,10 +81,19 @@ key can leave that the declaration forbids. Your nullable annotations already sa
 those are, so no `[Required]` has to repeat it:
 
 ```csharp
-public NonEmptyString Name { get; set; } = null!;          // fails unless configured
-public NonEmptyString? Nickname { get; set; }              // nullable — fine
-public string ApiKey { get; set; } = null!;                // fails unless configured
-public string Endpoint { get; set; } = "https://x.test";   // has a default — never null
+public sealed class ClientOptions
+{
+    public NonEmptyString Name { get; set; } = null!;          // fails unless configured
+    public NonEmptyString? Nickname { get; set; }              // nullable — fine
+    public string ApiKey { get; set; } = null!;                // fails unless configured
+    public string Endpoint { get; set; } = "https://x.test";   // has a default — never null
+    public Positive<int> MaxRetries { get; set; }              // never checked — see below
+}
+```
+
+```
+OptionsValidationException: 'Client:Name' is null. Configure it, give ClientOptions.Name a default,
+                            or declare it nullable.
 ```
 
 **Every reference property is covered, not only the wrappers** — a non-nullable `string` is as
@@ -103,9 +107,10 @@ contradiction to catch, so this will not tell you that you forgot `MaxRetries`. 
 An options class in an assembly with `<Nullable>disable</Nullable>` declares no intent, so nothing
 on it is enforced.
 
-Analyzer **ST0004** flags a plain `Bind` / `Configure` on an options type that needs this, with a
-code fix that rewrites the call. It stays quiet for a reference wrapper already carrying
-`[Required]`, since that case genuinely is covered.
+Analyzer **ST0004** flags a plain `Bind` / `Configure` that would leave a non-nullable wrapper null,
+with a code fix that rewrites the call. It reports only this library's own wrappers, never a plain
+`string`, so it sees less than the check it points you at. It also stays quiet for a property
+already carrying `[Required]`, which genuinely covers that case.
 
 The rest of this section describes what happens **without** that package.
 
