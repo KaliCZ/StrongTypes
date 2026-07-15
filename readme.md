@@ -154,7 +154,8 @@ public sealed class RetryOptions
 
 builder.Services.AddOptions<RetryOptions>()
     .Bind(builder.Configuration.GetSection("Retry"))
-    .ValidateOnStart();
+    .ValidateDataAnnotations()   // [Required] → catches a missing value
+    .ValidateOnStart();          // → catches an invalid one, at startup
 ```
 
 A bad value fails with the path, the value, and the reason — no `[Range]` and no `IValidateOptions<T>` needed:
@@ -165,9 +166,15 @@ InvalidOperationException: Failed to convert configuration value '-5' at 'Retry:
   ---> ArgumentException: Value must be positive, but was '-5'. (Parameter 'value')
 ```
 
-Reach for `ValidateOnStart()`: options binding is lazy, so without it a bad value doesn't fail the deploy — it throws on the first request that reads `IOptions<T>.Value`.
+Both guards earn their place, and they catch different things. `ValidateOnStart()` handles the *invalid* value: binding is lazy, so without it a bad value doesn't fail the deploy — it throws on the first request that reads `IOptions<T>.Value`. `ValidateDataAnnotations()` with `[Required]` handles the *missing* one, which `ValidateOnStart()` alone will not: an absent key raises nothing, because binding succeeds and simply doesn't assign.
 
-Two edges worth knowing, both inherited from `ConfigurationBinder` rather than introduced here. An explicit `"Name": null` nulls even a non-nullable `NonEmptyString` — nullability is erased by the time the binder runs, so omit the key instead of writing `null`. And `""` throws for every wrapper *except* a nullable struct one (`Positive<int>?`), where the BCL's `NullableConverter` maps it to `null` first. The full matrix is in the [skill reference](Skill/references/configuration.md).
+Three edges worth knowing, all inherited from `ConfigurationBinder` rather than introduced here:
+
+- **A wrapper doesn't survive an unconfigured key.** Its invariant constrains every value it can hold, but can't make the binder assign one — so an unconfigured `NonEmptyString Name` is `null`, exactly as a `string` would be. Use `[Required]`.
+- **A non-nullable struct wrapper can't be checked for absence at all.** `default(Positive<int>)` is `1` — a real, invariant-satisfying value — so `[Required]` passes and nothing tells "configured as 1" from "never configured". Declare it `Positive<int>?` when that matters.
+- **`null` and `""` are not interchangeable.** An explicit `"Name": null` nulls even a non-nullable `NonEmptyString`, so omit the key rather than writing `null`; and `""` throws for every wrapper *except* a nullable struct one, where the BCL's `NullableConverter` maps it to `null` first.
+
+The full matrix is in the [skill reference](Skill/references/configuration.md).
 
 [↑ Back to contents](#contents)
 

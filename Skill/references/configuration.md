@@ -65,6 +65,41 @@ even with **no** `IValidateOptions<T>` registered. Always add it when options
 hold strong types — otherwise the invariant buys you a later crash, not an
 earlier one.
 
+## `ValidateOnStart()` does not catch a *missing* value
+
+It only surfaces failures that binding itself raises. A key that simply isn't
+there raises nothing — binding succeeds, it just doesn't assign — so the
+property keeps whatever the options class gave it. Since a real options class
+has no initialisers, that means:
+
+| declaration                     | key not in config | `[Required]` catches it? |
+| ------------------------------- | ----------------- | ------------------------ |
+| `NonEmptyString Name`           | **`null`**        | yes                      |
+| `Positive<int> MaxRetries`      | **`1`** (default) | **no**                   |
+| `Positive<int>? MaxRetries`     | `null`            | yes                      |
+
+Two consequences worth internalising:
+
+- **A non-nullable `NonEmptyString` can be null.** The invariant constrains
+  every value the type can hold; it cannot make the binder assign one. The
+  wrapper is no better than `string` at surviving an unconfigured key.
+- **A non-nullable struct wrapper cannot be checked at all.**
+  `default(Positive<int>)` is `1` — a real, invariant-satisfying value — so
+  `[Required]` passes and nothing distinguishes "configured as 1" from "never
+  configured". **Declare it `Positive<int>?` when that distinction matters.**
+
+So the full guard is both:
+
+```csharp
+builder.Services.AddOptions<RetryOptions>()
+    .Bind(builder.Configuration.GetSection("Retry"))
+    .ValidateDataAnnotations()   // [Required] → catches a missing value
+    .ValidateOnStart();          // → catches an invalid one, at startup
+```
+
+…with `[Required]` on each property that must be present, and struct wrappers
+declared nullable so `[Required]` has a null to find.
+
 ## `null` and `""` — the exact matrix
 
 Not uniform, and not guessable. Measured; `ConfigurationBinder.Get<T>` and
@@ -72,12 +107,15 @@ Not uniform, and not guessable. Measured; `ConfigurationBinder.Get<T>` and
 
 | in `appsettings.json` | `NonEmptyString` | `NonEmptyString?` | `Positive<int>` | `Positive<int>?` |
 | --------------------- | ---------------- | ----------------- | --------------- | ---------------- |
-| key absent            | default kept     | `null`            | `1` (`default`) | `null`           |
+| key absent            | **`null`** †     | `null`            | `1` (`default`) | `null`           |
 | `null`                | **`null`**       | `null`            | `1` (`default`) | `null`           |
 | `""`                  | **throws**       | **throws**        | **throws**      | **`null`**       |
 | `"  "`                | **throws**       | **throws**        | throws (format) | throws (format)  |
 | valid                 | binds            | binds             | binds           | binds            |
 | invariant breach      | throws           | throws            | throws          | throws           |
+
+† unless the options class initialises the property, which is rare — an absent
+key leaves whatever was already there, and for a reference type that is `null`.
 
 Three things in there surprise people:
 

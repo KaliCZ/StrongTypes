@@ -99,9 +99,10 @@ public class ConfigurationBindingTests
 
     // ── Absent vs. explicit null ────────────────────────────────────────
 
+    /// <summary>An absent key leaves the property exactly as the options class constructed it — here a non-null initialiser. A real options class rarely has one; see <see cref="UnconfiguredOptionsTests"/> for what absence yields then.</summary>
     [Theory]
     [MemberData(nameof(Paths))]
-    public void AbsentKey_LeavesTheDefault(BindingPath path)
+    public void AbsentKey_LeavesWhateverThePropertyAlreadyHeld(BindingPath path)
     {
         var options = Bind(path, "\"Tier\": 7");
 
