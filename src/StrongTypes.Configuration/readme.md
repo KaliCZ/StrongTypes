@@ -59,8 +59,30 @@ public int? Timeout { get; set; }                          // optional
 ```
 
 **Every property is checked, not only the wrappers.** Opting in says this options class should be
-fully configured, and a missing `string` is exactly as silent as a missing `NonEmptyString`. A
-collection or nested object counts as configured when the section has it, value or children.
+fully configured, and a missing `string` is exactly as silent as a missing `NonEmptyString`.
+
+It also rejects an explicit `null`, which plain binding does not — `"Name": null` otherwise leaves
+a non-nullable `NonEmptyString` holding `null`, because nullability is erased before the binder runs.
+
+## What counts as configured
+
+The question is whether the **section** holds anything, not whether the bound value ends up non-null.
+For a scalar the two coincide; for a collection or nested object they need care, because those are
+sections with *children* and no value of their own — `"Items": [ "a", "b" ]` flattens to
+`Retry:Items:0` and `Retry:Items:1` beneath a valueless `Retry:Items`.
+
+| in `appsettings.json` | configured? |
+| --------------------- | ----------- |
+| `"Items": [ "a" ]`    | yes — has children |
+| `"Items": []`         | yes — recorded as an empty value, and a deliberate one |
+| `"Nested": { "X": 1 }`| yes — has children |
+| `"Nested": { }`       | no — neither value nor children |
+| `"Name": null`        | no — the key is there but says nothing |
+| key absent            | no |
+
+One wrinkle worth knowing: `"Items": []` satisfies the requirement, but the binder still leaves the
+property `null` rather than building an empty list. Presence and non-nullness are different
+questions, and this answers the first.
 
 Pair it with `ValidateOnStart()`. On its own the failure is still lazy — it surfaces on the first
 read of `IOptions<T>.Value`, not at startup.

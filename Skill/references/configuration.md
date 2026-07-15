@@ -96,8 +96,15 @@ public int? Timeout { get; set; }                          // optional
 ```
 
 **Every property is checked, not only the wrappers** — opting in says the class should be fully
-configured, and a missing `string` is as silent as a missing `NonEmptyString`. Two declarations
-cannot be read: a value type whose intended default *is* the CLR default
+configured, and a missing `string` is as silent as a missing `NonEmptyString`. It also rejects an
+explicit `"Name": null`, which plain binding accepts even on a non-nullable property.
+
+What counts as configured is whether the **section** holds anything: `"Items": [ "a" ]` and
+`"Nested": { "X": 1 }` do (they have children), `"Items": []` does (an empty value, deliberately),
+while `"Nested": { }` and `"Name": null` do not. Note `"Items": []` satisfies the requirement but
+still binds `null` rather than an empty list — presence and non-nullness are different questions.
+
+Two declarations cannot be read: a value type whose intended default *is* the CLR default
 (`bool Enabled { get; set; } = false`) is required, since it is indistinguishable from having no
 initialiser — declare it `bool?`; and a reference property in an assembly with
 `<Nullable>disable</Nullable>` carries no annotation and is treated as optional.

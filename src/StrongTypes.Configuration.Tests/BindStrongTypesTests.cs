@@ -33,8 +33,13 @@ public class BindStrongTypesTests
         public int? OptionalInt { get; set; }
         public string WithDefault { get; set; } = "https://example.test";
         public Positive<int> Retries { get; set; } = Positive<int>.Create(3);
-        public List<string> Items { get; set; } = [];
-        public NestedOptions Nested { get; set; } = new();
+    }
+
+    /// <summary>No initialisers, so both are required and the presence check actually runs on them — which is the only way to exercise a section that has children rather than a value.</summary>
+    private sealed class RequiredCollectionOptions
+    {
+        public List<string> Items { get; set; } = null!;
+        public NestedOptions Nested { get; set; } = null!;
     }
 
     private sealed class NestedOptions
@@ -184,25 +189,74 @@ public class BindStrongTypesTests
     }
 
     /// <summary>
-    /// A collection or nested object is a section with children and no value of its own, so a
-    /// presence check on the value alone would call these unconfigured. They are both initialised
-    /// here, so neither is required — and configuring them must not fail either.
+    /// A configured collection or nested object holds no scalar value of its own: the JSON array
+    /// flattens to <c>Retry:Items:0</c> / <c>Retry:Items:1</c> beneath a valueless <c>Retry:Items</c>
+    /// parent. Asking whether the section has a <c>Value</c> therefore calls this plainly-configured
+    /// pair missing; asking whether it <c>Exists()</c> does not.
     /// </summary>
     [Fact]
-    public void ConfiguredCollectionsAndNestedObjects_AreSeenAsConfigured()
+    public void RequiredCollectionAndNestedObject_ConfiguredAsChildren_AreSeenAsConfigured()
     {
-        var options = Bind<MixedOptions>("""
-            {
-              "Retry": {
-                "Name": "checkout", "PlainString": "s", "PlainInt": 1,
-                "Items": [ "a", "b" ],
-                "Nested": { "Inner": "y" }
-              }
-            }
+        var options = Bind<RequiredCollectionOptions>("""
+            { "Retry": { "Items": [ "a", "b" ], "Nested": { "Inner": "y" } } }
             """);
 
         Assert.Equal(["a", "b"], options.Items);
         Assert.Equal("y", options.Nested.Inner);
+    }
+
+    /// <summary>The counterpart: <c>Exists()</c> must not simply wave everything through.</summary>
+    [Fact]
+    public void RequiredCollectionAndNestedObject_WhenActuallyAbsent_Fail()
+    {
+        var exception = BindExpectingFailure<RequiredCollectionOptions>("""{ "Retry": { "Unrelated": 1 } }""");
+        var failures = string.Join(" | ", exception.Failures);
+
+        Assert.Contains("Retry:Items", failures, StringComparison.Ordinal);
+        Assert.Contains("Retry:Nested", failures, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// An empty array is a deliberate configuration — the provider records it as an empty value
+    /// rather than nothing — so the key is present and the requirement is met. The binder still
+    /// leaves the property null rather than building an empty list: this validates that the section
+    /// was configured, which is not the same question as whether the bound value is non-null, and
+    /// the two only coincide for a scalar.
+    /// </summary>
+    [Fact]
+    public void RequiredCollection_ConfiguredEmpty_SatisfiesPresenceButBindsNull()
+    {
+        var options = Bind<RequiredCollectionOptions>("""
+            { "Retry": { "Items": [], "Nested": { "Inner": "y" } } }
+            """);
+
+        Assert.Null(options.Items);
+    }
+
+    /// <summary>An empty object holds neither value nor children, so it says nothing and reads as absent.</summary>
+    [Fact]
+    public void RequiredNestedObject_ConfiguredEmpty_ReadsAsAbsent()
+    {
+        var exception = BindExpectingFailure<RequiredCollectionOptions>("""
+            { "Retry": { "Items": [ "a" ], "Nested": {} } }
+            """);
+
+        Assert.Contains("Retry:Nested", string.Join(" | ", exception.Failures), StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// An explicit <c>null</c> does not satisfy a required property. That also closes the hole plain
+    /// binding leaves, where <c>"Name": null</c> quietly nulls a non-nullable <c>NonEmptyString</c>
+    /// because nullability is erased before the binder runs.
+    /// </summary>
+    [Fact]
+    public void RequiredProperty_ExplicitNull_Fails()
+    {
+        var exception = BindExpectingFailure<RetryOptions>("""
+            { "Retry": { "Name": null, "MaxRetries": 5, "Tier": 7 } }
+            """);
+
+        Assert.Contains("Retry:Name", string.Join(" | ", exception.Failures), StringComparison.Ordinal);
     }
 
     [Fact]
