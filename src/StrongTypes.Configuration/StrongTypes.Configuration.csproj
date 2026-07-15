@@ -11,7 +11,7 @@
     <PackageId>Kalicz.StrongTypes.Configuration</PackageId>
     <Authors>KaliCZ</Authors>
     <Copyright>Copyright © 2026 KaliCZ</Copyright>
-    <Description>Configuration binding support for Kalicz.StrongTypes. Adds OptionsBuilder&lt;T&gt;.BindStrongTypes(), which binds a section and then fails when a non-nullable strong-type property has no configuration key — the case [Required] cannot catch for struct wrappers, whose default is an ordinary value rather than null.</Description>
+    <Description>Configuration binding support for Kalicz.StrongTypes. Adds OptionsBuilder&lt;T&gt;.BindStrongTypes(), which binds a section and then fails when any property that expects a value — not nullable, and given no default of its own — has no configuration key. Catches what [Required] cannot: default(Positive&lt;int&gt;) is 1, an ordinary value rather than null.</Description>
     <PackageTags>StrongTypes, Configuration, Options, IOptions, Validation, NonEmptyString</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

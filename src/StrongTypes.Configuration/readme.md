@@ -44,31 +44,38 @@ OptionsValidationException: 'Retry:MaxRetries' is required but was not configure
                             Declare RetryOptions.MaxRetries nullable if it is optional.
 ```
 
-The declaration is the spec — no attributes:
+The declaration is the spec — no attributes. A property is **required when it is not nullable and
+the options class gives it no default of its own**:
 
-| declaration                 | meaning     |
-| --------------------------- | ----------- |
-| `Positive<int> MaxRetries`  | required    |
-| `Positive<int>? MaxRetries` | optional    |
-| `NonEmptyString Name`       | required    |
-| `NonEmptyString? Nickname`  | optional    |
+```csharp
+public NonEmptyString Name { get; set; } = null!;          // required — null! declares no default
+public NonEmptyString? Nickname { get; set; }              // optional — nullable
+public Positive<int> MaxRetries { get; set; }              // required
+public Positive<int>? Score { get; set; }                  // optional — nullable
+public string Endpoint { get; set; } = "https://x.test";   // optional — has a default
+public string ApiKey { get; set; } = null!;                // required
+public int Timeout { get; set; }                           // required
+public int? Timeout { get; set; }                          // optional
+```
 
-Only Kalicz.StrongTypes wrappers are checked; a `string` or `int` property is left to whatever
-validation you already use.
+**Every property is checked, not only the wrappers.** Opting in says this options class should be
+fully configured, and a missing `string` is exactly as silent as a missing `NonEmptyString`. A
+collection or nested object counts as configured when the section has it, value or children.
 
 Pair it with `ValidateOnStart()`. On its own the failure is still lazy — it surfaces on the first
 read of `IOptions<T>.Value`, not at startup.
 
+## Two declarations it cannot read
+
+- **A value type whose intended default is the CLR default.** `bool Enabled { get; set; } = false`
+  is indistinguishable from `bool Enabled { get; set; }`, so it is required. Declare it `bool?` to
+  make it optional.
+- **A reference property in an assembly with `<Nullable>disable</Nullable>`.** It carries no
+  annotation, so it is treated as **optional** — with no intent declared there is nothing to
+  enforce. Struct properties are unaffected: `Positive<int>` vs `Positive<int>?` lives in the type
+  and is always readable.
+
 ## When you don't need it
 
-- No strong types in your options classes.
-- Every strong-typed property is nullable, so nothing is required.
+- Every property on your options classes is nullable or has a default, so nothing is required.
 - You already have an `IValidateOptions<T>` covering presence.
-
-## Nullable reference types
-
-Required-ness for a reference wrapper is read from the assembly's nullable annotations. An options
-class in a project with `<Nullable>disable</Nullable>` carries none, so its reference wrappers are
-treated as **optional** — with no intent declared there is nothing to enforce. Struct wrappers
-(`Positive<int>` vs `Positive<int>?`) are unaffected: that distinction is in the type itself and
-always readable.

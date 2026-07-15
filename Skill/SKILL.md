@@ -20,7 +20,7 @@ demand when about to write code against that surface.
 | Package                       | What it gives you                                                                                                  |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `Kalicz.StrongTypes`          | The core types (`NonEmptyString`, numeric wrappers, `NonEmptyEnumerable<T>`, `Maybe<T>`, `Result<T, TError>`, …).  |
-| `Kalicz.StrongTypes.Configuration` | `OptionsBuilder<T>.BindStrongTypes()` — binds a section and fails when a non-nullable strong-type property has no configuration key, which `[Required]` cannot do for struct wrappers (`default(Positive<int>)` is `1`, never null). |
+| `Kalicz.StrongTypes.Configuration` | `OptionsBuilder<T>.BindStrongTypes()` — binds a section and fails when any property that expects a value (not nullable, no default of its own) has no configuration key. Catches what `[Required]` cannot: `default(Positive<int>)` is `1`, never null. |
 | `Kalicz.StrongTypes.EfCore`   | EF Core value converters, interval column mapping (two endpoint columns by default, JSON opt-in), and LINQ translators (`.Unwrap()`, interval `Start`/`End`) so strong types sit directly on entity properties. |
 | `Kalicz.StrongTypes.FsCheck`  | FsCheck `Arbitrary<T>` generators registered via `[Properties(Arbitrary = new[] { typeof(Generators) })]`.         |
 | `Kalicz.StrongTypes.OpenApi.Microsoft`   | Schema transformers for `Microsoft.AspNetCore.OpenApi` (`AddOpenApi()`) so wrappers render as the wire JSON shape, not the CLR shape. |

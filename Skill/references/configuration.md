@@ -81,11 +81,26 @@ OptionsValidationException: 'Retry:MaxRetries' is required but was not configure
                             Declare RetryOptions.MaxRetries nullable if it is optional.
 ```
 
-`Positive<int>` is required, `Positive<int>?` is optional. It works where `[Required]` cannot
-because it asks **configuration** whether the key is present, rather than asking the bound object
-whether it looks null — and `default(Positive<int>)` is `1`, which looks like a configured value.
-Only Kalicz.StrongTypes wrappers are checked; `string`/`int` properties are left to whatever
-validation you already have.
+It works where `[Required]` cannot because it asks **configuration** whether the key is present,
+rather than asking the bound object whether it looks null — and `default(Positive<int>)` is `1`,
+which looks like a configured value.
+
+A property is **required when it is not nullable and the options class gives it no default**:
+
+```csharp
+public NonEmptyString Name { get; set; } = null!;          // required — null! declares no default
+public NonEmptyString? Nickname { get; set; }              // optional — nullable
+public Positive<int> MaxRetries { get; set; }              // required
+public string Endpoint { get; set; } = "https://x.test";   // optional — has a default
+public int? Timeout { get; set; }                          // optional
+```
+
+**Every property is checked, not only the wrappers** — opting in says the class should be fully
+configured, and a missing `string` is as silent as a missing `NonEmptyString`. Two declarations
+cannot be read: a value type whose intended default *is* the CLR default
+(`bool Enabled { get; set; } = false`) is required, since it is indistinguishable from having no
+initialiser — declare it `bool?`; and a reference property in an assembly with
+`<Nullable>disable</Nullable>` carries no annotation and is treated as optional.
 
 Analyzer **ST0004** flags a plain `Bind` / `Configure` on an options type that needs this, with a
 code fix that rewrites the call. It stays quiet for a reference wrapper already carrying

@@ -22,8 +22,24 @@ public class BindStrongTypesTests
         public Positive<int> MaxRetries { get; set; }
         public Positive<int>? Score { get; set; }
         public Digit Tier { get; set; }
+    }
+
+    private sealed class MixedOptions
+    {
+        public NonEmptyString Name { get; set; } = null!;
         public string PlainString { get; set; } = null!;
+        public string? OptionalString { get; set; }
         public int PlainInt { get; set; }
+        public int? OptionalInt { get; set; }
+        public string WithDefault { get; set; } = "https://example.test";
+        public Positive<int> Retries { get; set; } = Positive<int>.Create(3);
+        public List<string> Items { get; set; } = [];
+        public NestedOptions Nested { get; set; } = new();
+    }
+
+    private sealed class NestedOptions
+    {
+        public string Inner { get; set; } = "";
     }
 
     private const string FullyConfigured = """
@@ -88,15 +104,17 @@ public class BindStrongTypesTests
         Assert.Contains("Retry:MaxRetries", failures, StringComparison.Ordinal);
     }
 
-    /// <summary>The failure has to name the config path, not the property — that is what the reader has to go and edit.</summary>
+    /// <summary>The failure has to name the config path, not just the property — that is what the reader goes and edits — and both ways out of it.</summary>
     [Fact]
-    public void Failure_NamesTheConfigurationPathAndTheFix()
+    public void Failure_NamesTheConfigurationPathAndBothFixes()
     {
         var exception = BindExpectingFailure<RetryOptions>("""{ "Retry": { "Name": "checkout", "Tier": 7 } }""");
         var failure = Assert.Single(exception.Failures);
 
         Assert.Contains("Retry:MaxRetries", failure, StringComparison.Ordinal);
-        Assert.Contains("nullable if it is optional", failure, StringComparison.Ordinal);
+        Assert.Contains("RetryOptions.MaxRetries", failure, StringComparison.Ordinal);
+        Assert.Contains("a default", failure, StringComparison.Ordinal);
+        Assert.Contains("declare it nullable", failure, StringComparison.Ordinal);
     }
 
     // ── What it must not do ─────────────────────────────────────────────
@@ -120,14 +138,83 @@ public class BindStrongTypesTests
         Assert.Null(options.Score);
     }
 
-    /// <summary>Only our wrappers are policed; an unconfigured <c>string</c> or <c>int</c> is left to whatever validation the caller already has.</summary>
-    [Fact]
-    public void MissingPlainProperties_AreNotPoliced()
-    {
-        var options = Bind<RetryOptions>(FullyConfigured);
+    // ── Every property type, not only the wrappers ──────────────────────
+    //
+    // Opting in says the options class should be fully configured: an unconfigured
+    // string is exactly as silent as an unconfigured NonEmptyString.
 
-        Assert.Null(options.PlainString);
-        Assert.Equal(0, options.PlainInt);
+    [Fact]
+    public void MissingPlainProperties_AreRequiredToo()
+    {
+        var exception = BindExpectingFailure<MixedOptions>("""{ "Retry": { "Name": "checkout" } }""");
+        var failures = string.Join(" | ", exception.Failures);
+
+        Assert.Contains("Retry:PlainString", failures, StringComparison.Ordinal);
+        Assert.Contains("Retry:PlainInt", failures, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NullablePlainProperties_AreOptional()
+    {
+        var exception = BindExpectingFailure<MixedOptions>("""{ "Retry": { "Name": "checkout" } }""");
+        var failures = string.Join(" | ", exception.Failures);
+
+        Assert.DoesNotContain("OptionalString", failures, StringComparison.Ordinal);
+        Assert.DoesNotContain("OptionalInt", failures, StringComparison.Ordinal);
+    }
+
+    /// <summary>A property the options class initialises has a stated fallback, so configuration is not required to supply one.</summary>
+    [Fact]
+    public void PropertiesWithADeclaredDefault_AreOptional()
+    {
+        var exception = BindExpectingFailure<MixedOptions>("""{ "Retry": { "Name": "checkout" } }""");
+        var failures = string.Join(" | ", exception.Failures);
+
+        Assert.DoesNotContain("WithDefault", failures, StringComparison.Ordinal);
+        Assert.DoesNotContain("Retries", failures, StringComparison.Ordinal);
+    }
+
+    /// <summary><c>= null!</c> appeases nullable reference types without declaring a fallback, so the property is still required.</summary>
+    [Fact]
+    public void NullBangInitialiser_IsNotADeclaredDefault()
+    {
+        var exception = BindExpectingFailure<MixedOptions>("""{ "Retry": { "PlainInt": 1 } }""");
+
+        Assert.Contains("Retry:Name", string.Join(" | ", exception.Failures), StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A collection or nested object is a section with children and no value of its own, so a
+    /// presence check on the value alone would call these unconfigured. They are both initialised
+    /// here, so neither is required — and configuring them must not fail either.
+    /// </summary>
+    [Fact]
+    public void ConfiguredCollectionsAndNestedObjects_AreSeenAsConfigured()
+    {
+        var options = Bind<MixedOptions>("""
+            {
+              "Retry": {
+                "Name": "checkout", "PlainString": "s", "PlainInt": 1,
+                "Items": [ "a", "b" ],
+                "Nested": { "Inner": "y" }
+              }
+            }
+            """);
+
+        Assert.Equal(["a", "b"], options.Items);
+        Assert.Equal("y", options.Nested.Inner);
+    }
+
+    [Fact]
+    public void MixedOptions_FullyConfigured_Binds()
+    {
+        var options = Bind<MixedOptions>("""{ "Retry": { "Name": "checkout", "PlainString": "s", "PlainInt": 42 } }""");
+
+        Assert.Equal("checkout", options.Name.Value);
+        Assert.Equal("s", options.PlainString);
+        Assert.Equal(42, options.PlainInt);
+        Assert.Equal("https://example.test", options.WithDefault);
+        Assert.Equal(3, options.Retries.Value);
     }
 
     /// <summary>Presence is the only question asked here; an invalid value is still the converter's failure, thrown while binding.</summary>
