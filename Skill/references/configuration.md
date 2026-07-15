@@ -65,6 +65,34 @@ even with **no** `IValidateOptions<T>` registered. Always add it when options
 hold strong types — otherwise the invariant buys you a later crash, not an
 earlier one.
 
+## The missing key — `BindStrongTypes()`
+
+Add [`Kalicz.StrongTypes.Configuration`](https://www.nuget.org/packages/Kalicz.StrongTypes.Configuration/)
+and the declaration becomes the spec — no `[Required]`, no `ValidateDataAnnotations()`:
+
+```csharp
+builder.Services.AddOptions<RetryOptions>()
+    .BindStrongTypes(builder.Configuration.GetSection("Retry"))
+    .ValidateOnStart();
+```
+
+```
+OptionsValidationException: 'Retry:MaxRetries' is required but was not configured.
+                            Declare RetryOptions.MaxRetries nullable if it is optional.
+```
+
+`Positive<int>` is required, `Positive<int>?` is optional. It works where `[Required]` cannot
+because it asks **configuration** whether the key is present, rather than asking the bound object
+whether it looks null — and `default(Positive<int>)` is `1`, which looks like a configured value.
+Only Kalicz.StrongTypes wrappers are checked; `string`/`int` properties are left to whatever
+validation you already have.
+
+Analyzer **ST0004** flags a plain `Bind` / `Configure` on an options type that needs this, with a
+code fix that rewrites the call. It stays quiet for a reference wrapper already carrying
+`[Required]`, since that case genuinely is covered.
+
+The rest of this section describes what happens **without** that package.
+
 ## `ValidateOnStart()` does not catch a *missing* value
 
 It only surfaces failures that binding itself raises. A key that simply isn't

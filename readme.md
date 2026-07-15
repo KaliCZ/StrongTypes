@@ -166,15 +166,19 @@ InvalidOperationException: Failed to convert configuration value '-5' at 'Retry:
   ---> ArgumentException: Value must be positive, but was '-5'. (Parameter 'value')
 ```
 
-Both guards earn their place, and they catch different things. `ValidateOnStart()` handles the *invalid* value: binding is lazy, so without it a bad value doesn't fail the deploy — it throws on the first request that reads `IOptions<T>.Value`. `ValidateDataAnnotations()` with `[Required]` handles the *missing* one, which `ValidateOnStart()` alone will not: an absent key raises nothing, because binding succeeds and simply doesn't assign.
+`ValidateOnStart()` handles the *invalid* value: binding is lazy, so without it a bad value doesn't fail the deploy — it throws on the first request that reads `IOptions<T>.Value`.
 
-Three edges worth knowing, all inherited from `ConfigurationBinder` rather than introduced here:
+It does **not** handle the *missing* one. An absent key raises nothing, because binding succeeds and simply doesn't assign — so an unconfigured `NonEmptyString Name` is `null` (a wrapper's invariant constrains every value it can hold; it can't make the binder assign one) and an unconfigured `Positive<int>` is `1`. `[Required]` finds the first but never the second, because `1` isn't null. For that, add [`Kalicz.StrongTypes.Configuration`](https://www.nuget.org/packages/Kalicz.StrongTypes.Configuration/):
 
-- **A wrapper doesn't survive an unconfigured key.** Its invariant constrains every value it can hold, but can't make the binder assign one — so an unconfigured `NonEmptyString Name` is `null`, exactly as a `string` would be. Use `[Required]`.
-- **A non-nullable struct wrapper can't be checked for absence at all.** `default(Positive<int>)` is `1` — a real, invariant-satisfying value — so `[Required]` passes and nothing tells "configured as 1" from "never configured". Declare it `Positive<int>?` when that matters.
-- **`null` and `""` are not interchangeable.** An explicit `"Name": null` nulls even a non-nullable `NonEmptyString`, so omit the key rather than writing `null`; and `""` throws for every wrapper *except* a nullable struct one, where the BCL's `NullableConverter` maps it to `null` first.
+```csharp
+builder.Services.AddOptions<RetryOptions>()
+    .BindStrongTypes(builder.Configuration.GetSection("Retry"))   // requires every non-nullable wrapper
+    .ValidateOnStart();
+```
 
-The full matrix is in the [skill reference](Skill/references/configuration.md).
+It asks configuration whether the key is present rather than asking the bound object whether it looks null, and takes required-ness from the declaration — `Positive<int>` required, `Positive<int>?` optional. Analyzer `ST0004` flags a plain `Bind` that needs it.
+
+One more edge, inherited from `ConfigurationBinder`: **`null` and `""` are not interchangeable.** An explicit `"Name": null` nulls even a non-nullable `NonEmptyString`, so omit the key rather than writing `null`; and `""` throws for every wrapper *except* a nullable struct one, where the BCL's `NullableConverter` maps it to `null` first. The full matrix is in the [skill reference](Skill/references/configuration.md).
 
 [↑ Back to contents](#contents)
 
@@ -796,6 +800,7 @@ Result<Positive<int>[], string> ParseOrderQuantities(IEnumerable<int> inputs)
 | Package | Purpose | Readme |
 | --- | --- | --- |
 | [`Kalicz.StrongTypes`](https://www.nuget.org/packages/Kalicz.StrongTypes/) | Core types: `NonEmptyString`, `Positive<T>` / `NonNegative<T>` / `Negative<T>` / `NonPositive<T>`, `NonEmptyEnumerable<T>`, `Maybe<T>`, `Result<T, TError>`, plus `System.Text.Json` converters. | (this readme) |
+| [`Kalicz.StrongTypes.Configuration`](https://www.nuget.org/packages/Kalicz.StrongTypes.Configuration/) | `OptionsBuilder<T>.BindStrongTypes()` — binds a section and fails when a non-nullable strong-type property has no configuration key. Binding itself needs no package; this is only about the key that isn't there. | [readme](src/StrongTypes.Configuration/readme.md) |
 | [`Kalicz.StrongTypes.EfCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/) | EF Core value converters + `DbContext` extension for round-tripping the wrappers through scalar columns. | [readme](src/StrongTypes.EfCore/readme.md) |
 | [`Kalicz.StrongTypes.FsCheck`](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/) | FsCheck `Arbitrary<T>` generators for property-based (generative) testing of code that takes or returns the wrappers. | [readme](src/StrongTypes.FsCheck/readme.md) |
 | [`Kalicz.StrongTypes.OpenApi.Microsoft`](https://www.nuget.org/packages/Kalicz.StrongTypes.OpenApi.Microsoft/) | Schema transformers for `Microsoft.AspNetCore.OpenApi` (`AddOpenApi()`) so the generated document matches the wire JSON. | [readme](src/StrongTypes.OpenApi.Microsoft/readme.md) |

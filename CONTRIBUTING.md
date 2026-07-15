@@ -49,7 +49,8 @@ as part of the same PR.
   spec, move the long form into the type's XML docs and leave a tight
   example in the readme.
 - **Package readmes** — each package that ships its own readme
-  ([`StrongTypes.EfCore`](src/StrongTypes.EfCore/readme.md),
+  ([`StrongTypes.Configuration`](src/StrongTypes.Configuration/readme.md),
+  [`StrongTypes.EfCore`](src/StrongTypes.EfCore/readme.md),
   [`StrongTypes.FsCheck`](src/StrongTypes.FsCheck/readme.md),
   [`StrongTypes.OpenApi.Microsoft`](src/StrongTypes.OpenApi.Microsoft/readme.md),
   [`StrongTypes.OpenApi.Swashbuckle`](src/StrongTypes.OpenApi.Swashbuckle/readme.md),
