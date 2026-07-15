@@ -27,7 +27,7 @@ public sealed class RetryOptions
 }
 ```
 
-`null`, in the one type whose entire purpose is to never be null. `ValidateOnStart()` does not help:
+`null` — which the declaration says is impossible. `ValidateOnStart()` does not help:
 binding an absent key *succeeds*, it just doesn't assign, so nothing is raised. C#'s `required`
 doesn't either — it's a compile-time rule and the binder's reflection walks past it. `[Required]`
 does work, but only if you remember it on every property.

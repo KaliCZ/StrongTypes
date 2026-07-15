@@ -168,7 +168,7 @@ InvalidOperationException: Failed to convert configuration value '-5' at 'Retry:
 
 `ValidateOnStart()` handles the *invalid* value: binding is lazy, so without it a bad value doesn't fail the deploy — it throws on the first request that reads `IOptions<T>.Value`.
 
-It does **not** handle the *missing* one. An absent key raises nothing, because binding succeeds and simply doesn't assign — so an unconfigured `NonEmptyString Name` is `null`, in the one type whose whole purpose is never being null. (A wrapper's invariant constrains every value it can hold; it can't make the binder assign one.) `[Required]` covers it, an attribute at a time. Or add [`Kalicz.StrongTypes.Configuration`](https://www.nuget.org/packages/Kalicz.StrongTypes.Configuration/), which reads the same intent from the nullable annotations you already wrote:
+It does **not** handle the *missing* one. An absent key raises nothing, because binding succeeds and simply doesn't assign — so an unconfigured `NonEmptyString Name` is `null`, which its declaration says is impossible. (A wrapper's invariant constrains every value it can hold; it can't make the binder assign one — and a non-nullable `string` is broken by the same key in the same way. `ConfigurationBinder` predates nullable reference types and never consults them.) `[Required]` covers it, an attribute at a time. Or add [`Kalicz.StrongTypes.Configuration`](https://www.nuget.org/packages/Kalicz.StrongTypes.Configuration/), which reads the same intent from the nullable annotations you already wrote:
 
 ```csharp
 builder.Services.AddOptions<RetryOptions>()
