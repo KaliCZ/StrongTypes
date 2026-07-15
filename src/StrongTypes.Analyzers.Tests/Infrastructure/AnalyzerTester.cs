@@ -25,7 +25,28 @@ internal static class AnalyzerTester
             references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
+        AssertCompiles(compilation);
+
         var withAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzer));
         return await withAnalyzers.GetAnalyzerDiagnosticsAsync();
+    }
+
+    /// <summary>
+    /// An analyzer reads a broken tree without complaining and simply finds less in it, so a source
+    /// missing a reference yields no diagnostics — and every <c>Silent_</c> test would pass for the
+    /// wrong reason. Fail loudly instead.
+    /// </summary>
+    private static void AssertCompiles(CSharpCompilation compilation)
+    {
+        var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToArray();
+        if (errors.Length == 0)
+        {
+            return;
+        }
+
+        throw new InvalidOperationException(
+            "Test source does not compile, so any assertion about what the analyzer reports is meaningless:"
+            + Environment.NewLine
+            + string.Join(Environment.NewLine, errors.Select(e => e.ToString())));
     }
 }

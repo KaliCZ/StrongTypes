@@ -99,6 +99,11 @@ OptionsValidationException: 'Client:Name' is null. Configure it, give ClientOpti
 **Every reference property is covered, not only the wrappers** — a non-nullable `string` is as
 broken by a missing key as a `NonEmptyString`. A declared default needs nothing: it isn't null.
 
+**At every depth, not just the top level.** Nested options classes, collection elements and
+dictionary values are all walked, and the failure names the full path (`'Client:Endpoints:1:Host'`).
+The walk stops exactly where `ConfigurationBinder` stops — at a type it has a `TypeConverter` for —
+so a wrapper is a leaf, never something to recurse into.
+
 **Value types are not checked, and don't need to be.** An unconfigured `Positive<int>` is `1` and an
 unconfigured `bool` is `false` — defaults, and values those types are happy to hold. There is no
 contradiction to catch, so this will not tell you that you forgot `MaxRetries`. Declare it

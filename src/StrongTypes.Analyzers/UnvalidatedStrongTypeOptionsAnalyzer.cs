@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -8,8 +9,9 @@ using Microsoft.CodeAnalysis.Operations;
 namespace StrongTypes.Analyzers;
 
 /// <summary>
-/// Fires when an options type carrying a non-nullable reference wrapper is bound with <c>Bind</c> /
-/// <c>Configure</c>, which cannot notice the key is missing and leaves the property null.
+/// Fires when an options type carrying a non-nullable reference wrapper — at any depth — is bound
+/// with <c>Bind</c> / <c>Configure</c>, which cannot notice the key is missing and leaves the
+/// property null.
 /// </summary>
 /// <remarks>
 /// A wrapper's invariant constrains every value it can hold; it cannot make the binder assign one,
@@ -101,7 +103,7 @@ public sealed class UnvalidatedStrongTypeOptionsAnalyzer : DiagnosticAnalyzer
                     Rule,
                     invocation.Syntax.GetLocation(),
                     optionsType.Name,
-                    string.Join(", ", unguarded.Select(p => p.Name))));
+                    string.Join(", ", unguarded)));
             }, OperationKind.Invocation);
         });
     }
@@ -122,11 +124,28 @@ public sealed class UnvalidatedStrongTypeOptionsAnalyzer : DiagnosticAnalyzer
                && SymbolEqualityComparer.Default.Equals(containing, configureExtensions);
     }
 
-    /// <summary>Non-nullable reference wrappers with nothing guarding them — the only properties an absent key can leave in a state their type forbids.</summary>
-    private static List<IPropertySymbol> CollectPropertiesLeftNull(INamedTypeSymbol optionsType, INamedTypeSymbol? requiredAttribute)
+    /// <summary>Non-nullable reference wrappers with nothing guarding them, at any depth — the only properties an absent key can leave in a state their type forbids.</summary>
+    private static List<string> CollectPropertiesLeftNull(INamedTypeSymbol optionsType, INamedTypeSymbol? requiredAttribute)
     {
-        var result = new List<IPropertySymbol>();
-        for (var current = optionsType; current is not null; current = current.BaseType)
+        var result = new List<string>();
+        Walk(optionsType, prefix: "", result, requiredAttribute, new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default));
+        return result;
+    }
+
+    private static void Walk(
+        INamedTypeSymbol type,
+        string prefix,
+        List<string> result,
+        INamedTypeSymbol? requiredAttribute,
+        HashSet<INamedTypeSymbol> visited)
+    {
+        // A type reachable by two paths is reported once; without this a cycle would not terminate.
+        if (!visited.Add(type))
+        {
+            return;
+        }
+
+        for (var current = type; current is not null; current = current.BaseType)
         {
             foreach (var member in current.GetMembers())
             {
@@ -134,19 +153,73 @@ public sealed class UnvalidatedStrongTypeOptionsAnalyzer : DiagnosticAnalyzer
                 {
                     continue;
                 }
-                // A value type has no invalid state to reach, so an absent key leaves nothing wrong.
-                if (property.Type.IsValueType || !IsStrongType(property.Type))
+
+                var path = prefix.Length == 0 ? property.Name : prefix + "." + property.Name;
+
+                if (IsStrongType(property.Type))
                 {
+                    // A value type has no invalid state to reach, so an absent key leaves nothing wrong.
+                    if (property.Type.IsValueType
+                        || IsOptional(property)
+                        || HasRequiredAttribute(property, requiredAttribute))
+                    {
+                        continue;
+                    }
+                    result.Add(path);
                     continue;
                 }
-                if (IsOptional(property) || HasRequiredAttribute(property, requiredAttribute))
+
+                if (BindsAsAnObjectGraph(property.Type) is { } nested)
                 {
-                    continue;
+                    Walk(nested, path, result, requiredAttribute, visited);
                 }
-                result.Add(property);
             }
         }
-        return result;
+    }
+
+    /// <summary>
+    /// The type a missing key would leave partially bound, or <c>null</c> where the binder converts a
+    /// scalar instead of recursing — mirroring how <c>ConfigurationBinder</c> itself decides, so the
+    /// walk covers the graph it would build. Collection and dictionary elements are walked too.
+    /// </summary>
+    private static INamedTypeSymbol? BindsAsAnObjectGraph(ITypeSymbol type)
+    {
+        if (type is IArrayTypeSymbol array)
+        {
+            return BindsAsAnObjectGraph(array.ElementType);
+        }
+        if (type is not INamedTypeSymbol named || named.SpecialType != SpecialType.None)
+        {
+            return null;
+        }
+        if (named.IsGenericType && ElementOf(named) is { } element)
+        {
+            return BindsAsAnObjectGraph(element);
+        }
+        if (named.TypeKind is not (TypeKind.Class or TypeKind.Struct) || HasTypeConverter(named))
+        {
+            return null;
+        }
+        return named.ContainingNamespace?.ToDisplayString().StartsWith("System", StringComparison.Ordinal) == true
+            ? null
+            : named;
+    }
+
+    private static ITypeSymbol? ElementOf(INamedTypeSymbol type) =>
+        type.AllInterfaces.Any(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
+            ? type.TypeArguments.LastOrDefault()
+            : null;
+
+    private static bool HasTypeConverter(INamedTypeSymbol type)
+    {
+        for (var current = type; current is not null; current = current.BaseType)
+        {
+            if (current.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "System.ComponentModel.TypeConverterAttribute"))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static bool HasRequiredAttribute(IPropertySymbol property, INamedTypeSymbol? requiredAttribute) =>

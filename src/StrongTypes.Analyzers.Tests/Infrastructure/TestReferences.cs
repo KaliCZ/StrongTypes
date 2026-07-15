@@ -50,7 +50,7 @@ internal static class TestReferences
     public static readonly MetadataReference StrongTypesConfiguration =
         MetadataReference.CreateFromFile(typeof(global::StrongTypes.Configuration.OptionsBuilderExtensions).Assembly.Location);
 
-    /// <summary>What an options-binding source needs to compile: <c>IServiceCollection</c>, <c>OptionsBuilder&lt;T&gt;</c>, <c>IConfiguration</c>, the <c>Bind</c>/<c>Configure</c> extensions ST0004 matches on, and <c>[Required]</c>.</summary>
+    /// <summary>What an options-binding source needs to compile: <c>IServiceCollection</c>, <c>OptionsBuilder&lt;T&gt;</c>, <c>IConfiguration</c>, the <c>Bind</c>/<c>Configure</c> extensions ST0004 matches on, <c>[Required]</c>, and <c>[TypeConverter]</c> — which ST0004 reads to know where the binder stops recursing.</summary>
     public static readonly MetadataReference[] OptionsStack =
     [
         MetadataReference.CreateFromFile(typeof(global::Microsoft.Extensions.DependencyInjection.IServiceCollection).Assembly.Location),
@@ -58,6 +58,10 @@ internal static class TestReferences
         MetadataReference.CreateFromFile(typeof(global::Microsoft.Extensions.Configuration.IConfiguration).Assembly.Location),
         MetadataReference.CreateFromFile(typeof(global::Microsoft.Extensions.DependencyInjection.OptionsBuilderConfigurationExtensions).Assembly.Location),
         MetadataReference.CreateFromFile(typeof(global::System.ComponentModel.DataAnnotations.RequiredAttribute).Assembly.Location),
+        // Two assemblies: the attribute lives in System.ComponentModel.Primitives, the TypeConverter
+        // base class a source needs to subclass is forwarded to System.ComponentModel.TypeConverter.
+        MetadataReference.CreateFromFile(typeof(global::System.ComponentModel.TypeConverterAttribute).Assembly.Location),
+        MetadataReference.CreateFromFile(typeof(global::System.ComponentModel.TypeConverter).Assembly.Location),
     ];
 
     private static IReadOnlyList<MetadataReference> BuildCoreReferences()

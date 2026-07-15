@@ -53,6 +53,10 @@ OptionsValidationException: 'Retry:Name' is null. Configure it, give RetryOption
 as broken by a missing key as a `NonEmptyString` is. A declared default needs no configuration and
 no annotation: it simply isn't null.
 
+**At every depth**, too: nested options classes, collection elements and dictionary values are walked,
+and the failure names the full path (`'Retry:Endpoints:1:Host'`). The walk stops where the binder
+stops — at any type it has a `TypeConverter` for — so a wrapper is a leaf, not a graph to descend into.
+
 Pair it with `ValidateOnStart()`. On its own the failure is still lazy — it surfaces on the first
 read of `IOptions<T>.Value`, not at startup.
 
