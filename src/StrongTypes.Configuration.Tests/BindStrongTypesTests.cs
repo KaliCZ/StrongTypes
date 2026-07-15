@@ -206,6 +206,107 @@ public class BindStrongTypesTests
         Assert.Null(options.Name);
     }
 
+    // ── Depth ───────────────────────────────────────────────────────────
+
+    private sealed class NestedRoot
+    {
+        public Level Child { get; set; } = null!;
+    }
+
+    private sealed class OptionalNestedRoot
+    {
+        public Level? Child { get; set; }
+    }
+
+    private sealed class CollectionRoot
+    {
+        public List<Level> Items { get; set; } = null!;
+    }
+
+    private sealed class DictionaryRoot
+    {
+        public Dictionary<string, Level> Map { get; set; } = null!;
+    }
+
+    private sealed class Level
+    {
+        public NonEmptyString Wrapper { get; set; } = null!;
+        public string Plain { get; set; } = null!;
+        public string? Optional { get; set; }
+        public Positive<int> Number { get; set; }
+    }
+
+    /// <summary>A nested object that binds is not the end of the walk — its own declaration is enforced too.</summary>
+    [Fact]
+    public void NestedObject_HasItsOwnPropertiesChecked()
+    {
+        var failures = Failures(BindExpectingFailure<NestedRoot>("""{ "Retry": { "Child": { "Plain": "x" } } }"""));
+
+        Assert.Contains("'Retry:Child:Wrapper' is null", failures, StringComparison.Ordinal);
+        Assert.Contains("Level.Wrapper", failures, StringComparison.Ordinal);
+    }
+
+    /// <summary>Also pins that the walk stops at a wrapper: recursing into <c>NonEmptyString</c> would report on its innards, and a nested value type is still no one's problem.</summary>
+    [Fact]
+    public void NestedObject_FullyConfigured_Passes()
+    {
+        var child = Bind<NestedRoot>("""{ "Retry": { "Child": { "Wrapper": "w", "Plain": "x" } } }""").Child;
+
+        Assert.Equal("w", child.Wrapper.Value);
+        Assert.Null(child.Optional);
+        Assert.Equal(1, child.Number.Value);
+    }
+
+    /// <summary>An optional nested object may be absent — but once it is there, what it declared holds.</summary>
+    [Fact]
+    public void ConfiguredOptionalNested_StillHasItsOwnPropertiesChecked() =>
+        Assert.Contains(
+            "'Retry:Child:Wrapper' is null",
+            Failures(BindExpectingFailure<OptionalNestedRoot>("""{ "Retry": { "Child": { "Plain": "x" } } }""")),
+            StringComparison.Ordinal);
+
+    [Fact]
+    public void AbsentOptionalNested_IsNotChecked() =>
+        Assert.Null(Bind<OptionalNestedRoot>("""{ "Retry": { } }""").Child);
+
+    [Fact]
+    public void CollectionElements_HaveTheirPropertiesChecked()
+    {
+        var failures = Failures(BindExpectingFailure<CollectionRoot>(
+            """{ "Retry": { "Items": [ { "Wrapper": "ok", "Plain": "x" }, { "Plain": "y" } ] } }"""));
+
+        Assert.Contains("'Retry:Items:1:Wrapper' is null", failures, StringComparison.Ordinal);
+        Assert.DoesNotContain("Items:0", failures, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void DictionaryValues_HaveTheirPropertiesChecked() =>
+        Assert.Contains(
+            "'Retry:Map:primary:Wrapper' is null",
+            Failures(BindExpectingFailure<DictionaryRoot>("""{ "Retry": { "Map": { "primary": { "Plain": "x" } } } }""")),
+            StringComparison.Ordinal);
+
+    private sealed class CycleRoot
+    {
+        public SelfReferencing Node { get; set; } = null!;
+    }
+
+    /// <summary>Binding cannot build a cycle, but a constructor can hand one to the walk.</summary>
+    private sealed class SelfReferencing
+    {
+        public SelfReferencing() => Self = this;
+
+        public SelfReferencing Self { get; set; }
+        public string Name { get; set; } = null!;
+        public NonEmptyString Wrapper { get; set; } = null!;
+    }
+
+    [Fact]
+    public void SelfReferencingGraph_TerminatesAndReportsOnce() =>
+        Assert.Equal(
+            "'Retry:Node:Wrapper' is null. Configure it, give SelfReferencing.Wrapper a default, or declare it nullable.",
+            Assert.Single(BindExpectingFailure<CycleRoot>("""{ "Retry": { "Node": { "Name": "n" } } }""").Failures));
+
     // ── Guard rails ─────────────────────────────────────────────────────
 
     [Fact]
