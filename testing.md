@@ -15,6 +15,7 @@ needs to touch depends on what the type does:
 | Is meant to be stored in a database | `StrongTypes.Api.IntegrationTests` (covers both SQL Server and PostgreSQL) |
 | Appears in an ASP.NET Core request/response | `StrongTypes.OpenApi.IntegrationTests` |
 | Binds from a non-body source, or affects MVC error handling | `StrongTypes.AspNetCore.IntegrationTests` |
+| Carries a `TypeConverter` (every wrapper does) | `StrongTypes.Tests` (`ComponentModel/`) |
 | Ships an analyzer or code fix | `StrongTypes.Analyzers.Tests` |
 
 ## Unit tests — `StrongTypes.Tests`
@@ -219,6 +220,60 @@ the shared `OpenApiDocumentTestsBase` suite so it's verified end-to-end on
 each). The integration suite stays HTTP/JSON-only and does not reference
 Core.
 
+## Configuration binding tests
+
+Plain binding — a wrapper converting from a configuration string — is
+unit-tested in `StrongTypes.Tests/ComponentModel/`: `TypeConverterTests`
+for the converter itself, `ConfigurationBindingTests` for the
+`ConfigurationBinder` / `IOptions<T>` path, and `UnconfiguredOptionsTests`
+pinning what an absent key leaves behind. A new wrapper adds its rows
+there.
+
+`StrongTypes.Configuration.Tests` covers the
+`Kalicz.StrongTypes.Configuration` package — `BindStrongTypes()` and its
+null-property walk:
+
+- Build the section from an inline JSON string (`AddJsonStream`) and
+  resolve `IOptions<T>.Value` through a real `ServiceCollection` — no
+  host, no config files.
+- Assert failures via `OptionsValidationException.Failures`, and pin the
+  complete failure message verbatim at least once — it is user-facing
+  surface.
+- Cover both directions of every claim: the checked shape fails when its
+  key is absent, and the exempt shapes (nullable, value type, initialised
+  default) bind without complaint.
+- The walk is type-agnostic (wrappers are leaves), so a new strong type
+  needs no tests here — new tests are about *shapes* of options classes
+  (nesting, collections, dictionaries, annotations).
+- `StrongTypes.Configuration.Tests.NullableDisabled` supplies options
+  classes from an assembly with `<Nullable>disable</Nullable>`, compiled
+  exactly as a real unannotated consumer would be. Add shapes there; the
+  tests asserting on them stay in the main project.
+
+## WPF binding tests — `StrongTypes.Wpf.Tests`
+
+Proves two-way WPF binding works off the core package's
+`[TypeConverter]`s alone: the project references `StrongTypes` and the
+`StrongTypes.Wpf.TestApp` sample — deliberately nothing else, because
+there is no WPF package to install.
+
+- The project targets `net10.0-windows`. The Ubuntu `build` job compiles
+  it but skips it at `dotnet test`; the suite runs in the dedicated
+  `test-wpf` workflow on `windows-latest`.
+- Run every test body through `StaThread.Run(...)` — WPF requires an STA
+  thread and xUnit workers are MTA. The helper also shuts the thread's
+  `Dispatcher` down; without that, leaked foreground threads make the
+  test host exit non-zero after all tests pass.
+- `TestSetup`'s module initializer creates the one `Application` the
+  binding engine needs — never construct another in a test.
+- A binding's culture is `ConverterCulture ?? element.Language`, never
+  the host thread's. Anything culture-sensitive follows
+  `CultureBindingTests`: run each case under several host cultures and
+  assert the host is ignored.
+- Binding resolves through `TypeDescriptor` and is type-agnostic, so
+  representative types are enough — don't mirror the per-type API matrix
+  here.
+
 ## Analyzer tests — `StrongTypes.Analyzers.Tests`
 
 For every diagnostic and code fix, write both a "reports the diagnostic"
@@ -229,5 +284,6 @@ through the real Roslyn pipeline using `AnalyzerTester` /
 …) so the analyzer sees realistic compilation context.
 
 Cover both directions: the analyzer **fires** when the offending pattern
-is present and the required reference is missing, and is **silent** when
-the reference is present.
+is present, and is **silent** in every configuration that legitimately
+doesn't need it — the required reference already present, the property
+already guarded by `[Required]`, and so on.
