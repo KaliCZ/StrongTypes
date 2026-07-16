@@ -143,22 +143,22 @@ All strong types ship with `System.Text.Json` converters attached via `[JsonConv
 
 ### Configuration binding
 
-All strong types ship a `TypeConverter` attached via `[TypeConverter]`, which is what `ConfigurationBinder` uses — so a wrapper works directly on an options class, and its invariant becomes the config validation rule:
+All strong types ship a `TypeConverter` attached via `[TypeConverter]`, which is what `ConfigurationBinder` uses — so a wrapper sits directly on an options class and its invariant becomes the config validation rule:
 
 ```csharp
 public sealed class RetryOptions
 {
     public Positive<int> MaxRetries { get; set; }
-    public NonEmptyString? Name { get; set; }
+    public NonEmptyString ApiName { get; set; } = null!;
+    public string ApiKey { get; set; } = null!;
 }
 
 builder.Services.AddOptions<RetryOptions>()
     .Bind(builder.Configuration.GetSection("Retry"))
-    .ValidateDataAnnotations()   // [Required] → catches a missing value
-    .ValidateOnStart();          // → catches an invalid one, at startup
+    .ValidateOnStart();
 ```
 
-A bad value fails with the path, the value, and the reason — no `[Range]` and no `IValidateOptions<T>` needed:
+A bad value fails at startup with the path, the value, and the reason — no `[Range]` and no `IValidateOptions<T>` needed:
 
 ```
 InvalidOperationException: Failed to convert configuration value '-5' at 'Retry:MaxRetries'
@@ -166,19 +166,17 @@ InvalidOperationException: Failed to convert configuration value '-5' at 'Retry:
   ---> ArgumentException: Value must be positive, but was '-5'. (Parameter 'value')
 ```
 
-`ValidateOnStart()` handles the *invalid* value: binding is lazy, so without it a bad value doesn't fail the deploy — it throws on the first request that reads `IOptions<T>.Value`.
-
-It does **not** handle the *missing* one. An absent key raises nothing, because binding succeeds and simply doesn't assign — so an unconfigured `NonEmptyString Name` is `null`, which its declaration says is impossible. (A wrapper's invariant constrains every value it can hold; it can't make the binder assign one — and a non-nullable `string` is broken by the same key in the same way. `ConfigurationBinder` predates nullable reference types and never consults them.) `[Required]` covers it, an attribute at a time. Or add [`Kalicz.StrongTypes.Configuration`](https://www.nuget.org/packages/Kalicz.StrongTypes.Configuration/), which reads the same intent from the nullable annotations you already wrote:
+A **missing** key is not a bad value, though: binding just doesn't assign, so a plain `Bind` leaves `ApiName` and `ApiKey` at `null` and nothing complains — default C# binding, which `ValidateOnStart()` doesn't change. [`Kalicz.StrongTypes.Configuration`](https://www.nuget.org/packages/Kalicz.StrongTypes.Configuration/) does: `BindStrongTypes` fails on every non-nullable reference property left null — the wrapper `ApiName` and the plain `string ApiKey` alike, read from the nullable annotations you already wrote:
 
 ```csharp
 builder.Services.AddOptions<RetryOptions>()
-    .BindStrongTypes(builder.Configuration.GetSection("Retry"))   // fails on a null non-nullable property
+    .BindStrongTypes(builder.Configuration.GetSection("Retry"))   // 'Retry:ApiName' is null … → OptionsValidationException
     .ValidateOnStart();
 ```
 
-Value types aren't checked and don't need to be: an unconfigured `Positive<int>` is `1` — a default, and a value the type is happy to hold, not a contradiction. Analyzer `ST0004` flags a plain `Bind` that would leave a wrapper null.
+Value types are never required — an unconfigured `Positive<int>` is `1`, a value the type is happy to hold. Analyzer `ST0004` flags a plain `Bind` that would leave a wrapper null and offers the swap.
 
-One more edge, inherited from `ConfigurationBinder`: **`null` and `""` are not interchangeable.** An explicit `"Name": null` nulls even a non-nullable `NonEmptyString`, so omit the key rather than writing `null`; and `""` throws for every wrapper *except* a nullable struct one, where the BCL's `NullableConverter` maps it to `null` first. The full matrix is in the [skill reference](Skill/references/configuration.md).
+**`null` and `""` are not interchangeable** (inherited from `ConfigurationBinder`): an explicit `"ApiName": null` nulls even a non-nullable `NonEmptyString`, so omit the key rather than writing `null`; `""` throws for every wrapper *except* a nullable struct one. The full matrix is in the [skill reference](Skill/references/configuration.md).
 
 [↑ Back to contents](#contents)
 
@@ -214,8 +212,6 @@ Nothing to install, nothing to call. WPF resolves `string → T` through `TypeDe
 ```
 
 …where `Name` is a view-model property of type `NonEmptyString`. `ValidatesOnExceptions=True` is the load-bearing piece: it turns the `ArgumentException` a strong type throws on invalid input into a `ValidationError`, driving WPF's standard red-border template. Without it the binding swallows the failure silently.
-
-> **Changed in v2.** This used to require the `Kalicz.StrongTypes.Wpf` package and a `this.UseStrongTypes()` call in `App.OnStartup`. Both are gone — the converters now live on the types. Drop the package reference and the call.
 
 The same `TypeDescriptor` mechanism backs WinForms and designers. MAUI and Avalonia aren't covered yet — see [issue #94](https://github.com/KaliCZ/StrongTypes/issues/94).
 
