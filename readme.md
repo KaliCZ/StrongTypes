@@ -143,7 +143,13 @@ All strong types ship with `System.Text.Json` converters attached via `[JsonConv
 
 ### Configuration binding
 
-All strong types ship a `TypeConverter` attached via `[TypeConverter]`, which is what `ConfigurationBinder` uses — so a wrapper sits directly on an options class and its invariant becomes the config validation rule:
+All strong types ship a `TypeConverter` attached via `[TypeConverter]`, which is what `ConfigurationBinder` uses — so a wrapper sits directly on an options class and its invariant becomes the config validation rule. A bad value fails at startup with the path, the value, and the reason:
+
+```
+InvalidOperationException: Failed to convert configuration value '-5' at 'Retry:MaxRetries'
+                           to type 'StrongTypes.Positive`1[System.Int32]'.
+  ---> ArgumentException: Value must be positive, but was '-5'. (Parameter 'value')
+```
 
 ```csharp
 public sealed class RetryOptions
@@ -153,30 +159,16 @@ public sealed class RetryOptions
     public string ApiKey { get; set; } = null!;
 }
 
+// Standard C# behavior: ApiName and ApiKey can still be null. You'd need [Required] to prevent that.
 builder.Services.AddOptions<RetryOptions>()
     .Bind(builder.Configuration.GetSection("Retry"))
     .ValidateOnStart();
-```
 
-A bad value fails at startup with the path, the value, and the reason — no `[Range]` and no `IValidateOptions<T>` needed:
-
-```
-InvalidOperationException: Failed to convert configuration value '-5' at 'Retry:MaxRetries'
-                           to type 'StrongTypes.Positive`1[System.Int32]'.
-  ---> ArgumentException: Value must be positive, but was '-5'. (Parameter 'value')
-```
-
-A **missing** key is not a bad value, though: binding just doesn't assign, so a plain `Bind` leaves `ApiName` and `ApiKey` at `null` and nothing complains — default C# binding, which `ValidateOnStart()` doesn't change. [`Kalicz.StrongTypes.Configuration`](https://www.nuget.org/packages/Kalicz.StrongTypes.Configuration/) does: `BindStrongTypes` fails on every non-nullable reference property left null — the wrapper `ApiName` and the plain `string ApiKey` alike, read from the nullable annotations you already wrote:
-
-```csharp
+// ApiName or ApiKey null → OptionsValidationException
 builder.Services.AddOptions<RetryOptions>()
-    .BindStrongTypes(builder.Configuration.GetSection("Retry"))   // 'Retry:ApiName' is null … → OptionsValidationException
+    .BindStrongTypes(builder.Configuration.GetSection("Retry")) // A special method for preventing nulls.
     .ValidateOnStart();
 ```
-
-Value types are never required — an unconfigured `Positive<int>` is `1`, a value the type is happy to hold. Analyzer `ST0004` flags a plain `Bind` that would leave a wrapper null and offers the swap.
-
-`BindStrongTypes` catches an explicit `"ApiName": null` exactly like a missing key — both leave the property null, and both fail. The one input that behaves differently is `""`: the wrapper's converter rejects an empty string during binding itself, so it throws before validation even runs (a nullable struct wrapper is the lone exception, where `""` binds to `null`). The full matrix is in the [skill reference](Skill/references/configuration.md).
 
 [↑ Back to contents](#contents)
 
