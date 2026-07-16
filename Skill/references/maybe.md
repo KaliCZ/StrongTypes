@@ -84,7 +84,7 @@ Maybe<User> m = users.SafeSingle(u => u.Id == target);
 Maybe<User> m = users.SafeLast();
 Maybe<int>  hi = scores.SafeMax();
 Maybe<int>  lo = scores.SafeMin();
-Maybe<int>  lowest = results.SafeMin(r => r.Score);  // min of the projection — there is no SafeMinBy
+Maybe<int>  lowest = results.SafeMin(r => r.Score);  // min of the projection
 
 // Drop Nones in one shot.
 IEnumerable<int> values = maybes.Values();

@@ -72,7 +72,7 @@ to `true`: `IntervalFrom.Create(1, null, endInclusive: false)` equals
 - Implicit widening to the less-constrained variants (see below).
 
 ```csharp
-var interval = Interval.Create(start, end);
+Interval<int> interval = Interval.Create(start, end);
 
 string label = interval switch
 {
@@ -160,16 +160,16 @@ keeps the endpoints the receiver already guarantees — intersecting with a
 `Interval<T>?`.
 
 ```csharp
-var booked = FiniteInterval.Create(10, 20);
-var query  = IntervalFrom.Create(15, null);
+FiniteInterval<int> booked = FiniteInterval.Create(10, 20);
+IntervalFrom<int>   query  = IntervalFrom.Create(15, null);
 
 bool clash = booked.Overlaps(query);                     // true
 FiniteInterval<int>? shared = booked.GetOverlap(query);  // [15, 20]
 booked.GetOverlap(FiniteInterval.Create(30, 40));        // null — disjoint
 
 FiniteInterval.Create(0, 5).GetOverlap(FiniteInterval.Create(5, 9));   // [5, 5] — inclusive bounds touch
-var morning   = FiniteInterval.Create(9, 12, endInclusive: false);
-var afternoon = FiniteInterval.Create(12, 17, endInclusive: false);
+FiniteInterval<int> morning   = FiniteInterval.Create(9, 12, endInclusive: false);
+FiniteInterval<int> afternoon = FiniteInterval.Create(12, 17, endInclusive: false);
 morning.Overlaps(afternoon);                             // false — [9, 12) stops short of noon
 ```
 
@@ -192,7 +192,7 @@ a `FiniteInterval<DateTime>` (half-open, `[midnight, next midnight)`), and
 `DateTime.ToDateOnly()` drops a moment's time of day.
 
 ```csharp
-var stay = FiniteInterval.Create(new DateTime(2026, 7, 1, 14, 0, 0), new DateTime(2026, 7, 4, 10, 0, 0));
+FiniteInterval<DateTime> stay = FiniteInterval.Create(new DateTime(2026, 7, 1, 14, 0, 0), new DateTime(2026, 7, 4, 10, 0, 0));
 
 stay.Contains(new DateOnly(2026, 7, 4));     // true — the stay reaches into that day
 stay.ToDateInterval();                       // FiniteInterval<DateOnly> [2026-07-01, 2026-07-04]

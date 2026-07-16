@@ -17,8 +17,8 @@ library.
 - `Concat(params T[] items)` and `Concat(params IEnumerable<T>[] others)`
   — flatten a few extras into a sequence without `.Concat(new[] { ... })`:
   ```csharp
-  var all = existing.Concat(1, 2, 3);
-  var all = existing.Concat(list1, list2, list3);
+  NonEmptyEnumerable<int> all = existing.Concat(1, 2, 3);
+  NonEmptyEnumerable<int> all = existing.Concat(list1, list2, list3);
   ```
 
 - `Flatten()` on `IEnumerable<IEnumerable<T>>` — an alias for
@@ -58,13 +58,13 @@ var (successes, errors) = results.Partition();   // IReadOnlyList<T>, IReadOnlyL
 
 // Side-effect fold
 results.PartitionMatch(
-    success: ok   => Save(ok),
-    error:   bad  => Log(bad));
+    successes: ok   => Save(ok),
+    errors:    bad  => Log(bad));
 
 // Projection fold — returns R[]
 R[] merged = results.PartitionMatch(
-    success: ok   => Summarise(ok),
-    error:   bad  => Describe(bad));
+    successes: ok   => Summarise(ok),
+    errors:    bad  => Describe(bad));
 ```
 
 ## `Exception` aggregate

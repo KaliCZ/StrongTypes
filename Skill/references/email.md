@@ -24,8 +24,7 @@ so it passes straight into APIs that take either.
 - `Value` — the underlying `MailAddress` (use it for `.User` / `.Host`).
 - `Address` — the address string; `ToString()` returns the same.
 - Case-insensitive equality (`==` / `!=`) against `Email`, `MailAddress`,
-  `string`, and `NonEmptyString`. `CompareTo` for ordering — there are no
-  ordering operators.
+  `string`, and `NonEmptyString`, and `CompareTo` for ordering.
 - `IParsable<Email>`, a JSON converter, and a `TypeConverter`, so JSON
   bodies, `IConfiguration` binding, and WPF/WinForms two-way binding all
   work with no setup.

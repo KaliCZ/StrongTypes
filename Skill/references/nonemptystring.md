@@ -43,9 +43,8 @@ plain `string` because a substring could be empty.
 - `StartsWith(...)`, `EndsWith(...)` overloads mirroring `string`.
 - Implicit conversion to `string` — you can pass a `NonEmptyString` to any
   `string` parameter without `.Value`.
-- Equality operators against `NonEmptyString` *and* `string` — no `.Value`
-  needed for `==` / `!=`. The ordering operators (`<`, `<=`, `>`, `>=`) are
-  wrapper-vs-wrapper only; against a `string` use `CompareTo(string)`.
+- `==` / `!=` against both `NonEmptyString` and `string`, `<` / `<=` / `>` /
+  `>=` against `NonEmptyString`, and `CompareTo(string)` — all without `.Value`.
 
 ## `Unwrap()` — the EF-Core marker
 

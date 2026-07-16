@@ -27,29 +27,29 @@ public static class ResultPartitionExtensions
         return (successes, errors);
     }
 
-    /// <summary>Partitions the sequence, then invokes <paramref name="success"/> on the successes and <paramref name="error"/> on the errors. Both callbacks are invoked even when their partition is empty.</summary>
+    /// <summary>Partitions the sequence, then invokes <paramref name="successes"/> on the successes and <paramref name="errors"/> on the errors. Both callbacks are invoked even when their partition is empty.</summary>
     public static void PartitionMatch<T, TError>(
         this IEnumerable<Result<T, TError>> source,
-        Action<IReadOnlyList<T>> success,
-        Action<IReadOnlyList<TError>> error)
+        Action<IReadOnlyList<T>> successes,
+        Action<IReadOnlyList<TError>> errors)
         where T : notnull
         where TError : notnull
     {
-        var (successes, errors) = source.Partition();
-        success(successes);
-        error(errors);
+        var (successList, errorList) = source.Partition();
+        successes(successList);
+        errors(errorList);
     }
 
     /// <summary>Partitions the sequence, projects each partition through the matching callback, and returns the concatenated results in successes-then-errors order.</summary>
     [Pure]
     public static R[] PartitionMatch<T, TError, R>(
         this IEnumerable<Result<T, TError>> source,
-        Func<IReadOnlyList<T>, IEnumerable<R>> success,
-        Func<IReadOnlyList<TError>, IEnumerable<R>> error)
+        Func<IReadOnlyList<T>, IEnumerable<R>> successes,
+        Func<IReadOnlyList<TError>, IEnumerable<R>> errors)
         where T : notnull
         where TError : notnull
     {
-        var (successes, errors) = source.Partition();
-        return success(successes).Concat(error(errors)).ToArray();
+        var (successList, errorList) = source.Partition();
+        return successes(successList).Concat(errors(errorList)).ToArray();
     }
 }
