@@ -2,17 +2,9 @@ using System.Text.Json;
 
 namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 
-/// <summary>
-/// Operations on the <c>components.schemas</c> section of an OpenAPI
-/// document — used to pin which wrapper components survive the
-/// inliner pass and which are expected to be removed.
-/// </summary>
 internal static class ComponentSchemas
 {
-    /// <summary>
-    /// Returns the names of every schema in <c>components.schemas</c>,
-    /// or an empty array when the section is absent.
-    /// </summary>
+    /// <summary>Returns the names of every schema in <c>components.schemas</c>, or an empty array when the section is absent.</summary>
     internal static string[] ReadComponentSchemaNames(JsonElement doc)
     {
         if (!doc.TryGetProperty("components", out var components)) return [];
@@ -20,11 +12,7 @@ internal static class ComponentSchemas
         return schemas.EnumerateObject().Select(p => p.Name).ToArray();
     }
 
-    /// <summary>
-    /// Returns the set of <c>components.schemas</c> names that some
-    /// <c>$ref</c> in the document points at. A component name absent
-    /// from this set is an orphan — defined but never referenced.
-    /// </summary>
+    /// <summary>Returns the set of <c>components.schemas</c> names that some <c>$ref</c> in the document points at.</summary>
     internal static HashSet<string> ReadReferencedSchemaNames(JsonElement doc)
     {
         var referenced = new HashSet<string>(StringComparer.Ordinal);
@@ -55,10 +43,8 @@ internal static class ComponentSchemas
     }
 
     /// <summary>
-    /// Identifies a component schema name as one of the wrapper types
-    /// the inliner is expected to remove. Recognises both the Microsoft
-    /// prefix style (<c>PositiveOf…</c>, <c>MaybeOf…</c>) and the
-    /// Swashbuckle suffix style (<c>…Positive</c>, <c>…Maybe</c>).
+    /// Wrapper generics are named per pipeline: Microsoft's prefix style (<c>PositiveOf…</c>), Swashbuckle's suffix
+    /// style (<c>…Positive</c>).
     /// </summary>
     internal static bool IsInlineableWrapperName(string name)
     {

@@ -4,21 +4,11 @@ using Xunit;
 namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 
 /// <summary>
-/// Version-strict assertions for exclusive numeric bounds. The two
-/// OpenAPI versions encode an exclusive bound differently:
-/// <c>3.0 → minimum: &lt;n&gt;</c> paired with <c>exclusiveMinimum: true</c>
-/// (boolean), <c>3.1 → exclusiveMinimum: &lt;n&gt;</c> (numeric, no
-/// companion <c>minimum</c>). These helpers pin the encoding for the
-/// version under test; an emission in the other version's form fails
-/// the assertion.
+/// The two OpenAPI versions encode an exclusive bound differently: 3.0 as <c>minimum: n</c> paired with a boolean
+/// <c>exclusiveMinimum: true</c>, 3.1 as a numeric <c>exclusiveMinimum: n</c> with no companion <c>minimum</c>.
 /// </summary>
 internal static class ExclusiveBounds
 {
-    /// <summary>
-    /// Asserts the schema carries an exclusive lower bound equal to
-    /// <paramref name="expected"/>, encoded in the form required by
-    /// <paramref name="version"/>.
-    /// </summary>
     internal static void AssertExclusiveLowerBound(JsonElement schema, decimal expected, OpenApiVersion version)
     {
         Assert.True(
@@ -40,11 +30,6 @@ internal static class ExclusiveBounds
         }
     }
 
-    /// <summary>
-    /// Asserts the schema carries an exclusive upper bound equal to
-    /// <paramref name="expected"/>, encoded in the form required by
-    /// <paramref name="version"/>.
-    /// </summary>
     internal static void AssertExclusiveUpperBound(JsonElement schema, decimal expected, OpenApiVersion version)
     {
         Assert.True(
@@ -66,12 +51,6 @@ internal static class ExclusiveBounds
         }
     }
 
-    /// <summary>
-    /// Asserts an exclusive lower bound equal to <paramref name="expected"/>
-    /// is reachable from any layer of <paramref name="schema"/> via
-    /// $ref/allOf/oneOf/anyOf, encoded in the form required by
-    /// <paramref name="version"/>. Fails if no layer carries the bound.
-    /// </summary>
     internal static void AssertExclusiveLowerBoundReachable(JsonElement doc, JsonElement schema, decimal expected, OpenApiVersion version)
     {
         foreach (var layer in SchemaWalk.WalkSchemaLayers(doc, schema, version))

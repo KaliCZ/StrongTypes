@@ -6,19 +6,14 @@ using System.Numerics;
 
 namespace StrongTypes;
 
-/// <summary>Extension methods that produce or consume <see cref="NonEmptyEnumerable{T}"/>.</summary>
 public static class NonEmptyEnumerableExtensions
 {
     /// <summary>Wraps <paramref name="source"/> as a <see cref="NonEmptyEnumerable{T}"/>, or returns <c>null</c> when the sequence is null or empty.</summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="source">The sequence to wrap.</param>
     [Pure]
     public static NonEmptyEnumerable<T>? AsNonEmpty<T>(this IEnumerable<T>? source)
         => NonEmptyEnumerable.TryCreateRange(source);
 
     /// <summary>Wraps <paramref name="source"/> as a <see cref="NonEmptyEnumerable{T}"/>.</summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="source">The sequence to wrap.</param>
     /// <exception cref="ArgumentException"><paramref name="source"/> is <c>null</c> or empty.</exception>
     [Pure]
     public static NonEmptyEnumerable<T> ToNonEmpty<T>(this IEnumerable<T>? source)
@@ -147,9 +142,6 @@ public static class NonEmptyEnumerableExtensions
     }
 
     /// <summary>Prepends <paramref name="head"/> to the concatenation of <paramref name="tails"/> in order.</summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="head">The leading element.</param>
-    /// <param name="tails">Sequences concatenated after <paramref name="head"/>.</param>
     /// <exception cref="ArgumentNullException"><paramref name="tails"/> or any element of it is <c>null</c>.</exception>
     [Pure]
     public static NonEmptyEnumerable<T> Concat<T>(this T head, params IEnumerable<T>[] tails)
@@ -200,9 +192,6 @@ public static class NonEmptyEnumerableExtensions
     }
 
     /// <summary>Takes the first <paramref name="count"/> elements, or the full source when <paramref name="count"/> exceeds <c>source.Count</c>.</summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="source">The sequence to take from.</param>
-    /// <param name="count">The positive number of elements to take.</param>
     [Pure]
     public static NonEmptyEnumerable<T> Take<T>(this INonEmptyEnumerable<T> source, Positive<int> count)
     {
@@ -217,9 +206,6 @@ public static class NonEmptyEnumerableExtensions
     }
 
     /// <summary>Takes the first <paramref name="count"/> elements, or the full source when <paramref name="count"/> exceeds <c>source.Count</c>.</summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="source">The sequence to take from.</param>
-    /// <param name="count">The number of elements to take.</param>
     /// <exception cref="ArgumentException"><paramref name="count"/> is not positive.</exception>
     [Pure]
     public static NonEmptyEnumerable<T> Take<T>(this INonEmptyEnumerable<T> source, int count)
@@ -272,9 +258,6 @@ public static class NonEmptyEnumerableExtensions
         return Enumerable.Aggregate(source, func);
     }
 
-    /// <summary>Returns the arithmetic mean of the sequence.</summary>
-    /// <typeparam name="T">A numeric type.</typeparam>
-    /// <param name="source">The sequence to average.</param>
     /// <exception cref="OverflowException">The running sum overflows <typeparamref name="T"/>.</exception>
     [Pure]
     public static T Average<T>(this INonEmptyEnumerable<T> source) where T : INumber<T>

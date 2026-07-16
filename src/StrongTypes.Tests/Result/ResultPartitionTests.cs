@@ -57,8 +57,8 @@ public class ResultPartitionTests
         IReadOnlyList<int>? successes = null;
         IReadOnlyList<string>? errors = null;
         items.PartitionMatch(
-            success: ss => successes = ss,
-            error: es => errors = es);
+            successes: ss => successes = ss,
+            errors: es => errors = es);
         Assert.Equal(new[] { 1 }, successes);
         Assert.Equal(new[] { "a" }, errors);
     }
@@ -68,8 +68,8 @@ public class ResultPartitionTests
     {
         var invocations = 0;
         System.Array.Empty<Result<int, string>>().PartitionMatch(
-            success: _ => invocations++,
-            error: _ => invocations++);
+            successes: _ => invocations++,
+            errors: _ => invocations++);
         Assert.Equal(2, invocations);
     }
 
@@ -80,8 +80,8 @@ public class ResultPartitionTests
     {
         var items = new Result<int, string>[] { 1, "a", 2, "b" };
         var projected = items.PartitionMatch(
-            success: ss => ss.Select(s => $"ok:{s}"),
-            error: es => es.Select(e => $"err:{e}"));
+            successes: ss => ss.Select(s => $"ok:{s}"),
+            errors: es => es.Select(e => $"err:{e}"));
         Assert.Equal(new[] { "ok:1", "ok:2", "err:a", "err:b" }, projected);
     }
 }

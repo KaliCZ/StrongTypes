@@ -46,7 +46,8 @@ internal static class TestReferences
     public static readonly MetadataReference StrongTypesConfiguration =
         MetadataReference.CreateFromFile(typeof(global::StrongTypes.Configuration.OptionsBuilderExtensions).Assembly.Location);
 
-    /// <summary>What an options-binding source needs to compile: <c>IServiceCollection</c>, <c>OptionsBuilder&lt;T&gt;</c>, <c>IConfiguration</c>, the <c>Bind</c>/<c>Configure</c> extensions ST0004 matches on, <c>[Required]</c>, and <c>[TypeConverter]</c> — which ST0004 reads to know where the binder stops recursing.</summary>
+    /// <summary>What an options-binding source needs to compile. <c>[TypeConverter]</c> is included
+    /// because ST0004 reads it to know where the binder stops recursing.</summary>
     public static readonly MetadataReference[] OptionsStack =
     [
         MetadataReference.CreateFromFile(typeof(global::Microsoft.Extensions.DependencyInjection.IServiceCollection).Assembly.Location),

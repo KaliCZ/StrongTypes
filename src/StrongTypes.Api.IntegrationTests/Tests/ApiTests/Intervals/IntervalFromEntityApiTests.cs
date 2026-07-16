@@ -19,9 +19,7 @@ public sealed class IntervalFromEntityApiTests(TestWebApplicationFactory factory
 
     protected override object StartAfterEndBody => new { Start = 10, End = 1 };
 
-    // Start is required; a null Start is a 400.
     protected override object? NullRequiredEndpointBody => new { Start = (int?)null, End = 5 };
 
-    // ...and so is omitting Start entirely. (Omitting End is valid — it's optional.)
     protected override object? OmittedRequiredEndpointBody => new { End = 10 };
 }

@@ -8,7 +8,6 @@ namespace StrongTypes;
 public static class StringExtensions
 {
     /// <summary>Wraps <paramref name="s"/> as a <see cref="NonEmptyString"/>, or returns <c>null</c> when it is null, empty, or whitespace.</summary>
-    /// <param name="s">The string to validate.</param>
     [Pure]
     public static NonEmptyString? AsNonEmpty(this string? s) => NonEmptyString.TryCreate(s);
 
@@ -61,7 +60,6 @@ public static class StringExtensions
         Guid.TryParseExact(s, format, out var value) ? value : null;
 
     /// <summary>Parses <paramref name="s"/> as a member of <typeparamref name="TEnum"/>, or returns <c>null</c> when parsing fails.</summary>
-    /// <typeparam name="TEnum">The enum type.</typeparam>
     /// <param name="s">The name or numeric value to parse.</param>
     /// <param name="ignoreCase">When <c>true</c>, the name comparison is case-insensitive.</param>
     [Pure]
@@ -70,7 +68,6 @@ public static class StringExtensions
         Enum.TryParse<TEnum>(s, ignoreCase, out var v) ? v : null;
 
     /// <summary>Wraps <paramref name="s"/> as a <see cref="NonEmptyString"/>.</summary>
-    /// <param name="s">The string to validate.</param>
     /// <exception cref="ArgumentException"><paramref name="s"/> is null, empty, or whitespace.</exception>
     [Pure]
     public static NonEmptyString ToNonEmpty(this string? s) => NonEmptyString.Create(s);
@@ -153,7 +150,6 @@ public static class StringExtensions
     public static Guid ToGuidExact(this string? s, string format = "D") => Guid.ParseExact(s!, format);
 
     /// <summary>Parses <paramref name="s"/> as a member of <typeparamref name="TEnum"/>.</summary>
-    /// <typeparam name="TEnum">The enum type.</typeparam>
     /// <param name="s">The name or numeric value to parse.</param>
     /// <param name="ignoreCase">When <c>true</c>, the name comparison is case-insensitive.</param>
     /// <exception cref="ArgumentNullException"><paramref name="s"/> is <c>null</c>.</exception>

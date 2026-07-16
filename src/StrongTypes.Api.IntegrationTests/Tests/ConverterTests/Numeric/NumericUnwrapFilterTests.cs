@@ -6,18 +6,10 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
 /// <summary>
-/// Verifies <c>Unwrap()</c> on the source-generated numeric wrappers translates
-/// to a plain-int column reference, so LINQ predicates on the raw value
-/// (arithmetic, <c>Math.Abs</c>, etc.) evaluate server-side on both providers.
-/// One representative case per wrapper type — the translator logic is identical
-/// across shapes, so we don't need to matrix every arithmetic operator.
-///
-/// Integration tests share a single database across the collection, so other
-/// suites may have seeded rows containing <c>int.MaxValue</c>/<c>int.MinValue</c>
-/// into the same table. We therefore cast to <c>long</c> inside arithmetic
-/// predicates — SQL Server does not guarantee short-circuit evaluation, so any
-/// predicate that multiplies a 32-bit column would otherwise overflow on those
-/// extreme-value rows before the ID filter gets a chance to exclude them.
+/// One representative arithmetic case per wrapper — the translation is identical across shapes.
+/// Predicates cast to <c>long</c> because sibling suites seed <c>int.MaxValue</c>/<c>MinValue</c>
+/// rows into the shared tables and SQL Server does not short-circuit, so 32-bit arithmetic
+/// would overflow on those rows before the ID filter excludes them.
 /// </summary>
 [Collection(IntegrationTestCollection.Name)]
 public sealed class NumericUnwrapFilterTests(TestWebApplicationFactory factory)

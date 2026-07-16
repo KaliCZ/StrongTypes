@@ -6,13 +6,6 @@ using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaNavigation;
 
 namespace StrongTypes.OpenApi.IntegrationTests.Tests;
 
-/// <summary>
-/// Asserts the OpenAPI parameter / form-body schemas the pipelines emit for
-/// strong-type parameters bound from non-body sources
-/// (<c>[FromQuery]</c>, <c>[FromRoute]</c>, <c>[FromHeader]</c>,
-/// <c>[FromForm]</c>). Required and nullable variants of each wrapped type
-/// are exercised separately so a regression on either branch shows up.
-/// </summary>
 public abstract partial class OpenApiDocumentTestsBase
 {
     // ── [FromQuery] ──────────────────────────────────────────────────────
@@ -129,15 +122,8 @@ public abstract partial class OpenApiDocumentTestsBase
     // ── [FromForm] ───────────────────────────────────────────────────────
 
     /// <summary>
-    /// Pins the aggregate form-body shape and every per-field schema for
-    /// an all-wrapper form. Swashbuckle's stock form-body assembler emits
-    /// a nameless <c>{ allOf: [&lt;each&gt;] }</c> whenever every field
-    /// is component-typed; <c>NonBodyStrongTypeOperationFilter</c>
-    /// rebuilds it as <c>{ type: object, properties: { … } }</c>.
-    /// Asserting both the structural shape and each property's wire form
-    /// in the same test catches a regression in the reshape pass (a
-    /// missing property surfaces as a slot lookup failure) and a
-    /// regression in the per-type painters (a slot's contents differ).
+    /// Swashbuckle's stock form-body assembler emits a nameless <c>{ allOf: [ … ] }</c> when every field is
+    /// component-typed; <c>NonBodyStrongTypeOperationFilter</c> rebuilds it as <c>{ type: object, properties: { … } }</c>.
     /// </summary>
     [Fact]
     public async Task FromForm_AllWrappers_FormBody_RendersObjectWithEveryPropertyInItsWireShape()
@@ -157,17 +143,8 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     // ── Caller annotations on non-body slots ─────────────────────────────
-    // Strong-type slots bound from query/form should merge caller-supplied
-    // data-annotations the same way JSON-body properties do — e.g. a
-    // [StringLength(50)] on a [FromQuery] NonEmptyString must reach the
-    // wire as maxLength: 50 alongside the wrapper's own minLength: 1.
-    //
-    // Each wrapper-typed test has a primitive-typed sibling that pins the
-    // baseline: the framework natively surfaces the annotation on the
-    // primitive, so the wrapper test only has teeth when the primitive
-    // baseline carries the keyword. If a pipeline ever stops surfacing the
-    // annotation on the primitive, the baseline fails first and the
-    // wrapper failure is correctly attributed to the framework, not us.
+    // Each wrapper-typed test has a primitive-typed sibling pinning the baseline, so a missing keyword attributes to
+    // the pipeline's own annotation handling rather than the wrapper merge.
 
     [Fact]
     public async Task FromQuery_PlainString_With_StringLength_Carries_MaxLength()
@@ -231,16 +208,6 @@ public abstract partial class OpenApiDocumentTestsBase
     }
 
     // ── Diverse form-body shapes ─────────────────────────────────────────
-    // The aggregate-shape test above pins the all-wrapper form body. The
-    // three tests below exercise the form-body reshape on more diverse
-    // payloads: a primitives-only form (Swashbuckle emits a clean
-    // properties map natively), an all-wrappers form where multiple
-    // NonEmptyStrings each carry a different annotation
-    // (RegularExpression, Url, StringLength) alongside Email,
-    // Positive<int>, and a NonEmptyEnumerable of a numeric wrapper, and a
-    // mixed form combining both kinds with caller annotations on each.
-    // Each test pins every property's full schema so a regression on
-    // either pipeline shows up as a per-property diff.
 
     [Fact]
     public async Task FromForm_SimpleTypes_FormBody_RendersAllPropertiesWithTheirAnnotations()

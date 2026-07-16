@@ -4,13 +4,8 @@ using StrongTypes.OpenApi.Core;
 
 namespace StrongTypes.OpenApi.Microsoft;
 
-// The framework's schema-deduplication pass copies repeated wrapper schemas
-// (Maybe<T>, Positive<T>, …) into components.schemas with a fresh
-// OpenApiSchema instance — that copy doesn't pick up our schema-transformer
-// mutations on certain wrapper types, leaving the component as `{}`. This
-// document transformer runs after deduplication and reverses each
-// strong-type-derived component name back into the wire schema the converter
-// actually emits, so referenced schemas match the inline ones.
+// The framework's schema-deduplication pass copies wrapper schemas into components.schemas
+// without our schema-transformer mutations, leaving `{}`; repaint each from its component name.
 internal sealed class StrongTypesComponentSchemaFiller : IOpenApiDocumentTransformer
 {
     public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
@@ -39,14 +34,7 @@ internal sealed class StrongTypesComponentSchemaFiller : IOpenApiDocumentTransfo
 
     private static OpenApiSchema? TryBuild(string name, IDictionary<string, IOpenApiSchema> components)
     {
-        // Name-only matching would happily trample a user DTO that happens
-        // to be called `Email` or `MaybeOfInt32`. Every wrapper we paint is
-        // a primitive (string / integer / number / array) or — for
-        // `MaybeOf<T>` — an object with a single `Value` property. An object
-        // schema with multiple/non-`Value` properties under our reserved
-        // name is a user DTO, not ours; bail. Returning null also makes
-        // ResolveInner fall through to a `$ref` so nested references to a
-        // colliding user DTO point at their schema instead of ours.
+        // Bail when the name is already taken by a user DTO (e.g. a class named "Email") so we don't trample its schema.
         if (components.TryGetValue(name, out var existing)
             && existing is OpenApiSchema concrete
             && LooksLikeUserDto(concrete))
@@ -117,8 +105,7 @@ internal sealed class StrongTypesComponentSchemaFiller : IOpenApiDocumentTransfo
         var built = TryBuild(innerName, components);
         if (built is not null) return built;
 
-        // Fall back to a $ref so unfamiliar type names still produce a valid
-        // schema (and the framework's own component will supply the body).
+        // Unfamiliar names fall back to a $ref; the framework's own component supplies the body.
         return new OpenApiSchemaReference(innerName);
     }
 

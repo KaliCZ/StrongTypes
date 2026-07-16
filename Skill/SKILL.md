@@ -7,10 +7,12 @@ description: Write idiomatic Kalicz.StrongTypes code (NonEmptyString, numeric wr
 
 Library of focused C# value wrappers (`NonEmptyString`, `Positive<T>`,
 `NonEmptyEnumerable<T>`, …) and algebraic types (`Maybe<T>`,
-`Result<T, TError>`) that push invariants into the type system. Every
-wrapper ships a `System.Text.Json` converter, so invalid input fails at
-deserialization before any endpoint code runs, and a `TypeConverter`, so
-the same invariant validates `appsettings.json` as it binds.
+`Result<T, TError>`) that push invariants into the type system. The
+wrappers ship `System.Text.Json` converters (`Digit` and `Result<T, TError>`
+are the exceptions), so invalid input fails at deserialization before any
+endpoint code runs, and the scalar wrappers (`NonEmptyString`, `Email`,
+`Digit`, the numerics) carry a `TypeConverter`, so the same invariant
+validates `appsettings.json` as it binds.
 
 Per-type detail lives in `references/*.md` — load the relevant file on
 demand when about to write code against that surface.
@@ -29,7 +31,7 @@ demand when about to write code against that surface.
 
 Add packages only when the host project actually hits that stack:
 
-- **Configuration** — when a non-nullable reference property (`NonEmptyString`, `Email`, or a plain `string`) sits on an options class. Binding works without it (every wrapper carries a `TypeConverter`); the package only stops an absent key leaving that property null. Skip it if every reference property is nullable or has a default, or if you already use `[Required]`. See `references/configuration.md`.
+- **Configuration** — when a non-nullable reference property (`NonEmptyString`, `Email`, or a plain `string`) sits on an options class. Binding works without it (the scalar wrappers carry a `TypeConverter`); the package only stops an absent key leaving that property null. Skip it if every reference property is nullable or has a default, or if you already use `[Required]`. See `references/configuration.md`.
 - **EfCore** — only if EF Core is in use.
 - **FsCheck** — only for property-based test projects.
 - **OpenApi.Microsoft** vs **OpenApi.Swashbuckle** — pick **one**, matching the spec generator the app already wires up. They are not interchangeable. `references/openapi.md` covers both pipelines.
@@ -42,14 +44,15 @@ Quick scan of what the library ships. Per-type detail (factories, full
 API surface, edge cases) lives in the linked reference — load it on
 demand when about to write code against that surface.
 
-**Validated wrappers** (invalid input → `null` from `AsX`, exception from `ToX`)
+**Validated wrappers** (invalid input → `null` from `TryCreate` / `AsX`, exception from `Create` / `ToX`)
 
 | Type                                                                | Invariant                            | Reference                          |
 | ------------------------------------------------------------------- | ------------------------------------ | ---------------------------------- |
 | `NonEmptyString`                                                    | non-null, non-empty, non-whitespace  | `references/nonemptystring.md`     |
+| `Email`                                                             | a valid e-mail address, ≤ 254 chars  | `references/email.md`              |
 | `Positive<T>` / `NonNegative<T>` / `Negative<T>` / `NonPositive<T>` | sign constraint on any `INumber<T>`  | `references/numeric.md`            |
 | `NonEmptyEnumerable<T>` / `INonEmptyEnumerable<T>`                  | at least one element                 | `references/nonemptyenumerable.md` |
-| `Digit`                                                             | a single `'0'`–`'9'` character       | `references/parsing.md`            |
+| `Digit`                                                             | a single decimal digit, `0`–`9`      | `references/parsing.md`            |
 | `FiniteInterval<T>` / `Interval<T>` / `IntervalFrom<T>` / `IntervalUntil<T>` | ordered endpoints, `Start <= End`, bounds inclusive by default with per-bound `startInclusive`/`endInclusive` opt-out; the variant fixes which endpoints are bounded | `references/intervals.md` |
 
 **Algebraic types** (no validation; carry a value or an alternative)
@@ -194,7 +197,7 @@ instead of unwrapping eagerly.)
 
 ## JSON — zero setup
 
-Every wrapper except `Result<T, TError>` carries `[JsonConverter(...)]`.
+Every wrapper except `Result<T, TError>` and `Digit` carries `[JsonConverter(...)]`.
 Consequences:
 
 - No `JsonSerializerOptions.Converters.Add(...)` calls. It just works.

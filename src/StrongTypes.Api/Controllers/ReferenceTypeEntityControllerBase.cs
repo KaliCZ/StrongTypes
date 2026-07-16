@@ -5,11 +5,6 @@ using StrongTypes.Api.Models;
 
 namespace StrongTypes.Api.Controllers;
 
-/// <summary>
-/// Controller base for entities whose <typeparamref name="T"/> is a reference
-/// type. <c>TNullable</c> is fixed to <c>T?</c> (the same reference annotated
-/// nullable), so PATCH conversions are direct null-checks with no boxing.
-/// </summary>
 public abstract class ReferenceTypeEntityControllerBase<TEntity, T>(
     SqlServerDbContext sqlCtx,
     PostgreSqlDbContext pgCtx) : EntityControllerBase<TEntity>(sqlCtx, pgCtx)

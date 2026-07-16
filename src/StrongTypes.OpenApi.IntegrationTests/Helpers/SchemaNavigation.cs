@@ -4,19 +4,11 @@ using Xunit;
 namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 
 /// <summary>
-/// Navigation primitives over an OpenAPI document. Each method asserts a
-/// specific shape and returns the inner layer; the choice of method at
-/// the call site is itself an assertion. Composing them (e.g.
-/// <c>FollowRef(doc, UnwrapNullableProperty(x))</c>) expresses the full
-/// expected wire structure of a property's schema.
+/// Each navigator asserts a specific shape and returns the inner layer, so the choice of method at a call site is
+/// itself an assertion.
 /// </summary>
 internal static class SchemaNavigation
 {
-    /// <summary>
-    /// Resolves a strict <c>$ref</c> to the referenced component schema.
-    /// Fails the test if <paramref name="schema"/> is not an object with
-    /// a <c>$ref</c> targeting <c>#/components/schemas/&lt;name&gt;</c>.
-    /// </summary>
     internal static JsonElement FollowRef(JsonElement doc, JsonElement schema)
     {
         Assert.Equal(JsonValueKind.Object, schema.ValueKind);
@@ -29,10 +21,8 @@ internal static class SchemaNavigation
     }
 
     /// <summary>
-    /// Walks past shape-agnostic indirection layers and returns the
-    /// underlying schema. Follows <c>$ref</c> and single-element
-    /// <c>allOf</c>; never walks a nullable union (those are
-    /// version-specific and should be unwrapped explicitly).
+    /// Follows <c>$ref</c> and single-element <c>allOf</c>; never a nullable union — those are version-specific and
+    /// must be unwrapped explicitly.
     /// </summary>
     internal static JsonElement Resolve(JsonElement doc, JsonElement schema)
     {
@@ -58,17 +48,11 @@ internal static class SchemaNavigation
         }
     }
 
-    /// <summary>Returns the request-body schema for the given path/method.</summary>
     internal static JsonElement RequestSchema(JsonElement doc, string path, string method = "post")
         => doc.GetProperty("paths").GetProperty(path).GetProperty(method)
             .GetProperty("requestBody").GetProperty("content")
             .GetProperty("application/json").GetProperty("schema");
 
-    /// <summary>
-    /// Returns the schema attached to the named parameter on the given
-    /// path/method. Fails the test if the parameter (or its <c>schema</c>) is
-    /// missing.
-    /// </summary>
     internal static JsonElement ParameterSchema(JsonElement doc, string path, string parameterName, string method = "get")
     {
         var operation = doc.GetProperty("paths").GetProperty(path).GetProperty(method);
@@ -85,12 +69,7 @@ internal static class SchemaNavigation
         return default;
     }
 
-    /// <summary>
-    /// Returns the form request-body schema for the given path/method. Form
-    /// bodies are encoded as <c>application/x-www-form-urlencoded</c> or
-    /// <c>multipart/form-data</c> — both are accepted; the test uses
-    /// whichever the pipeline emitted.
-    /// </summary>
+    /// <summary>Accepts either form content type — the pipelines differ in which they emit.</summary>
     internal static JsonElement FormRequestSchema(JsonElement doc, string path, string method = "post")
     {
         var content = doc.GetProperty("paths").GetProperty(path).GetProperty(method)
@@ -106,14 +85,9 @@ internal static class SchemaNavigation
         return default;
     }
 
-    /// <summary>Returns the schema for a named property of an object schema.</summary>
     internal static JsonElement Property(JsonElement schema, string propertyName)
         => schema.GetProperty("properties").GetProperty(propertyName);
 
-    /// <summary>
-    /// Asserts the schema is fully inlined: keywords sit directly on the
-    /// schema object, not behind a <c>$ref</c> or an <c>allOf</c>.
-    /// </summary>
     internal static void AssertInlineSchema(JsonElement schema)
     {
         Assert.Equal(JsonValueKind.Object, schema.ValueKind);
@@ -122,14 +96,8 @@ internal static class SchemaNavigation
     }
 
     /// <summary>
-    /// Asserts that <paramref name="actual"/> deep-equals
-    /// <paramref name="expectedJson"/> — same property-name set on every
-    /// object, same array length and order, same primitive values
-    /// (numbers compared as <see cref="decimal"/> so <c>1</c> matches
-    /// <c>1.0</c>). Property order on objects is ignored. This pins the
-    /// full emitted shape so that an unexpected keyword (a wrong
-    /// <c>format</c>, a stray <c>nullable</c>, some new <c>x-…</c>
-    /// annotation, …) fails the test instead of silently passing.
+    /// Strict deep-equality: the same property-name set on every object, same array length and order, numbers
+    /// compared as <see cref="decimal"/> so <c>1</c> matches <c>1.0</c>.
     /// </summary>
     internal static void AssertJsonEquals(JsonElement actual, string expectedJson)
     {
@@ -137,13 +105,7 @@ internal static class SchemaNavigation
         AssertJsonEqualsCore(doc.RootElement, actual, path: "$");
     }
 
-    // OpenAPI 3.0 keywords whose default value is `false`. Pipelines vary
-    // on whether they emit them when set to the default — Swashbuckle's
-    // serializer writes `exclusiveMinimum: false` alongside an inclusive
-    // bound, Microsoft's omits it. Both are wire-equivalent to absent;
-    // the comparator treats them as such so the strict deep-compare still
-    // catches stray *meaningful* keywords without complaining about
-    // serialization noise.
+    // Swashbuckle emits these 3.0 keywords at their false default where Microsoft omits them; both are wire-equivalent to absent.
     private static readonly HashSet<string> s_falseDefaultKeywords = new(StringComparer.Ordinal)
     {
         "exclusiveMinimum",
@@ -186,8 +148,7 @@ internal static class SchemaNavigation
             case JsonValueKind.True:
             case JsonValueKind.False:
             case JsonValueKind.Null:
-                // Kinds already verified equal above and these have no
-                // payload — the kind IS the value.
+                // the kind is the whole value, and kinds were already compared
                 break;
         }
     }

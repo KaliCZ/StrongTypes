@@ -5,11 +5,8 @@ using Xunit;
 namespace StrongTypes.OpenApi.Core.Tests;
 
 /// <summary>
-/// The storage-component cleanup that follows inlining only touches the
-/// known generated storage types (e.g. MailAddress behind Email) and only
-/// when nothing references them — it must never reach for a consumer's own
-/// schema, and must keep a storage type a consumer still uses. Pinned
-/// directly on the inliner, independent of either HTTP pipeline.
+/// The storage-component cleanup after inlining touches only the known generated storage types (e.g. MailAddress
+/// behind Email) — never a consumer's own schema.
 /// </summary>
 public sealed class StrongTypeInlinerScopingTests
 {
@@ -40,7 +37,6 @@ public sealed class StrongTypeInlinerScopingTests
         var document = DocumentWith(
             ("Email", InlineableEmail()),
             ("MailAddress", ObjectWith(("address", String()))),
-            // A consumer DTO that uses MailAddress directly, unrelated to Email.
             ("ContactDto", ObjectWith(("addr", new OpenApiSchemaReference("MailAddress")))));
 
         StrongTypeInliner.Inline(document);

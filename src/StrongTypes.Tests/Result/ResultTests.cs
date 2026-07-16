@@ -76,8 +76,6 @@ public class ResultTests
     [Fact]
     public void ImplicitConversions_EnableBareReturnStatements()
     {
-        // Demonstrates the ergonomic the whole design targets: method bodies
-        // return the raw value or the raw error, no factory call required.
         static Result<int> ParseInt(string s) =>
             int.TryParse(s, out var n) ? n : new FormatException(s);
 
@@ -116,8 +114,6 @@ public class ResultTests
     [Fact]
     public void Equality_ResultOfT_AndTwoParam_CompareStructurally()
     {
-        // Both carry the same (success, 5) state; equality walks the branch
-        // payloads regardless of which closed generic the instance came from.
         Result<int> a = 5;
         Result<int, Exception> b = 5;
         Assert.True(a.Equals(b));

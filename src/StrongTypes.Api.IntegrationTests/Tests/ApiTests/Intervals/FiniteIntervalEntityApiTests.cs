@@ -22,10 +22,8 @@ public sealed class FiniteIntervalEntityApiTests(TestWebApplicationFactory facto
 
     protected override object StartAfterEndBody => new { Start = 10, End = 1 };
 
-    // Both endpoints are required; a null endpoint is a 400.
     protected override object? NullRequiredEndpointBody => new { Start = (int?)null, End = 5 };
 
-    // ...and so is omitting one entirely (here End).
     protected override object? OmittedRequiredEndpointBody => new { Start = 1 };
 
     [Fact]

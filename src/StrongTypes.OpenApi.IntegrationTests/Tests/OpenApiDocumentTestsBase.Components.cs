@@ -7,11 +7,6 @@ namespace StrongTypes.OpenApi.IntegrationTests.Tests;
 
 public abstract partial class OpenApiDocumentTestsBase
 {
-    // Required-array contract — strong-type wrapper properties land in
-    // the `required` array iff their primitive equivalent does. Whatever
-    // the underlying pipeline produces for `string`, `int`, `string?`,
-    // `[Required] string`, `required string` etc. is what it must produce
-    // for the matching `NonEmptyString` / `Positive<int>` property.
     [Theory]
     [InlineData("plain",            "plainRaw")]
     [InlineData("nullable",         "nullableRaw")]
@@ -28,11 +23,6 @@ public abstract partial class OpenApiDocumentTestsBase
         Assert.Equal(required.Contains(rawName), required.Contains(strongName));
     }
 
-    // Components cleanup — every inlineable wrapper (NonEmptyString and
-    // the numeric/array generics) must be removed from
-    // components.schemas after the inliner runs. Maybe<T> is the one
-    // intentional exception: its object-shaped wire form is worth
-    // keeping as a named component.
     [Fact]
     public async Task Inlineable_Wrapper_Components_Are_Removed_From_Components_Schemas()
     {
@@ -41,8 +31,6 @@ public abstract partial class OpenApiDocumentTestsBase
 
         Assert.DoesNotContain("NonEmptyString", schemaNames);
 
-        // Microsoft prefix style and Swashbuckle suffix style: any name
-        // that begins or ends with one of the wrapper roots must be gone.
         foreach (var name in schemaNames)
         {
             Assert.False(
@@ -51,12 +39,8 @@ public abstract partial class OpenApiDocumentTestsBase
         }
     }
 
-    // Inlining a wrapper whose storage type is itself an object (e.g.
-    // Email, backed by System.Net.Mail.MailAddress) makes the pipeline
-    // register that nested storage type as its own component. Once the
-    // wrapper is inlined and dropped, nothing references the nested
-    // component any more, so the inliner must GC it — leaving it behind
-    // is contract drift (openapi-typescript emits an unused interface).
+    // Inlining a wrapper orphans its generated storage component (e.g. MailAddress behind Email); an orphan left
+    // behind leaks into consumer codegen as an unused type.
     [Fact]
     public async Task No_Component_Schema_Is_Left_Unreferenced_After_Inlining()
     {

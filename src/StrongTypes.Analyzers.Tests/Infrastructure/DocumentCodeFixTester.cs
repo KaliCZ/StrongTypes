@@ -31,7 +31,6 @@ internal static class DocumentCodeFixTester
         return registered;
     }
 
-    /// <summary>Applies the first offered fix and returns the resulting source.</summary>
     public static async Task<string> ApplySingleFixAsync(
         DiagnosticAnalyzer analyzer,
         CodeFixProvider provider,

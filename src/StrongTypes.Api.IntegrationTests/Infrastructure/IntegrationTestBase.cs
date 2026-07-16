@@ -6,13 +6,6 @@ using Xunit;
 
 namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 
-/// <summary>
-/// Generic base for any <see cref="IEntity{TSelf, T, TNullable}"/>. Supplies
-/// the HTTP Client, both DbContexts, the current CancellationToken, and the
-/// generic <see cref="AssertEntity"/> helper that reads from a
-/// <see cref="DbSet{TEntity}"/>. HTTP route/body helpers live on the
-/// <c>EntityCrudTestsBase</c> subclass that actually uses them.
-/// </summary>
 public abstract class IntegrationTestBase<TEntity, T, TNullable>(TestWebApplicationFactory factory) : IDisposable
     where TEntity : class, IEntity<TEntity, T, TNullable>
     where T : notnull
@@ -27,21 +20,12 @@ public abstract class IntegrationTestBase<TEntity, T, TNullable>(TestWebApplicat
     protected DbSet<TEntity> SqlSet => SqlDb.Set<TEntity>();
     protected DbSet<TEntity> PgSet => PgDb.Set<TEntity>();
 
-    /// <summary>
-    /// Whether the SQL Server provider is backed by a real SQL Server on this host.
-    /// <see langword="false"/> only on a local host that opted into skipping SQL Server.
-    /// Guard every SQL-Server-specific assertion with this.
-    /// </summary>
+    /// <summary>False only when the host opted into skipping SQL Server — gate SQL-Server-only assertions on this; see testing.md.</summary>
     protected bool SqlServerAvailable => factory.SqlServerAvailable;
 
     protected static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-    /// <summary>
-    /// Asserts the persisted row matches in both providers: PostgreSQL always, and
-    /// SQL Server only when it is available on this host. When SQL Server is skipped
-    /// its in-memory stub is not asserted against — it does not exercise the real
-    /// wire path, so a match there would be a false pass.
-    /// </summary>
+    /// <summary>Skipped SQL Server is not asserted against — a match on the in-memory stub would be a false pass.</summary>
     protected async Task AssertEntity(Guid id, T expectedValue, TNullable expectedNullableValue)
     {
         await AssertEntity(PgSet, id, expectedValue, expectedNullableValue);
@@ -51,10 +35,6 @@ public abstract class IntegrationTestBase<TEntity, T, TNullable>(TestWebApplicat
         }
     }
 
-    /// <summary>
-    /// Skips a provider-parametrized test for the <c>sql-server</c> provider when
-    /// SQL Server is unavailable on this host; a no-op for any other provider.
-    /// </summary>
     protected void SkipIfSqlServerUnavailable(string provider) =>
         Assert.SkipWhen(provider == "sql-server" && !SqlServerAvailable, "SQL Server is not available on this host.");
 

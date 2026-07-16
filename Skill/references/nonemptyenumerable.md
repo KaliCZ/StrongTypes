@@ -41,8 +41,8 @@ These operations keep the non-empty guarantee and return
 
 - `Select(...)`, including the indexed overload.
 - `SelectMany(...)` *when the inner result is itself non-empty*.
-- `Distinct()`, `Distinct(IEqualityComparer<T>)`.
-- `Concat(params T[])`, `Concat(IEnumerable<T>)`, both on
+- `Distinct()`.
+- `Concat(params ReadOnlySpan<T>)`, `Concat(IEnumerable<T>)`, both on
   `NonEmptyEnumerable<T>` and `INonEmptyEnumerable<T>`.
 - `Flatten()` on `INonEmptyEnumerable<INonEmptyEnumerable<T>>`.
 - `T head.Concat(params IEnumerable<T>[] tails)` — builds a
@@ -74,8 +74,8 @@ T   maxBy = list.MaxBy(x => x.Key);
 T   minBy = list.MinBy(x => x.Key);
 ```
 
-All of these have overloads on both `NonEmptyEnumerable<T>` and
-`INonEmptyEnumerable<T>`, so chains on either receiver type work.
+All of these accept both `NonEmptyEnumerable<T>` and
+`INonEmptyEnumerable<T>` as the receiver, so chains on either type work.
 
 ## Covariance
 

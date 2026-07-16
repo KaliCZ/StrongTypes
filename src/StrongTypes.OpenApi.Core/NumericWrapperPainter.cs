@@ -2,12 +2,7 @@ using Microsoft.OpenApi;
 
 namespace StrongTypes.OpenApi.Core;
 
-/// <summary>
-/// Paints a schema as the underlying primitive of a numeric strong-type
-/// wrapper, plus its single bound. Shared by the Microsoft and Swashbuckle
-/// schema-time painters and by the document-time component filler so all
-/// three pipelines emit the same wire shape.
-/// </summary>
+/// <summary>Paints a schema as the underlying primitive of a numeric strong-type wrapper, plus its single bound.</summary>
 public static class NumericWrapperPainter
 {
     public static void Paint(OpenApiSchema schema, Type underlying, NumericBound bound)

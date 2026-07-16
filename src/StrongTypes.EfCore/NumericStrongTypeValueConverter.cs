@@ -11,11 +11,7 @@ public sealed class NumericStrongTypeValueConverter<TWrapper, T> : ValueConverte
     where TWrapper : struct
     where T : struct
 {
-    // Expression trees are compiled once per (TWrapper, T) pair and reused by
-    // every ValueConverter instance. EF Core keeps converter instances around
-    // for the lifetime of the model, but the model is sometimes rebuilt
-    // (different DbContext types, design-time tooling), so caching here costs
-    // one JIT per (TWrapper, T) instead of one per ValueConverter ctor call.
+    // Built once per (TWrapper, T): model rebuilds construct new converter instances, which would otherwise rebuild these.
     private static readonly Expression<Func<TWrapper, T>> s_toProvider = BuildToProvider();
     private static readonly Expression<Func<T, TWrapper>> s_toModel = BuildToModel();
 

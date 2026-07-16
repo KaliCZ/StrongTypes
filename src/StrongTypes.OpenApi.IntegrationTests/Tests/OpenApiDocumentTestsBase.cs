@@ -5,19 +5,7 @@ using StrongTypes.OpenApi.IntegrationTests.Helpers;
 
 namespace StrongTypes.OpenApi.IntegrationTests.Tests;
 
-/// <summary>
-/// The OpenAPI spec contract every strong-type wrapper must satisfy, regardless
-/// of which generator produced the document. The Microsoft.AspNetCore.OpenApi
-/// and Swashbuckle pipelines emit the same logical schema (modulo formatting,
-/// ordering, and component naming); a single shared assertion suite pins the
-/// shape and is run twice — once per concrete subclass — so any divergence
-/// shows up as a per-generator failure.
-///
-/// The suite is split into feature-scoped partials (Strings, Numerics,
-/// Collections, Composition, Annotations, Components) that all compile into
-/// this one type — so each subclass still inherits every test, regardless of
-/// which file declared it.
-/// </summary>
+/// <summary>The shared OpenAPI shape-contract suite — see "OpenAPI integration tests" in testing.md.</summary>
 public abstract partial class OpenApiDocumentTestsBase(HttpClient client) : IDisposable
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
@@ -26,32 +14,11 @@ public abstract partial class OpenApiDocumentTestsBase(HttpClient client) : IDis
 
     protected abstract string DocumentUrl { get; }
 
-    /// <summary>
-    /// The OpenAPI spec version the pipeline under test emits. Exclusive-bound
-    /// helpers in <see cref="Helpers.ExclusiveBounds"/> pin the version's
-    /// encoding strictly: 3.0 must emit <c>minimum: &lt;n&gt;</c> +
-    /// <c>exclusiveMinimum: true</c> (boolean pair), 3.1 must emit
-    /// <c>exclusiveMinimum: &lt;n&gt;</c> (numeric). Cross-version output
-    /// fails the test rather than silently passing.
-    /// </summary>
     protected abstract OpenApiVersion Version { get; }
 
-    // Per-feature flags below name a specific keyword the underlying
-    // pipeline doesn't natively write for the matching annotation, even
-    // on a primitive-typed property. The corresponding tests run on every
-    // pipeline; when the flag is set, they assert the keyword is *absent*
-    // rather than skipping — so the suite documents the framework's
-    // actual behaviour and catches it if the framework starts honouring
-    // the annotation. Each flag is set in the per-pipeline subclass.
     /// <summary>
-    /// True when the pipeline drops the <see cref="EmailAddressAttribute"/>
-    /// from string slots — i.e. neither plain <c>string</c> nor
-    /// <see cref="NonEmptyString"/> properties decorated with
-    /// <c>[EmailAddress]</c> reach the wire as <c>format: email</c>.
-    /// Microsoft.AspNetCore.OpenApi never emits the keyword from the
-    /// attribute on any string slot (body / query / route / header / form);
-    /// Swashbuckle does. The always-an-email wrapper <see cref="Email"/> is
-    /// independent — it paints <c>format: email</c> on every pipeline.
+    /// True when the pipeline drops <c>[EmailAddress]</c>'s <c>format: email</c> from string slots — the <c>Email</c>
+    /// wrapper is independent and paints the format on every pipeline.
     /// </summary>
     protected virtual bool IsEmailAddressFormatIgnored => false;
 

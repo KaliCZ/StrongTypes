@@ -7,7 +7,6 @@ using System.Text.Json.Serialization;
 namespace StrongTypes;
 
 /// <summary>An interval whose lower endpoint is required and whose upper endpoint is optional. The invariant <c>Start &lt;= End</c> holds whenever <c>End</c> is present. Endpoints are inclusive by default; an endpoint created with <c>startInclusive: false</c> / <c>endInclusive: false</c> is excluded from membership. Equal endpoints form a single-value interval and require both endpoints inclusive.</summary>
-/// <typeparam name="T">The endpoint type.</typeparam>
 [JsonConverter(typeof(IntervalJsonConverterFactory))]
 public readonly struct IntervalFrom<T> : IEquatable<IntervalFrom<T>>
     where T : struct, IComparable<T>

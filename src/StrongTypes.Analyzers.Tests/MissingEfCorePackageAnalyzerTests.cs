@@ -4,11 +4,6 @@ using Xunit;
 
 namespace StrongTypes.Analyzers.Tests;
 
-/// <summary>
-/// Behaviour tests for <see cref="MissingEfCorePackageAnalyzer"/> (ST0001). Each test assembles a
-/// minimal source that either should or should not trip the analyzer, drives it through the real
-/// Roslyn pipeline, and asserts the resulting diagnostics.
-/// </summary>
 public class MissingEfCorePackageAnalyzerTests
 {
     private const string DbContextWithNonEmptyStringEntity = """
@@ -198,9 +193,6 @@ public class MissingEfCorePackageAnalyzerTests
     [Fact]
     public async Task Reports_at_dbset_entity_property_and_dbcontext_locations()
     {
-        // Single DbContext + single DbSet + entity with one wrapper property should produce
-        // exactly three diagnostics: one at the DbSet property, one at the entity property,
-        // one at the DbContext class declaration.
         var diagnostics = await AnalyzerTester.RunAsync(
             new MissingEfCorePackageAnalyzer(),
             DbContextWithNonEmptyStringEntity,

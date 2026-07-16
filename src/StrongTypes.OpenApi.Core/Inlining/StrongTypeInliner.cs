@@ -4,15 +4,10 @@ using Microsoft.OpenApi;
 namespace StrongTypes.OpenApi.Core;
 
 /// <summary>
-/// Walks an <see cref="OpenApiDocument"/> and replaces every <c>$ref</c> to
-/// a strong-type wrapper component with the wrapper's wire body, merging any
-/// caller-supplied annotations attached at the use site (the <c>allOf:[ref]</c>
-/// + <c>maxLength</c>/<c>maxItems</c>/etc. shape that the property-annotation
-/// transformers emit). Both wrapper components and use-site allOf wrappers
-/// are identified by the <see cref="StrongTypeInlineMarker"/> vendor extension
-/// — the inliner does not match on schema names. After all references are
-/// inlined, the wrapper components themselves are dropped from
-/// <c>components.schemas</c>.
+/// Replaces every <c>$ref</c> to a strong-type wrapper component (identified by the
+/// <see cref="StrongTypeInlineMarker"/> vendor extension) with the wrapper's wire body,
+/// merging any annotations attached at the use site, then drops the wrapper components
+/// from <c>components.schemas</c>.
 /// </summary>
 public static class StrongTypeInliner
 {
@@ -28,15 +23,10 @@ public static class StrongTypeInliner
         }
         if (inlineable.Count == 0) return;
 
-        // `Referenced` accumulates every $ref the walk leaves in place (i.e.
-        // not inlined) so we can tell afterwards which components are still in
-        // use. The HashSet is shared across the by-value context copies.
         var ctx = new RewriteContext(inlineable, new HashSet<string>(StringComparer.Ordinal), logger);
 
-        // Walk every component (including the inlineable bodies themselves)
-        // so refs to other inlineable wrappers nested inside an array
-        // wrapper's `items` get resolved before we use the wrapper as a
-        // template at use sites.
+        // Rewrite the inlineable bodies themselves too, so refs nested inside a wrapper's
+        // items are already resolved when the wrapper is used as a template at use sites.
         foreach (var (_, schema) in schemas)
         {
             if (schema is OpenApiSchema concrete) RewriteSchema(concrete, ctx);
@@ -54,17 +44,10 @@ public static class StrongTypeInliner
         RemoveUnreferencedStorageComponents(schemas, ctx.Referenced);
     }
 
-    // Storage types that a strong-type wrapper exposes as a public property
-    // and that the generator therefore registers as their own component
-    // (e.g. Email.Value is a System.Net.Mail.MailAddress → a "MailAddress"
-    // component). Once the wrapper is inlined and dropped, nothing references
-    // these any more and downstream tools (openapi-typescript) emit them as
-    // dead noise. Extend this list when a new wrapper drags in another type.
+    // Components the generator registers for storage types a wrapper exposes as a property
+    // (e.g. Email.Value → MailAddress); orphaned once the wrapper is inlined.
     private static readonly string[] GeneratedStorageComponentNames = ["MailAddress"];
 
-    // Drop a known storage component only when no surviving $ref points at it,
-    // so a consumer that genuinely uses the type (e.g. a DTO with a
-    // MailAddress property of its own) keeps its component.
     private static void RemoveUnreferencedStorageComponents(IDictionary<string, IOpenApiSchema> schemas, HashSet<string> referenced)
     {
         foreach (var name in GeneratedStorageComponentNames)
@@ -251,10 +234,7 @@ public static class StrongTypeInliner
     {
         var result = CloneWireShape(wrapper);
 
-        // A nullable member (`NonEmptyString?`, `Positive<int>?`, …) carries the
-        // null bit on the use-site wrapper; the wrapper component is non-nullable.
-        // Carry it onto the inlined wire shape so the published contract keeps the
-        // member's nullability instead of silently dropping it.
+        // The null bit lives on the use-site wrapper (the component is non-nullable), so carry it onto the inlined shape.
         if (SchemaPaint.IsNullable(useSite)) SchemaPaint.MarkNullable(result);
 
         if (useSite.MinLength is { } minL) SchemaPaint.TightenMinLength(result, minL);

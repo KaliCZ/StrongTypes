@@ -8,12 +8,7 @@ using static StrongTypes.Api.IntegrationTests.Tests.BindingTestAsserts;
 
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
-/// <summary>
-/// Verifies that strong types round-trip through MVC's <c>[FromRoute]</c>
-/// model binding. Route segments are required by definition, so only the
-/// required-value path applies; missing-segment cases are 404s (route-match
-/// failure) rather than 400s (binding failure).
-/// </summary>
+/// <summary>Route segments are required by definition, so only the required-value path applies here.</summary>
 [Collection(IntegrationTestCollection.Name)]
 public sealed class RouteBindingTests(TestWebApplicationFactory factory) : IDisposable
 {

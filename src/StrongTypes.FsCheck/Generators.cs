@@ -9,7 +9,6 @@ public static class Generators
 {
     #region NonEmptyString
 
-    /// <summary>Arbitrary <see cref="NonEmptyString"/> values.</summary>
     public static Arbitrary<NonEmptyString> NonEmptyString { get; } =
         Arb.From(ArbMap.Default.ArbFor<string>().Generator
             .Where(s => !string.IsNullOrWhiteSpace(s))
@@ -75,7 +74,6 @@ public static class Generators
 
     #region Positive<int>
 
-    /// <summary>Arbitrary <see cref="Positive{T}"/> of <see cref="int"/>.</summary>
     public static Arbitrary<Positive<int>> PositiveInt { get; } =
         Arb.From(ArbMap.Default.ArbFor<int>().Generator
             .Where(i => i > 0)
@@ -97,7 +95,6 @@ public static class Generators
 
     #region Negative<int>
 
-    /// <summary>Arbitrary <see cref="Negative{T}"/> of <see cref="int"/>.</summary>
     public static Arbitrary<Negative<int>> NegativeInt { get; } =
         Arb.From(ArbMap.Default.ArbFor<int>().Generator
             .Where(i => i < 0)
@@ -119,7 +116,6 @@ public static class Generators
 
     #region NonNegative<int>
 
-    /// <summary>Arbitrary <see cref="NonNegative{T}"/> of <see cref="int"/>.</summary>
     public static Arbitrary<NonNegative<int>> NonNegativeInt { get; } =
         Arb.From(ArbMap.Default.ArbFor<int>().Generator
             .Where(i => i >= 0)
@@ -141,7 +137,6 @@ public static class Generators
 
     #region NonPositive<int>
 
-    /// <summary>Arbitrary <see cref="NonPositive{T}"/> of <see cref="int"/>.</summary>
     public static Arbitrary<NonPositive<int>> NonPositiveInt { get; } =
         Arb.From(ArbMap.Default.ArbFor<int>().Generator
             .Where(i => i <= 0)
@@ -206,7 +201,6 @@ public static class Generators
 
     #region NonEmptyEnumerable<int>
 
-    /// <summary>Arbitrary <see cref="NonEmptyEnumerable{T}"/> of <see cref="int"/>.</summary>
     public static Arbitrary<NonEmptyEnumerable<int>> NonEmptyEnumerableInt { get; } =
         Arb.From(Gen.NonEmptyListOf(ArbMap.Default.ArbFor<int>().Generator)
             .Select(list => NonEmptyEnumerable.CreateRange(list)));

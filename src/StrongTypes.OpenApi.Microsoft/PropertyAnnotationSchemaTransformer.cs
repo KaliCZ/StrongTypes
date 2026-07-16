@@ -8,27 +8,9 @@ using StrongTypes.OpenApi.Core;
 namespace StrongTypes.OpenApi.Microsoft;
 
 /// <summary>
-/// Re-applies caller-supplied data-annotations (<c>[StringLength]</c>,
-/// <c>[Range]</c>, <c>[RegularExpression]</c>, <c>[Description]</c>, …)
-/// to properties whose CLR type is a strong-type wrapper. Without this
-/// pass, a property like <c>[StringLength(50)] NonEmptyString Name</c>
-/// renders as a bare <c>$ref</c> to the <c>NonEmptyString</c> component
-/// and silently drops the caller's <c>maxLength: 50</c>. We layer the
-/// caller's bound onto the property position via <c>allOf</c>:
-/// <code>
-/// "name": {
-///   "allOf": [ { "$ref": "#/components/schemas/NonEmptyString" } ],
-///   "maxLength": 50
-/// }
-/// </code>
-/// The component schema (<c>{ "type": "string", "minLength": 1 }</c>) is
-/// painted by <see cref="NonEmptyStringSchemaTransformer"/> and is not
-/// touched here — only the property position is. After
-/// <see cref="StrongTypeInliner"/> collapses the <c>allOf+ref</c>, the
-/// merged shape on the wire is
-/// <c>{ type: string, minLength: 1, maxLength: 50 }</c>. Also normalises
-/// each parent schema's <c>required</c> set to the C# nullability of its
-/// properties.
+/// Re-applies caller-supplied data-annotations to properties whose CLR type is a strong-type
+/// wrapper: such a property renders as a bare <c>$ref</c>, which silently drops the caller's
+/// bounds, so they are layered onto the property position via <c>allOf</c>.
 /// </summary>
 internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTransformer
 {
@@ -78,8 +60,6 @@ internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTran
                 continue;
             }
 
-            // OpenApiSchemaReference (or any other IOpenApiSchema implementation):
-            // wrap it so we can layer the bounds on top.
             var refWrapper = new OpenApiSchema { AllOf = [propSchema] };
             if (WrapperAnnotationApplier.TryApply(refWrapper, clrProperty.PropertyType, attrs))
             {
@@ -89,9 +69,7 @@ internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTran
         }
     }
 
-    // A "bare ref" position emerges as an OpenApiSchema whose only meaningful
-    // signal is the Reference pointer. Wrapping in `allOf:[ref]` is the
-    // standard way to layer caller bounds on top of it.
+    // The pipeline renders a bare $ref property position as an otherwise-empty concrete schema.
     private static bool IsBareRefSchema(OpenApiSchema schema)
     {
         if (schema.Type is not null) return false;
@@ -115,9 +93,6 @@ internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTran
 
     private static Dictionary<string, Type> BuildComponentToTypeMap(IReadOnlyList<ApiDescriptionGroup> groups)
     {
-        // Microsoft's default schema-id strategy is the simple CLR type name (or
-        // a generic-sanitised form). Map component names to CLR types by
-        // walking every reachable parameter / return type the API exposes.
         var map = new Dictionary<string, Type>(StringComparer.Ordinal);
         var seen = new HashSet<Type>();
 
@@ -146,12 +121,7 @@ internal sealed class PropertyAnnotationSchemaTransformer : IOpenApiDocumentTran
             Visit(p.PropertyType, map, seen);
     }
 
-    // Mimics Microsoft.AspNetCore.OpenApi's default schema-id strategy:
-    //   `Foo`            → "Foo"
-    //   `Foo<Bar>`       → "FooOfBar"
-    //   `Foo<Bar<Baz>>`  → "FooOfBarOfBaz"
-    //   primitive types  → C# keyword (int, string, …) — that's what shows
-    //                      up in component names like "PositiveOfint".
+    // Mimics Microsoft.AspNetCore.OpenApi's default schema-id strategy (Foo<Bar> → "FooOfBar", primitives → C# keyword).
     private static string ComputeSchemaName(Type type)
     {
         if (MicrosoftSchemaNaming.GetPrimitiveKeyword(type) is { } keyword) return keyword;

@@ -13,8 +13,8 @@ builder.Services.AddOptions<RetryOptions>()
 ## The problem
 
 [`Kalicz.StrongTypes`](https://www.nuget.org/packages/Kalicz.StrongTypes/) needs no package to
-bind: every wrapper carries a `TypeConverter`, so values bind and invalid ones throw with the
-invariant's own message. **This package is only about the key that isn't there.**
+bind: every scalar wrapper carries a `TypeConverter`, so values bind and invalid ones throw with
+the invariant's own message. **This package is only about the key that isn't there.**
 
 A wrapper's invariant constrains every value it can hold. It cannot make the binder assign one — the
 binder reaches in through reflection and never calls `Create` — and for an absent key it assigns
@@ -31,6 +31,9 @@ public sealed class RetryOptions
 binding an absent key *succeeds*, it just doesn't assign, so nothing is raised. C#'s `required`
 doesn't either — it's a compile-time rule and the binder's reflection walks past it. `[Required]`
 does work, but only if you remember it on every property.
+
+The analyzer that ships with `Kalicz.StrongTypes` (ST0004) flags a plain `Bind(...)` that would
+leave a non-nullable wrapper null, with a code fix that rewrites the call to `BindStrongTypes(...)`.
 
 ## What it does
 

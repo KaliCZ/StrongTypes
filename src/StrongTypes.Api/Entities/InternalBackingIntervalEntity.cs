@@ -3,13 +3,10 @@ using Microsoft.EntityFrameworkCore;
 namespace StrongTypes.Api.Entities;
 
 /// <summary>
-/// The interval analog of <see cref="InternalBackingEntity"/> (issue #112): a
-/// nullable interval held in a non-public EF-mapped backing property. EF does
-/// not discover non-public members by convention, so <see cref="BackingWindow"/>
-/// is mapped explicitly as a complex property in <see cref="Configure"/>; the
-/// StrongTypes convention must then give it the two-endpoint-column shape —
-/// including the shadow discriminator that keeps a <c>null</c> property distinct
-/// from an unbounded interval — automatically.
+/// The interval analog of <see cref="InternalBackingEntity"/> (issue #112). EF does not discover
+/// non-public members, so <see cref="Configure"/> maps <see cref="BackingWindow"/> explicitly;
+/// the convention must still shape it as endpoint columns with the shadow discriminator that
+/// keeps <c>null</c> distinct from an unbounded interval.
 /// </summary>
 public sealed class InternalBackingIntervalEntity
 {

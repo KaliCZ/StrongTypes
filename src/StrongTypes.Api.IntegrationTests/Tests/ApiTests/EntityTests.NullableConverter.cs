@@ -8,21 +8,12 @@ using Xunit;
 
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
-/// <summary>
-/// Exercises the EF Core value converter for the <b>nullable</b> strong type
-/// (<c>NullableValue</c>) directly against both providers: read-back through the
-/// converter, <c>NULL</c>/value filtering, ordering, and rejecting a stored value
-/// that violates the invariant. Lives on the shared base so every concrete
-/// subclass runs it — i.e. it covers every nullable strong type (nullable
-/// <c>NonEmptyString</c>, nullable <c>Positive&lt;int&gt;</c>, …).
-/// </summary>
+/// <summary>EF Core value-converter coverage for the nullable slot; on the shared base so every nullable strong type runs it.</summary>
 public abstract partial class EntityTests<TSelf, TEntity, T, TNullable, TWire>
 {
     /// <summary>
-    /// Orders two wrapped values the way the database orders the stored column, for
-    /// the <c>OrderBy</c> assertion. Override when the type's default CLR comparison
-    /// differs from its stored order — e.g. <c>MailAddress</c>, which isn't
-    /// <see cref="IComparable"/> and is stored as its address string.
+    /// Orders values the way the database orders the stored column; override when the CLR default
+    /// differs — e.g. <c>MailAddress</c>, not <see cref="IComparable"/> and stored as its address string.
     /// </summary>
     protected virtual IComparer<T> ValueComparer => Comparer<T>.Default;
 

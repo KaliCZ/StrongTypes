@@ -17,7 +17,6 @@ public static class StrongTypesOpenApiExtensions
     /// the generated OpenAPI document as the JSON shape their converters
     /// actually produce.
     /// </summary>
-    /// <param name="options">The OpenAPI options being configured.</param>
     public static OpenApiOptions AddStrongTypes(this OpenApiOptions options)
     {
         options.AddSchemaTransformer<NonEmptyStringSchemaTransformer>();

@@ -85,7 +85,7 @@ Equality, null checks, ordering, and grouping work directly on the
 wrapper:
 
 ```csharp
-var needle = "alice".ToNonEmpty();
+NonEmptyString needle = "alice".ToNonEmpty();
 var user = await db.Users.SingleOrDefaultAsync(u => u.Name == needle);
 
 var withNickname = await db.Users.Where(u => u.Nickname != null).ToListAsync();

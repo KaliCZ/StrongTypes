@@ -5,12 +5,7 @@ public interface IEntity
     Guid Id { get; }
 }
 
-/// <summary>
-/// Shape every integration-test entity follows: an identifier plus a required
-/// <typeparamref name="T"/> value and an optional <typeparamref name="TNullable"/>
-/// value. A single interface covers both reference and value strong types by
-/// letting callers choose <typeparamref name="TNullable"/> (typically <c>T?</c>).
-/// </summary>
+/// <summary>TNullable is its own parameter so one interface spans value and reference wrappers — each supplies its form of T?.</summary>
 public interface IEntity<TSelf, T, TNullable> : IEntity
     where TSelf : IEntity<TSelf, T, TNullable>
     where T : notnull

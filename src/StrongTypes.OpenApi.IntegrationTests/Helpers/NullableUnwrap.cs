@@ -5,35 +5,22 @@ using Xunit;
 namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 
 /// <summary>
-/// Version-aware nullable-wrapper unwrapping. ASP.NET Core OpenAPI
-/// pipelines emit a property's CLR-level nullability in several
-/// shapes (<c>oneOf+nullable:true</c>, <c>anyOf+{type:"null"}</c>,
-/// single-element <c>allOf</c>, or no wrapper at all when the
-/// pipeline relies solely on <c>required</c>). This helper walks
-/// past whichever wrapper is present and returns the inner schema
-/// for downstream navigation, asserting strict version markers
-/// along the way.
+/// The pipelines emit a property's nullability in several shapes — a <c>oneOf</c>/<c>anyOf</c> union with a null
+/// branch, a flat <c>nullable: true</c> (3.0) or <c>"null"</c> type-array member (3.1), a single-element <c>allOf</c>,
+/// or no wrapper at all when nullability rides solely on <c>required</c>.
 /// </summary>
 internal static class NullableUnwrap
 {
     /// <summary>
-    /// True iff <paramref name="branch"/> is the OpenAPI 3.0 null marker:
-    /// a singleton object <c>{ "nullable": true }</c> with no other
-    /// keywords. Pins the branch as encoding "or null" inside a
-    /// <c>oneOf</c>/<c>anyOf</c> union; the singleton check excludes
-    /// nullable schemas that also carry their own constraints.
+    /// True iff <paramref name="branch"/> is exactly the singleton <c>{ "nullable": true }</c> — a nullable schema
+    /// carrying its own constraints is not a null marker.
     /// </summary>
     internal static bool IsNullBranch3_0(JsonElement branch) =>
         branch.TryGetProperty("nullable", out var n)
         && n.ValueKind == JsonValueKind.True
         && branch.EnumerateObject().Count() == 1;
 
-    /// <summary>
-    /// True iff <paramref name="branch"/> is the OpenAPI 3.1 null marker:
-    /// a singleton object <c>{ "type": "null" }</c> with no other
-    /// keywords. The 3.1 spec dropped the <c>nullable</c> keyword and
-    /// uses a <c>null</c>-typed branch instead.
-    /// </summary>
+    /// <summary>True iff <paramref name="branch"/> is exactly the singleton <c>{ "type": "null" }</c>.</summary>
     internal static bool IsNullBranch3_1(JsonElement branch) =>
         branch.TryGetProperty("type", out var t)
         && t.ValueKind == JsonValueKind.String
@@ -41,25 +28,13 @@ internal static class NullableUnwrap
         && branch.EnumerateObject().Count() == 1;
 
     /// <summary>
-    /// True iff <paramref name="branch"/> is the null marker for the
-    /// document's declared OpenAPI version. Dispatches strictly: a 3.0
-    /// document accepts only the 3.0 marker, a 3.1 document accepts
-    /// only the 3.1 marker, so cross-version contamination surfaces as
-    /// an unhandled branch rather than silently passing through.
+    /// Dispatches strictly — a document accepts only its own version's null marker — so cross-version contamination
+    /// surfaces instead of silently passing.
     /// </summary>
     internal static bool IsNullBranch(JsonElement branch, OpenApiVersion version) =>
         version == OpenApiVersion.V3_1 ? IsNullBranch3_1(branch) : IsNullBranch3_0(branch);
 
-    /// <summary>
-    /// Walks past the nullable wrapper layer (whichever form the
-    /// pipeline used) and returns the inner schema. Asserts the
-    /// version-marker partition first: a 3.0 schema must not carry the
-    /// <c>nullable</c> keyword nowhere; a 3.1 schema must not carry a
-    /// <c>{"type":"null"}</c> branch in any union. Returns the schema
-    /// unchanged when the property has no wrapper layer (Swashbuckle's
-    /// typical form for value-typed and same-shape-as-non-nullable
-    /// cases, where nullability is encoded solely via <c>required</c>).
-    /// </summary>
+    /// <summary>Returns the schema behind its nullable wrapper, unchanged when no wrapper layer is present.</summary>
     internal static JsonElement UnwrapNullableProperty(JsonElement schema, OpenApiVersion version)
     {
         AssertVersionMarkers(schema, version);
@@ -76,21 +51,8 @@ internal static class NullableUnwrap
     }
 
     /// <summary>
-    /// Asserts the property actually encodes <c>T?</c> nullability — in
-    /// whichever shape the pipeline uses for <paramref name="version"/> — and
-    /// returns the inner wire schema with the null marker stripped, ready for
-    /// a strict deep-compare against the wrapper's non-null wire form.
-    ///
-    /// Unlike <see cref="UnwrapNullableProperty"/>, which tolerates a missing
-    /// marker (returning the schema unchanged), this fails when no marker is
-    /// found — so it pins the bug fix: a nullable wrapper must keep its
-    /// nullability instead of silently dropping it. Accepted shapes:
-    /// <list type="bullet">
-    ///   <item>3.0 flat (Swashbuckle): <c>{ …wire, "nullable": true }</c>.</item>
-    ///   <item>3.0 union (Microsoft): <c>{ "oneOf": [ …wire ], "nullable": true }</c>.</item>
-    ///   <item>3.1 union (Microsoft): <c>{ "oneOf": [ {"type":"null"}, …wire ] }</c>.</item>
-    ///   <item>3.1 flat: <c>{ "type": ["X","null"], … }</c>.</item>
-    /// </list>
+    /// Asserts the property encodes <c>T?</c> nullability and returns the wire schema with the null marker stripped —
+    /// unlike <see cref="UnwrapNullableProperty"/>, a property carrying no null marker fails.
     /// </summary>
     internal static JsonElement AssertNullableAndUnwrap(JsonElement schema, OpenApiVersion version)
     {

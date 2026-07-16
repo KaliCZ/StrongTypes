@@ -19,7 +19,6 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
     public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options) =>
         s_converterCache.GetOrAdd(typeToConvert, static t => CreateInner(t, IntervalBoundMode.Stored, IntervalBoundMode.Stored));
 
-    // Backs IntervalJsonConverter<TInterval>: the same reader/writer with the bounds pinned to fixed modes.
     internal static JsonConverter<TInterval> CreateBoundConverter<TInterval>(IntervalBoundMode startMode, IntervalBoundMode endMode)
         where TInterval : struct =>
         (JsonConverter<TInterval>)CreateInner(typeof(TInterval), startMode, endMode);
@@ -40,8 +39,7 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
         // The arity-suffixed CLR name ("FiniteInterval`1") would leak into client-facing validation errors.
         private static readonly string s_name = typeof(TInterval).Name.Split('`')[0];
 
-        // An endpoint is required exactly when its type is the bare value type;
-        // an optional endpoint is Nullable<T>, so omitting its key means "null".
+        // An endpoint is required exactly when its type is the bare (non-Nullable) value type.
         private static readonly bool s_startRequired = Nullable.GetUnderlyingType(typeof(TStart)) is null;
         private static readonly bool s_endRequired = Nullable.GetUnderlyingType(typeof(TEnd)) is null;
 
@@ -60,7 +58,6 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
             return Expression.Lambda<Func<TInterval, TProp>>(access, param).Compile();
         }
 
-        // Whether the endpoint is present. A required endpoint always is; an optional (Nullable) one is when it HasValue.
         private static Func<TInterval, bool> BuildPresence(string propertyName, bool required)
         {
             if (required)
@@ -106,8 +103,6 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
             {
                 if (reader.TokenType == JsonTokenType.EndObject)
                 {
-                    // A missing key is fine for an optional endpoint (it stays null);
-                    // only a required endpoint must be present.
                     if (!sawStart && s_startRequired)
                     {
                         throw new JsonException($"{s_name} requires the '{startName}' property.");
@@ -116,7 +111,6 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
                     {
                         throw new JsonException($"{s_name} requires the '{endName}' property.");
                     }
-                    // A pinned bound ignores whatever the payload carried and takes the configured inclusivity.
                     return s_tryCreate(start, end, ResolveRead(startMode, startInclusive), ResolveRead(endMode, endInclusive))
                         ?? throw new JsonException(
                             $"{s_name} requires '{startName}' to be less than or equal to '{endName}', with equal endpoints only when both are inclusive.");
@@ -156,11 +150,7 @@ public sealed class IntervalJsonConverterFactory : JsonConverterFactory
             throw new JsonException($"Unterminated JSON object while reading {s_name}.");
         }
 
-        // The nested Deserialize loses the property position, so a failure (null
-        // for a required endpoint, a type mismatch) surfaces with the document
-        // root as its path. Rethrow path-less and the serializer reattaches the
-        // correct path (e.g. "$.value") — matching the numeric converter and the
-        // error-key contract codified in #106.
+        // Rethrown path-less so the serializer reattaches the failing property's path — the error-key contract in #106.
         private static TEndpoint ReadEndpoint<TEndpoint>(
             ref Utf8JsonReader reader, JsonSerializerOptions options, string property)
         {

@@ -95,9 +95,7 @@ public class ResultFlatMapTests
     public async Task FlatMapAsync_OnResultOfT_ReturnsResultOfT()
     {
         Result<int> r = 5;
-        // Explicit <int> because Task<T> is invariant, so the lambda's
-        // `Task<Result<int>>` can't be inferred against the shadow's
-        // `Task<Result<U, Exception>>` parameter without help.
+        // Explicit <int>: Task<T> is invariant, so the lambda's return can't be inferred against the shadow overload.
         var bound = await r.FlatMapAsync<int>(async x =>
         {
             await Task.Yield();

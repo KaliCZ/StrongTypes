@@ -7,11 +7,9 @@ using StrongTypes.Api.Models;
 namespace StrongTypes.Api.Controllers;
 
 /// <summary>
-/// Bespoke controller for <see cref="MailAddressEntity"/>: requests and responses are
-/// shaped in <see cref="Email"/> (so the wrapper's JSON converter enforces the
-/// 254-character cap and addr-spec parse on the way in) but the entity itself
-/// stores the BCL <see cref="MailAddress"/> — the validation contract belongs
-/// at the wire boundary, not on every read.
+/// Requests and responses are shaped in <see cref="Email"/> while the entity stores the BCL
+/// <see cref="MailAddress"/> — the validation contract belongs at the wire boundary, not on
+/// every read.
 /// </summary>
 [ApiController]
 [Route("mail-address-entities")]
@@ -77,12 +75,6 @@ public sealed class MailAddressEntityController(SqlServerDbContext sqlCtx, Postg
         return Ok(new EntityResponse(id));
     }
 
-    /// <summary>
-    /// DTO for the response. Custom shape (rather than a generic
-    /// <see cref="StructEntityDto{T}"/>) because the entity stores a
-    /// <see cref="MailAddress"/> reference but the wire surface is the
-    /// <see cref="Email"/> wrapper.
-    /// </summary>
     public sealed record MailAddressEntityDto(Guid Id, Email Value, Email? NullableValue);
 
     private static MailAddressEntityDto ToDto(MailAddressEntity entity) =>

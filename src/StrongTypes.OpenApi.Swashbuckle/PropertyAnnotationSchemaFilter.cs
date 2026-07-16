@@ -8,32 +8,11 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 namespace StrongTypes.OpenApi.Swashbuckle;
 
 /// <summary>
-/// Re-applies caller-supplied data-annotations (<c>[StringLength]</c>,
-/// <c>[Range]</c>, <c>[RegularExpression]</c>, <c>[Description]</c>, …)
-/// to properties whose CLR type is a strong-type wrapper. Without this
-/// filter, a property like <c>[StringLength(50)] NonEmptyString Name</c>
-/// renders as a bare <c>$ref</c> to the <c>NonEmptyString</c> component
-/// and silently drops the caller's <c>maxLength: 50</c>. We layer the
-/// caller's bound onto the property position via <c>allOf</c>:
-/// <code>
-/// "name": {
-///   "allOf": [ { "$ref": "#/components/schemas/NonEmptyString" } ],
-///   "maxLength": 50
-/// }
-/// </code>
-/// The component schema (<c>{ "type": "string", "minLength": 1 }</c>) is
-/// painted by <see cref="NonEmptyStringSchemaFilter"/> and is not touched
-/// here — only the property position is. After
-/// <see cref="StrongTypeInliner"/> collapses the <c>allOf+ref</c>, the
-/// merged shape on the wire is <c>{ type: string, minLength: 1, maxLength: 50 }</c>.
-/// The wrapper-typed surface matches whatever Swashbuckle natively supports
-/// for the equivalent primitive-typed property — no more, no less.
-///
-/// The same property position is also where a nullable wrapper
-/// (<c>NonEmptyString?</c>, <c>Positive&lt;int&gt;?</c>, …) gets its null
-/// marker: Swashbuckle drops the member's nullability when it renders the
-/// property as a bare <c>$ref</c>, so this filter records it on the use-site
-/// wrapper for the inliner to carry onto the merged wire shape.
+/// Re-applies caller-supplied data-annotations to properties whose CLR type is a strong-type
+/// wrapper: such a property renders as a bare <c>$ref</c>, which silently drops the caller's
+/// bounds, so they are layered onto the property position via <c>allOf</c>. The same wrapper
+/// also records a nullable member's null bit, which Swashbuckle likewise drops from a bare
+/// <c>$ref</c>.
 /// </summary>
 public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
 {
@@ -55,11 +34,7 @@ public sealed class PropertyAnnotationSchemaFilter : ISchemaFilter
 
             var isNullable = IsNullableMember(clrProperty, nullability);
 
-            // Swashbuckle renders a wrapper-typed property as a bare `$ref` to
-            // the wrapper component, which in OpenAPI 3.0 cannot carry the
-            // member's caller annotations *or* its nullability. Only act when
-            // there is something to layer on — a caller annotation or a `T?`
-            // member; otherwise leave the bare `$ref` for the inliner.
+            // Only act when there is something to layer on; otherwise leave the bare $ref for the inliner.
             OpenApiSchema? source = null;
             if (clrProperty.GetCustomAttributes(inherit: true).OfType<Attribute>().Any())
                 source = context.SchemaGenerator.GenerateSchema(surrogate, context.SchemaRepository, memberInfo: clrProperty) as OpenApiSchema;

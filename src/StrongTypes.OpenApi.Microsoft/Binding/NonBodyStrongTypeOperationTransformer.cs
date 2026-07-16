@@ -9,24 +9,10 @@ using StrongTypes.OpenApi.Core;
 namespace StrongTypes.OpenApi.Microsoft;
 
 /// <summary>
-/// Repaints schemas attached to non-body parameters (<c>[FromQuery]</c>,
-/// <c>[FromRoute]</c>, <c>[FromHeader]</c>) and to the per-field schemas
-/// of <c>[FromForm]</c> request bodies. Microsoft.AspNetCore.OpenApi only
-/// fires <see cref="IOpenApiSchemaTransformer"/> on JSON-body schemas; for
-/// every other slot the parameter's CLR type is inspected via the
-/// <see cref="ApiParameterDescription"/> exposed on the operation context
-/// and the wire shape is written directly. Caller annotations attached at
-/// the slot (e.g. <c>[StringLength]</c> on a <c>[FromQuery]</c> parameter
-/// or <c>[Range]</c> on a <c>[FromForm]</c> property) are layered on top
-/// via <see cref="WrapperAnnotationApplier"/> so non-body slots merge
-/// annotations the same way JSON-body properties do.
-///
-/// Body schemas are out of scope by construction: this transformer only
-/// dispatches on <see cref="BindingSource.Query"/> / <see cref="BindingSource.Path"/> /
-/// <see cref="BindingSource.Header"/> / <see cref="BindingSource.Form"/>,
-/// and the form path is gated to <c>multipart/form-data</c> /
-/// <c>application/x-www-form-urlencoded</c>. JSON request/response bodies
-/// are reached neither by source nor by content type.
+/// Repaints schemas attached to non-body slots — <c>[FromQuery]</c>/<c>[FromRoute]</c>/<c>[FromHeader]</c>
+/// parameters and <c>[FromForm]</c> fields — because Microsoft.AspNetCore.OpenApi only fires
+/// <see cref="IOpenApiSchemaTransformer"/> on JSON-body schemas. Caller annotations attached
+/// at the slot are layered on top, matching the JSON-body behavior.
 /// </summary>
 internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationTransformer
 {
@@ -86,11 +72,7 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
             if (media.Schema is not OpenApiSchema formSchema) continue;
             if (formSchema.Properties is not { Count: > 0 } properties) continue;
 
-            // Microsoft.AspNetCore.OpenApi keys form-body properties by the
-            // C# property name (PascalCase), matching ApiParameterDescription.Name.
-            // No camelCase / case-insensitive fallback because this pipeline
-            // doesn't produce those — and a fallback would risk binding to
-            // the wrong slot if a user DTO ever has near-collisions.
+            // Form-body properties are keyed by the C# property name (PascalCase), matching ApiParameterDescription.Name.
             if (!properties.ContainsKey(pd.Name)) continue;
             properties[pd.Name] = PaintSlot(properties[pd.Name], clrType, pd);
         }
@@ -98,11 +80,7 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
 
     private static IOpenApiSchema PaintSlot(IOpenApiSchema? existing, Type clrType, ApiParameterDescription pd)
     {
-        // Mutate the existing schema when possible so any keywords the
-        // pipeline already wrote (description, default, caller-applied
-        // [StringLength] on the IParsable string overload, …) survive the
-        // wrapper paint. Falls back to a fresh schema only when the slot
-        // currently holds an OpenApiSchemaReference or is null.
+        // Mutate the existing schema so keywords the pipeline already wrote survive the wrapper paint.
         var schema = existing as OpenApiSchema ?? new OpenApiSchema();
         if (!TryPaintWireShape(schema, clrType)) return existing ?? schema;
 
@@ -166,8 +144,6 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
 
     private static IReadOnlyList<Attribute> GetSlotAttributes(ApiParameterDescription pd)
     {
-        // For a flattened [FromForm] complex model, ModelMetadata pinpoints
-        // the property; reflect on it to read the property's own attributes.
         if (pd.ModelMetadata is { ContainerType: { } containerType, PropertyName: { } propertyName })
         {
             var prop = containerType.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
@@ -175,18 +151,13 @@ internal sealed class NonBodyStrongTypeOperationTransformer : IOpenApiOperationT
                 return prop.GetCustomAttributes(inherit: true).OfType<Attribute>().ToArray();
         }
 
-        // For a method parameter (query/path/header), the attributes live on
-        // the ParameterInfo.
         if (pd.ParameterDescriptor is ControllerParameterDescriptor cpd)
             return cpd.ParameterInfo.GetCustomAttributes(inherit: true).OfType<Attribute>().ToArray();
 
         return [];
     }
 
-    // ApiParameterDescription.Type lies for strong types implementing IParsable<T> —
-    // it reports the string overload's input, hiding the wrapper. ModelMetadata.ModelType
-    // exposes the actual CLR type for both parameter slots and for properties of a
-    // flattened [FromForm] model.
+    // Not pd.Type: it lies for IParsable<T> strong types, reporting the string overload's input instead of the wrapper.
     private static Type ResolveParameterClrType(ApiParameterDescription pd)
         => pd.ModelMetadata.ModelType;
 }

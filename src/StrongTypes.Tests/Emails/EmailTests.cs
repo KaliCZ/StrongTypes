@@ -9,10 +9,7 @@ namespace StrongTypes.Tests;
 public class EmailTests
 {
     // ── Validation contract — every Email entry point agrees ──────────────
-    // Email.Create / Email.TryCreate / string.ToEmail / string.AsEmail are
-    // four faces of the same validation rule. Asserting all four per case
-    // keeps them lock-stepped and stops a wrapper from drifting away from
-    // the canonical contract.
+    // Every case asserts all four entry points so a wrapper cannot drift from the canonical rule.
 
     [Theory]
     [InlineData(null)]
@@ -33,14 +30,12 @@ public class EmailTests
     [Fact]
     public void MaxLength_BoundaryAcceptedJustOverRejected()
     {
-        // Local-part of 244 chars + "@x.com" (6 chars) = 250 chars, valid.
         var ok = new string('a', Email.MaxLength - 6) + "@x.com";
         Assert.NotNull(Email.TryCreate(ok));
         Assert.NotNull(ok.AsEmail());
         Assert.Equal(ok, Email.Create(ok).Address);
         Assert.Equal(ok, ok.ToEmail().Address);
 
-        // One past the cap.
         var tooLong = new string('a', Email.MaxLength) + "@x.com";
         Assert.Null(Email.TryCreate(tooLong));
         Assert.Null(tooLong.AsEmail());
@@ -60,9 +55,7 @@ public class EmailTests
     }
 
     // ── MailAddress.Create / TryCreate (extension block) ──────────────────
-    // BCL shims, deliberately distinct from the Email entry points: they
-    // throw FormatException and do NOT enforce Email.MaxLength. Callers
-    // that want the cap go through Email.Create or string.ToEmail.
+    // Deliberately distinct from the Email entry points: FormatException, and no Email.MaxLength cap.
 
     [Fact]
     public void MailAddressCreate_Valid_WrapsAddress() =>
@@ -253,8 +246,7 @@ public class EmailTests
         Assert.False(email.Equals((string?)null));
 
     // ── Comparison ────────────────────────────────────────────────────────
-    // Ordinal-ignore-case on the address, matching Equals so CompareTo == 0
-    // agrees with equality.
+    // Ordinal-ignore-case, matching Equals so CompareTo == 0 agrees with equality.
 
     [Property]
     public void CompareTo_SameAddress_Zero(Email email) =>

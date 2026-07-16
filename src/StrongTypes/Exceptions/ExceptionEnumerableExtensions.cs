@@ -9,7 +9,6 @@ namespace StrongTypes;
 public static class ExceptionEnumerableExtensions
 {
     /// <summary>Returns a single <see cref="Exception"/> aggregating <paramref name="source"/>, or <c>null</c> when the sequence is empty.</summary>
-    /// <param name="source">The exceptions to aggregate.</param>
     public static Exception? Aggregate(this IEnumerable<Exception> source)
         => source switch
         {
@@ -21,7 +20,6 @@ public static class ExceptionEnumerableExtensions
         };
 
     /// <summary>Returns a single <see cref="Exception"/> aggregating <paramref name="source"/>, or <c>null</c> when the list is empty.</summary>
-    /// <param name="source">The exceptions to aggregate.</param>
     [Pure]
     public static Exception? Aggregate(this IReadOnlyList<Exception> source)
         => source.Count switch
@@ -32,7 +30,6 @@ public static class ExceptionEnumerableExtensions
         };
 
     /// <summary>Returns a single <see cref="Exception"/> aggregating <paramref name="source"/>.</summary>
-    /// <param name="source">The exceptions to aggregate.</param>
     [Pure]
     public static Exception Aggregate(this INonEmptyEnumerable<Exception> source)
         => source.Count switch

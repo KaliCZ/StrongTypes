@@ -3,13 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace StrongTypes.Api.Controllers;
 
 /// <summary>
-/// Exercises every non-body model-binding source supported by ASP.NET Core MVC
-/// (<c>[FromQuery]</c>, <c>[FromRoute]</c>, <c>[FromHeader]</c>, <c>[FromForm]</c>,
-/// and implicit query/route binding) for the strong types that have a
-/// <c>TryParse</c> path. Each endpoint accepts a required and a nullable
-/// variant of every wrapped type so round-trip tests cover both branches.
-/// <c>[FromRoute]</c> is required-only — route segments are required by HTTP
-/// semantics; the optional / nullable equivalent is <c>[FromQuery]</c>.
+/// Each endpoint takes a required and a nullable variant of every wrapped type so binding tests
+/// cover both branches. <c>[FromRoute]</c> is required-only — route segments are required by
+/// HTTP semantics.
 /// </summary>
 [ApiController]
 [Route("binding-probe")]

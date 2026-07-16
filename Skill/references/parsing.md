@@ -70,13 +70,6 @@ foreach (var flag in (Roles.Reader | Roles.Admin).GetFlags()) { ... }
 `InvalidOperationException` if the enum is not `[Flags]` — so a typo at
 declaration fails on first use, not silently.
 
-There's also a typed converter pair for generic code:
-
-```csharp
-long raw   = EnumExtensions<Roles>.ToLong(value);
-Roles back = EnumExtensions<Roles>.FromLong(raw);
-```
-
 ## String parsers
 
 The open-generic enum variant (useful when you only know the enum type

@@ -6,11 +6,9 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace StrongTypes.Analyzers.Tests.Infrastructure;
 
 /// <summary>
-/// Drives a <see cref="CodeFixProvider"/> against a real csproj on disk. The EfCore package code
-/// fix bypasses Roslyn's document model and writes to the csproj directly, so the standard
-/// `CSharpCodeFixTest` scaffolding (which diffs <see cref="Solution"/> state) can't observe it —
-/// we need to point a real <see cref="Project"/> at a temp file, invoke the registered
-/// <see cref="CodeAction"/>, and assert against the file contents afterwards.
+/// Drives a <see cref="CodeFixProvider"/> against a real csproj on disk. The package code fixes
+/// bypass Roslyn's document model and write to the csproj directly, so the standard
+/// `CSharpCodeFixTest` scaffolding (which diffs <see cref="Solution"/> state) can't observe them.
 /// </summary>
 internal static class CodeFixTester
 {
@@ -62,9 +60,7 @@ internal static class CodeFixTester
 
     public static async Task ApplyAsync(CodeAction action)
     {
-        // The provider swaps `createChangedSolution` for a no-op return; the side effect is the
-        // disk write done inside that delegate, not a Solution diff. Still, driving through the
-        // public API is the right integration point — that's what the IDE does.
+        // The fix's effect is the csproj write inside the delegate, not the returned operations.
         _ = await action.GetOperationsAsync(CancellationToken.None);
     }
 }

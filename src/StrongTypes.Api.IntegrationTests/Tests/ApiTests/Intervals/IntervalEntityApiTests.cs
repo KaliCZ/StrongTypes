@@ -23,8 +23,6 @@ public sealed class IntervalEntityApiTests(TestWebApplicationFactory factory)
 
     protected override object StartAfterEndBody => new { Start = 10, End = 1 };
 
-    // Both endpoints are optional, so there is no required-endpoint rejection.
-
     [Fact]
     public async Task OpenEndedInterval_SerializesAbsentEndpointsAsJsonNull()
     {
@@ -41,7 +39,6 @@ public sealed class IntervalEntityApiTests(TestWebApplicationFactory factory)
     [Fact]
     public async Task EmptyObject_IsAcceptedAsUnboundedInterval()
     {
-        // Both endpoints optional, so omitting both keys is the unbounded interval.
         var response = await Client.PostAsJsonAsync(
             "/interval-entities", new { value = new { }, nullableValue = (object?)null }, Ct);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);

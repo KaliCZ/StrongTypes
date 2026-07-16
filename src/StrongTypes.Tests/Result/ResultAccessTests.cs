@@ -8,11 +8,7 @@ namespace StrongTypes.Tests;
 public class ResultAccessTests
 {
     // ── Branch accessors across the struct/class matrix ────────────────
-    //
-    // Four tests cover each combination of struct/class in the T and
-    // TError slots, so every closed instantiation of the extension
-    // classes (ResultSuccess{Struct,Class}Extensions / ResultError…) is
-    // exercised.
+    // One test per struct/class combination in the T and TError slots — each hits a different extension class.
 
     [Property]
     public void SuccessAccess_ValueType_ReturnsValue(int value)
@@ -55,12 +51,6 @@ public class ResultAccessTests
     }
 
     // ── Null-iff-opposite-branch invariants (one per extension class) ───
-    //
-    // Each property test covers one of the four extension classes —
-    // ResultSuccess{Struct,Class}Extensions and ResultError{Struct,Class}Extensions
-    // — and asserts Value is non-null exactly when its branch is active, null
-    // exactly when the other branch is. Done as property tests so branch
-    // coverage isn't hostage to one hand-picked value.
 
     [Property]
     public void SuccessAccess_StructT_NonNullOnSuccess_NullOnError(int successValue, string errorValue)
@@ -131,16 +121,10 @@ public class ResultAccessTests
     }
 
     // ── Invariants over an arbitrary Result<int, string> ──────────────
-    //
-    // These exercise the generator directly: the test takes whatever
-    // Result the arbitrary produces and asserts the invariants that
-    // hold on every instance regardless of which branch it landed on.
 
     [Property]
     public void BranchInvariants_HoldOnArbitraryResult(Result<int, string> r)
     {
-        // Every Result is in exactly one branch; the four accessors
-        // agree on which branch that is.
         Assert.NotEqual(r.IsSuccess, r.IsError);
         Assert.Equal(r.IsSuccess, r.Success.HasValue);
         Assert.Equal(r.IsError, r.Error is not null);

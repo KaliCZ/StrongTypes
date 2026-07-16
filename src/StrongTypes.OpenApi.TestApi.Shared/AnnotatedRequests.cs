@@ -3,13 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace StrongTypes.OpenApi.TestApi.Shared;
 
-// Wire-level contract for the annotation-preservation tests. The generators
-// translate these data-annotations into OpenAPI bounds; our filter must not
-// wipe them when painting the strong-type wire shape. Each annotated wrapper
-// property is paired with a sibling on the matching primitive type so the
-// tests can pin the same wire keywords on both surfaces — confirming that
-// the wrapper-typed surface mirrors what the underlying pipeline natively
-// writes for a primitive-typed property.
+// Each annotated wrapper property is paired with a primitive `*Raw` twin so the tests can pin
+// the same wire keywords on both surfaces.
 public sealed record AnnotatedTextsRequest(
     [property: StringLength(50, MinimumLength = 3)]
     [property: RegularExpression("^[a-zA-Z0-9_]+$")]
@@ -59,9 +54,6 @@ public sealed record AnnotatedTextsRequest(
 
     NonEmptyString Description,
 
-    // Email type with caller annotations — caller's [StringLength(100)] is
-    // tighter than the wrapper's own maxLength: 254, so the wire schema
-    // must reflect the caller's bound.
     [property: StringLength(100)]
     Email AnnotatedEmail,
 
@@ -84,12 +76,8 @@ public sealed record AnnotatedTagsRequest(
     [property: MaxLength(10)] NonEmptyEnumerable<NonEmptyString> Tags,
     [property: MaxLength(10)] string[] TagsRaw);
 
-// Required-array parity contract. Each row pairs a strong-type variant
-// with its primitive equivalent across the four "is this property
-// required?" inputs the framework cares about: plain non-nullable, plain
-// nullable, [Required], the C# `required` keyword. Tests assert each
-// strong-type's `required` membership matches its primitive twin —
-// whatever the underlying pipeline emits, the wrapper must mirror it.
+// Pairs each required-ness variant with a primitive `*Raw` twin; tests assert the two have
+// identical `required` membership.
 #pragma warning disable CS8618 // Non-nullable property is uninitialized — STJ assigns it.
 public sealed record RequiredVariantsRequest
 {

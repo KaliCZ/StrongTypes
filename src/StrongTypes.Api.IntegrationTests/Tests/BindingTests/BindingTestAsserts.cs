@@ -7,12 +7,7 @@ namespace StrongTypes.Api.IntegrationTests.Tests;
 
 internal static class BindingTestAsserts
 {
-    /// <summary>
-    /// Asserts the response is a 400 with a <c>ValidationProblemDetails</c>
-    /// payload whose <c>errors</c> map contains an entry for
-    /// <paramref name="expectedField"/> (case-insensitive — header names use
-    /// kebab-case while query/form fields use camelCase).
-    /// </summary>
+    /// <summary>The field match is case-insensitive: error keys echo the wire casing (kebab-case headers vs camelCase fields).</summary>
     internal static async Task AssertValidationProblem(HttpResponseMessage response, string expectedField)
     {
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

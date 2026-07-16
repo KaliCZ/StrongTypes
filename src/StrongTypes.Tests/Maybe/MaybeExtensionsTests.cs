@@ -88,8 +88,7 @@ public class MaybeExtensionsTests
     [Fact]
     public async Task Match_WithAsyncLambdas_Some()
     {
-        // Match<R> with R = Task<int> covers what MatchAsync used to do — the
-        // async lambdas just return Task<int>, Match returns Task<int>, await unwraps.
+        // Match<R> with R = Task<int> is why no dedicated MatchAsync exists.
         var result = await Maybe<int>.Some(5).Match(
             async x => { await Task.Yield(); return x + 1; },
             async () => { await Task.Yield(); return -1; });

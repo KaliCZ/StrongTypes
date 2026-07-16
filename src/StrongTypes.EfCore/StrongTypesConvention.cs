@@ -20,9 +20,6 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPrope
     {
         var entityType = entityTypeBuilder.Metadata;
         var clrType = entityType.ClrType;
-        // Guard: if EF ever tried to add a strong-type itself as an entity
-        // type (e.g. it leaked from somewhere), don't walk its members —
-        // NonEmptyString's private Value property shouldn't become a column.
         if (IsStrongType(clrType))
         {
             return;
@@ -53,8 +50,6 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPrope
         }
     }
 
-    // ProcessEntityTypeAdded only scans public properties; a non-public mapped
-    // property (an internal/private DDD backing field) reaches the convention here.
     public void ProcessPropertyAdded(
         IConventionPropertyBuilder propertyBuilder,
         IConventionContext<IConventionPropertyBuilder> context)
@@ -66,7 +61,6 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPrope
         }
     }
 
-    // The complex-property counterpart of ProcessPropertyAdded, for a non-public interval backing property.
     public void ProcessComplexPropertyAdded(
         IConventionComplexPropertyBuilder propertyBuilder,
         IConventionContext<IConventionComplexPropertyBuilder> context)
@@ -104,9 +98,7 @@ internal sealed class StrongTypesConvention : IEntityTypeAddedConvention, IPrope
     private static bool IsStrongType(Type clrType)
         => ResolveConverter(clrType) is not null || IntervalTypes.IsInterval(clrType);
 
-    // EF Core applies ValueConverter only to non-null values, so the same
-    // converter instance works for both Wrapper and Nullable<Wrapper> (and for
-    // NonEmptyString vs NonEmptyString?, which are the same CLR type anyway).
+    // EF Core applies a ValueConverter only to non-null values, so one instance serves both Wrapper and Nullable<Wrapper>.
     private static ValueConverter? ResolveConverter(Type clrType)
     {
         var unwrapped = Nullable.GetUnderlyingType(clrType) ?? clrType;

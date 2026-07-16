@@ -5,10 +5,8 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 namespace StrongTypes.OpenApi.Swashbuckle;
 
 /// <summary>
-/// Layers <c>minItems: 1</c> onto the schema for
-/// <see cref="NonEmptyEnumerable{T}"/> and <see cref="INonEmptyEnumerable{T}"/>.
-/// Swashbuckle already emits the array shape (the type implements
-/// <see cref="ICollection{T}"/>); this filter only adds the non-empty bound.
+/// Layers <c>minItems: 1</c> onto the schema for <see cref="NonEmptyEnumerable{T}"/> and
+/// <see cref="INonEmptyEnumerable{T}"/>; Swashbuckle already emits the array shape.
 /// </summary>
 public sealed class NonEmptyEnumerableSchemaFilter : ISchemaFilter
 {

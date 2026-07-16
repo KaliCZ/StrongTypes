@@ -4,11 +4,6 @@ using Xunit;
 
 namespace StrongTypes.OpenApi.IntegrationTests.Tests;
 
-/// <summary>
-/// Runs the shared OpenAPI shape contract against the Swashbuckle test app,
-/// wired to <c>Swashbuckle.AspNetCore</c> (<c>AddSwaggerGen()</c>) +
-/// <c>Kalicz.StrongTypes.OpenApi.Swashbuckle</c>'s schema filters.
-/// </summary>
 public sealed class SwashbuckleOpenApiDocumentTests(SwashbuckleTestApiFactory factory)
     : OpenApiDocumentTestsBase(factory.CreateClient()), IClassFixture<SwashbuckleTestApiFactory>
 {

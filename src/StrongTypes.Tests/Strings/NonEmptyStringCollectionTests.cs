@@ -20,9 +20,7 @@ public class NonEmptyStringCollectionTests
         }
     }
 
-    // Load-bearing per the issue: BCL [MaxLength] reflects on Count after the
-    // `value is string` check fails. Adding Count makes the bare BCL attribute
-    // work without consumers shipping a custom shim.
+    // BCL [MaxLength] reflects on Count once its `value is string` check fails — that fallback is what these pin.
     [Fact]
     public void MaxLengthAttribute_WiredToCount_PassesWhenWithinLimit()
     {

@@ -37,7 +37,6 @@ public sealed class NonEmptyString :
     public static explicit operator NonEmptyString(string s) => Create(s);
 
     /// <summary>Wraps <paramref name="value"/>, or returns <c>null</c> when it is null, empty, or whitespace.</summary>
-    /// <param name="value">The string to validate.</param>
     [Pure]
     public static NonEmptyString? TryCreate(string? value)
     {
@@ -50,7 +49,6 @@ public sealed class NonEmptyString :
     }
 
     /// <summary>Wraps <paramref name="value"/>.</summary>
-    /// <param name="value">The string to validate.</param>
     /// <exception cref="ArgumentException"><paramref name="value"/> is null, empty, or whitespace.</exception>
     [Pure]
     public static NonEmptyString Create(string? value)

@@ -14,9 +14,7 @@ namespace StrongTypes.Analyzers;
 /// <summary>
 /// Code fix for <see cref="MissingOpenApiPackageAnalyzer"/>: appends the
 /// matching <c>&lt;PackageReference Include="Kalicz.StrongTypes.OpenApi.*" …/&gt;</c>
-/// to the project's csproj. Which package depends on the diagnostic id —
-/// ST0002 → <c>Kalicz.StrongTypes.OpenApi.Microsoft</c>,
-/// ST0003 → <c>Kalicz.StrongTypes.OpenApi.Swashbuckle</c>.
+/// to the project's csproj.
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(AddOpenApiPackageCodeFixProvider))]
 [Shared]

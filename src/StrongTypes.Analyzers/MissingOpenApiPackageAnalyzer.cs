@@ -10,10 +10,6 @@ namespace StrongTypes.Analyzers;
 /// (<c>Microsoft.AspNetCore.OpenApi</c> or <c>Swashbuckle.AspNetCore</c>) and
 /// exposes any public property whose CLR type is a StrongTypes wrapper, but
 /// doesn't reference the matching <c>Kalicz.StrongTypes.OpenApi.*</c> adapter.
-/// Without the adapter the generator describes the wrappers by their raw CLR
-/// shape — <c>NonEmptyString</c> as <c>{ Value }</c>, <c>Positive&lt;int&gt;</c>
-/// as a wrapper object — and generated clients see nonsense schemas that
-/// don't match the wire JSON the converters actually emit.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class MissingOpenApiPackageAnalyzer : DiagnosticAnalyzer

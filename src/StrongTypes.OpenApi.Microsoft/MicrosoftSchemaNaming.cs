@@ -3,13 +3,8 @@ using StrongTypes.OpenApi.Core;
 
 namespace StrongTypes.OpenApi.Microsoft;
 
-// Microsoft.AspNetCore.OpenApi's default schema-id strategy. Primitives are
-// named by their C# keyword ("int", "long", "decimal", …) and generic
-// wrappers compose with an "Of" infix — so `Positive<int>` becomes the
-// component name "PositiveOfint". Both the document-time component filler
-// (which parses these names back into wire schemas) and the property-
-// annotation transformer (which rebuilds component names from CLR types
-// to find the parent type) depend on this convention.
+// Mirrors Microsoft.AspNetCore.OpenApi's default schema-id strategy: primitives use their
+// C# keyword and generic wrappers compose with an "Of" infix (Positive<int> → "PositiveOfint").
 internal static class MicrosoftSchemaNaming
 {
     private static readonly Dictionary<Type, string> s_numericPrefixByDefinition = new()

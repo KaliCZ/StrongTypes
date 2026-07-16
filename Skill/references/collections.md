@@ -17,8 +17,8 @@ library.
 - `Concat(params T[] items)` and `Concat(params IEnumerable<T>[] others)`
   — flatten a few extras into a sequence without `.Concat(new[] { ... })`:
   ```csharp
-  var all = existing.Concat(1, 2, 3);
-  var all = existing.Concat(list1, list2, list3);
+  NonEmptyEnumerable<int> all = existing.Concat(1, 2, 3);
+  NonEmptyEnumerable<int> all = existing.Concat(list1, list2, list3);
   ```
 
 - `Flatten()` on `IEnumerable<IEnumerable<T>>` — an alias for
@@ -78,9 +78,6 @@ Exception? agg = exceptions.Aggregate();                 // null on empty
 Exception? agg = list.Aggregate();                       // IReadOnlyList<Exception>
 Exception  agg = nonEmptyList.Aggregate();               // INonEmptyEnumerable<Exception>
 ```
-
-This is what `Result.Aggregate(...)` uses under the hood when `TError`
-is `Exception`.
 
 ## Boolean helper
 

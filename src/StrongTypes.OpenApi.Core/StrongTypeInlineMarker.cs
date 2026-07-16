@@ -4,11 +4,8 @@ using Microsoft.OpenApi;
 namespace StrongTypes.OpenApi.Core;
 
 /// <summary>
-/// Vendor extension that flags a schema as having been produced by the
-/// StrongTypes OpenAPI adapters. The inliner uses this marker — not the
-/// schema's component name or shape — to decide which schemas it owns and
-/// is therefore allowed to inline. The marker is stripped by the inliner,
-/// so it never reaches the published document.
+/// Vendor extension flagging a schema as produced by the StrongTypes OpenAPI adapters;
+/// the inliner keys on it and strips it, so it never reaches the published document.
 /// </summary>
 public static class StrongTypeInlineMarker
 {

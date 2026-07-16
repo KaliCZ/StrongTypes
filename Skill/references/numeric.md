@@ -106,8 +106,8 @@ the implicit conversion (or `.Value` / `.Unwrap()`) and re-wrap explicitly
 when you need the invariant back:
 
 ```csharp
-Positive<int> a = 3;
-Positive<int> b = 5;
+Positive<int> a = 3.ToPositive();
+Positive<int> b = 5.ToPositive();
 
 int sum = a + b;                           // implicit → int
 Positive<int> wrapped = sum.ToPositive();  // re-wrap; throws if invariant broke

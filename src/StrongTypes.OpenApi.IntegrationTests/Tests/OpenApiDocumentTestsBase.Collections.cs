@@ -61,16 +61,6 @@ public abstract partial class OpenApiDocumentTestsBase
         AssertExclusiveLowerBound(items, 0m, Version);
     }
 
-    // ───────────────────────────────────────────────────────────────────
-    // Collection shapes — every CLR collection shape carrying a strong-type
-    // element must expose `items` with the element's wire schema. The
-    // `/collections/shapes` endpoint declares one property per shape, all
-    // typed as `Positive<int>` so the items schema must carry
-    // `exclusiveMinimum: 0`. Each shape is asserted independently so the
-    // failure surface tells us which shapes the underlying pipeline (and
-    // any items-backfill transformer it relies on) actually covers.
-    // ───────────────────────────────────────────────────────────────────
-
     [Theory]
     [InlineData("asEnumerable")]
     [InlineData("asIList")]
@@ -94,13 +84,6 @@ public abstract partial class OpenApiDocumentTestsBase
         Assert.Equal("int32", StringOrNull(items, "format"));
         AssertExclusiveLowerBound(items, 0m, Version);
     }
-
-    // ───────────────────────────────────────────────────────────────────
-    // Dictionary shapes — the wire form for a CLR dictionary keyed by a
-    // primitive is an OpenAPI object with `additionalProperties`. Each
-    // dictionary property below carries a `Positive<int>` value, so the
-    // value-schema position must encode `exclusiveMinimum: 0`.
-    // ───────────────────────────────────────────────────────────────────
 
     [Theory]
     [InlineData("asIDictionary")]

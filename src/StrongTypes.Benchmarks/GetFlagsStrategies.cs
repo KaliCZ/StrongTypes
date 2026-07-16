@@ -7,9 +7,8 @@ using System.Linq.Expressions;
 namespace StrongTypes.Benchmarks;
 
 /// <summary>
-/// Standalone reimplementations of GetFlags using four different caching
-/// strategies. Each takes the pre-built cache as input so the benchmark
-/// measures only the hot-path cost, not cache construction.
+/// Standalone reimplementations of GetFlags, each taking its pre-built cache as input so the
+/// benchmark measures only the hot-path cost, not cache construction.
 /// </summary>
 internal static class GetFlagsStrategies
 {

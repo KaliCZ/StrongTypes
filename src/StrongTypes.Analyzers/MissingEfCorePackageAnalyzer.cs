@@ -11,19 +11,8 @@ namespace StrongTypes.Analyzers;
 /// Fires when a project references <c>Microsoft.EntityFrameworkCore</c> and maps
 /// an entity that carries a StrongTypes wrapper property, but doesn't reference
 /// the <c>Kalicz.StrongTypes.EfCore</c> package that supplies the value
-/// converters and LINQ translator. Without it, EF Core tries to treat the
-/// wrapper as an owned entity type and blows up at model-build time with a
-/// "no suitable constructor" error.
+/// converters and LINQ translator.
 /// </summary>
-/// <remarks>
-/// The diagnostic is raised on three locations so any of them surfaces the fix:
-/// <list type="bullet">
-/// <item>the <c>DbSet&lt;T&gt;</c> property declaration,</item>
-/// <item>each strong-type property on the mapped entity,</item>
-/// <item>the <c>DbContext</c> class itself — that's where
-/// <c>.UseStrongTypes()</c> will be called once the package is installed.</item>
-/// </list>
-/// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class MissingEfCorePackageAnalyzer : DiagnosticAnalyzer
 {
@@ -40,8 +29,6 @@ public sealed class MissingEfCorePackageAnalyzer : DiagnosticAnalyzer
         description: "Kalicz.StrongTypes.EfCore ships value converters and the Unwrap() LINQ translator needed for EF Core to round-trip NonEmptyString, Email, Positive<T>, NonNegative<T>, Negative<T>, and NonPositive<T> to a database column. Without the package, EF Core infers the wrapper as an owned entity type and fails at model-build time.",
         helpLinkUri: "https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore");
 
-    // Canonical names in metadata form so compiled generics match
-    // (`StrongTypes.Positive\`1`, etc.).
     private static readonly ImmutableHashSet<string> StrongTypeMetadataNames = ImmutableHashSet.Create(
         "StrongTypes.NonEmptyString",
         "StrongTypes.Email",
@@ -78,9 +65,6 @@ public sealed class MissingEfCorePackageAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            // Aggregate state across symbol visits so we can emit diagnostics on
-            // the shared DbContext class once, even though we discover the
-            // triggering entity through its DbSet<T> property.
             var reportedDbContexts = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
             var reportedEntityProperties = new HashSet<IPropertySymbol>(SymbolEqualityComparer.Default);
 
@@ -111,14 +95,11 @@ public sealed class MissingEfCorePackageAnalyzer : DiagnosticAnalyzer
                     return;
                 }
 
-                // 1) Point at the DbSet<T> declaration — the immediate cause site.
                 foreach (var location in property.Locations)
                 {
                     symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, location, entityType.Name));
                 }
 
-                // 2) Point at each strong-type property on the entity — so a
-                //    developer reading the entity definition also sees the hint.
                 foreach (var entityProperty in strongTypeProperties)
                 {
                     if (!reportedEntityProperties.Add(entityProperty))
@@ -131,9 +112,7 @@ public sealed class MissingEfCorePackageAnalyzer : DiagnosticAnalyzer
                     }
                 }
 
-                // 3) Point at the DbContext class itself — that's where the
-                //    developer will ultimately call UseStrongTypes() once they
-                //    install the package.
+                // Also report on the DbContext class — that's where UseStrongTypes() goes once the package is installed.
                 if (reportedDbContexts.Add(containingContext))
                 {
                     foreach (var location in containingContext.Locations)
@@ -187,7 +166,6 @@ public sealed class MissingEfCorePackageAnalyzer : DiagnosticAnalyzer
 
     private static bool IsStrongType(ITypeSymbol type)
     {
-        // Unwrap Nullable<T> for value types so Positive<int>? matches.
         if (type is INamedTypeSymbol nt && nt.IsGenericType && nt.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
         {
             type = nt.TypeArguments[0];

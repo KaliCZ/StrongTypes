@@ -1,10 +1,6 @@
 namespace StrongTypes;
 
-// C# 14 extension members: `Result<T, TError>.Success` and `.Error` surface the
-// branch values as nullables (`Nullable<T>` for structs, `T?` for references),
-// enabling the `if (result.Success is {} s)` pattern to unwrap in one
-// expression. Split into four classes because the generated accessor signatures
-// would otherwise collide between the struct- and class-constrained branches.
+// Four classes because the generated accessor signatures would otherwise collide between the struct- and class-constrained branches.
 
 public static class ResultSuccessStructExtensions
 {

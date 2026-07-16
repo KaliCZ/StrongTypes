@@ -16,8 +16,7 @@ public class NegativeExtensionsTests
     {
         if (values.Length == 0) return; // empty is covered by a dedicated fact
 
-        // Widen to long so we can detect overflow without repeating the
-        // implementation's checked arithmetic.
+        // Widen to long to detect overflow without repeating the implementation's checked arithmetic.
         long expected = values.Sum(n => (long)n.Value);
         if (expected < int.MinValue)
         {

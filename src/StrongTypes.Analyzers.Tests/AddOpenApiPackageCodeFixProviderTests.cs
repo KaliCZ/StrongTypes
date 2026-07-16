@@ -4,12 +4,6 @@ using Xunit;
 
 namespace StrongTypes.Analyzers.Tests;
 
-/// <summary>
-/// Behaviour tests for <see cref="AddOpenApiPackageCodeFixProvider"/>. Mirrors the
-/// EfCore code-fix tests — point an <see cref="Microsoft.CodeAnalysis.AdhocWorkspace"/>
-/// at a temp csproj, run the fix, and assert the XML on disk afterwards. Both diagnostic
-/// IDs (ST0002 / ST0003) are exercised so each picks the right package.
-/// </summary>
 public class AddOpenApiPackageCodeFixProviderTests : IDisposable
 {
     private readonly string _tempDir;

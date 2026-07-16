@@ -4,26 +4,10 @@ using Microsoft.OpenApi;
 
 namespace StrongTypes.OpenApi.Core;
 
-/// <summary>
-/// Painter primitives shared by the Microsoft and Swashbuckle adapters.
-/// Reflecting a strong-type produces a CLR-shaped object schema (e.g.
-/// <c>{ "type": "object", "properties": { "Value": ... } }</c>) which
-/// doesn't match the wire form. The painters call <see cref="ClearWrapperShape"/>
-/// to drop that shape, then use the <c>Tighten*</c> / <c>Set*IfAbsent</c>
-/// helpers to write the wire primitive's keywords without overwriting
-/// stricter caller-supplied values (e.g. <c>[StringLength(3)]</c> on a
-/// <see cref="NonEmptyString"/> wins over the wrapper's <c>minLength: 1</c>).
-/// </summary>
+/// <summary>Schema-keyword helpers that write a wrapper's wire form without overwriting stricter caller-supplied values.</summary>
 public static class SchemaPaint
 {
-    /// <summary>
-    /// Strips the CLR-wrapper-derived shape (sub-properties,
-    /// <c>allOf</c>/<c>oneOf</c>/<c>anyOf</c>, <c>additionalProperties</c>,
-    /// <c>items</c>) so the painter can write the wire primitive over the top.
-    /// Caller-set bounds and annotations (<c>minLength</c>, <c>pattern</c>,
-    /// <c>minimum</c>, <c>description</c>, <c>example</c>, <c>default</c>, …)
-    /// are left alone.
-    /// </summary>
+    /// <summary>Strips the CLR-wrapper-derived structural shape, leaving caller-set bounds and annotations alone.</summary>
     public static void ClearWrapperShape(OpenApiSchema schema)
     {
         schema.Properties?.Clear();
@@ -36,21 +20,9 @@ public static class SchemaPaint
         schema.Items = null;
     }
 
-    /// <summary>
-    /// True when the schema's <c>type</c> carries the <c>null</c> bit — the
-    /// wire encoding of a nullable member. Serialized as <c>nullable: true</c>
-    /// in OpenAPI 3.0 and as a <c>"null"</c> member of the <c>type</c> array
-    /// in 3.1.
-    /// </summary>
     public static bool IsNullable(OpenApiSchema schema)
         => schema.Type is { } type && type.HasFlag(JsonSchemaType.Null);
 
-    /// <summary>
-    /// Adds the <c>null</c> bit to the schema's <c>type</c> while preserving
-    /// the existing primitive bits. Idempotent; the OpenAPI serializer maps
-    /// the bit to <c>nullable: true</c> (3.0) or a <c>"null"</c>-typed union
-    /// member (3.1) for the document version in force.
-    /// </summary>
     public static void MarkNullable(OpenApiSchema schema)
         => schema.Type = (schema.Type ?? JsonSchemaType.Null) | JsonSchemaType.Null;
 
@@ -82,28 +54,24 @@ public static class SchemaPaint
         schema.MaxItems = ceiling;
     }
 
-    /// <summary>Sets <c>pattern</c> only when the schema doesn't already carry one.</summary>
     public static void SetPatternIfAbsent(OpenApiSchema schema, string pattern)
     {
         if (!string.IsNullOrEmpty(schema.Pattern)) return;
         schema.Pattern = pattern;
     }
 
-    /// <summary>Sets <c>format</c> only when the schema doesn't already carry one.</summary>
     public static void SetFormatIfAbsent(OpenApiSchema schema, string format)
     {
         if (!string.IsNullOrEmpty(schema.Format)) return;
         schema.Format = format;
     }
 
-    /// <summary>Sets <c>description</c> only when the schema doesn't already carry one.</summary>
     public static void SetDescriptionIfAbsent(OpenApiSchema schema, string description)
     {
         if (!string.IsNullOrEmpty(schema.Description)) return;
         schema.Description = description;
     }
 
-    /// <summary>Sets <c>default</c> only when the schema doesn't already carry one.</summary>
     public static void SetDefaultIfAbsent(OpenApiSchema schema, JsonNode @default)
     {
         if (schema.Default is not null) return;

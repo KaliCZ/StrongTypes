@@ -6,12 +6,7 @@ using Xunit;
 
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
-/// <summary>
-/// Compile-time contract every scalar entity test class must satisfy. <c>static abstract</c>
-/// members force each concrete subclass to supply the <see cref="TheoryData{T}"/> lists — a
-/// missing one is a build error, not a silently skipped test. xUnit resolves the actual
-/// members by reflection on the concrete type at discovery time.
-/// </summary>
+/// <summary>Each concrete test class must supply the data lists — a missing one is a build error, not a silently skipped test.</summary>
 public interface IEntityTestData<TWire>
 {
     static abstract TheoryData<TWire> ValidInputs { get; }
@@ -38,10 +33,8 @@ public abstract partial class EntityTests<TSelf, TEntity, T, TNullable, TWire>(T
     where TEntity : class, IEntity<TEntity, T, TNullable>
     where T : notnull
 {
-    /// <summary>Wraps a raw wire-format value in the strong type.</summary>
     protected abstract T Create(TWire raw);
 
-    /// <summary>Baseline valid value seeding the shared create / get / update / PATCH suite.</summary>
     protected abstract TWire FirstValid { get; }
 
     /// <summary>Update/PATCH target; must differ from <see cref="FirstValid"/>.</summary>
@@ -74,11 +67,8 @@ public abstract partial class EntityTests<TSelf, TEntity, T, TNullable, TWire>(T
     }
 
     // ── Create: invalid ──────────────────────────────────────────────────
-    // Each invalid value is tested in both slots independently; the other slot holds FirstValid
-    // so the test isolates the one field being checked. A malformed non-null value fails inside
-    // the JSON converter while positioned on the property, so System.Text.Json keys the error by
-    // its path ("$.value" / "$.nullableValue") — the raw framework key, since this harness does
-    // not call AddStrongTypes to normalize it.
+    // "$.value" / "$.nullableValue" are the raw System.Text.Json path keys — this harness does
+    // not call AddStrongTypes to normalize them (see testing.md).
 
     [Theory]
     [MemberData(InvalidInputsMember)]

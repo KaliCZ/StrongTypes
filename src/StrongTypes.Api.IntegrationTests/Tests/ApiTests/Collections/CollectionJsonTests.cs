@@ -7,19 +7,9 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Tests.ApiTests.Collections;
 
 /// <summary>
-/// End-to-end tests for the JSON wire contract of collection-shaped request/response
-/// DTOs. Every test POSTs a JSON body to a round-trip endpoint and inspects the
-/// response — this exercises <em>both</em> halves of the JSON pipeline (STJ
-/// deserialization + ASP.NET Core validation on the way in, and STJ serialization
-/// on the way out) against a DTO wired with a deliberately broad matrix of property
-/// shapes:
-/// <list type="bullet">
-///   <item><description><c>IEnumerable&lt;T&gt;</c> — vanilla collection, no invariant.</description></item>
-///   <item><description><c>IEnumerable&lt;T?&gt;</c> — vanilla collection, element may be null.</description></item>
-///   <item><description><c>NonEmptyEnumerable&lt;T&gt;</c> — StrongTypes collection, count ≥ 1.</description></item>
-///   <item><description><c>NonEmptyEnumerable&lt;T?&gt;</c> — StrongTypes collection, count ≥ 1, element may be null.</description></item>
-/// </list>
-/// Element types cover the four categories: plain value (<c>int</c>), strong value
+/// POST round-trips so both halves of the JSON pipeline are exercised (STJ deserialization +
+/// validation in, STJ serialization out), across the collection-shape matrix on the DTOs with
+/// one element type per category: plain value (<c>int</c>), strong value
 /// (<c>Positive&lt;int&gt;</c>), plain reference (<c>string</c>), strong reference
 /// (<c>NonEmptyString</c>).
 /// </summary>
@@ -68,7 +58,7 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
             .ToArray();
 
     // ───────────────────────────────────────────────────────────────────
-    // int — plain value type. Element null is only reachable for T? = int?.
+    // int — plain value type
     // ───────────────────────────────────────────────────────────────────
 
     [Fact]
@@ -91,7 +81,6 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     [Fact]
     public async Task Int_IEnumerableEmpty_Allowed()
     {
-        // IEnumerable<T> has no count invariant — an empty array is valid on the wire.
         var echoed = await PostOk(IntEndpoint, new
         {
             enumerable = Array.Empty<int>(),
@@ -133,8 +122,6 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     [Fact]
     public async Task Int_NullElementInNonNullableIEnumerable_Returns400()
     {
-        // STJ can't assign null to an int, so deserializing [null] into IEnumerable<int>
-        // fails at the element level and the controller returns 400.
         var status = await PostStatus(IntEndpoint, new
         {
             enumerable = new int?[] { 1, null, 3 },
@@ -159,7 +146,7 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     }
 
     // ───────────────────────────────────────────────────────────────────
-    // Positive<int> — strong type (struct). Element null reachable for T? only.
+    // Positive<int> — strong value type
     // ───────────────────────────────────────────────────────────────────
 
     [Fact]
@@ -212,8 +199,6 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     [Fact]
     public async Task Positive_InvalidElementInNullableSlot_Returns400()
     {
-        // Even in the nullable slot, a non-null value must still satisfy Positive<int>'s
-        // invariant — null is a legit absence, 0 is a rule violation.
         var status = await PostStatus(PositiveIntEndpoint, new
         {
             enumerable = new[] { 1 },
@@ -240,7 +225,6 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     [Fact]
     public async Task Positive_NullElementInNonNullableIEnumerable_Returns400()
     {
-        // Positive<int> is a struct, so STJ rejects JSON null for the element type.
         var status = await PostStatus(PositiveIntEndpoint, new
         {
             enumerable = new int?[] { 1, null, 3 },
@@ -252,8 +236,7 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     }
 
     // ───────────────────────────────────────────────────────────────────
-    // string — plain reference type. Element null is the interesting case:
-    // NRT annotations erase at runtime, so we document the observed behavior.
+    // string — plain reference type
     // ───────────────────────────────────────────────────────────────────
 
     [Fact]
@@ -289,11 +272,8 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     [Fact]
     public async Task String_NullElementInNonNullableIEnumerable_PassesThrough()
     {
-        // Known limitation: NRT annotations erase at runtime, and ASP.NET Core's
-        // nullable-annotation validator doesn't recurse into generic type arguments
-        // — so `[null]` for `IEnumerable<string>` deserializes successfully and the
-        // list ends up containing a null reference. This mirrors what plain C# without
-        // StrongTypes does: `var l = new List<string>(); l.Add(null!);` compiles fine.
+        // Known limitation being pinned: NRT annotations erase at runtime and ASP.NET Core's
+        // nullable validation does not recurse into generic type arguments, so the null sails through.
         var echoed = await PostOk(StringEndpoint, new
         {
             enumerable = new string?[] { "a", null, "c" },
@@ -308,10 +288,7 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     [Fact]
     public async Task String_NullElementInNonNullableNonEmpty_PassesThrough()
     {
-        // Same caveat as String_NullElementInNonNullableIEnumerable_PassesThrough:
-        // the library can't distinguish NonEmptyEnumerable<string> from
-        // NonEmptyEnumerable<string?> at runtime, so it accepts nulls. Consistent
-        // with what plain C# allows, but worth documenting as a known gap.
+        // Same erasure limitation as the IEnumerable case above.
         var echoed = await PostOk(StringEndpoint, new
         {
             enumerable = new[] { "x" },
@@ -324,9 +301,7 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     }
 
     // ───────────────────────────────────────────────────────────────────
-    // NonEmptyString — strong reference type. Same null-erasure caveat applies,
-    // but this is where it stings most: a null in the list defeats the type's
-    // "non-null" guarantee. Flagged below where it occurs.
+    // NonEmptyString — strong reference type
     // ───────────────────────────────────────────────────────────────────
 
     [Fact]
@@ -351,8 +326,6 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     [InlineData("   ")]
     public async Task NonEmptyString_InvalidElementInIEnumerable_Returns400(string invalid)
     {
-        // NonEmptyString's own converter rejects whitespace — the JsonException bubbles
-        // up through the collection converter and ASP.NET turns it into a 400.
         var status = await PostStatus(NonEmptyStringEndpoint, new
         {
             enumerable = new[] { "a", invalid, "c" },
@@ -394,7 +367,6 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     [Fact]
     public async Task NonEmptyString_NullInNullableSlot_RoundTrips()
     {
-        // Nullable slot explicitly allows null — this is the intended use.
         var echoed = await PostOk(NonEmptyStringEndpoint, new
         {
             enumerable = new[] { "a" },
@@ -410,17 +382,9 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     [Fact]
     public async Task NonEmptyString_NullElementInNonNullableIEnumerable_PassesThrough_KnownGap()
     {
-        // ⚠ Known gap: `IEnumerable<NonEmptyString>` with [null] deserializes to a list
-        // containing a null reference, even though NonEmptyString's type contract is
-        // "non-null". The NonEmptyString converter returns null for JSON null (by design,
-        // to support NonEmptyString?), NRT annotations erase at runtime so the library
-        // can't distinguish `NonEmptyString` from `NonEmptyString?`, and ASP.NET's
-        // nullable validation doesn't walk into generic type arguments. Result: the
-        // null element sails through.
-        //
-        // This is consistent with what plain C# without StrongTypes allows — the NRT
-        // annotation is advisory at runtime — but it is genuinely weaker than what
-        // a consumer reading `NonEmptyEnumerable<NonEmptyString>` would expect.
+        // Known gap being pinned: the converter maps JSON null through (by design, for
+        // NonEmptyString?) and NRT erasure hides NonEmptyString vs NonEmptyString? at runtime,
+        // so the null sails through the "non-null" contract.
         var echoed = await PostOk(NonEmptyStringEndpoint, new
         {
             enumerable = new string?[] { "a", null, "c" },
@@ -435,7 +399,7 @@ public sealed class CollectionJsonTests(TestWebApplicationFactory factory) : IDi
     [Fact]
     public async Task NonEmptyString_NullElementInNonNullableNonEmpty_PassesThrough_KnownGap()
     {
-        // ⚠ Same gap as NonEmptyString_NullElementInNonNullableIEnumerable_PassesThrough_KnownGap.
+        // Same gap as NonEmptyString_NullElementInNonNullableIEnumerable_PassesThrough_KnownGap.
         var echoed = await PostOk(NonEmptyStringEndpoint, new
         {
             enumerable = new[] { "a" },

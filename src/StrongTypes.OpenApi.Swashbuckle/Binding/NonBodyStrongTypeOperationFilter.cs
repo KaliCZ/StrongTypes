@@ -10,30 +10,11 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 namespace StrongTypes.OpenApi.Swashbuckle;
 
 /// <summary>
-/// Layers caller-supplied data-annotations
-/// (<c>[StringLength]</c>, <c>[Range]</c>, <c>[RegularExpression]</c>, …)
-/// onto strong-type wrappers that arrive at non-body slots —
-/// <c>[FromQuery]</c> / <c>[FromRoute]</c> / <c>[FromHeader]</c>
-/// parameters and the per-field schemas of <c>[FromForm]</c> request
-/// bodies. The wrapper's wire shape itself is painted by the per-type
-/// schema filters (<see cref="NonEmptyStringSchemaFilter"/> et al);
-/// without this pass, caller bounds attached at the slot would be
-/// dropped — Swashbuckle's <see cref="PropertyAnnotationSchemaFilter"/>
-/// only sees the parent type's <c>properties</c> map and never reaches
-/// the parameter slots or the form-body's <c>allOf</c> entries.
-///
-/// Body schemas are out of scope by construction: this filter only
-/// dispatches on <see cref="BindingSource.Query"/> /
-/// <see cref="BindingSource.Path"/> / <see cref="BindingSource.Header"/> /
-/// <see cref="BindingSource.Form"/>, and the form path is gated to
-/// <c>multipart/form-data</c> / <c>application/x-www-form-urlencoded</c>.
-///
-/// The form path also reshapes Swashbuckle's <c>{ allOf: [&lt;each-field&gt;] }</c>
-/// request body — emitted whenever every form field is component-typed —
-/// back into a proper <c>{ type: object, properties: { … } }</c> map keyed
-/// by the form-field names from the <see cref="ApiParameterDescription"/>s.
-/// Without that, consumers see a nameless allOf and can't tell which schema
-/// belongs to which field.
+/// Layers caller-supplied data-annotations onto strong-type wrappers at non-body slots —
+/// <c>[FromQuery]</c>/<c>[FromRoute]</c>/<c>[FromHeader]</c> parameters and <c>[FromForm]</c>
+/// fields — which <see cref="PropertyAnnotationSchemaFilter"/> never reaches. Also reshapes
+/// the <c>{ allOf: [&lt;each-field&gt;] }</c> form body Swashbuckle emits for component-typed
+/// fields into a <c>{ type: object, properties: { … } }</c> map keyed by field name.
 /// </summary>
 public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOperationFilter>? logger = null) : IOperationFilter
 {
@@ -101,20 +82,6 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
         }
     }
 
-    /// <summary>
-    /// Replaces Swashbuckle's all-component <c>{ allOf: [&lt;each-field&gt;] }</c>
-    /// form-body schema (and the hybrid <c>{ allOf: [wrappers, {primitives}] }</c>
-    /// shape Swashbuckle emits for mixed forms) with a flat
-    /// <c>{ type: object, properties: { … } }</c> map keyed by each form
-    /// field's <see cref="ApiParameterDescription.Name"/>. Per-property
-    /// schemas come from the schema generator: wrappers stay as
-    /// <c>$ref</c>s to their components (or inline schemas for
-    /// collection-shaped wrappers Swashbuckle inlines anyway), and
-    /// primitives are generated with their <see cref="MemberInfo"/> so
-    /// Swashbuckle's own data-annotation pipeline applies
-    /// <c>[StringLength]</c>, <c>[Range]</c>, etc. directly to the
-    /// emitted schema.
-    /// </summary>
     private static void ReshapeFormAllOfIntoProperties(
         OpenApiOperation operation,
         IList<ApiParameterDescription> descriptions,
@@ -140,13 +107,8 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
 
                 var clrType = ResolveParameterClrType(pd);
 
-                // For primitives, hand Swashbuckle the form record's
-                // PropertyInfo so its generator surfaces caller annotations
-                // (`[StringLength]`, `[Range]`, …) directly. For wrappers
-                // we want a clean $ref — `MergeFormPropertyAnnotations`
-                // layers slot annotations on top via WrapperAnnotationApplier,
-                // and passing MemberInfo here would risk double-emission
-                // without the inline marker the inliner needs.
+                // MemberInfo makes Swashbuckle apply caller annotations itself — right for primitives;
+                // wrapper slots get theirs from MergeFormPropertyAnnotations, so a copy here would double-emit.
                 MemberInfo? memberInfo = null;
                 if (!StrongTypeSchemaTypes.IsInlineable(clrType))
                     memberInfo = ResolveFormPropertyMember(pd);
@@ -187,18 +149,13 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
         var attributes = GetSlotAttributes(pd);
         if (attributes.Count == 0) return slot ?? new OpenApiSchema();
 
-        // Wrapper-typed slots arrive at this filter as `OpenApiSchemaReference`
-        // ($ref to the wrapper component painted by the per-type schema
-        // filter). Mirror PropertyAnnotationSchemaFilter's body-side trick:
-        // wrap the ref in `allOf:[<ref>]+annotations` and mark with the
-        // inline marker so StrongTypeInliner collapses it back to a flat
-        // shape later. Inline OpenApiSchema slots can be mutated directly.
         if (slot is OpenApiSchema concrete)
         {
             WrapperAnnotationApplier.TryApply(concrete, clrType, attributes);
             return concrete;
         }
 
+        // A $ref slot can't carry annotations directly; wrap it in allOf + marker so StrongTypeInliner collapses the pair later.
         if (slot is OpenApiSchemaReference)
         {
             var wrapper = new OpenApiSchema { AllOf = [slot] };
@@ -228,9 +185,6 @@ public sealed class NonBodyStrongTypeOperationFilter(ILogger<NonBodyStrongTypeOp
         return [];
     }
 
-    // ApiParameterDescription.Type lies for strong types implementing IParsable<T> —
-    // it reports the string overload's input, hiding the wrapper. ModelMetadata.ModelType
-    // exposes the actual CLR type for both parameter slots and for properties of a
-    // flattened [FromForm] model.
+    // Not pd.Type: it lies for IParsable<T> strong types, reporting the string overload's input instead of the wrapper.
     private static Type ResolveParameterClrType(ApiParameterDescription pd) => pd.ModelMetadata.ModelType;
 }

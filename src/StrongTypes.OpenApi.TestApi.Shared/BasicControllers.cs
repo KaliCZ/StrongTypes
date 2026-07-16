@@ -128,12 +128,8 @@ public sealed class NestedStrongTypesController : ControllerBase
 }
 
 /// <summary>
-/// Exercises non-body model-binding sources for strong-type parameters, so the
-/// generated OpenAPI document can be asserted against. Mirrors the shape of
-/// <c>StrongTypes.Api.Controllers.BindingProbeController</c>: each endpoint
-/// accepts a required and a nullable variant of every wrapped type so the
-/// schema tests cover both branches. <c>[FromRoute]</c> is required-only
-/// because route segments are required by HTTP semantics.
+/// Exercises non-body binding sources for strong-type parameters. <c>[FromRoute]</c> is
+/// required-only because route segments are required by HTTP semantics.
 /// </summary>
 [ApiController]
 [Route("binding-probe")]
@@ -169,14 +165,8 @@ public sealed class BindingProbeController : ControllerBase
     [HttpPost("form")]
     public IActionResult FromForm([FromForm] BindingProbeFormRequest request) => Ok();
 
-    // Annotated variants — pin that caller annotations attached at a non-body
-    // strong-type slot (parameter or form property) reach the wire schema.
-
-    // Each annotated wrapper-typed parameter has a primitive-typed sibling
-    // carrying the same annotation. The sibling is the baseline: a pipeline
-    // that doesn't surface the annotation on the primitive obviously can't
-    // surface it on the wrapper either, so the wrapper tests only have
-    // teeth when the primitive sibling carries the keyword.
+    // Each annotated wrapper parameter has a primitive sibling with the same annotation: the
+    // wrapper assertion only has teeth when the pipeline surfaces the keyword on the primitive.
     [HttpGet("query-annotated")]
     public IActionResult FromQueryAnnotated(
         [FromQuery, StringLength(50)] NonEmptyString name,
@@ -185,24 +175,12 @@ public sealed class BindingProbeController : ControllerBase
         [FromQuery, Range(5, 100)] int plainCount)
         => Ok();
 
-    // Form bodies are split into two uniform requests — one all wrappers,
-    // one all primitives — to keep the per-pipeline form-body shape
-    // consistent. The `NonBodyStrongTypeOperationFilter` reshapes
-    // Swashbuckle's `{ allOf: [<each>] }` form-body schema (emitted
-    // whenever every field is component-typed) back into a proper
-    // `{ properties: { … } }` map, so consumers see field names on both
-    // pipelines.
+    // Two uniform requests — all wrappers vs. all primitives — so each pins one of Swashbuckle's form-body shapes.
     [HttpPost("form-annotated")]
     public IActionResult FromFormAnnotated([FromForm] AnnotatedBindingProbeFormRequest request) => Ok();
 
     [HttpPost("form-annotated-plain")]
     public IActionResult FromFormAnnotatedPlain([FromForm] PlainAnnotatedBindingProbeFormRequest request) => Ok();
-
-    // The three endpoints below cover the form-body reshape on diverse
-    // payload shapes: a primitives-only form (Swashbuckle emits a proper
-    // properties map natively), an all-wrappers form with a mix of
-    // annotations on multiple wrappers of the same type, and a mixed form
-    // exercising both kinds together with caller annotations on each.
 
     [HttpPost("form-simple-types")]
     public IActionResult FromFormSimpleTypes([FromForm] SimpleTypesFormRequest request) => Ok();

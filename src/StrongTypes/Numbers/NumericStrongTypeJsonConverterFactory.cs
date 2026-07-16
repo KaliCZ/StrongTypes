@@ -20,9 +20,7 @@ public sealed class NumericStrongTypeJsonConverterFactory : JsonConverterFactory
         typeof(NonPositive<>)
     ];
 
-    // Inner<TWrapper, T> holds no mutable state and is safe to share across all
-    // JsonSerializerOptions instances, so one cached converter per wrapper type
-    // is plenty. Keyed by the closed wrapper type (e.g. Positive<int>).
+    // Safe to share across JsonSerializerOptions instances: Inner holds no per-options state.
     private static readonly ConcurrentDictionary<Type, JsonConverter> s_converterCache = new();
 
     public override bool CanConvert(Type typeToConvert) =>
@@ -67,9 +65,7 @@ public sealed class NumericStrongTypeJsonConverterFactory : JsonConverterFactory
             }
             catch (JsonException ex)
             {
-                // The nested Deserialize<T> loses the property position, so its
-                // path surfaces as the document root. Rethrow path-less and the
-                // serializer reattaches the correct path (e.g. "$.value").
+                // Rethrown path-less so the serializer reattaches the failing property's path.
                 throw new JsonException($"The JSON value could not be converted to {typeof(TWrapper).Name}.", ex);
             }
 

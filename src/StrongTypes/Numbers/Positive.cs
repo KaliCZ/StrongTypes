@@ -6,7 +6,6 @@ using System.Text.Json.Serialization;
 namespace StrongTypes;
 
 /// <summary>A numeric value guaranteed to be strictly greater than <c>T.Zero</c>.</summary>
-/// <typeparam name="T">The underlying numeric type.</typeparam>
 /// <remarks>Construct via <see cref="TryCreate"/> or <c>Create</c>. <c>default(Positive&lt;T&gt;)</c> wraps <c>T.One</c> and satisfies the invariant.</remarks>
 [NumericWrapper(InvariantDescription = "positive", GenerateSum = true)]
 [JsonConverter(typeof(NumericStrongTypeJsonConverterFactory))]
@@ -26,7 +25,6 @@ public readonly partial struct Positive<T>
     public T Value => _offset + T.One;
 
     /// <summary>Wraps <paramref name="value"/>, or returns <c>null</c> when it is not strictly greater than zero.</summary>
-    /// <param name="value">The number to validate.</param>
     [Pure]
     public static Positive<T>? TryCreate(T value)
     {

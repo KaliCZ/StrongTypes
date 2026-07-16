@@ -84,12 +84,6 @@ public class MaybeJsonConverterTests
     }
 
     // ── Roundtrip ───────────────────────────────────────────────────────
-    //
-    // Round-trip tests are string-anchored: start from a canonical JSON string,
-    // deserialize, re-serialize, and assert the bytes are identical. Specific
-    // hand-written examples document the canonical form; the property tests derive
-    // the canonical form from a generated value and then assert the same
-    // string-stability property.
 
     [Theory]
     [InlineData("""{"Value":42}""")]
@@ -147,8 +141,7 @@ public class MaybeJsonConverterTests
     [Fact]
     public void Read_MaybeOfNonEmptyString_InvalidValue_Throws()
     {
-        // The inner NonEmptyString converter rejects whitespace/empty, and that
-        // JsonException must surface — we don't want a silent fallback to None.
+        // An invalid inner value must throw, not silently fall back to None.
         Assert.Throws<JsonException>(() =>
             JsonSerializer.Deserialize<Maybe<NonEmptyString>>("""{"Value":"   "}"""));
     }
@@ -178,8 +171,6 @@ public class MaybeJsonConverterTests
     [Fact]
     public void Read_MaybeOfPositiveInt_InvalidValue_Throws()
     {
-        // Zero violates the Positive invariant — the inner converter throws
-        // and that exception propagates through the Maybe converter.
         Assert.Throws<JsonException>(() =>
             JsonSerializer.Deserialize<Maybe<Positive<int>>>("""{"Value":0}"""));
 

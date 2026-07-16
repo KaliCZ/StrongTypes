@@ -5,29 +5,8 @@ using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaWalk;
 
 namespace StrongTypes.OpenApi.IntegrationTests.Tests;
 
-// Annotation propagation — when a property annotated with
-// [StringLength], [RegularExpression], [Range], [MaxLength] has a
-// strong-type wrapper as its CLR type, the caller's bounds must
-// reach the wire. Without help, the generators describe the property
-// as just `{ "$ref": ".../NonEmptyString" }` and drop every
-// annotation on the floor — the very thing this whole package
-// exists to prevent.
-//
-// The property-level pass each pipeline runs is allowed to either
-// inline the merged schema on the property or layer the caller's
-// bounds via `$ref` + `allOf`. The collectors below walk both forms
-// and report the tightest applicable bound, so the assertions here
-// pin only the externally observable contract — not which encoding
-// the pipeline happens to use.
-//
-// Each wrapper-typed test below has a primitive-typed sibling that
-// pins the same wire keywords on a plain `string` / `int` / `string[]`
-// carrying the same annotations. The sibling serves as a baseline:
-// each pipeline's underlying annotation handling must natively produce
-// these keywords on a primitive-typed property for the matching
-// wrapper-typed assertion to be meaningful. If a primitive-typed test
-// fails, the failure is in the pipeline's own annotation-mapping step,
-// not in our wrapper paint.
+// Each wrapper-typed test has a primitive-typed sibling pinning the same keywords on a plain string/int/array, so a
+// failing sibling attributes the fault to the pipeline's own annotation mapping rather than the wrapper paint.
 public abstract partial class OpenApiDocumentTestsBase
 {
     [Fact]
@@ -37,11 +16,6 @@ public abstract partial class OpenApiDocumentTestsBase
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var annotatedEmail = Property(body, "annotatedEmail");
 
-        // Caller's [StringLength(100)] is tighter than the Email wrapper's
-        // own maxLength: 254 — the merged shape must surface 100. The
-        // wrapper's minLength: 1 still floors the lower bound, and the
-        // wrapper's format: email reaches the wire on pipelines that
-        // honour it on the wrapper component schema.
         Assert.Equal(1, CollectMaxInt(doc, annotatedEmail, "minLength", Version));
         Assert.Equal(100, CollectMinInt(doc, annotatedEmail, "maxLength", Version));
         Assert.Equal("email", CollectFirstString(doc, annotatedEmail, "format", Version));
@@ -66,8 +40,6 @@ public abstract partial class OpenApiDocumentTestsBase
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var email = Property(body, "email");
 
-        // [StringLength(254)] sets only an upper bound; the wrapper's
-        // floor of 1 must remain.
         Assert.Equal(1, CollectMaxInt(doc, email, "minLength", Version));
         Assert.Equal(254, CollectMinInt(doc, email, "maxLength", Version));
         Assert.Equal("^[^@]+@[^@]+$", CollectFirstString(doc, email, "pattern", Version));
@@ -80,10 +52,6 @@ public abstract partial class OpenApiDocumentTestsBase
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var contactEmail = Property(body, "contactEmail");
 
-        // Wrapper's minLength: 1 always reaches the wire. The [EmailAddress]
-        // format keyword only reaches it on pipelines that honour the
-        // attribute on string properties; Microsoft.AspNetCore.OpenApi
-        // drops it across every slot (see Email for the always-format type).
         Assert.Equal(1, CollectMaxInt(doc, contactEmail, "minLength", Version));
         Assert.Equal(IsEmailAddressFormatIgnored ? null : "email", CollectFirstString(doc, contactEmail, "format", Version));
     }
@@ -194,8 +162,6 @@ public abstract partial class OpenApiDocumentTestsBase
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var range = Property(body, "rangeAcrossFloor");
 
-        // [Range(-5, 5)] would loosen the lower bound to -5, but the
-        // wrapper's exclusiveMinimum:0 floor wins. Upper bound 5 stays.
         AssertExclusiveLowerBoundReachable(doc, range, 0m, Version);
         Assert.Equal(5m, CollectMinUpperBound(doc, range, Version));
     }
@@ -207,9 +173,6 @@ public abstract partial class OpenApiDocumentTestsBase
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var atFloor = Property(body, "exclusiveAtFloor");
 
-        // [Range(0, 5, MinimumIsExclusive = true)] and the wrapper both
-        // describe `> 0`; the merged shape is a single exclusive 0,
-        // never over-tightened to `> 1` or similar.
         AssertExclusiveLowerBoundReachable(doc, atFloor, 0m, Version);
         Assert.Equal(5m, CollectMinUpperBound(doc, atFloor, Version));
     }
@@ -221,10 +184,7 @@ public abstract partial class OpenApiDocumentTestsBase
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var aboveFloor = Property(body, "inclusiveJustAboveFloor");
 
-        // [Range(1, 5)] is `>= 1`, strictly tighter than the wrapper's
-        // `> 0` numerically (the schema language doesn't know int and
-        // would admit 0.5 under `> 0`), so the inclusive 1 wins and the
-        // exclusive form drops out.
+        // >= 1 is strictly tighter than the wrapper's > 0: JSON Schema bounds are real-valued, so > 0 alone admits 0.5.
         Assert.Equal(1m, CollectMaxLowerBound(doc, aboveFloor, Version));
         Assert.Equal(5m, CollectMinUpperBound(doc, aboveFloor, Version));
     }
@@ -236,10 +196,7 @@ public abstract partial class OpenApiDocumentTestsBase
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-numbers"));
         var below = Property(body, "rangeBelowFloor");
 
-        // [Range(-10, -5)] on Positive<int> is unsatisfiable: the wrapper's
-        // exclusive 0 floor and the caller's upper bound -5 carve out an
-        // empty set. Both bounds reach the wire as-is — the pipeline does
-        // not detect or reject the contradiction.
+        // The merged bounds are unsatisfiable (> 0 with maximum -5); the pipeline doesn't detect the contradiction.
         AssertExclusiveLowerBoundReachable(doc, below, 0m, Version);
         Assert.Equal(-5m, CollectMinUpperBound(doc, below, Version));
     }
@@ -263,9 +220,7 @@ public abstract partial class OpenApiDocumentTestsBase
         var body = FollowRef(doc, RequestSchema(doc, "/annotated-texts"));
         var emailRaw = Property(body, "emailRaw");
 
-        // [StringLength(254)] sets only an upper bound; both pipelines write
-        // minLength: 0 verbatim from the attribute. The wrapper sibling
-        // floors that to its own minLength: 1 (asserted on the wrapper test).
+        // Both pipelines write [StringLength]'s implicit MinimumLength = 0 verbatim as minLength: 0.
         Assert.Equal(0, CollectMaxInt(doc, emailRaw, "minLength", Version));
         Assert.Equal(254, CollectMinInt(doc, emailRaw, "maxLength", Version));
         Assert.Equal("^[^@]+@[^@]+$", CollectFirstString(doc, emailRaw, "pattern", Version));

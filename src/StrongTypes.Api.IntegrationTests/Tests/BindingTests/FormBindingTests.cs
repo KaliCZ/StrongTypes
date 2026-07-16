@@ -8,12 +8,6 @@ using static StrongTypes.Api.IntegrationTests.Tests.BindingTestAsserts;
 
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
-/// <summary>
-/// Verifies that strong types round-trip through MVC's <c>[FromForm]</c>
-/// model binding for both required and nullable variants of the wrapped
-/// types, and that invalid form fields produce a
-/// <c>ValidationProblemDetails</c> 400.
-/// </summary>
 [Collection(IntegrationTestCollection.Name)]
 public sealed class FormBindingTests(TestWebApplicationFactory factory) : IDisposable
 {

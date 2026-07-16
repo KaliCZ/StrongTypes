@@ -17,9 +17,7 @@ public sealed class NumericStrongTypeJsonConverterTests
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<Positive<int>>(json));
     }
 
-    // Every invalid kind must surface under the property's path ("$.Value"), not
-    // the document root — the nested Deserialize<T> would otherwise lose position
-    // on type-mismatch/null. Locks the converter rethrow that keeps the path.
+    // Guards the converter's path-preserving rethrow — a nested Deserialize<T> would otherwise report the document root.
     [Theory]
     [InlineData("""{"Value":"abc"}""")]
     [InlineData("""{"Value":null}""")]
