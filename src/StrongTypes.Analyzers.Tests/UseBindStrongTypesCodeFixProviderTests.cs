@@ -55,9 +55,9 @@ public class UseBindStrongTypesCodeFixProviderTests
         Assert.Contains("using StrongTypes.Configuration;", fixedSource, StringComparison.Ordinal);
     }
 
-    /// <summary>Without the package the rewrite would not compile, so no fix is offered — the diagnostic's help link points at the package instead.</summary>
+    /// <summary>Offered even without the package — the rewrite won't compile until it is added, and the fix title names it.</summary>
     [Fact]
-    public async Task Not_offered_when_the_configuration_package_is_absent()
+    public async Task Offered_without_the_package_naming_it_in_the_title()
     {
         var actions = await DocumentCodeFixTester.RegisterFixesAsync(
             new UnvalidatedStrongTypeOptionsAnalyzer(),
@@ -65,7 +65,8 @@ public class UseBindStrongTypesCodeFixProviderTests
             BindSource,
             TestReferences.With(TestReferences.OptionsStack));
 
-        Assert.Empty(actions);
+        var action = Assert.Single(actions);
+        Assert.Contains("Kalicz.StrongTypes.Configuration", action.Title, StringComparison.Ordinal);
     }
 
     /// <summary>Rewriting <c>Configure&lt;T&gt;</c> means restructuring to <c>AddOptions&lt;T&gt;().BindStrongTypes(…)</c>; the diagnostic still fires, but the change is the caller's to make.</summary>

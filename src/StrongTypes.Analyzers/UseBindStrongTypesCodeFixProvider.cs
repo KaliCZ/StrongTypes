@@ -14,9 +14,9 @@ namespace StrongTypes.Analyzers;
 
 /// <summary>
 /// Code fix for <see cref="UnvalidatedStrongTypeOptionsAnalyzer"/>: rewrites <c>.Bind(section)</c> to
-/// <c>.BindStrongTypes(section)</c>. Offered only when <c>Kalicz.StrongTypes.Configuration</c> is
-/// referenced, and only for <c>Bind</c> — a <c>Configure&lt;T&gt;</c> call needs restructuring, so it
-/// gets none.
+/// <c>.BindStrongTypes(section)</c>, for <c>Bind</c> only — a <c>Configure&lt;T&gt;</c> call needs
+/// restructuring, so it gets none. When <c>Kalicz.StrongTypes.Configuration</c> is not referenced the
+/// fix is still offered, with a title that names the package to add.
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseBindStrongTypesCodeFixProvider))]
 [Shared]
@@ -33,7 +33,7 @@ public sealed class UseBindStrongTypesCodeFixProvider : CodeFixProvider
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var compilation = await context.Document.Project.GetCompilationAsync(context.CancellationToken).ConfigureAwait(false);
-        if (compilation is null || !ReferencesConfigurationPackage(compilation))
+        if (compilation is null)
         {
             return;
         }
@@ -43,6 +43,10 @@ public sealed class UseBindStrongTypesCodeFixProvider : CodeFixProvider
         {
             return;
         }
+
+        var title = ReferencesConfigurationPackage(compilation)
+            ? "Use BindStrongTypes()"
+            : $"Use BindStrongTypes() (add {UnvalidatedStrongTypeOptionsAnalyzer.ConfigurationPackageId})";
 
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -58,7 +62,7 @@ public sealed class UseBindStrongTypesCodeFixProvider : CodeFixProvider
 
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title: "Use BindStrongTypes()",
+                    title: title,
                     createChangedDocument: ct => UseBindStrongTypesAsync(context.Document, access, ct),
                     equivalenceKey: nameof(UseBindStrongTypesCodeFixProvider)),
                 diagnostic);
