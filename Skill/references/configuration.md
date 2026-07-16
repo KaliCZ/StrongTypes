@@ -1,7 +1,7 @@
 # Configuration and options binding
 
 Strong types bind from `IConfiguration` / `IOptions<T>` with **no setup** —
-every wrapper carries a `TypeConverter`, which is what `ConfigurationBinder`
+every scalar wrapper carries a `TypeConverter`, which is what `ConfigurationBinder`
 uses to turn a config string into a typed value. Put the wrapper straight on
 the options class:
 
@@ -113,7 +113,7 @@ An options class in an assembly with `<Nullable>disable</Nullable>` declares no 
 on it is enforced.
 
 Analyzer **ST0004** flags a plain `Bind` / `Configure` that would leave a non-nullable wrapper null,
-with a code fix that rewrites the call. It reports only this library's own wrappers, never a plain
+with a code fix that rewrites a `Bind` call (a flagged `Configure` gets the diagnostic only). It reports only this library's own wrappers, never a plain
 `string`, so it sees less than the check it points you at. It also stays quiet for a property
 already carrying `[Required]`, which genuinely covers that case.
 

@@ -30,7 +30,7 @@ string? upper   = maybeText.Map(s => s.ToUpperInvariant());
 int?    parsed  = input.Map(s => int.TryParse(s, out var n) ? n : (int?)null);
 
 // Async
-int?    await   = await maybeId.MapAsync(id => _store.CountAsync(id));
+int?    counted = await maybeId.MapAsync(id => _store.CountAsync(id));
 ```
 
 Overloads cover the four combinations of value-type / reference-type input

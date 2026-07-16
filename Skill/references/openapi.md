@@ -123,8 +123,8 @@ In 3.0, `exclusiveMinimum` / `exclusiveMaximum` emit as booleans paired
 with `minimum` / `maximum`; in 3.1 they emit as numeric values. Both
 forms are produced correctly — the version setting is the only knob.
 
-Swashbuckle 10.x emits 3.0 by default; switch via its own options
-(`SwaggerGeneratorOptions.OpenApiVersion`) if you need 3.1.
+Swashbuckle 10.x emits 3.0 by default; switch via the middleware options
+(`app.UseSwagger(o => o.OpenApiVersion = …)`) if you need 3.1.
 
 ## UI
 

@@ -109,7 +109,7 @@ Result<NonEmptyString, string> a = name.AsNonEmpty().ToResult("name required");
 Result<NonEmptyString, string> b = name.AsNonEmpty().ToResult(() => BuildMessage());
 
 // Result<T> (Exception-flavoured)
-Result<NonEmptyString> c = name.AsNonEmpty().ToResult();                        // throws default Exception on null
+Result<NonEmptyString> c = name.AsNonEmpty().ToResult();                        // null → error branch holding an ArgumentNullException
 Result<NonEmptyString> d = name.AsNonEmpty().ToResult(new ArgumentException()); // custom exception
 Result<NonEmptyString> e = name.AsNonEmpty().ToResult(() => new Ex("..."));     // factory
 ```

@@ -58,13 +58,13 @@ var (successes, errors) = results.Partition();   // IReadOnlyList<T>, IReadOnlyL
 
 // Side-effect fold
 results.PartitionMatch(
-    successes: ok   => Save(ok),
-    errors:    bad  => Log(bad));
+    success: ok   => Save(ok),
+    error:   bad  => Log(bad));
 
 // Projection fold — returns R[]
 R[] merged = results.PartitionMatch(
-    successes: ok   => Summarise(ok),
-    errors:    bad  => Describe(bad));
+    success: ok   => Summarise(ok),
+    error:   bad  => Describe(bad));
 ```
 
 ## `Exception` aggregate
@@ -78,9 +78,6 @@ Exception? agg = exceptions.Aggregate();                 // null on empty
 Exception? agg = list.Aggregate();                       // IReadOnlyList<Exception>
 Exception  agg = nonEmptyList.Aggregate();               // INonEmptyEnumerable<Exception>
 ```
-
-This is what `Result.Aggregate(...)` uses under the hood when `TError`
-is `Exception`.
 
 ## Boolean helper
 

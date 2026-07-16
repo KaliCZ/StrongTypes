@@ -43,8 +43,9 @@ plain `string` because a substring could be empty.
 - `StartsWith(...)`, `EndsWith(...)` overloads mirroring `string`.
 - Implicit conversion to `string` — you can pass a `NonEmptyString` to any
   `string` parameter without `.Value`.
-- Full equality / comparison operators against `NonEmptyString` *and*
-  `string` — no `.Value` needed for `==`, `!=`, `<`, `<=`, `>`, `>=`.
+- Equality operators against `NonEmptyString` *and* `string` — no `.Value`
+  needed for `==` / `!=`. The ordering operators (`<`, `<=`, `>`, `>=`) are
+  wrapper-vs-wrapper only; against a `string` use `CompareTo(string)`.
 
 ## `Unwrap()` — the EF-Core marker
 
@@ -111,6 +112,7 @@ public record User(NonEmptyString Name, NonEmptyString? Nickname);
 ## JSON
 
 `[JsonConverter(typeof(NonEmptyStringJsonConverter))]` is attached on the
-type. Serialises as a plain JSON string. Deserialising `""`, a
-whitespace-only string, or `null` (into the non-nullable form) throws
-`JsonException`. No `JsonSerializerOptions` registration required.
+type. Serialises as a plain JSON string. Deserialising `""` or a
+whitespace-only string throws `JsonException`; JSON `null` yields a null
+reference even for the non-nullable declaration — nullability is
+compile-time only. No `JsonSerializerOptions` registration required.
