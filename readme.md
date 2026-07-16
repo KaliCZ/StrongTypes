@@ -61,7 +61,7 @@ curl -L https://github.com/KaliCZ/StrongTypes/releases/latest/download/strongtyp
 
 ## Helpful Scalar types
 
-The `TryCreate` / `Create` split (and the `As…` / `To…` extensions that mirror it) is used across every validated type in the library — pick the factory that matches how you want to handle bad input at the call site. Besides the two families below, the same pattern powers `Email` (a validated e-mail address wrapping `MailAddress`) and `Digit` (a single decimal digit, `0`–`9`):
+The `TryCreate` / `Create` split (and the `As…` / `To…` extensions that mirror it) is used across every validated type in the library — pick the factory that matches how you want to handle bad input at the call site:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/trycreate-create-flow-dark.svg">
