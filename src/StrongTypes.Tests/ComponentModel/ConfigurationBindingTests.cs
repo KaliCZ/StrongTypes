@@ -10,15 +10,9 @@ using Xunit;
 namespace StrongTypes.Tests;
 
 /// <summary>
-/// Without a <c>TypeConverter</c>, <c>ConfigurationBinder</c> cannot turn <c>"5"</c> into a strong
-/// type and silently leaves the property at its default rather than failing — so these assert the
-/// bound value, not merely that binding returned.
+/// Without a <c>TypeConverter</c>, <c>ConfigurationBinder</c> silently leaves the property at its
+/// default rather than failing — so these assert the bound value, not merely that binding returned.
 /// </summary>
-/// <remarks>
-/// Every scenario runs through both <see cref="ConfigurationBinder"/>'s <c>Get&lt;T&gt;</c> and the
-/// <see cref="IOptions{TOptions}"/> pipeline. They share a conversion path and so far agree on
-/// every row, but that is asserted here rather than assumed.
-/// </remarks>
 public class ConfigurationBindingTests
 {
     public enum BindingPath
@@ -40,7 +34,6 @@ public class ConfigurationBindingTests
         public Digit Tier { get; set; }
     }
 
-    /// <param name="settings">JSON property assignments placed inside the <c>Retry</c> object.</param>
     private static IConfiguration Config(string settings) =>
         new ConfigurationBuilder()
             .AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes("{\"Retry\":{" + settings + "}}")))
@@ -99,7 +92,7 @@ public class ConfigurationBindingTests
 
     // ── Absent vs. explicit null ────────────────────────────────────────
 
-    /// <summary>An absent key leaves the property exactly as the options class constructed it — here a non-null initialiser. A real options class rarely has one; see <see cref="UnconfiguredOptionsTests"/> for what absence yields then.</summary>
+    /// <summary>An absent key leaves the property exactly as the options class constructed it — here a non-null initialiser.</summary>
     [Theory]
     [MemberData(nameof(Paths))]
     public void AbsentKey_LeavesWhateverThePropertyAlreadyHeld(BindingPath path)
@@ -128,12 +121,7 @@ public class ConfigurationBindingTests
     public void ExplicitNull_OnANullableReferenceWrapper_IsNull(BindingPath path) =>
         Assert.Null(Bind(path, "\"Nickname\": null").Nickname);
 
-    /// <summary>
-    /// A <c>null</c> in config nulls even a non-nullable reference property, because nullability is
-    /// erased by the time the binder runs — <c>NonEmptyString</c> is no different from <c>string</c>
-    /// here. The invariant holds for every value the type can hold; it cannot stop the binder
-    /// assigning none at all. Prefer an absent key, or validate on start.
-    /// </summary>
+    /// <summary>A <c>null</c> in config nulls even a non-nullable reference property, because nullability is erased by the time the binder runs — <c>NonEmptyString</c> is no different from <c>string</c> here.</summary>
     [Theory]
     [MemberData(nameof(Paths))]
     public void ExplicitNull_DefeatsANonNullableReferenceWrapper(BindingPath path) =>
@@ -159,12 +147,7 @@ public class ConfigurationBindingTests
     public void EmptyString_OnANonNullableStructWrapper_Throws(BindingPath path) =>
         Assert.Throws<InvalidOperationException>(() => Bind(path, "\"MaxRetries\": \"\""));
 
-    /// <summary>
-    /// The one asymmetry: empty binds to <c>null</c> here rather than throwing, because a nullable
-    /// struct resolves to the BCL's <c>NullableConverter</c>, which maps empty to null before our
-    /// converter is consulted. WPF, which unwraps <c>Nullable&lt;T&gt;</c> itself, does not do this —
-    /// the same <c>""</c> raises a validation error there.
-    /// </summary>
+    /// <summary>The one asymmetry: empty binds to <c>null</c> here rather than throwing.</summary>
     [Theory]
     [MemberData(nameof(Paths))]
     public void EmptyString_OnANullableStructWrapper_IsNull(BindingPath path) =>
@@ -207,10 +190,7 @@ public class ConfigurationBindingTests
 
     // ── When the failure surfaces ───────────────────────────────────────
 
-    /// <summary>
-    /// Binding is lazy: the failure surfaces on first <c>IOptions.Value</c>, not at
-    /// <c>BuildServiceProvider</c>. Callers wanting a startup failure add <c>ValidateOnStart</c>.
-    /// </summary>
+    /// <summary>Binding is lazy: the failure surfaces on first <c>IOptions.Value</c>, not at <c>BuildServiceProvider</c>.</summary>
     [Fact]
     public void InvalidValue_DoesNotThrowUntilOptionsAreRead()
     {

@@ -25,8 +25,7 @@ internal sealed class NullPropertyWalker
 
     private void WalkObject(object instance, string path)
     {
-        // Two properties can hold the same instance, and a graph can cycle; without this the first
-        // duplicates every failure beneath it and the second never terminates.
+        // Visit once: a shared instance would duplicate failures, a cycle would never terminate.
         if (!visited.Add(instance))
         {
             return;
@@ -89,21 +88,13 @@ internal sealed class NullPropertyWalker
         WalkObject(value, path);
     }
 
-    /// <summary>
-    /// A value type is skipped because it has no invalid state to reach: an unconfigured
-    /// <c>Positive&lt;int&gt;</c> is <c>1</c> and an unconfigured <c>bool</c> is <c>false</c> — values
-    /// those types are happy to hold. A property with no setter is skipped because the binder never
-    /// assigns one, so its being null is not something configuration could have fixed.
-    /// </summary>
+    /// <summary>True only for a settable, non-nullable reference property — the one shape a missing key can leave in a state its declaration forbids.</summary>
     private bool LeftNullAgainstItsDeclaration(PropertyInfo property) =>
         !property.PropertyType.IsValueType
         && property.GetSetMethod() is not null
         && nullability.Create(property).WriteState == NullabilityState.NotNull;
 
-    /// <summary>
-    /// Stop where <c>ConfigurationBinder</c> stops: it converts a type it has a string converter for
-    /// and recurses into everything else, so this walks exactly the graph the binder built.
-    /// </summary>
+    /// <summary>A type the binder converts from a string rather than recursing into, so the walk covers exactly the graph the binder built.</summary>
     private static bool IsLeaf(Type type) =>
         LeafCache.GetOrAdd(type, static t => TypeDescriptor.GetConverter(t).CanConvertFrom(typeof(string)));
 

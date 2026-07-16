@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 namespace StrongTypes.Configuration;
 
 /// <summary>Fails validation when a property of <typeparamref name="TOptions"/> declared non-nullable is null once bound, at any depth.</summary>
-/// <typeparam name="TOptions">The options type being bound.</typeparam>
 internal sealed class NonNullableOptionsValidator<TOptions>(string? name, IConfiguration section) : IValidateOptions<TOptions>
     where TOptions : class
 {

@@ -7,12 +7,11 @@ using System.Globalization;
 namespace StrongTypes;
 
 /// <summary>Converts between <see cref="string"/> and a strong type that implements <see cref="IParsable{TSelf}"/>, for generic types that cannot name a closed <see cref="ParsableTypeConverter{T}"/> in an attribute argument.</summary>
-/// <remarks>Behaves exactly like <see cref="ParsableTypeConverter{T}"/>; a non-generic type should name that directly instead.</remarks>
 public sealed class StrongTypeConverter : TypeConverter
 {
     private readonly TypeConverter _inner;
 
-    /// <param name="type">The closed strong type to convert. <see cref="TypeDescriptor"/> supplies this from the type carrying the attribute.</param>
+    /// <param name="type">The closed strong type to convert.</param>
     /// <exception cref="ArgumentException"><paramref name="type"/> does not implement <see cref="IParsable{TSelf}"/>.</exception>
     public StrongTypeConverter(Type type)
     {

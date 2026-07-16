@@ -8,12 +8,6 @@ using static StrongTypes.Wpf.Tests.Bindings;
 
 namespace StrongTypes.Wpf.Tests;
 
-/// <summary>
-/// The two nullable shapes resolve their converter differently — a nullable struct wrapper goes
-/// through the BCL's <c>NullableConverter</c>, which we do not own, while a nullable reference
-/// wrapper hits our converter directly because nullability is erased at runtime. Both are pinned
-/// here because neither is obvious from the property declaration.
-/// </summary>
 public class NullableStructBindingTests
 {
     [Fact]
@@ -57,13 +51,6 @@ public class NullableStructBindingTests
         });
     }
 
-    /// <summary>
-    /// Clearing the box does <b>not</b> null the source. WPF unwraps <c>Nullable&lt;T&gt;</c> and asks
-    /// <c>TypeDescriptor</c> for the underlying type's converter, so the BCL's <c>NullableConverter</c>
-    /// — which would map empty to null, and does for configuration binding — is never consulted;
-    /// <c>""</c> reaches <c>Positive&lt;int&gt;.Parse</c> and fails. Surprising, but long-standing:
-    /// no converter has ever been registered against <c>Nullable&lt;T&gt;</c> here.
-    /// </summary>
     [Fact]
     public void TwoWay_ClearedInput_RaisesValidationErrorRatherThanNulling()
     {

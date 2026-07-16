@@ -8,11 +8,6 @@ using static StrongTypes.Wpf.Tests.Bindings;
 
 namespace StrongTypes.Wpf.Tests;
 
-/// <summary>
-/// WPF routes <c>string → T</c> through <see cref="System.ComponentModel.TypeDescriptor"/> and never
-/// consults <c>IParsable&lt;T&gt;</c>, so these are the only coverage proving the core
-/// <c>[TypeConverter]</c> satisfies the binding engine. No registration call is made anywhere.
-/// </summary>
 public class NonEmptyStringBindingTests
 {
     [Fact]
@@ -185,7 +180,6 @@ public class PositiveIntBindingTests
     }
 }
 
-/// <summary>A non-generic struct wrapper — resolves its converter by attribute rather than through <c>StrongTypeConverter</c>'s open-generic bootstrap.</summary>
 public class DigitBindingTests
 {
     [Fact]

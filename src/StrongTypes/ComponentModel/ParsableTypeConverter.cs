@@ -8,7 +8,7 @@ namespace StrongTypes;
 
 /// <summary>Converts between <see cref="string"/> and <typeparamref name="T"/> via <see cref="IParsable{TSelf}"/>, honouring the culture it is handed.</summary>
 /// <typeparam name="T">A strong type that implements <see cref="IParsable{TSelf}"/>.</typeparam>
-/// <remarks>Invalid input surfaces as whatever <c>T.Parse</c> throws — for a Kalicz.StrongTypes wrapper, the <see cref="ArgumentException"/> naming the broken invariant. A generic type cannot name a closed converter in an attribute argument; it uses <see cref="StrongTypeConverter"/> instead.</remarks>
+/// <remarks>Invalid input surfaces as whatever <c>T.Parse</c> throws — for a Kalicz.StrongTypes wrapper, the <see cref="ArgumentException"/> naming the broken invariant.</remarks>
 public sealed class ParsableTypeConverter<T> : TypeConverter
     where T : IParsable<T>
 {

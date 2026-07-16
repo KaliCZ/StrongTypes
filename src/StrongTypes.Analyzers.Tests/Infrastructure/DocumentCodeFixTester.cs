@@ -8,10 +8,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace StrongTypes.Analyzers.Tests.Infrastructure;
 
 /// <summary>
-/// Drives a code fix that edits source, as opposed to <see cref="CodeFixTester"/>, which exists for
-/// the package-install fixes that write to a csproj and so cannot be observed as a document change.
-/// Diagnostics come from really running the analyzer, so a fix cannot be tested against a location
-/// the analyzer would never report.
+/// Drives a source-editing code fix. Diagnostics come from really running the analyzer, so a fix
+/// cannot be tested against a location the analyzer would never report.
 /// </summary>
 internal static class DocumentCodeFixTester
 {

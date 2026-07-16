@@ -39,21 +39,18 @@ public sealed class PersonViewModel : INotifyPropertyChanged
         set { _tier = value; Raise(); }
     }
 
-    /// <summary>Culture-sensitive: a decimal separator differs between cultures, so this is what pins <c>ConverterCulture</c> round-tripping.</summary>
     public Positive<decimal> Salary
     {
         get => _salary;
         set { _salary = value; Raise(); }
     }
 
-    /// <summary>A nullable reference wrapper — WPF sees the property type as <see cref="NonEmptyString"/>, nullability being compile-time only.</summary>
     public NonEmptyString? Nickname
     {
         get => _nickname;
         set { _nickname = value; Raise(); }
     }
 
-    /// <summary>A nullable struct wrapper — WPF routes this through the BCL's <c>NullableConverter</c>.</summary>
     public Positive<int>? Score
     {
         get => _score;

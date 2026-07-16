@@ -7,9 +7,8 @@ using Xunit;
 namespace StrongTypes.Configuration.Tests;
 
 /// <summary>
-/// The binder assigns nothing for an absent key, so a property it never reaches keeps what the
-/// options class gave it. For a reference that is <c>null</c> — which a non-nullable declaration
-/// says is impossible — and nothing else notices, because binding itself succeeded.
+/// The binder assigns nothing for an absent key, so a non-nullable property it never reaches keeps
+/// the null the options class gave it — the state its type forbids and plain binding never catches.
 /// </summary>
 public class BindStrongTypesTests
 {
@@ -73,7 +72,6 @@ public class BindStrongTypesTests
 
     // ── The gap it closes ───────────────────────────────────────────────
 
-    /// <summary>The contrast, and the whole reason the package exists: plain <c>Bind</c> takes the same config without a murmur and hands back a <c>NonEmptyString</c> that is null.</summary>
     [Fact]
     public void PlainBind_LeavesANonNullableWrapperNull()
     {
@@ -108,12 +106,11 @@ public class BindStrongTypesTests
         Assert.Contains("'Retry:Items' is null", failures, StringComparison.Ordinal);
     }
 
-    /// <summary>An explicit <c>null</c> is no better than an absent key, and plain binding accepts it even here.</summary>
+    /// <summary>An explicit <c>null</c> is no better than an absent key.</summary>
     [Fact]
     public void ExplicitNull_Fails() =>
         Assert.Contains("'Retry:Name' is null", Failures(BindExpectingFailure<RetryOptions>("""{ "Retry": { "Name": null } }""")), StringComparison.Ordinal);
 
-    /// <summary>The failure names the config path — what the reader goes and edits — plus every way out of it.</summary>
     [Fact]
     public void Failure_NamesTheConfigurationPathAndEveryWayOut()
     {
@@ -146,16 +143,11 @@ public class BindStrongTypesTests
         Assert.Null(options.OptionalString);
     }
 
-    /// <summary>A declared default is never null, so it needs no check and no configuration.</summary>
     [Fact]
     public void PropertiesWithADeclaredDefault_NeedNoConfiguration() =>
         Assert.Equal("https://example.test", Bind<RetryOptions>(FullyConfigured).WithDefault);
 
-    /// <summary>
-    /// A value type has no invalid state to reach: unconfigured, <c>Positive&lt;int&gt;</c> is its
-    /// default of 1 and <c>bool</c> is false — values those types are happy to hold. There is
-    /// nothing here for a null check to find, so none of these is required.
-    /// </summary>
+    /// <summary>A value type has no null state to catch: unconfigured it holds a default the type is happy with, so none of these is ever required.</summary>
     [Fact]
     public void ValueTypeProperties_AreNeverRequired()
     {
@@ -236,7 +228,6 @@ public class BindStrongTypesTests
         public Positive<int> Number { get; set; }
     }
 
-    /// <summary>A nested object that binds is not the end of the walk — its own declaration is enforced too.</summary>
     [Fact]
     public void NestedObject_HasItsOwnPropertiesChecked()
     {
@@ -246,7 +237,7 @@ public class BindStrongTypesTests
         Assert.Contains("Level.Wrapper", failures, StringComparison.Ordinal);
     }
 
-    /// <summary>Also pins that the walk stops at a wrapper: recursing into <c>NonEmptyString</c> would report on its innards, and a nested value type is still no one's problem.</summary>
+    /// <summary>Also pins that the walk stops at a wrapper — it is not recursed into — and that a nested value type is still never required.</summary>
     [Fact]
     public void NestedObject_FullyConfigured_Passes()
     {
@@ -257,7 +248,6 @@ public class BindStrongTypesTests
         Assert.Equal(1, child.Number.Value);
     }
 
-    /// <summary>An optional nested object may be absent — but once it is there, what it declared holds.</summary>
     [Fact]
     public void ConfiguredOptionalNested_StillHasItsOwnPropertiesChecked() =>
         Assert.Contains(

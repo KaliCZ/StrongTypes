@@ -118,9 +118,6 @@ public class NumericFormattingTests
     }
 
     // ── Generic constraints ─────────────────────────────────────────────
-    //
-    // What the span interfaces buy that reaching for .Value cannot: a caller's
-    // generic code constrained on them can accept a wrapper at all.
 
     private static string Render<T>(T value, string format) where T : IFormattable =>
         value.ToString(format, American);

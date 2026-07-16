@@ -4,17 +4,13 @@ using Microsoft.EntityFrameworkCore;
 namespace StrongTypes.Analyzers.Tests.Infrastructure;
 
 /// <summary>
-/// Curated <see cref="MetadataReference"/> sets for analyzer tests. We need fine-grained control
-/// over what the test compilation "sees" — the whole point of <c>MissingEfCorePackageAnalyzer</c>
-/// is to flip behavior based on which assemblies are referenced, so we cannot just dump the
-/// host's loaded assembly list verbatim (it leaks EF Core and StrongTypes.EfCore into every case).
+/// Curated <see cref="MetadataReference"/> sets for analyzer tests: dumping the host's loaded
+/// assemblies would leak EF Core and StrongTypes.EfCore into every case and defeat the
+/// reference-sensitive analyzers.
 /// </summary>
 internal static class TestReferences
 {
-    // Keep bleed-through from the host process explicit: anything matching these prefixes is a
-    // test-host dependency that a user's project might not have, and tests need to control set
-    // membership themselves via the `Entity*` / `StrongTypesEfCore` fields. Declared FIRST so
-    // static-init order makes it available when `Core` is populated below.
+    // Must be declared before Core: Core's initializer reads this.
     private static readonly string[] _hostOnlyPrefixes =
     {
         "Microsoft.EntityFrameworkCore",

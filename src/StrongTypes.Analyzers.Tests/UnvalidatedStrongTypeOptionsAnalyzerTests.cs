@@ -134,11 +134,7 @@ public class UnvalidatedStrongTypeOptionsAnalyzerTests
 
     // ── Silent ──────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// A type carrying its own <c>[TypeConverter]</c> binds from a scalar, so the binder never reaches
-    /// the wrapper inside it and neither should the walk — recursing here would invent a diagnostic
-    /// for a property configuration was never going to touch.
-    /// </summary>
+    /// <summary>A <c>[TypeConverter]</c> type binds from a scalar, so the binder never reaches the wrapper inside it — flagging it would invent a diagnostic for a property configuration never touches.</summary>
     [Fact]
     public async Task Silent_for_a_wrapper_inside_a_type_that_binds_from_a_scalar()
     {
@@ -171,7 +167,6 @@ public class UnvalidatedStrongTypeOptionsAnalyzerTests
         Assert.Empty(diagnostics.WhereId(UnvalidatedStrongTypeOptionsAnalyzer.DiagnosticId));
     }
 
-    /// <summary>A nested class whose own wrappers are all guarded gives the walk nothing to report.</summary>
     [Fact]
     public async Task Silent_for_a_nested_class_with_nothing_unguarded()
     {
@@ -200,7 +195,6 @@ public class UnvalidatedStrongTypeOptionsAnalyzerTests
         Assert.Empty(diagnostics.WhereId(UnvalidatedStrongTypeOptionsAnalyzer.DiagnosticId));
     }
 
-    /// <summary>A self-referencing options class must not send the walk round forever.</summary>
     [Fact]
     public async Task Cyclic_options_graph_terminates()
     {
@@ -249,11 +243,7 @@ public class UnvalidatedStrongTypeOptionsAnalyzerTests
         Assert.Empty(diagnostics.WhereId(UnvalidatedStrongTypeOptionsAnalyzer.DiagnosticId));
     }
 
-    /// <summary>
-    /// A struct wrapper cannot be null, so an absent key leaves it at a default the type is happy to
-    /// hold — <c>Positive&lt;int&gt;</c> at 1. There is no contradiction to report, and requiring
-    /// configuration for it would be a policy rather than a fix.
-    /// </summary>
+    /// <summary>A struct wrapper cannot be null, so an absent key leaves it at a default the type is happy to hold — there is no contradiction to report.</summary>
     [Theory]
     [InlineData("    public Positive<int> MaxRetries { get; set; }")]
     [InlineData("    public Positive<int>? MaxRetries { get; set; }")]

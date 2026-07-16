@@ -8,15 +8,7 @@ using Xunit;
 
 namespace StrongTypes.Tests;
 
-/// <summary>
-/// What a strong type holds when its key is simply not in config. A wrapper's invariant constrains
-/// every value it can hold; it cannot make the binder assign one, so an unconfigured property is a
-/// hole the type system does not plug — and the two kinds of wrapper leave a different shape of hole.
-/// </summary>
-/// <remarks>
-/// The options classes here deliberately carry no property initialisers. An initialiser hides the
-/// whole problem: the binder leaves it in place and the property looks configured.
-/// </remarks>
+/// <summary>What a strong type holds when its key is simply not in config.</summary>
 public class UnconfiguredOptionsTests
 {
     private sealed class RetryOptions
@@ -35,7 +27,7 @@ public class UnconfiguredOptionsTests
         public Digit Tier { get; set; }
     }
 
-    /// <summary>Only <c>Tier</c> is configured; the section exists so the binder produces an instance.</summary>
+    /// <summary>The section exists so the binder produces an instance rather than returning null.</summary>
     private const string OnlyTierConfigured = "{\"Retry\":{\"Tier\":7}}";
 
     private static IConfigurationSection Section(string json) =>
@@ -57,7 +49,7 @@ public class UnconfiguredOptionsTests
     public void UnconfiguredReferenceWrapper_IsNull() =>
         Assert.Null(Bind<RetryOptions>(OnlyTierConfigured).Name);
 
-    /// <summary>A struct wrapper falls back to <c>default</c>, which satisfies the invariant and so reads as a deliberately configured value. This is the shape the silent-config bug took.</summary>
+    /// <summary>A struct wrapper falls back to <c>default</c>, which satisfies the invariant and so reads as a deliberately configured value.</summary>
     [Fact]
     public void UnconfiguredStructWrapper_IsItsDefault()
     {
@@ -85,8 +77,7 @@ public class UnconfiguredOptionsTests
     /// <summary>
     /// <c>[Required]</c> plus <c>ValidateDataAnnotations()</c> catches a missing reference wrapper
     /// and a missing nullable struct wrapper — both are null — but <b>cannot</b> catch a missing
-    /// non-nullable struct wrapper, whose default is an ordinary value and never null. Declare a
-    /// struct wrapper nullable when "not configured" has to be detectable.
+    /// non-nullable struct wrapper, whose default is an ordinary value and never null.
     /// </summary>
     [Fact]
     public void Required_CatchesNullsOnly_NotAStructsDefault()

@@ -9,25 +9,9 @@ using Microsoft.CodeAnalysis.Operations;
 namespace StrongTypes.Analyzers;
 
 /// <summary>
-/// Fires when an options type carrying a non-nullable reference wrapper — at any depth — is bound
-/// with <c>Bind</c> / <c>Configure</c>, which cannot notice the key is missing and leaves the
-/// property null.
+/// Flags a <c>Bind</c> / <c>Configure</c> on an options type that would leave a non-nullable
+/// reference wrapper null at any depth when the key is missing.
 /// </summary>
-/// <remarks>
-/// A wrapper's invariant constrains every value it can hold; it cannot make the binder assign one,
-/// and the binder assigns nothing for an absent key — so an unconfigured <c>NonEmptyString</c> is
-/// <c>null</c>, which is what the type says it can never be. <c>ValidateOnStart()</c> does not help:
-/// binding an absent key succeeds, so nothing is raised.
-/// <para>
-/// Struct wrappers are not reported. An unconfigured <c>Positive&lt;int&gt;</c> is <c>1</c> — its
-/// default, and a value the type is happy to hold — so there is no contradiction to catch, and
-/// requiring configuration for it would be a policy rather than a fix.
-/// </para>
-/// <para>
-/// A property already carrying <c>[Required]</c> is not reported either: that genuinely covers a
-/// null reference.
-/// </para>
-/// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class UnvalidatedStrongTypeOptionsAnalyzer : DiagnosticAnalyzer
 {
@@ -53,9 +37,7 @@ public sealed class UnvalidatedStrongTypeOptionsAnalyzer : DiagnosticAnalyzer
         "StrongTypes.Negative`1",
         "StrongTypes.NonPositive`1");
 
-    // The two shapes that bind a whole options type from a section and have a
-    // BindStrongTypes equivalent. ConfigurationBinder.Get<T>/Bind(object) are
-    // deliberately excluded: they are one-off reads with no OptionsBuilder to fix.
+    // Get<T> / Bind(object) are excluded: one-off reads with no OptionsBuilder to rewrite to.
     private const string OptionsBuilderBindExtensions = "Microsoft.Extensions.DependencyInjection.OptionsBuilderConfigurationExtensions";
     private const string ServiceCollectionConfigureExtensions = "Microsoft.Extensions.DependencyInjection.OptionsConfigurationServiceCollectionExtensions";
 
@@ -124,7 +106,6 @@ public sealed class UnvalidatedStrongTypeOptionsAnalyzer : DiagnosticAnalyzer
                && SymbolEqualityComparer.Default.Equals(containing, configureExtensions);
     }
 
-    /// <summary>Non-nullable reference wrappers with nothing guarding them, at any depth — the only properties an absent key can leave in a state their type forbids.</summary>
     private static List<string> CollectPropertiesLeftNull(INamedTypeSymbol optionsType, INamedTypeSymbol? requiredAttribute)
     {
         var result = new List<string>();
@@ -177,11 +158,7 @@ public sealed class UnvalidatedStrongTypeOptionsAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    /// <summary>
-    /// The type a missing key would leave partially bound, or <c>null</c> where the binder converts a
-    /// scalar instead of recursing — mirroring how <c>ConfigurationBinder</c> itself decides, so the
-    /// walk covers the graph it would build. Collection and dictionary elements are walked too.
-    /// </summary>
+    /// <summary>The type to recurse into, or <c>null</c> where the binder would convert a scalar instead. Unwraps arrays and collections to their element type.</summary>
     private static INamedTypeSymbol? BindsAsAnObjectGraph(ITypeSymbol type)
     {
         if (type is IArrayTypeSymbol array)
@@ -226,7 +203,7 @@ public sealed class UnvalidatedStrongTypeOptionsAnalyzer : DiagnosticAnalyzer
         requiredAttribute is not null
         && property.GetAttributes().Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, requiredAttribute));
 
-    /// <summary>An assembly compiled without nullable reference types annotates nothing, so a reference wrapper reads as <see cref="NullableAnnotation.None"/> — no intent declared, nothing to enforce.</summary>
+    /// <summary>Also true for a reference wrapper in an assembly compiled without NRT: no annotation, so no intent to enforce.</summary>
     private static bool IsOptional(IPropertySymbol property)
     {
         if (property.Type is INamedTypeSymbol named

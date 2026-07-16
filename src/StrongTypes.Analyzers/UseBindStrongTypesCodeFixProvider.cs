@@ -13,15 +13,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace StrongTypes.Analyzers;
 
 /// <summary>
-/// Code fix for <see cref="UnvalidatedStrongTypeOptionsAnalyzer"/>: rewrites
-/// <c>.Bind(section)</c> to <c>.BindStrongTypes(section)</c>.
+/// Code fix for <see cref="UnvalidatedStrongTypeOptionsAnalyzer"/>: rewrites <c>.Bind(section)</c> to
+/// <c>.BindStrongTypes(section)</c>. Offered only when <c>Kalicz.StrongTypes.Configuration</c> is
+/// referenced, and only for <c>Bind</c> — a <c>Configure&lt;T&gt;</c> call needs restructuring, so it
+/// gets none.
 /// </summary>
-/// <remarks>
-/// Offered only when <c>Kalicz.StrongTypes.Configuration</c> is already referenced — without it the
-/// rewrite would not compile. A <c>services.Configure&lt;T&gt;(section)</c> call still reports the
-/// diagnostic but gets no fix: rewriting it means restructuring to
-/// <c>AddOptions&lt;T&gt;().BindStrongTypes(section)</c>, which is the caller's call to make.
-/// </remarks>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseBindStrongTypesCodeFixProvider))]
 [Shared]
 public sealed class UseBindStrongTypesCodeFixProvider : CodeFixProvider
