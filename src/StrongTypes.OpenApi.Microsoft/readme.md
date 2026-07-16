@@ -33,6 +33,8 @@ app.MapOpenApi();
 ## What it does
 
 - `NonEmptyString` &rarr; `{ "type": "string", "minLength": 1 }`
+- `Email` &rarr; `{ "type": "string", "format": "email", "minLength": 1, "maxLength": 254 }`
+- `Digit` &rarr; `{ "type": "integer", "format": "int32", "minimum": 0, "maximum": 9 }`
 - `Positive<T>` &rarr; underlying primitive with `exclusiveMinimum: 0`
 - `NonNegative<T>` &rarr; underlying primitive with `minimum: 0`
 - `Negative<T>` &rarr; underlying primitive with `exclusiveMaximum: 0`

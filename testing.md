@@ -28,10 +28,11 @@ the whole input space.
 - Write `[Property]` tests from `FsCheck.Xunit` and let an `Arbitrary<T>`
   cover the input space. Register arbitraries on a test class via
   `[Properties(Arbitrary = new[] { typeof(Generators) })]`.
-- All shared arbitraries live in a single `Generators` class at
-  `src/StrongTypes.Tests/Generators.cs`. Add new arbitraries there rather
-  than creating per-feature generator classes — one shelf so tests can
-  grab anything with a single `[Properties(Arbitrary = new[] { typeof(Generators) })]`
+- All shared arbitraries live in the shipped `Generators` class at
+  `src/StrongTypes.FsCheck/Generators.cs`, which the test project consumes
+  via project reference. Add new arbitraries there rather than creating
+  per-feature generator classes — one shelf so tests can grab anything
+  with a single `[Properties(Arbitrary = new[] { typeof(Generators) })]`
   attribute. Weight branches with `Gen.Frequency` when one branch is the
   common case and the other needs only occasional coverage (e.g. 90%
   populated, 10% null).
@@ -181,11 +182,13 @@ inspecting the type), so a reference + struct representative is enough.
 Verifies the schema each type produces in **both** supported OpenAPI
 stacks: `Microsoft.AspNetCore.OpenApi` and Swashbuckle. The tests share
 `OpenApiDocumentTestsBase`, an `abstract partial` class split across
-feature-scoped files (`*.Strings.cs`, `*.Numerics.cs`,
-`*.Collections.cs`, `*.Composition.cs`, `*.Annotations.cs`,
-`*.Components.cs`). Two concrete subclasses
-(`MicrosoftOpenApiDocumentTests`, `SwashbuckleOpenApiDocumentTests`) run
-the whole suite once per pipeline.
+feature-scoped files (`*.Strings.cs`, `*.Emails.cs`, `*.Numerics.cs`,
+`*.Collections.cs`, `*.Intervals.cs`, `*.Composition.cs`,
+`*.Annotations.cs`, `*.Components.cs`, `*.NonBodyBinding.cs`). Three
+concrete subclasses (`MicrosoftOpenApiDocumentTests`,
+`MicrosoftOpenApi31DocumentTests`, `SwashbuckleOpenApiDocumentTests`) run
+the whole suite once per pipeline — and, for Microsoft, once per OpenAPI
+version.
 
 When adding a type that appears in API contracts:
 

@@ -27,48 +27,19 @@ feature's folder:
 - `src/StrongTypes/Strings/NonEmptyString.cs`
 - `src/StrongTypes/Strings/NonEmptyStringExtensions.cs`
 - `src/StrongTypes/Strings/NonEmptyStringJsonConverter.cs`
-- `src/StrongTypes/Try/TryExtensions.cs`
+- `src/StrongTypes/Maybe/MaybeExtensions.cs`
 
 Extensions that *produce* a feature type go into that feature's folder
-even when the input type is from somewhere else (e.g. `ToTry` on `T?`
-lives under `Try/`, because the result — not the receiver — is what
+even when the input type is from somewhere else (e.g. `ToMaybe` on `T?`
+lives under `Maybe/`, because the result — not the receiver — is what
 defines the slice).
 
 Namespaces stay flat at `StrongTypes` regardless of folder nesting. Folder
 structure is for humans; the namespace is one flat shelf. The same applies
 to the test project — keep tests in `namespace StrongTypes.Tests` even
 when they live in subfolders, to avoid shadowing type names (e.g., a
-nested `StrongTypes.Tests.Try` namespace would hide the `StrongTypes.Try`
-class from sibling files).
-
-## Migration from _Old
-
-The codebase is mid-migration. Anything under a folder or filename suffixed with
-`_Old` is legacy and should not be modified or extended. New code goes in
-non-suffixed folders (e.g., new string types go in `src/StrongTypes/Strings/`).
-
-When you rework an _Old type, treat the rewrite as a real review — drop the
-`_Old` suffix, read the entire file, and improve anything that is wrong or
-outdated, not just what the task names. Do not port code verbatim.
-
-**Dealing with the _Old file being replaced:**
-
-- If the old file is *entirely* about the type being reworked (e.g.,
-  `NonEmptyString_Old.cs`), delete it. The new file is the replacement.
-- If the old file mixes multiple concerns (e.g., `StringExtensions_Old.cs`
-  contains extensions for both `string` and `NonEmptyString`), leave the
-  `_Old` file in place and create a new non-suffixed file containing *only*
-  the reworked pieces. The remaining legacy surface stays where it was until
-  its own migration pass.
-- In either case, minimally patch remaining `_Old` call sites only as much as
-  is needed to keep the build green.
-
-**Other rules:**
-
-- Do **not** take a dependency on other _Old types (e.g., `Option<T>`). Prefer
-  modern BCL primitives (nullable reference types, `Result`-shaped APIs, etc.).
-- Do not delete _Old files unless explicitly asked or unless the rule above
-  applies.
+nested `StrongTypes.Tests.Maybe` namespace would hide the
+`StrongTypes.Maybe<T>` type from sibling files).
 
 ## Validated types — the TryCreate / Create pattern
 
@@ -87,14 +58,13 @@ public static NonEmptyString Create(string? value)
 Rules:
 - The validation logic lives in `TryCreate` only. `Create` delegates.
 - Constructors are `private` — callers must go through the factories.
-- Use nullable reference types. The library project does not enable them
-  globally yet, so add `#nullable enable` at the top of each new file.
-- Do **not** return `Option<T>` from new code.
+- Use nullable reference types.
 
 ## Tests
 
-All testing rules — unit, API integration, OpenAPI integration, and
-analyzer tests — live in [`testing.md`](testing.md). **Read that file
+All testing rules — unit, API / ASP.NET Core / OpenAPI integration,
+configuration binding, WPF, and analyzer tests — live in
+[`testing.md`](testing.md). **Read that file
 before writing or modifying a test, and before writing any code that
 will need tests** (a new strong type, a converter, an analyzer, an API
 endpoint, …). It is the single source of truth; do not infer testing
@@ -157,10 +127,6 @@ that a host may opt into skipping it when the amd64-only image won't start
 — see the "SQL Server availability and skipping" section of
 [`testing.md`](testing.md). Absent the opt-in, a SQL Server that fails to
 start is always a hard failure, never a silent skip.
-
-Current state: uses plain `string` / `string?`. Strong-type converters
-(EF Core value converters, JSON converters) will be wired in once the
-parallel work on those lands.
 
 ## Comments — XML and `//`
 

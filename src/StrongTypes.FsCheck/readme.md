@@ -4,9 +4,9 @@
 
 FsCheck arbitraries for [Kalicz.StrongTypes](https://www.nuget.org/packages/Kalicz.StrongTypes).
 Lets you write property tests against code that takes or returns `NonEmptyString`,
-`Digit`, `Positive<T>`, `NonNegative<T>`, `Negative<T>`, `NonPositive<T>`, `Maybe<T>`,
-and `NonEmptyEnumerable<T>` without hand-rolling generators that re-derive each
-type's invariants.
+`Email`, `Digit`, `Positive<T>`, `NonNegative<T>`, `Negative<T>`, `NonPositive<T>`,
+`Maybe<T>`, `NonEmptyEnumerable<T>`, the interval types, and `Result<T, TError>`
+without hand-rolling generators that re-derive each type's invariants.
 
 ## Install
 
@@ -47,6 +47,7 @@ Scalar strong types ship three shapes: the type itself, its nullable form
 | Type                 | `T`             | `T?`                    | `Maybe<T>`              |
 | -------------------- | --------------- | ----------------------- | ----------------------- |
 | `NonEmptyString`     | `NonEmptyString`| `NullableNonEmptyString`| `MaybeNonEmptyString`   |
+| `Email`              | `Email`         | `NullableEmail`         | `MaybeEmail`            |
 | `Digit`              | `Digit`         | `NullableDigit`         | `MaybeDigit`            |
 | `Positive<int>`      | `PositiveInt`   | `NullablePositiveInt`   | `MaybePositiveInt`      |
 | `Negative<int>`      | `NegativeInt`   | `NullableNegativeInt`   | `MaybeNegativeInt`      |
@@ -56,6 +57,10 @@ Scalar strong types ship three shapes: the type itself, its nullable form
 Apart from the above, you also get:
 
 - `NonEmptyEnumerableInt` — `NonEmptyEnumerable<int>`
+- `FiniteIntervalInt`, `IntervalInt`, `IntervalFromInt`, `IntervalUntilInt` —
+  the four interval shapes over `int`, honoring each type's invariant and
+  mixing bound inclusivity
+- `ResultIntString` (`Result<int, string>`) and `ResultInt` (`Result<int>`)
 - `Maybe<T>` for common primitives: `MaybeBool`, `MaybeInt`, `MaybeLong`,
   `MaybeDouble`, `MaybeChar`, `MaybeString`, `MaybeGuid` — all with ~5% `None`.
 

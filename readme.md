@@ -2,7 +2,7 @@
 
 [![NuGet version](https://img.shields.io/nuget/v/Kalicz.StrongTypes?label=nuget)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![Downloads](https://img.shields.io/nuget/dt/Kalicz.StrongTypes?label=downloads)](https://www.nuget.org/packages/Kalicz.StrongTypes/) [![License](https://img.shields.io/github/license/KaliCZ/StrongTypes)](https://github.com/KaliCZ/StrongTypes/blob/main/license.txt)
 
-StrongTypes adds small, focused types that make everyday code safer and more expressive. Every type ships with `System.Text.Json` converters out of the box, so invalid JSON fails at deserialization, and a `TypeConverter`, so the same invariant validates `appsettings.json` as it binds and WPF two-way bindings work with no setup. The types can be stored directly in EF Core entities via the EfCore package, and OpenAPI documentation is supported through the Microsoft or Swashbuckle OpenAPI packages — see [Packages](#packages) below.
+StrongTypes adds small, focused types that make everyday code safer and more expressive. The types ship with `System.Text.Json` converters out of the box, so invalid JSON fails at deserialization, and the scalar wrappers carry a `TypeConverter`, so the same invariant validates `appsettings.json` as it binds and WPF two-way bindings work with no setup. The types can be stored directly in EF Core entities via the EfCore package, and OpenAPI documentation is supported through the Microsoft or Swashbuckle OpenAPI packages — see [Packages](#packages) below.
 
 > 🤖 Letting Claude Code or Codex write code in a project that uses
 > StrongTypes? See [Use with Claude or Codex](#use-with-claude-or-codex)
@@ -61,7 +61,7 @@ curl -L https://github.com/KaliCZ/StrongTypes/releases/latest/download/strongtyp
 
 ## Helpful Scalar types
 
-The `TryCreate` / `Create` split (and the `As…` / `To…` extensions that mirror it) is used across every validated type in the library — pick the factory that matches how you want to handle bad input at the call site:
+The `TryCreate` / `Create` split (and the `As…` / `To…` extensions that mirror it) is used across every validated type in the library — pick the factory that matches how you want to handle bad input at the call site. Besides the two families below, the same pattern powers `Email` (a validated e-mail address wrapping `MailAddress`) and `Digit` (a single decimal digit, `0`–`9`):
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/trycreate-create-flow-dark.svg">
@@ -108,10 +108,10 @@ All defaults (e.g. `default(Positive<T>)`) still satisfy their invariants (e.g. 
 
 ### What you get for free
 
-Every strong type in this library implements the full set of equality and comparison interfaces, so you can drop them into dictionaries, sorted collections, LINQ `OrderBy`, and equality checks without writing any boilerplate:
+Every strong type in this library implements value-based equality, and the ordered ones (`NonEmptyString`, `Digit`, and the numeric wrappers) add the full comparison surface, so you can drop them into dictionaries, sorted collections, LINQ `OrderBy`, and equality checks without writing any boilerplate:
 
 - `IEquatable<T>` and the `==` / `!=` operators
-- `IComparable<T>`, `IComparable`, and the `<`, `<=`, `>`, `>=` operators
+- `IComparable<T>`, `IComparable`, and the `<`, `<=`, `>`, `>=` operators (on the ordered types)
 - `GetHashCode` and `Equals(object?)` overrides consistent with value-based equality
 - A sensible `ToString()` that returns the underlying value
 
@@ -119,13 +119,13 @@ Equality and comparison also work directly against the underlying value — ther
 
 ```csharp
 
-bool stringEquality1 = NonEmptyString.Create("Alice") == "Alice"; // true - implicit operator
-bool stringEquality2 = name.CompareTo("Alice") == "Alice";        // true - explicit operator overload
+bool stringEquality1 = NonEmptyString.Create("Alice") == "Alice"; // true - == overload against string
+bool stringEquality2 = name.CompareTo("Alice") == 0;              // true - CompareTo overload against string
 
-bool intEquality1 = 2 == Positive<int>.Create(2);                 // true - implicit operator
-bool intEquality2 = Positive<int>.Create(2) == 2;                 // true - explicit operator overload
+bool intEquality1 = 2 == Positive<int>.Create(2);                 // true - == overload against the number
+bool intEquality2 = Positive<int>.Create(2) == 2;                 // true - == overload against the number
 
-bool order = Positive<int>.Create(4) > 2;                         // true - explicit operator overload
+bool order = Positive<int>.Create(4) > 2;                         // true - > overload against the number
 // Same for the other types and equality methods
 ```
 
@@ -133,17 +133,17 @@ bool order = Positive<int>.Create(4) > 2;                         // true - expl
 
 ### JSON serialization
 
-All strong types ship with `System.Text.Json` converters attached via `[JsonConverter]` — no converter registration and no custom `JsonSerializerOptions` required. The format is the same as the underlying primitive (`"hello"`, `42`, …), and invalid input surfaces as a `JsonException`.
+The strong types ship with `System.Text.Json` converters attached via `[JsonConverter]` — no converter registration and no custom `JsonSerializerOptions` required. The format is the same as the underlying primitive (`"hello"`, `42`, …), and invalid input surfaces as a `JsonException`.
 
 `Maybe<T>` has a special format of serialization, so Some serializes into `{ "Value": xxx }` and None into `{ "Value": null }`.
 
-`Result<T, TError>` (and `Result<T>`) has no JSON converter I don't think you want to serialize that.
+`Result<T, TError>` (and `Result<T>`) has no JSON converter — I don't think you want to serialize that.
 
 [↑ Back to contents](#contents)
 
 ### Configuration binding
 
-All strong types ship a `TypeConverter` attached via `[TypeConverter]`, which is what `ConfigurationBinder` uses — so a wrapper sits directly on an options class and its invariant becomes the config validation rule. A bad value fails at startup with the path, the value, and the reason:
+The scalar strong types (`NonEmptyString`, `Email`, `Digit`, and the numeric wrappers) ship a `TypeConverter` attached via `[TypeConverter]`, which is what `ConfigurationBinder` uses — so a wrapper sits directly on an options class and its invariant becomes the config validation rule. A bad value fails at startup with the path, the value, and the reason:
 
 ```
 InvalidOperationException: Failed to convert configuration value '-5' at 'Retry:MaxRetries'
@@ -194,7 +194,7 @@ Pick the one that matches the generator your app already uses. They're not inter
 
 ### WPF MVVM binding
 
-Nothing to install, nothing to call. WPF resolves `string → T` through `TypeDescriptor`, and every strong type carries a `[TypeConverter]`, so two-way bindings just work:
+Nothing to install, nothing to call. WPF resolves `string → T` through `TypeDescriptor`, and the scalar strong types carry a `[TypeConverter]`, so two-way bindings just work:
 
 ```xml
 <TextBox Text="{Binding Name,
@@ -273,7 +273,7 @@ INonEmptyEnumerable<Animal>  animals = dogs;  // allowed thanks to `out T`
   <img alt="Covariant out T upcast" src="docs/diagrams/covariance.svg">
 </picture>
 
-All extensions (`Select`, `Concat`, `Max`, `Last`, …) have overloads on both the concrete type and the interface, so either receiver type works in a chain.
+All extensions (`Select`, `Concat`, `Max`, `Last`, …) accept both the concrete type and the interface as the receiver, so either type works in a chain.
 
 [↑ Back to contents](#contents)
 
@@ -296,7 +296,7 @@ A readonly struct with a condition `Start <= End`. Both are **inclusive by defau
 | `FiniteInterval<T>`   | `T`     | `T`   | a fully-bounded range                   |
 | `IntervalFrom<T>`     | `T`     | `T?`  | "from X" (end optional)                 |
 | `IntervalUntil<T>`    | `T?`    | `T`   | "until Y" (start optional)              |
-| `Interval<T>`         | `T?`    | `T?`  | both optional (but one must be present) |
+| `Interval<T>`         | `T?`    | `T?`  | both optional (may be fully unbounded)  |
 
 Same factory pattern; `TryCreate` / `Create` reject `Start > End`. `Start = End` is rejected unless both are inclusive.
 
@@ -310,6 +310,7 @@ IntervalFrom<DateOnly> openEnded = IntervalFrom.Create(today, null); // "from to
 `Contains` answers membership honoring each bound's inclusivity.
 
 ```csharp
+FiniteInterval<int> range = FiniteInterval.Create(1, 10);
 bool inRange = range.Contains(10);   // true — bounds are inclusive by default
 bool atShiftEnd = time.Contains(17);   // false — created with endInclusive: false
 ```
@@ -479,11 +480,11 @@ MailAddress? email = text is null ? null : new MailAddress(text);
 ```csharp
 MailAddress? email = text.Map(t => new MailAddress(t));
 int? doubled = maybeInt.Map(x => x * 2);
-someResult? something = featureFlagEnabled.MapTrue(CallSomeService);
+SomeResult? something = featureFlagEnabled.MapTrue(CallSomeService);
 // instead of
-someResult? something = null;
+SomeResult? something = null;
 if (featureFlagEnabled)
-    someResult = CallSomeService();
+    something = CallSomeService();
 ```
 
 So *you don't need `Maybe<T>` just to compose an optional logic*. With `Map` in the toolbox, plain `T?` covers most cases. Save `Maybe<T>` for the cases where nullability can't express what you need — see the HTTP PATCH example below.
@@ -683,7 +684,7 @@ public Result<Order, OrderError> CreateOrder(OrderData data)
     Result<Payment, PaymentError> paymentResult = Pay(data.Payment);
     if (paymentResult.Error is { } e)
     {
-        logger.Log("Failed to make a payment for order {OrderId} because of {ErrorReason}.", data.Id, e);
+        logger.LogError("Failed to make a payment for order {OrderId} because of {ErrorReason}.", data.Id, e);
         return OrderError.PaymentFailed; // Implicit operator
     }
 
@@ -787,7 +788,7 @@ Result<Positive<int>[], string> ParseOrderQuantities(IEnumerable<int> inputs)
 
 | Package | Purpose | Readme |
 | --- | --- | --- |
-| [`Kalicz.StrongTypes`](https://www.nuget.org/packages/Kalicz.StrongTypes/) | Core types: `NonEmptyString`, `Positive<T>` / `NonNegative<T>` / `Negative<T>` / `NonPositive<T>`, `NonEmptyEnumerable<T>`, `Maybe<T>`, `Result<T, TError>`, plus `System.Text.Json` converters. | (this readme) |
+| [`Kalicz.StrongTypes`](https://www.nuget.org/packages/Kalicz.StrongTypes/) | Core types: `NonEmptyString`, `Email`, `Digit`, `Positive<T>` / `NonNegative<T>` / `Negative<T>` / `NonPositive<T>`, the interval types, `NonEmptyEnumerable<T>`, `Maybe<T>`, `Result<T, TError>`, plus the `System.Text.Json` converters and `TypeConverter`s. | (this readme) |
 | [`Kalicz.StrongTypes.Configuration`](https://www.nuget.org/packages/Kalicz.StrongTypes.Configuration/) | `OptionsBuilder<T>.BindStrongTypes()` — binds a section and fails when a property declared non-nullable is null once bound, which an absent key otherwise leaves silently. Binding itself needs no package; this is only about the key that isn't there. | [readme](src/StrongTypes.Configuration/readme.md) |
 | [`Kalicz.StrongTypes.EfCore`](https://www.nuget.org/packages/Kalicz.StrongTypes.EfCore/) | EF Core value converters + `DbContext` extension for round-tripping the wrappers through scalar columns. | [readme](src/StrongTypes.EfCore/readme.md) |
 | [`Kalicz.StrongTypes.FsCheck`](https://www.nuget.org/packages/Kalicz.StrongTypes.FsCheck/) | FsCheck `Arbitrary<T>` generators for property-based (generative) testing of code that takes or returns the wrappers. | [readme](src/StrongTypes.FsCheck/readme.md) |
