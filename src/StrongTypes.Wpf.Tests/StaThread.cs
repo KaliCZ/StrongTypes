@@ -3,6 +3,7 @@
 using System;
 using System.Runtime.ExceptionServices;
 using System.Threading;
+using System.Windows.Threading;
 
 namespace StrongTypes.Wpf.Tests;
 
@@ -19,6 +20,9 @@ internal static class StaThread
         {
             try { result = body(); }
             catch (Exception ex) { captured = ExceptionDispatchInfo.Capture(ex); }
+            // Constructing a WPF element spins up a Dispatcher for this thread; without shutdown it
+            // survives the thread and the test host force-exits over the leftover foreground threads.
+            finally { Dispatcher.FromThread(Thread.CurrentThread)?.InvokeShutdown(); }
         });
         thread.SetApartmentState(ApartmentState.STA);
         thread.IsBackground = true;
