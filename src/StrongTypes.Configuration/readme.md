@@ -76,6 +76,14 @@ distinguishable from a configured default, declare it `Positive<int>?` and check
 - You already use `[Required]` with `ValidateDataAnnotations()`, which covers the same ground with
   an attribute per property.
 
+## Why a separate package
+
+So [`Kalicz.StrongTypes`](https://www.nuget.org/packages/Kalicz.StrongTypes/) stays free of
+dependencies. This package pulls in `Microsoft.Extensions.Options.ConfigurationExtensions`; a domain
+model or a library that uses `NonEmptyString` should not inherit the options and configuration stack
+transitively just to hold a value. Apps that bind configuration already have it, and add one
+reference; everyone else keeps a dependency-free core.
+
 ## Nullable reference types
 
 Intent is read from the assembly's nullable annotations. An options class in a project with
