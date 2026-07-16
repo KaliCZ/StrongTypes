@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 470" role="img" aria-label="StrongTypes NuGet package layout">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 535" role="img" aria-label="StrongTypes NuGet package layout">
   <style>
     .core-title   { font: 700 15px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #111827; }
     .card-title   { font: 600 13px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; fill: #111827; }
@@ -124,9 +124,9 @@
   <text class="niche-body" x="453" y="239"><tspan font-family="ui-monospace, Menlo, Consolas, monospace">NonEmptyEnumerable&lt;T&gt;</tspan> binder from forms / query / headers</text>
 
   <!-- ========================================================== -->
-  <!-- Utility packages (bottom-left) — EfCore + FsCheck stacked  -->
+  <!-- Utility packages (bottom-left) — EfCore, FsCheck, Config   -->
   <!-- ========================================================== -->
-  <rect class="group-bg group-border" x="15" y="285" width="380" height="160" rx="10" stroke-width="1.2"/>
+  <rect class="group-bg group-border" x="15" y="285" width="380" height="225" rx="10" stroke-width="1.2"/>
   <text class="group-label" x="30" y="304">UTILITY PACKAGES</text>
 
   <!-- EfCore -->
@@ -142,22 +142,28 @@
   <circle class="sm-bullet" cx="45" cy="423" r="2"/>
   <text class="card-body" x="53" y="427">Predefined value generators</text>
 
+  <!-- Configuration -->
+  <rect class="card-bg card-border" x="25" y="448" width="360" height="55" rx="6" stroke-width="1.5"/>
+  <text class="card-title" x="39" y="468">Kalicz.StrongTypes.Configuration</text>
+  <circle class="sm-bullet" cx="45" cy="488" r="2"/>
+  <text class="card-body" x="53" y="492"><tspan font-family="ui-monospace, Menlo, Consolas, monospace">BindStrongTypes()</tspan> — fail on a missing key</text>
+
   <!-- ========================================================== -->
-  <!-- App surface (bottom-right) — currently just WPF            -->
+  <!-- App surface (bottom-right) — built into the core package    -->
   <!-- ========================================================== -->
-  <rect class="group-bg group-border" x="415" y="285" width="390" height="160" rx="10" stroke-width="1.2"/>
+  <rect class="group-bg group-border" x="415" y="285" width="390" height="225" rx="10" stroke-width="1.2"/>
   <text class="group-label" x="430" y="304">APP SURFACE</text>
 
-  <!-- WPF -->
+  <!-- WPF / WinForms -->
   <rect class="card-bg card-border" x="425" y="318" width="370" height="55" rx="6" stroke-width="1.5"/>
-  <text class="card-title" x="439" y="338">Kalicz.StrongTypes.Wpf</text>
+  <text class="card-title" x="439" y="338">WPF / WinForms</text>
   <circle class="sm-bullet" cx="445" cy="358" r="2"/>
-  <text class="card-body" x="453" y="362">Two-way MVVM binding</text>
+  <text class="card-body" x="453" y="362">Two-way MVVM binding — built in</text>
 
   <!-- CTA: invite issues for other UI frameworks -->
   <a href="https://github.com/KaliCZ/StrongTypes/issues/new" target="_blank">
-    <text class="cta-text" x="610" y="415" text-anchor="middle">Want WinForms, MAUI, or Avalonia?</text>
-    <text class="cta-text" x="610" y="432" text-anchor="middle">Open a GitHub issue →</text>
+    <text class="cta-text" x="610" y="435" text-anchor="middle">Want WinForms, MAUI, or Avalonia?</text>
+    <text class="cta-text" x="610" y="452" text-anchor="middle">Open a GitHub issue →</text>
   </a>
 
   <!-- ========================================================== -->

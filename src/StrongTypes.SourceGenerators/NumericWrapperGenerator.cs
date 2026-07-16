@@ -178,7 +178,10 @@ public sealed class NumericWrapperGenerator : IIncrementalGenerator
             sb.Append("    global::System.IComparable<").Append(self).AppendLine(">,");
             sb.Append("    global::System.IComparable<").Append(t).AppendLine(">,");
             sb.AppendLine("    global::System.IComparable,");
-            sb.Append("    global::System.IParsable<").Append(self).AppendLine(">");
+            sb.AppendLine("    global::System.IFormattable,");
+            sb.AppendLine("    global::System.ISpanFormattable,");
+            sb.Append("    global::System.IParsable<").Append(self).AppendLine(">,");
+            sb.Append("    global::System.ISpanParsable<").Append(self).AppendLine(">");
 
             foreach (var c in m.ConstraintClauses)
                 sb.Append("    ").AppendLine(c);
@@ -199,17 +202,12 @@ public sealed class NumericWrapperGenerator : IIncrementalGenerator
             sb.Append("        => Create(").Append(t).AppendLine(".Parse(s, provider));");
             sb.AppendLine();
 
-            sb.Append("    public static bool TryParse(string? s, global::System.IFormatProvider? provider, out ").Append(self).AppendLine(" result)");
-            sb.AppendLine("    {");
-            sb.Append("        if (").Append(t).AppendLine(".TryParse(s, provider, out var underlying) && TryCreate(underlying) is { } parsed)");
-            sb.AppendLine("        {");
-            sb.AppendLine("            result = parsed;");
-            sb.AppendLine("            return true;");
-            sb.AppendLine("        }");
-            sb.AppendLine("        result = default;");
-            sb.AppendLine("        return false;");
-            sb.AppendLine("    }");
+            sb.Append("    public static ").Append(self).AppendLine(" Parse(global::System.ReadOnlySpan<char> s, global::System.IFormatProvider? provider)");
+            sb.Append("        => Create(").Append(t).AppendLine(".Parse(s, provider));");
             sb.AppendLine();
+
+            EmitTryParse(sb, self, t, "string? s");
+            EmitTryParse(sb, self, t, "global::System.ReadOnlySpan<char> s");
 
             sb.AppendLine("    public override int GetHashCode() => Value.GetHashCode();");
             sb.AppendLine();
@@ -256,9 +254,28 @@ public sealed class NumericWrapperGenerator : IIncrementalGenerator
             sb.AppendLine();
 
             sb.AppendLine("    public override string ToString() => Value.ToString() ?? string.Empty;");
+            sb.AppendLine("    public string ToString(string? format, global::System.IFormatProvider? provider) => Value.ToString(format, provider);");
+            sb.AppendLine();
+            sb.AppendLine("    public bool TryFormat(global::System.Span<char> destination, out int charsWritten, global::System.ReadOnlySpan<char> format, global::System.IFormatProvider? provider)");
+            sb.AppendLine("        => Value.TryFormat(destination, out charsWritten, format, provider);");
 
             sb.AppendLine("}");
             return sb.ToString();
+        }
+
+        private static void EmitTryParse(StringBuilder sb, string self, string underlyingType, string parameter)
+        {
+            sb.Append("    public static bool TryParse(").Append(parameter).Append(", global::System.IFormatProvider? provider, out ").Append(self).AppendLine(" result)");
+            sb.AppendLine("    {");
+            sb.Append("        if (").Append(underlyingType).AppendLine(".TryParse(s, provider, out var underlying) && TryCreate(underlying) is { } parsed)");
+            sb.AppendLine("        {");
+            sb.AppendLine("            result = parsed;");
+            sb.AppendLine("            return true;");
+            sb.AppendLine("        }");
+            sb.AppendLine("        result = default;");
+            sb.AppendLine("        return false;");
+            sb.AppendLine("    }");
+            sb.AppendLine();
         }
 
         public static string EmitExtensions(Model m)

@@ -1,20 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <LangVersion>14.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>CS1591</NoWarn>
 
     <Version>0.0.0-dev</Version>
-    <PackageId>Kalicz.StrongTypes.Wpf</PackageId>
+    <PackageId>Kalicz.StrongTypes.Configuration</PackageId>
     <Authors>KaliCZ</Authors>
     <Copyright>Copyright © 2026 KaliCZ</Copyright>
-    <Description>WPF MVVM binding support for Kalicz.StrongTypes. Adds an Application.UseStrongTypes() extension that wires TypeConverters into TypeDescriptor for NonEmptyString, Email, Digit, and every closed instantiation of Positive&lt;T&gt;, NonNegative&lt;T&gt;, Negative&lt;T&gt;, NonPositive&lt;T&gt; — enabling two-way TextBox bindings to strong-typed view-model properties.</Description>
-    <PackageTags>StrongTypes, WPF, MVVM, Binding, TypeConverter, NonEmptyString, Email</PackageTags>
+    <Description>Configuration binding support for Kalicz.StrongTypes. Adds OptionsBuilder&lt;T&gt;.BindStrongTypes(), which binds a section and then fails when a property declared non-nullable is null once bound — what an absent key otherwise leaves silently, because binding succeeds without assigning. Reads intent from nullable reference annotations, so no [Required] attribute per property.</Description>
+    <PackageTags>StrongTypes, Configuration, Options, IOptions, Validation, NonEmptyString</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/KaliCZ/StrongTypes</PackageProjectUrl>
@@ -26,6 +24,9 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0" />
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.md" Pack="true" PackagePath="\" />

@@ -49,8 +49,53 @@ All four types have `AsX` / `ToX` extension methods available on any
   and matching `==`, `!=`, `<`, `<=`, `>`, `>=` operators on both sides —
   so `4.ToPositive() > 2` is just a comparison, no unwrap.
 - `GetHashCode`, `Equals(object?)`, `ToString()` delegating to the value.
+- `IFormattable` / `ISpanFormattable` — format specifiers and cultures reach
+  the underlying value (see "Formatting" below).
+- `IParsable<Self>` / `ISpanParsable<Self>` — `Parse` / `TryParse` from a
+  `string` or a `ReadOnlySpan<char>`, enforcing the invariant on the way in.
+  This is also what lets ASP.NET Core bind a wrapper from `[FromQuery]` /
+  `[FromRoute]` without any package.
 - `System.Text.Json` converter via `[JsonConverter]` — serialises as the
   underlying primitive.
+- `TypeConverter` via `[TypeConverter]` — binds from `appsettings.json` /
+  `IOptions<T>`. See `references/configuration.md`.
+
+## Formatting
+
+Format specifiers and format providers pass straight through to the
+underlying value, so a wrapper formats exactly like the number it wraps:
+
+```csharp
+var price = 1234.5m.ToPositive();
+
+$"{price:N2}"                          // "1,234.50"
+$"{price:C}"                           // "$1,234.50"
+string.Format(germanCulture, "{0}", price)   // "1234,5"
+price.ToString("N2", CultureInfo.InvariantCulture);
+```
+
+Note `price.ToString()` with no provider uses the **current culture**, same
+as `decimal.ToString()`. Pass an explicit provider anywhere the output is
+machine-read (logs, URLs, files) rather than displayed.
+
+Parsing accepts a span, so a wrapper can be read out of a larger buffer
+without slicing it into a string first:
+
+```csharp
+Positive<int>.Parse(line.AsSpan(6, 2), CultureInfo.InvariantCulture);
+Positive<int>.TryParse(span, CultureInfo.InvariantCulture, out var count);
+```
+
+Both interfaces also let a wrapper satisfy generic constraints, which no
+amount of reaching for `.Value` at the call site can do for the caller:
+
+```csharp
+static T Read<T>(ReadOnlySpan<char> s) where T : ISpanParsable<T> => T.Parse(s, null);
+static string Render<T>(T v, string f) where T : IFormattable => v.ToString(f, null);
+
+Read<Positive<int>>("42");
+Render(price, "C");
+```
 
 ## Arithmetic
 

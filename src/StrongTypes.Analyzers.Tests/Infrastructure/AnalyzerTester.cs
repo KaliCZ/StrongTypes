@@ -7,8 +7,7 @@ namespace StrongTypes.Analyzers.Tests.Infrastructure;
 
 /// <summary>
 /// Drives a <see cref="DiagnosticAnalyzer"/> against an in-memory compilation and returns the
-/// diagnostics it produced. Kept deliberately thin — no `Microsoft.CodeAnalysis.Testing`
-/// dependency, so tests stay portable across xUnit v2/v3 and Roslyn versions.
+/// diagnostics it produced.
 /// </summary>
 internal static class AnalyzerTester
 {
@@ -25,7 +24,27 @@ internal static class AnalyzerTester
             references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
+        AssertCompiles(compilation);
+
         var withAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzer));
         return await withAnalyzers.GetAnalyzerDiagnosticsAsync();
+    }
+
+    /// <summary>
+    /// A source missing a reference yields no diagnostics rather than an error, so every
+    /// <c>Silent_</c> test would pass for the wrong reason. Fail loudly instead.
+    /// </summary>
+    private static void AssertCompiles(CSharpCompilation compilation)
+    {
+        var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToArray();
+        if (errors.Length == 0)
+        {
+            return;
+        }
+
+        throw new InvalidOperationException(
+            "Test source does not compile, so any assertion about what the analyzer reports is meaningless:"
+            + Environment.NewLine
+            + string.Join(Environment.NewLine, errors.Select(e => e.ToString())));
     }
 }

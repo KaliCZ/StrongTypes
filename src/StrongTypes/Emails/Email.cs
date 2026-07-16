@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Net.Mail;
@@ -9,6 +10,7 @@ namespace StrongTypes;
 /// <summary>An email address validated by <see cref="MailAddress.TryCreate(string?, out MailAddress?)"/> and capped at the RFC 5321 deliverable length of 254 characters.</summary>
 /// <remarks>The <see cref="Value"/> property hands the caller a <see cref="MailAddress"/> directly so it can be passed straight into APIs that take one (mailers, validators). The wire form on JSON, EF Core columns, and route arguments is the underlying address string.</remarks>
 [JsonConverter(typeof(EmailJsonConverter))]
+[TypeConverter(typeof(ParsableTypeConverter<Email>))]
 public sealed class Email :
     IEquatable<Email>,
     IEquatable<MailAddress>,
