@@ -8,8 +8,7 @@ public class NonEmptyStringJsonConverter : JsonConverter<NonEmptyString?>
 {
     public override NonEmptyString? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        // JSON null is the legitimate null case; let the caller decide whether
-        // that's allowed by the target field's nullability.
+        // JSON null passes through; the target member's nullability decides whether it is allowed.
         if (reader.TokenType == JsonTokenType.Null) return null;
 
         var value = reader.GetString();

@@ -42,7 +42,6 @@ public sealed class JsonBodyErrorKeyTests
     private const string NonEmptyString = "/json-body-probe/non-empty-string";
     private const string PositiveInt = "/json-body-probe/positive-int";
 
-    // (endpoint, body, key without normalization, key with normalization [PascalCase default])
     private static readonly (string Endpoint, string Json, string RawKey, string NormalizedKey)[] Cases =
     [
         // Reference type: malformed non-null fails in the converter -> $.value.
@@ -52,7 +51,7 @@ public sealed class JsonBodyErrorKeyTests
         (NonEmptyString, """{"value":null,"nullableValue":"ok"}""", "Value", "Value"),
         // Struct type: invariant failure -> converter throws while positioned -> $.value.
         (PositiveInt, """{"value":0,"nullableValue":5}""", "$.value", "Value"),
-        // Struct type: type mismatch and null now also report $.value (converter rethrow).
+        // Struct type: type mismatch and null also report $.value (converter rethrow).
         (PositiveInt, """{"value":"abc","nullableValue":5}""", "$.value", "Value"),
         (PositiveInt, """{"value":null,"nullableValue":5}""", "$.value", "Value"),
         (PositiveInt, """{"value":5,"nullableValue":0}""", "$.nullableValue", "NullableValue"),
@@ -92,9 +91,7 @@ public sealed class JsonBodyErrorKeyTests
     }
 
     // The target the default (PascalCase) normalization is matching: data-annotation
-    // errors are keyed by the C# property name (Value, Email), with no $. path.
-    // Strong-type body errors under PascalCase normalization land on the same keys,
-    // so the two surfaces agree.
+    // errors are keyed by the C# property name, with no $. path.
     [Fact]
     public async Task DataAnnotationErrors_AreKeyedByPascalCasePropertyName()
     {

@@ -5,10 +5,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace StrongTypes.Analyzers.Tests.Infrastructure;
 
-/// <summary>
-/// Drives a <see cref="DiagnosticAnalyzer"/> against an in-memory compilation and returns the
-/// diagnostics it produced.
-/// </summary>
 internal static class AnalyzerTester
 {
     public static async Task<ImmutableArray<Diagnostic>> RunAsync(
@@ -32,7 +28,7 @@ internal static class AnalyzerTester
 
     /// <summary>
     /// A source missing a reference yields no diagnostics rather than an error, so every
-    /// <c>Silent_</c> test would pass for the wrong reason. Fail loudly instead.
+    /// <c>Silent_</c> test would pass for the wrong reason.
     /// </summary>
     private static void AssertCompiles(CSharpCompilation compilation)
     {

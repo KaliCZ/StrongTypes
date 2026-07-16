@@ -8,16 +8,9 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
 /// <summary>
-/// The <c>UseStrongTypes()</c> convention auto-maps an interval property to two
-/// endpoint columns by default — no explicit <c>HasIntervalColumns</c> — with a
-/// shadow discriminator on the nullable form, and an explicit
-/// <c>HasIntervalJsonConversion</c> opts into the single JSON column instead.
-/// Model-shape assertions only, against offline relational models: model building
-/// never opens a connection, so no connection string is configured and no
-/// containers are needed. Real-server round-tripping and ordering are covered by
-/// <see cref="IntervalColumnMappingMatrixTestsBase{TEntity, TInterval}"/> against
-/// Testcontainers; the InMemory provider is unusable even here because it maps any
-/// struct as a scalar, hiding the complex default.
+/// Model-shape assertions against offline relational models — model building never opens a
+/// connection, so no containers are needed. The InMemory provider would not do even for this:
+/// it maps any struct as a scalar, hiding the complex-type default.
 /// </summary>
 public class IntervalConventionMappingTests
 {

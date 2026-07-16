@@ -6,14 +6,8 @@ using System.Threading.Tasks;
 namespace StrongTypes;
 
 /// <summary>A value that is either a success carrying <typeparamref name="T"/> or an error carrying <typeparamref name="TError"/>.</summary>
-/// <typeparam name="T">The success type.</typeparam>
-/// <typeparam name="TError">The error type.</typeparam>
 /// <remarks>Construct through the implicit conversions (<c>return value;</c> / <c>return error;</c>) or the <see cref="Result"/> factory. Unwrap with the extension-property pattern: <c>if (result.Success is {} s)</c> or <c>if (result.Error is {} e)</c>.</remarks>
-// Note: we can't also declare IEquatable<T> and IEquatable<TError> — the C#
-// compiler rejects that combination (CS0695) because the two interfaces unify
-// when T equals TError at a closed type. The Equals(T) / Equals(TError)
-// methods below still provide the same call-site ergonomic without the
-// interface implementations.
+// IEquatable<T> and IEquatable<TError> cannot also be declared — they unify when T equals TError at a closed type (CS0695).
 public class Result<T, TError> : IEquatable<Result<T, TError>>
     where T : notnull
     where TError : notnull
@@ -78,10 +72,6 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
         IsSuccess ? await f(InternalValue) : InternalError;
 
     /// <summary>Transforms both branches in one call (bimap).</summary>
-    /// <typeparam name="U">The mapped success type.</typeparam>
-    /// <typeparam name="UError">The mapped error type.</typeparam>
-    /// <param name="success">Applied when this is a success.</param>
-    /// <param name="error">Applied when this is an error.</param>
     [Pure]
     public Result<U, UError> Map<U, UError>(Func<T, U> success, Func<TError, UError> error)
         where U : notnull
@@ -133,13 +123,11 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
     }
 
     /// <summary>Returns <c>true</c> when this is a success whose value equals <paramref name="other"/>.</summary>
-    /// <param name="other">The value to compare against.</param>
     [Pure]
     public bool Equals(T? other) =>
         IsSuccess && other is not null && EqualityComparer<T>.Default.Equals(InternalValue, other);
 
     /// <summary>Returns <c>true</c> when this is an error whose value equals <paramref name="other"/>.</summary>
-    /// <param name="other">The error to compare against.</param>
     [Pure]
     public bool Equals(TError? other) =>
         IsError && other is not null && EqualityComparer<TError>.Default.Equals(InternalError, other);
@@ -164,7 +152,6 @@ public class Result<T, TError> : IEquatable<Result<T, TError>>
 }
 
 /// <summary>Shorthand for <c>Result&lt;T, Exception&gt;</c>; chained <c>Map</c>/<c>FlatMap</c> calls stay as <see cref="Result{T}"/> rather than decaying to the two-parameter form.</summary>
-/// <typeparam name="T">The success type.</typeparam>
 public sealed class Result<T> : Result<T, Exception>
     where T : notnull
 {
@@ -182,10 +169,7 @@ public sealed class Result<T> : Result<T, Exception>
     public new async Task<Result<U>> MapAsync<U>(Func<T, Task<U>> f) where U : notnull =>
         IsSuccess ? await f(InternalValue) : InternalError;
 
-    // FlatMap's parameter matches the base signature so `new` can hide it; the
-    // callback may return any `Result<U, Exception>` (including `Result<U>`
-    // itself via inheritance). The inner value is re-wrapped as `Result<U>`
-    // because the callback may hand back a base-class instance.
+    // Parameter matches the base signature so `new` hides it; re-wrapped because the callback may return a base-class instance.
     [Pure]
     public new Result<U> FlatMap<U>(Func<T, Result<U, Exception>> f) where U : notnull
     {
@@ -206,30 +190,16 @@ public sealed class Result<T> : Result<T, Exception>
 /// <summary>Factory helpers for <see cref="Result{T}"/> and <see cref="Result{T, TError}"/>.</summary>
 public static partial class Result
 {
-    /// <summary>Wraps <paramref name="value"/> as a successful <see cref="Result{T}"/>.</summary>
-    /// <typeparam name="T">The success type.</typeparam>
-    /// <param name="value">The success payload.</param>
     [Pure]
     public static Result<T> Success<T>(T value) where T : notnull => new(value);
 
-    /// <summary>Wraps <paramref name="error"/> as a failed <see cref="Result{T}"/>.</summary>
-    /// <typeparam name="T">The success type.</typeparam>
-    /// <param name="error">The captured exception.</param>
     [Pure]
     public static Result<T> Error<T>(Exception error) where T : notnull => new(error);
 
-    /// <summary>Wraps <paramref name="value"/> as a successful <see cref="Result{T, TError}"/>.</summary>
-    /// <typeparam name="T">The success type.</typeparam>
-    /// <typeparam name="TError">The error type.</typeparam>
-    /// <param name="value">The success payload.</param>
     [Pure]
     public static Result<T, TError> Success<T, TError>(T value)
         where T : notnull where TError : notnull => new(value);
 
-    /// <summary>Wraps <paramref name="error"/> as a failed <see cref="Result{T, TError}"/>.</summary>
-    /// <typeparam name="T">The success type.</typeparam>
-    /// <typeparam name="TError">The error type.</typeparam>
-    /// <param name="error">The error payload.</param>
     [Pure]
     public static Result<T, TError> Error<T, TError>(TError error)
         where T : notnull where TError : notnull => new(error);

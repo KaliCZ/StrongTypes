@@ -44,10 +44,7 @@ public class NonEmptyEnumerableJsonConverterTests
     [Fact]
     public void Read_NullElement_OfNullableReferenceType_IsKept()
     {
-        // The type's invariant is Count >= 1, not "no null elements". For reference T,
-        // `NonEmptyEnumerable<string>` and `NonEmptyEnumerable<string?>` erase to the same
-        // runtime type, so the converter can't enforce non-null without also breaking
-        // the legitimate nullable case — and the factories already allow nulls through.
+        // The invariant is Count >= 1, not element content — <string> and <string?> erase identically, so nulls cannot be rejected.
         var list = JsonSerializer.Deserialize<NonEmptyEnumerable<string?>>("""["a",null,"c"]""");
         Assert.NotNull(list);
         Assert.Equal(new[] { "a", null, "c" }, list);
@@ -56,8 +53,6 @@ public class NonEmptyEnumerableJsonConverterTests
     [Fact]
     public void Read_SingleNullElement_IsValid()
     {
-        // `[null]` has one element, which satisfies Count >= 1. The element happens to be
-        // null — that's a content concern, not a non-empty concern.
         var list = JsonSerializer.Deserialize<NonEmptyEnumerable<string?>>("[null]");
         Assert.NotNull(list);
         Assert.Single(list);
@@ -67,9 +62,6 @@ public class NonEmptyEnumerableJsonConverterTests
     [Fact]
     public void Read_NullableValueType_AllowsNulls()
     {
-        // int? is literally the nullable-int type — null is a valid value. Rejecting it
-        // would make `NonEmptyEnumerable<int?>` unusable for any wire format that encodes
-        // a "known absence" as JSON null.
         var list = JsonSerializer.Deserialize<NonEmptyEnumerable<int?>>("[1,null,3]");
         Assert.NotNull(list);
         Assert.Equal(new int?[] { 1, null, 3 }, list);
@@ -98,9 +90,6 @@ public class NonEmptyEnumerableJsonConverterTests
     [Fact]
     public void Read_OfPositiveInt_InvalidInner_Throws()
     {
-        // The inner Positive<int> converter rejects non-positive numbers — its JsonException
-        // must bubble through the outer array converter so an invalid element can never
-        // sneak into a NonEmptyEnumerable<Positive<int>>.
         Assert.Throws<JsonException>(() =>
             JsonSerializer.Deserialize<NonEmptyEnumerable<Positive<int>>>("[1,-5,3]"));
 
@@ -132,13 +121,6 @@ public class NonEmptyEnumerableJsonConverterTests
     }
 
     // ── Roundtrip ───────────────────────────────────────────────────────
-    //
-    // Round-trip tests are string-anchored: we start from a canonical JSON string,
-    // deserialize it, re-serialize, and assert the bytes are identical. That proves
-    // the wire contract survives a pass through the converter in both directions and
-    // that serialization is idempotent. Specific hand-written examples document the
-    // canonical form; the property tests derive the canonical form from a generated
-    // value and then assert the same string-stability property.
 
     [Theory]
     [InlineData("[1]")]
@@ -162,8 +144,6 @@ public class NonEmptyEnumerableJsonConverterTests
     [Property]
     public void Roundtrip_Int(NonEmptyEnumerable<int> list)
     {
-        // The generated value supplies a canonical JSON string via the first serialize;
-        // deserializing and re-serializing must reproduce that string unchanged.
         var canonical = JsonSerializer.Serialize(list);
         var back = JsonSerializer.Deserialize<NonEmptyEnumerable<int>>(canonical);
         Assert.Equal(canonical, JsonSerializer.Serialize(back));
@@ -193,8 +173,6 @@ public class NonEmptyEnumerableJsonConverterTests
     [Fact]
     public void Read_OfNonEmptyString_InvalidInner_Throws()
     {
-        // The inner NonEmptyString converter rejects whitespace, and its JsonException
-        // must propagate through the outer array converter.
         Assert.Throws<JsonException>(() =>
             JsonSerializer.Deserialize<NonEmptyEnumerable<NonEmptyString>>("""["a","   "]"""));
     }
@@ -209,9 +187,7 @@ public class NonEmptyEnumerableJsonConverterTests
     }
 
     // ── Interface (INonEmptyEnumerable<T>) ──────────────────────────────
-    // STJ matches converters by exact declared type, so the factory has to register against
-    // both the concrete class and the interface. Before interface support, deserializing
-    // INonEmptyEnumerable<int> threw NotSupportedException ("collection type is abstract").
+    // STJ matches converters by the exact declared type, so the interface needs its own registration.
 
     [Fact]
     public void Interface_Read_Array_DeserializesToNonEmpty()

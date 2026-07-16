@@ -123,8 +123,6 @@ public class StringAsExtensionsTests
 
     [Fact]
     public void AsEnum_AcceptsCommaSeparatedFlagCombinations() =>
-        // AsEnum now just delegates to Enum.TryParse, which accepts
-        // comma-separated flag names for [Flags] enums.
         Assert.Equal(Permission.Read | Permission.Write, "Read, Write".AsEnum<Permission>());
 
     [Fact]

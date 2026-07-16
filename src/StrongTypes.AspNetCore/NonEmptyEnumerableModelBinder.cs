@@ -68,11 +68,9 @@ public sealed class NonEmptyEnumerableModelBinder<T> : IModelBinder
         var bindingSource = bindingContext.BindingSource;
         if (bindingSource is not null && bindingSource.CanAcceptDataFrom(BindingSource.Header))
         {
-            // Headers don't flow through the value provider chain — only HeaderModelBinder
-            // sees them. Read them ourselves so the FieldName lookup matches what
-            // [FromHeader(Name = "...")] specified. Multiple values arrive either as
-            // repeated header lines (StringValues with multiple entries) or as a
-            // comma-separated single line — accept both.
+            // Headers don't flow through the value provider chain, so read them ourselves; the
+            // FieldName lookup matches what [FromHeader(Name = "...")] specified. Multiple values
+            // arrive as repeated header lines or a comma-separated single line — accept both.
             var headers = bindingContext.HttpContext.Request.Headers;
             if (!headers.TryGetValue(bindingContext.FieldName, out var values))
                 return StringValues.Empty;

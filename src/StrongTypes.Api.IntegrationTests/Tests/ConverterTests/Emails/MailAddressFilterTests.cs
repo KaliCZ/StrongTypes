@@ -6,15 +6,7 @@ using Xunit;
 
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
-/// <summary>
-/// Verifies <c>MailAddress.Unwrap()</c> (plus equality and EF.Functions.Like)
-/// translates to server-side SQL on both providers when applied to the
-/// <see cref="MailAddressEntity"/>'s <see cref="MailAddress"/> column. Tests query
-/// the <see cref="DbContext"/> directly so the LINQ translator is what we
-/// exercise — no HTTP plumbing in the way. Each test seeds rows with a
-/// unique local-part prefix and scopes assertions to those rows so it
-/// tolerates accumulated state from sibling tests on the shared fixture.
-/// </summary>
+/// <summary>Queries go through the DbContext directly — the LINQ translator is under test, not the HTTP pipeline.</summary>
 [Collection(IntegrationTestCollection.Name)]
 public sealed class MailAddressFilterTests(TestWebApplicationFactory factory)
     : IntegrationTestBase<MailAddressEntity, MailAddress, MailAddress?>(factory)
@@ -24,8 +16,7 @@ public sealed class MailAddressFilterTests(TestWebApplicationFactory factory)
     private DbSet<MailAddressEntity> Set(string provider) =>
         provider == "sql-server" ? SqlSet : PgSet;
 
-    // Unique per-test local-part prefix so each test's assertions are
-    // isolated from other tests' rows on the collection-scoped database.
+    // Isolates each test's rows on the collection-shared database.
     private string Prefix { get; } = $"flt-{Guid.NewGuid():N}-";
 
     private async Task<Guid> Seed(string localPart, MailAddress? nullableValue)
@@ -87,8 +78,6 @@ public sealed class MailAddressFilterTests(TestWebApplicationFactory factory)
         Assert.DoesNotContain(noMatch, ids);
     }
 
-    // The load-bearing case: EF.Functions.Like must translate when applied
-    // to Unwrap() of the MailAddress column.
     [Theory, MemberData(nameof(Providers))]
     public async Task EfFunctionsLike_TranslatesToSql(string provider)
     {

@@ -15,10 +15,6 @@ namespace StrongTypes.EfCore;
 public static class IntervalEfCoreExtensions
 {
     /// <summary>Maps the interval property to a single JSON column. The same converter handles all four interval types and re-validates the <c>Start &lt;= End</c> invariant on read.</summary>
-    /// <typeparam name="TEntity">The entity type.</typeparam>
-    /// <typeparam name="TInterval">The interval struct type.</typeparam>
-    /// <param name="entity">The entity-type builder.</param>
-    /// <param name="propertyExpression">A lambda selecting the interval property.</param>
     public static PropertyBuilder<TInterval> HasIntervalJsonConversion<TEntity, TInterval>(
         this EntityTypeBuilder<TEntity> entity,
         Expression<Func<TEntity, TInterval>> propertyExpression)
@@ -27,22 +23,16 @@ public static class IntervalEfCoreExtensions
         entity.Property(propertyExpression).HasIntervalJsonConversion();
 
     /// <summary>Maps the interval property to a single JSON column. The same converter handles all four interval types and re-validates the <c>Start &lt;= End</c> invariant on read.</summary>
-    /// <typeparam name="TInterval">The interval struct type.</typeparam>
-    /// <param name="property">The property builder.</param>
     public static PropertyBuilder<TInterval> HasIntervalJsonConversion<TInterval>(this PropertyBuilder<TInterval> property)
         where TInterval : struct =>
         property.HasConversion(new IntervalJsonValueConverter<TInterval>());
 
     /// <summary>Maps the nullable interval property to a single JSON column; a <c>null</c> property maps to a <c>NULL</c> column. The same converter handles all four interval types and re-validates the <c>Start &lt;= End</c> invariant on read.</summary>
-    /// <typeparam name="TInterval">The interval struct type.</typeparam>
-    /// <param name="property">The property builder.</param>
     public static PropertyBuilder<TInterval?> HasIntervalJsonConversion<TInterval>(this PropertyBuilder<TInterval?> property)
         where TInterval : struct =>
         property.HasConversion(new IntervalJsonValueConverter<TInterval>());
 
     /// <summary>Maps the interval property to two scalar columns (<c>Start</c> and <c>End</c>) as an EF Core complex type, so each endpoint is its own queryable, indexable column. The endpoint columns are nullable exactly when the variant's endpoint is (<c>FiniteInterval</c> → both required; <c>IntervalFrom</c> → end nullable; and so on). Inclusivity is not stored: both bounds read back inclusive, and an exclusive bound is dropped on save.</summary>
-    /// <typeparam name="TEntity">The entity type.</typeparam>
-    /// <typeparam name="TInterval">The interval struct type.</typeparam>
     /// <param name="entity">The entity-type builder.</param>
     /// <param name="propertyExpression">A lambda selecting the interval property.</param>
     /// <param name="startName">Column name for the start endpoint; defaults to <c>Start</c>.</param>
@@ -62,8 +52,6 @@ public static class IntervalEfCoreExtensions
     }
 
     /// <summary>Maps the nullable interval property to two scalar columns plus a shadow discriminator column that keeps a <c>null</c> property distinct from an interval whose stored endpoints are all <c>NULL</c> (a fully-unbounded <see cref="Interval{T}"/>). Inclusivity is not stored: both bounds read back inclusive.</summary>
-    /// <typeparam name="TEntity">The entity type.</typeparam>
-    /// <typeparam name="TInterval">The interval struct type.</typeparam>
     /// <param name="entity">The entity-type builder.</param>
     /// <param name="propertyExpression">A lambda selecting the interval property.</param>
     /// <param name="startName">Column name for the start endpoint; defaults to <c>Start</c>.</param>
@@ -83,7 +71,6 @@ public static class IntervalEfCoreExtensions
         return complexProperty;
     }
 
-    // Two-column storage carries no inclusivity; both bounds read back inclusive.
     private static void IgnoreInclusivityFlags(ComplexPropertyBuilder builder)
     {
         builder.Ignore("StartInclusive");

@@ -332,9 +332,7 @@ public sealed class NumericWrapperGenerator : IIncrementalGenerator
 
         private static void EmitUnwrap(StringBuilder sb, string self, string underlying, string methodTypeParams, string methodConstraints)
         {
-            // Marker method for EF Core translation: the translator rewrites this
-            // call to access the underlying column directly. At runtime it just
-            // returns Value, but the point is to make the LINQ intent translatable.
+            // Marker for the EF Core translator, which rewrites this call to the underlying column.
             sb.Append("    public static ").Append(underlying).Append(" Unwrap").Append(methodTypeParams)
               .Append("(this ").Append(self).Append(" value)").Append(methodConstraints).AppendLine(" => value.Value;");
         }

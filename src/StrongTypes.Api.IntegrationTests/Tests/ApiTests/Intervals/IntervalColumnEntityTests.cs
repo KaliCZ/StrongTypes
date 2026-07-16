@@ -7,12 +7,10 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
 /// <summary>
-/// EF-level round-trip suite for the two-scalar-column persistence shape
-/// (<c>HasIntervalColumns</c> → EF Core complex type). The wire/JSON path is
-/// identical to the JSON-column entities and already covered by
-/// <see cref="IntervalEntityTests{TEntity, TInterval}"/>; what differs here is
-/// storage, so these go straight through EF Core against both providers and
-/// also assert the interval really maps to two columns rather than one.
+/// EF-level suite for the two-scalar-column persistence shape (<c>HasIntervalColumns</c>).
+/// The wire path is identical to the JSON-column entities and covered by
+/// <see cref="IntervalEntityTests{TEntity, TInterval}"/>; only storage differs, so these go
+/// straight through EF Core.
 /// </summary>
 public abstract class IntervalColumnEntityTestsBase<TEntity, TInterval>(TestWebApplicationFactory factory)
     : IntegrationTestBase<TEntity, TInterval, TInterval?>(factory)

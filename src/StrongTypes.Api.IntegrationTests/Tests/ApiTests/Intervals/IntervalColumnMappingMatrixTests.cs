@@ -8,17 +8,12 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
 /// <summary>
-/// Two-column persistence matrix for the explicit <c>HasIntervalColumns</c> entry
-/// point across all four interval variants, each for a non-nullable and a nullable
-/// property. Every config round-trips through the real endpoint columns on both
-/// providers and asserts the two-column shape (Start/End, discriminator on the
-/// nullable form, no flag columns). Endpoint filter/order lives on the
-/// <see cref="FiniteInterval{T}"/> subclass (via
-/// <see cref="FiniteIntervalColumnMatrixTestsBase{TEntity}"/>) since it needs typed
-/// endpoint access; the column translation itself is variant-agnostic and covered for
-/// the other variants by <c>IntervalFilterTests</c>. The remaining shapes are covered
-/// alongside: the convention two-column default by <see cref="IntervalColumnEntityTests"/>,
-/// and the single JSON column by <see cref="IntervalEntityTests{TEntity, TInterval}"/>.
+/// Persistence matrix for the explicit <c>HasIntervalColumns</c> entry point: all four interval
+/// variants, each non-nullable and nullable, round-trip through the real endpoint columns and
+/// assert the two-column shape. Endpoint filter/order lives on
+/// <see cref="FiniteIntervalColumnMatrixTestsBase{TEntity}"/> since it needs typed endpoint
+/// access; the translation is variant-agnostic and covered for the other variants by
+/// <c>IntervalFilterTests</c>.
 /// </summary>
 public abstract class IntervalColumnMappingMatrixTestsBase<TEntity, TInterval>(TestWebApplicationFactory factory)
     : IntegrationTestBase<TEntity, TInterval, TInterval?>(factory)

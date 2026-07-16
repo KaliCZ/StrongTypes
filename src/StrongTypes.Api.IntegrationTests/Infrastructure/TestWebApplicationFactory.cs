@@ -13,25 +13,14 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Infrastructure;
 
 /// <summary>
-/// Shared fixture that boots the database containers once per test collection,
-/// overrides the connection strings via configuration (so Program.cs's DbContext
-/// registrations pick them up unchanged), and creates the schema via EnsureCreated.
+/// Overrides connection strings via configuration so Program.cs's DbContext registrations are
+/// exercised unchanged. SQL Server skipping rules live in testing.md.
 /// </summary>
-/// <remarks>
-/// PostgreSQL is required everywhere. SQL Server is required too — except on a
-/// host that cannot run the amd64-only <c>mssql/server</c> image (e.g. an ARM64
-/// dev box), where it can be skipped via an explicit opt-in. See
-/// <see cref="SqlServerAvailable"/> for what callers must guard, and the
-/// <c>STRONGTYPES_SKIP_SQLSERVER</c> env var below for the gate. Absent the
-/// opt-in the container is started, and any failure to start is a hard failure
-/// of the whole test run, never a silent skip.
-/// </remarks>
 public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private const string DockerGroupLabel = "com.docker.compose.project";
     private const string DockerGroupName = "StrongTypes";
 
-    // Opt-in to skip SQL Server entirely (the container is never started).
     private const string SkipSqlServerEnvVar = "STRONGTYPES_SKIP_SQLSERVER";
 
     private static readonly TimeSpan ContainerStartTimeout = TimeSpan.FromSeconds(45);
@@ -45,23 +34,15 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
         .Build();
 
     /// <summary>
-    /// Whether the SQL Server container is up and backed by a real SQL Server.
-    /// <see langword="false"/> only on a host that opted into skipping via the
-    /// env var, where the container is never started. Tests must skip every
-    /// SQL-Server-specific assertion when this is <see langword="false"/>; the
-    /// in-memory stub that keeps the dual-write API booting does not exercise
-    /// the real SQL Server wire path.
+    /// False only when the host opted into skipping SQL Server — gate every SQL-Server-only
+    /// assertion on it; the stand-in in-memory stub does not exercise the real wire path.
     /// </summary>
     public bool SqlServerAvailable { get; private set; }
 
     async ValueTask IAsyncLifetime.InitializeAsync()
     {
-        // Skipping SQL Server is opt-in; absent the flag the container is started
-        // and any failure to start is a hard crash (see StartContainerAsync).
         SqlServerAvailable = Environment.GetEnvironmentVariable(SkipSqlServerEnvVar) != "1";
 
-        // PostgreSQL is mandatory on every host; SQL Server too unless skipped.
-        // Start them concurrently — a start failure or timeout on either throws.
         var startups = new List<Task> { StartContainerAsync(_pgContainer, "PostgreSQL") };
         if (SqlServerAvailable)
         {
@@ -107,10 +88,8 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
 
         if (!SqlServerAvailable)
         {
-            // Swap SQL Server for an in-memory stub so the dual-write endpoints
-            // still boot. Drop every registration keyed by SqlServerDbContext
-            // first — otherwise the original UseSqlServer call survives in its
-            // options-configuration service and collides with the stub provider.
+            // Drop the original registrations first — the UseSqlServer options service otherwise
+            // survives and collides with the stub provider.
             builder.ConfigureServices(services =>
             {
                 var stale = services

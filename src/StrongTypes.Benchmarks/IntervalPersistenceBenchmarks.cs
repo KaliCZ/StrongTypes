@@ -6,10 +6,7 @@ using StrongTypes.EfCore;
 
 namespace StrongTypes.Benchmarks;
 
-// Guards interval persistence parity: a convention-mapped interval (two endpoint columns,
-// validated in its constructor on read) against a hand-rolled entity storing the two endpoints as
-// plain columns, over in-memory SQLite so any per-row cost shows instead of being lost under a real
-// database's I/O. Interval reads carry no materialization interceptor, so they should track plain.
+// In-memory SQLite so any per-row interval cost shows instead of being lost under a real database's I/O.
 
 public sealed class PlainRow
 {

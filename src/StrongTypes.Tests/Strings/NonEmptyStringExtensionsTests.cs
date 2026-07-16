@@ -10,8 +10,7 @@ public class NonEmptyStringExtensionsTests
 {
     private enum Day { Mon, Tue }
 
-    // NonEmptyString parsing just delegates to string parsing. Check one
-    // value of each overload is enough to catch a wiring regression.
+    // Parsing delegates to string parsing, so one value per overload is enough to catch a wiring regression.
 
     [Property]
     public void AsInt_RoundTrips(int value) =>

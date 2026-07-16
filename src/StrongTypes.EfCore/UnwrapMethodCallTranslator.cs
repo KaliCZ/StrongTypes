@@ -12,9 +12,6 @@ public sealed class UnwrapMethodCallTranslator(
     ISqlExpressionFactory sqlExpressionFactory,
     IRelationalTypeMappingSource typeMappingSource) : IMethodCallTranslator
 {
-    // Every strong-type's extensions class exposes a static Unwrap(this Self) →
-    // underlying. Non-generic for NonEmptyString (hand-written), generic with a
-    // single type parameter for the numeric wrappers (source-generated).
     private static readonly HashSet<MethodInfo> UnwrapMethodDefinitions =
     [
         UnwrapOn(typeof(NonEmptyStringExtensions)),

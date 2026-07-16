@@ -90,8 +90,7 @@ public abstract partial class OpenApiDocumentTestsBase
         Assert.Equal(requiredEndpoints.ToHashSet(), RequiredSet(schema));
     }
 
-    // An all-optional variant lists nothing required; the keyword may then be
-    // omitted entirely, so treat absent as the empty set.
+    // The required keyword is omitted entirely when nothing is required, so absent reads as the empty set.
     private static HashSet<string> RequiredSet(JsonElement schema)
         => schema.TryGetProperty("required", out var r)
             ? r.EnumerateArray().Select(e => e.GetString()!).ToHashSet()
@@ -103,12 +102,8 @@ public abstract partial class OpenApiDocumentTestsBase
         Assert.False(schema.TryGetProperty("default", out _), "inclusivity-on-omission is converter-dependent, so the schema must not pin a default");
     }
 
-    // Tolerates every integer encoding the pipelines emit: Swashbuckle's
-    // type:"integer", Microsoft 3.1's type:["integer","string"(,"null")], and
-    // Microsoft 3.0's pattern-only plain-int form (no type keyword at all).
-    // `format: int32` is the one marker present on all of them. Nullability is
-    // read from whichever marker the version uses (nullable:true vs a "null"
-    // member of the type array).
+    // The pipelines emit three integer encodings — Swashbuckle's type:"integer", Microsoft 3.1's type:["integer","string"],
+    // and Microsoft 3.0's pattern-only form with no type keyword at all; format: int32 is the one marker common to all.
     private void AssertIntegerEndpoint(JsonElement schema, bool nullable)
     {
         Assert.Equal("int32", schema.GetProperty("format").GetString());
@@ -129,7 +124,6 @@ public abstract partial class OpenApiDocumentTestsBase
             nullableEncoded = schema.TryGetProperty("nullable", out var n) && n.ValueKind == JsonValueKind.True;
         }
 
-        // A 3.1 document must not use the 3.0 nullable:true marker, and vice versa.
         if (Version == OpenApiVersion.V3_1)
             Assert.False(schema.TryGetProperty("nullable", out _), "3.1 must not emit the nullable keyword");
 

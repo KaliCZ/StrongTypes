@@ -61,10 +61,9 @@ public static class StrongTypeSchemaTypes
     }
 
     /// <summary>
-    /// Resolves the CLR types of an interval's <c>Start</c> and <c>End</c>
-    /// endpoints, reflecting each variant's nullability: a required endpoint is
-    /// the bare endpoint type, an optional one its <see cref="Nullable{T}"/>.
-    /// Both keys are always present on the wire regardless of nullability.
+    /// Resolves the CLR types of an interval's <c>Start</c> and <c>End</c> endpoints,
+    /// reflecting each variant's nullability: a required endpoint is the bare endpoint
+    /// type, an optional one its <see cref="Nullable{T}"/>.
     /// </summary>
     public static bool TryGetIntervalEndpoints(Type? clrType, out Type startType, out Type endType)
     {

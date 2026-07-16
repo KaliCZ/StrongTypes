@@ -14,8 +14,6 @@ namespace StrongTypes;
 public static class NonEmptyEnumerable
 {
     /// <summary>Wraps <paramref name="values"/> as a <see cref="NonEmptyEnumerable{T}"/>, or returns <c>null</c> when the sequence is null or empty.</summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="values">The source sequence.</param>
     [Pure]
     public static NonEmptyEnumerable<T>? TryCreateRange<T>(IEnumerable<T>? values) =>
         values switch
@@ -40,8 +38,6 @@ public static class NonEmptyEnumerable
     }
 
     /// <summary>Wraps <paramref name="values"/> as a <see cref="NonEmptyEnumerable{T}"/>.</summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="values">The source sequence.</param>
     /// <exception cref="ArgumentException"><paramref name="values"/> is <c>null</c> or empty.</exception>
     [Pure]
     public static NonEmptyEnumerable<T> CreateRange<T>(IEnumerable<T>? values)
@@ -49,8 +45,6 @@ public static class NonEmptyEnumerable
            ?? throw new ArgumentException("You cannot create NonEmptyEnumerable from a null or empty sequence.", nameof(values));
 
     /// <summary>Creates a <see cref="NonEmptyEnumerable{T}"/> from the supplied elements. Also backs the collection-expression syntax (<c>NonEmptyEnumerable&lt;int&gt; list = [1, 2, 3];</c>).</summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="values">The elements to wrap.</param>
     /// <exception cref="ArgumentException"><paramref name="values"/> is empty.</exception>
     [Pure]
     public static NonEmptyEnumerable<T> Create<T>(params ReadOnlySpan<T> values)
@@ -62,7 +56,6 @@ public static class NonEmptyEnumerable
 }
 
 /// <summary>A read-only list of <typeparamref name="T"/> guaranteed to contain at least one element.</summary>
-/// <typeparam name="T">The element type.</typeparam>
 /// <remarks>Construct via <see cref="NonEmptyEnumerable.Create{T}(ReadOnlySpan{T})"/>, <see cref="NonEmptyEnumerable.CreateRange{T}(IEnumerable{T})"/>, or a collection expression (<c>NonEmptyEnumerable&lt;int&gt; list = [1, 2, 3];</c>).</remarks>
 [JsonConverter(typeof(NonEmptyEnumerableJsonConverterFactory))]
 [CollectionBuilder(typeof(NonEmptyEnumerable), nameof(NonEmptyEnumerable.Create))]
@@ -98,8 +91,7 @@ public sealed class NonEmptyEnumerable<T> : INonEmptyEnumerable<T>, ICollection<
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    /// <summary>Returns the elements as a <see cref="ReadOnlySpan{T}"/>.</summary>
-    /// <remarks>The span must not outlive the enumerable.</remarks>
+    /// <summary>Returns the elements as a <see cref="ReadOnlySpan{T}"/> that must not outlive the enumerable.</summary>
     public ReadOnlySpan<T> AsSpan() => _values;
 
     #region ICollection<T> — read-only implementation

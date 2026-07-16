@@ -8,12 +8,6 @@ using static StrongTypes.Api.IntegrationTests.Tests.BindingTestAsserts;
 
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
-/// <summary>
-/// Verifies that strong types round-trip through MVC's <c>[FromHeader]</c>
-/// model binding for both required and nullable variants of the wrapped
-/// types, and that invalid header values produce a
-/// <c>ValidationProblemDetails</c> 400.
-/// </summary>
 [Collection(IntegrationTestCollection.Name)]
 public sealed class HeaderBindingTests(TestWebApplicationFactory factory) : IDisposable
 {
@@ -110,9 +104,8 @@ public sealed class HeaderBindingTests(TestWebApplicationFactory factory) : IDis
     [Fact]
     public async Task FromHeader_EmptyNullableHeader_ShortCircuitsToNull()
     {
-        // Confirms the same NullableConverter quirk applies to headers as
-        // it does to query / form: a present-but-empty value on a nullable
-        // parsable type binds to null without invoking TryParse.
+        // Same NullableConverter quirk as FromQuery: a present-but-empty value on a nullable
+        // type binds to null without invoking TryParse.
         using var request = new HttpRequestMessage(HttpMethod.Get, "/binding-probe/header");
         request.Headers.Add("X-Name", "Dana");
         request.Headers.Add("X-Count", "13");

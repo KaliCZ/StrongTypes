@@ -8,11 +8,9 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
 /// <summary>
-/// Verifies the read-validation guarantee for every interval variant: a stored row
-/// violating the wrapper's invariant (planted via raw SQL, bypassing the strong types)
-/// throws on materialization instead of producing an invalid interval — in both
-/// persistence shapes (two endpoint columns and a single JSON column), on both providers.
-/// Variant-specific invariants (a required endpoint) are covered on the concrete subclasses.
+/// The read-validation guarantee: a stored row violating the wrapper's invariant (planted via
+/// raw SQL — the strong types cannot produce one) throws on materialization, in both
+/// persistence shapes. Variant-specific invariants live on the concrete subclasses.
 /// </summary>
 public abstract class IntervalReadValidationTestsBase<TColumnsEntity, TJsonEntity, TInterval>(TestWebApplicationFactory factory)
     : IntegrationTestBase<TColumnsEntity, TInterval, TInterval?>(factory)

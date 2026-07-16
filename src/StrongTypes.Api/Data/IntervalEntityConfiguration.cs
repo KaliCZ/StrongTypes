@@ -4,7 +4,10 @@ using StrongTypes.EfCore;
 
 namespace StrongTypes.Api.Data;
 
-/// <summary>Maps every interval-mapping configuration under test, identically for both DbContexts: the <c>*IntervalEntity</c> set opts into the single JSON column, and the <c>ExplicitColumns*</c> set calls <c>HasIntervalColumns</c> explicitly across all four variants. The parallel <c>*ColumnsEntity</c> set stays unconfigured on purpose — it exercises the <c>UseStrongTypes()</c> two-endpoint-column default.</summary>
+/// <summary>
+/// Applied identically by both DbContexts. The <c>*ColumnsEntity</c> set is deliberately not
+/// configured here — it exercises the <c>UseStrongTypes()</c> two-endpoint-column default.
+/// </summary>
 internal static class IntervalEntityConfiguration
 {
     public static void ConfigureIntervalEntities(this ModelBuilder modelBuilder)

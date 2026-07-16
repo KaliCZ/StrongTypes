@@ -14,15 +14,12 @@ namespace StrongTypes.Analyzers;
 /// <summary>
 /// Code fix for <see cref="MissingEfCorePackageAnalyzer"/>: appends
 /// <c>&lt;PackageReference Include="Kalicz.StrongTypes.EfCore" …/&gt;</c>
-/// to the project's csproj. Implemented as a file-system side effect rather
-/// than a document edit because <c>PackageReference</c> lives in a csproj,
-/// which Roslyn doesn't model as a first-class document.
+/// to the project's csproj.
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(AddEfCorePackageCodeFixProvider))]
 [Shared]
 public sealed class AddEfCorePackageCodeFixProvider : CodeFixProvider
 {
-    // Kept in one place so bumping the EfCore version is a one-line change.
     public const string EfCorePackageVersion = "0.3.0";
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
@@ -37,10 +34,6 @@ public sealed class AddEfCorePackageCodeFixProvider : CodeFixProvider
         {
             return Task.CompletedTask;
         }
-        // RS1035 forbids file IO in analyzers; a code fix that installs a
-        // NuGet package intrinsically has to touch the csproj, so existence
-        // checking + XML round-trip happens inside the CodeAction delegate,
-        // suppressed at the call sites below.
         context.RegisterCodeFix(
             CodeAction.Create(
                 title: $"Add PackageReference to {MissingEfCorePackageAnalyzer.EfCorePackageId}",
@@ -64,9 +57,6 @@ public sealed class AddEfCorePackageCodeFixProvider : CodeFixProvider
             return Task.FromResult(project.Solution);
         }
 
-        // Idempotency: do nothing if a PackageReference for the EfCore package
-        // is already present (covers the edge case where the diagnostic fires
-        // on a stale cache and the user has already installed manually).
         var existing = doc.Descendants()
             .Where(e => e.Name.LocalName == "PackageReference")
             .FirstOrDefault(e => string.Equals(
@@ -78,9 +68,6 @@ public sealed class AddEfCorePackageCodeFixProvider : CodeFixProvider
             return Task.FromResult(project.Solution);
         }
 
-        // Prefer to slot the new PackageReference into an existing ItemGroup
-        // that already holds PackageReferences — matches how tooling like
-        // `dotnet add package` shapes the file.
         var targetItemGroup = doc.Descendants()
             .Where(e => e.Name.LocalName == "ItemGroup"
                         && e.Elements().Any(c => c.Name.LocalName == "PackageReference"))
@@ -101,8 +88,7 @@ public sealed class AddEfCorePackageCodeFixProvider : CodeFixProvider
         }
 
         doc.Save(csprojPath);
-        // We return the original solution unchanged — the IDE picks up the
-        // csproj change on its own and restores the package on the next build.
+        // Returning the solution unchanged is correct — the fix is the csproj write, which the IDE picks up on its own.
         return Task.FromResult(project.Solution);
     }
 #pragma warning restore RS1035

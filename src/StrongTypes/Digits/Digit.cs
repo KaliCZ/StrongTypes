@@ -30,7 +30,6 @@ public readonly struct Digit :
     public static implicit operator int(Digit d) => d.Value;
 
     /// <summary>Wraps the decimal value of <paramref name="value"/>, or returns <c>null</c> when it is not a decimal digit character.</summary>
-    /// <param name="value">The character to parse.</param>
     [Pure]
     public static Digit? TryCreate(char value)
     {
@@ -43,7 +42,6 @@ public readonly struct Digit :
     }
 
     /// <summary>Wraps the decimal value of <paramref name="value"/>.</summary>
-    /// <param name="value">The character to parse.</param>
     /// <exception cref="ArgumentException"><paramref name="value"/> is not a decimal digit character.</exception>
     [Pure]
     public static Digit Create(char value)

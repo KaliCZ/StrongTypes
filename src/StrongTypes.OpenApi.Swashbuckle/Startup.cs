@@ -18,7 +18,6 @@ public static class StrongTypesSwashbuckleExtensions
     /// the generated Swagger document as the JSON shape their converters
     /// actually produce.
     /// </summary>
-    /// <param name="options">The Swagger generator options being configured.</param>
     public static SwaggerGenOptions AddStrongTypes(this SwaggerGenOptions options)
     {
         options.SchemaFilter<NonEmptyStringSchemaFilter>();

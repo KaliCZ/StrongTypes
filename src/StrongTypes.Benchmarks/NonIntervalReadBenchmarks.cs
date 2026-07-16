@@ -6,8 +6,7 @@ using StrongTypes.EfCore;
 
 namespace StrongTypes.Benchmarks;
 
-// A plain entity with no interval and no strong type. Guards that UseStrongTypes adds no per-row read
-// overhead to entities it never touches — it registers no materialization interceptor.
+// Guards that UseStrongTypes adds no per-row read overhead to entities it never touches.
 public sealed class ScalarRow
 {
     public int Id { get; set; }

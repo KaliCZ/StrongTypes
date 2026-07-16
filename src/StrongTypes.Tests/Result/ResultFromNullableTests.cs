@@ -78,11 +78,7 @@ public class ResultFromNullableTests
     }
 
     // ── The ambiguity concern: Func returning Exception ────────────────
-    //
-    // Both overloads could match — the non-generic `Func<Exception>` form
-    // and the generic `Func<TError>` form with TError=Exception. The
-    // former is more specific on the parameter type, so overload resolution
-    // picks it and the return is Result<T>, not Result<T, Exception>.
+    // Func<Exception> matches both overloads; the non-generic form is more specific, so it wins and returns Result<T>.
 
     [Fact]
     public void ToResult_RefType_FuncReturningException_PicksSingleParamOverload()
@@ -103,10 +99,7 @@ public class ResultFromNullableTests
     [Fact]
     public void ToResult_RefType_FuncReturningExceptionSubclass_PicksTwoParamOverload()
     {
-        // Documented overload-resolution behaviour: Func<InvalidOperationException>
-        // is a more specific parameter type than Func<Exception>, so the two-param
-        // overload (E = InvalidOperationException) wins. See the XML doc on
-        // ResultFromNullableExtensions.ToResult for the workaround.
+        // A subclass lambda is more specific than Func<Exception>, so the two-param overload wins — see the ToResult XML doc for the workaround.
         string? val = null;
         var r = val.ToResult(() => new InvalidOperationException("x"));
         Assert.IsType<Result<string, InvalidOperationException>>(r);
@@ -115,10 +108,7 @@ public class ResultFromNullableTests
     [Fact]
     public void ToResult_RefType_ExceptionCast_PicksSingleParamOverload()
     {
-        // Workaround: casting the lambda result to Exception makes the lambda's
-        // inferred return type Exception, so V1 (Func<Exception>) and V2
-        // (Func<E> with E=Exception) have identical parameter types and the
-        // non-generic V1 is preferred.
+        // The workaround: the cast makes the lambda's inferred type Exception, so the non-generic overload is preferred.
         string? val = null;
         var r = val.ToResult(() => (Exception)new InvalidOperationException("x"));
         Assert.IsType<Result<string>>(r);
@@ -183,9 +173,7 @@ public class ResultFromNullableTests
     [Fact]
     public void ToResult_RefType_EagerPicksTwoParamForSubclassException()
     {
-        // Same overload-resolution wart as the lazy form: an eager
-        // InvalidOperationException argument binds to the two-param overload
-        // (more-specific parameter type wins) and yields Result<T, InvalidOperationException>.
+        // Same overload-resolution wart as the lazy form: the more specific parameter type wins.
         string? val = null;
         var r = val.ToResult(new InvalidOperationException("x"));
         Assert.IsType<Result<string, InvalidOperationException>>(r);

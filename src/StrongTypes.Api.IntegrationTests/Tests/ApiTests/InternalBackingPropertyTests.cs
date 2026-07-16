@@ -8,12 +8,9 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
 /// <summary>
-/// Issue #112: a nullable strong type held in a non-public EF-mapped backing
-/// property must round-trip and be queryable with its value converter wired
-/// automatically (no manual <c>HasConversion</c>). Were the converter missing,
-/// the model would fail to build ("could not be mapped"). Runs against both
-/// providers. The entity is outside the <c>IEntity</c> shape, so this test drives
-/// the DbContexts directly rather than through <c>IntegrationTestBase</c>.
+/// Issue #112: a nullable strong type in a non-public EF-mapped backing property round-trips
+/// and is queryable with its value converter wired automatically (no manual <c>HasConversion</c>).
+/// The entity is outside the <c>IEntity</c> shape, so this drives the DbContexts directly.
 /// </summary>
 [Collection(IntegrationTestCollection.Name)]
 public sealed class InternalBackingPropertyTests(TestWebApplicationFactory factory) : IDisposable

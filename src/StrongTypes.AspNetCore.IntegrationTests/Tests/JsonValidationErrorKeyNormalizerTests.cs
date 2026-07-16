@@ -5,7 +5,6 @@ namespace StrongTypes.AspNetCore.IntegrationTests.Tests;
 public sealed class JsonValidationErrorKeyNormalizerTests
 {
     [Theory]
-    // Flat property, every casing.
     [InlineData("$.value", JsonErrorKeyCasing.PascalCase, "Value")]
     [InlineData("$.value", JsonErrorKeyCasing.CamelCase, "value")]
     [InlineData("$.value", JsonErrorKeyCasing.StripOnly, "value")]
@@ -17,7 +16,6 @@ public sealed class JsonValidationErrorKeyNormalizerTests
     [InlineData("$.items[0].name", JsonErrorKeyCasing.StripOnly, "items[0].name")]
     // Root array element has no leading name to re-case.
     [InlineData("$[0]", JsonErrorKeyCasing.PascalCase, "[0]")]
-    // Bare root collapses to empty.
     [InlineData("$", JsonErrorKeyCasing.PascalCase, "")]
     // Keys without the JSON root come from model binding and pass through untouched.
     [InlineData("Value", JsonErrorKeyCasing.CamelCase, "Value")]

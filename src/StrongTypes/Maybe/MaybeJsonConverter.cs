@@ -53,8 +53,7 @@ public sealed class MaybeJsonConverterFactory : JsonConverterFactory
                     else
                     {
                         var value = JsonSerializer.Deserialize<T>(ref reader, options);
-                        // T : notnull at declaration, but the wire is honest — only
-                        // wrap in Some when the parsed value is actually non-null.
+                        // The wire can still deliver null despite T : notnull; only a real value becomes Some.
                         if (value is not null)
                             result = Maybe<T>.Some(value);
                     }

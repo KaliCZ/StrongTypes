@@ -61,7 +61,6 @@ public class NonEmptyEnumerableExtensionsTests
     [Property]
     public void Select_InterfaceAndConcreteOverloads_Agree(NonEmptyEnumerable<int> list)
     {
-        // Concrete overload vs. interface overload with a concrete backing — same result.
         INonEmptyEnumerable<int> asInterface = list;
         Assert.Equal(list.Select(i => i * 2), asInterface.Select(i => i * 2));
         Assert.Equal(list.Select((x, i) => x + i), asInterface.Select((x, i) => x + i));
@@ -70,8 +69,6 @@ public class NonEmptyEnumerableExtensionsTests
     [Fact]
     public void Select_InterfaceOverload_HandlesNonConcreteImplementation()
     {
-        // A hand-rolled INonEmptyEnumerable<T> forces the interface overload's fallback
-        // path (no NonEmptyEnumerable<T> to dispatch to).
         INonEmptyEnumerable<int> custom = new CustomNonEmpty<int>([10, 20, 30]);
         Assert.Equal(new[] { 11, 21, 31 }, custom.Select(i => i + 1));
         Assert.Equal(new[] { 10, 21, 32 }, custom.Select((x, i) => x + i));
@@ -86,8 +83,6 @@ public class NonEmptyEnumerableExtensionsTests
     [Property]
     public void SelectMany_EmitsAtLeastHeadSequence(NonEmptyEnumerable<int> list)
     {
-        // Each input element produces a 2-element non-empty sequence — the
-        // flattened length is therefore exactly 2 * input length.
         var flattened = list.SelectMany(i => NonEmptyEnumerable.Create(i, i));
         Assert.Equal(list.Count * 2, flattened.Count);
     }
@@ -147,8 +142,6 @@ public class NonEmptyEnumerableExtensionsTests
     [Property]
     public void Flatten_MatchesLinqSelectMany(NonEmptyEnumerable<int> list)
     {
-        // Wrap every element in a singleton non-empty list and flatten back —
-        // should round-trip the original elements exactly.
         var nested = list.Select(x => NonEmptyEnumerable.Create(x));
         Assert.Equal(list, nested.Flatten());
     }
@@ -156,7 +149,6 @@ public class NonEmptyEnumerableExtensionsTests
     [Property]
     public void Flatten_LengthEqualsSumOfInnerCounts(NonEmptyEnumerable<int> list)
     {
-        // Duplicate each element into a pair — flat length is exactly 2x input length.
         var nested = list.Select(x => NonEmptyEnumerable.Create(x, x));
         var flat = nested.Flatten();
         Assert.Equal(list.Count * 2, flat.Count);
@@ -196,15 +188,13 @@ public class NonEmptyEnumerableExtensionsTests
     [Fact]
     public void Concat_MixedTailTypes_AllWork()
     {
-        // Arrays, lists, NonEmptyEnumerable, and other ICollection<T>-shaped sources
-        // are all valid tails — verify the common combinations end-to-end.
         IEnumerable<int> array = new[] { 2, 3 };
         IEnumerable<int> list = new List<int> { 4, 5 };
         IEnumerable<int> nonEmpty = NonEmptyEnumerable.Create(6, 7);
         IEnumerable<int> hashSet = new HashSet<int> { 8, 9 };
 
         var result = 1.Concat(array, list, nonEmpty, hashSet);
-        // HashSet ordering isn't guaranteed — sort the last-two slice for a stable assert.
+        // HashSet ordering isn't guaranteed — hence the OrderBy.
         Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7 }, result.Take(7));
         Assert.Equal(new[] { 8, 9 }, result.Skip(7).OrderBy(x => x));
     }
@@ -212,8 +202,6 @@ public class NonEmptyEnumerableExtensionsTests
     [Fact]
     public void Concat_LazyIteratorTail_Works()
     {
-        // Enumerable.Where is a LINQ iterator with no pre-computable count —
-        // still expands correctly into the output.
         IEnumerable<int> lazy = new[] { 10, 20, 30 }.Where(_ => true);
         var result = 1.Concat(lazy);
         Assert.Equal(new[] { 1, 10, 20, 30 }, result);
@@ -383,11 +371,7 @@ public class NonEmptyEnumerableExtensionsTests
     [Property]
     public void Average_MatchesLinq(NonEmptyEnumerable<int> list)
     {
-        // Non-empty guarantees Average is defined — implementation uses INumber<T>
-        // which does integer division for int, so compare against the same arithmetic.
-        // Skip inputs whose sum would overflow int: Average throws checked, but the
-        // comparison baseline `Sum()` also throws, so the generator already shrinks
-        // around that. Use long for the expected to sidestep it cleanly.
+        // Int Average does integer division and throws checked on overflow — hence the integer baseline and the skip.
         long expected = 0;
         foreach (var v in list) expected += v;
         if (expected > int.MaxValue || expected < int.MinValue) return;
@@ -404,8 +388,7 @@ public class NonEmptyEnumerableExtensionsTests
     [Fact]
     public void Average_Double_DoesNotThrow()
     {
-        // Floating-point has no overflow concept — `checked` is a no-op, Infinity
-        // is the defined answer. Guard the behavior so nobody "fixes" this later.
+        // Floating-point has no overflow: `checked` is a no-op and Infinity is the defined answer.
         var list = NonEmptyEnumerable.Create(double.MaxValue, double.MaxValue);
         Assert.Equal(double.PositiveInfinity, list.Average());
     }
@@ -421,11 +404,7 @@ public class NonEmptyEnumerableExtensionsTests
         Assert.Equal(3, custom.Average());
     }
 
-    /// <summary>
-    /// Minimal <see cref="INonEmptyEnumerable{T}"/> implementation backed by an array —
-    /// lets the interface-overload tests force the fallback path that doesn't dispatch to
-    /// <see cref="NonEmptyEnumerable{T}"/>.
-    /// </summary>
+    /// <summary>Forces the interface overloads onto their fallback path — no <see cref="NonEmptyEnumerable{T}"/> to dispatch to.</summary>
     private sealed class CustomNonEmpty<T>(T[] items) : INonEmptyEnumerable<T>
     {
         public T this[int index] => items[index];

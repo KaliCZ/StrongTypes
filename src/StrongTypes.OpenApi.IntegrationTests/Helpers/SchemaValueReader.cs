@@ -3,10 +3,7 @@ using System.Text.Json;
 namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 
 /// <summary>
-/// Typed value extraction from JSON-schema keywords. Each reader returns
-/// <c>null</c> (or <c>false</c> for booleans) when the keyword is absent
-/// or has an unexpected JSON kind, so call sites can use the result
-/// directly in assertions without a precondition check.
+/// Each reader returns <c>null</c> (<c>false</c> for booleans) when the keyword is absent or has an unexpected JSON kind.
 /// </summary>
 internal static class SchemaValueReader
 {
@@ -28,10 +25,7 @@ internal static class SchemaValueReader
     internal static bool BoolOrFalse(JsonElement schema, string propertyName) =>
         schema.TryGetProperty(propertyName, out var v) && v.ValueKind == JsonValueKind.True;
 
-    /// <summary>
-    /// Returns the names listed in the schema's <c>required</c> array,
-    /// or an empty array when the keyword is absent or not an array.
-    /// </summary>
+    /// <summary>Returns the names in the schema's <c>required</c> array, or an empty array when the keyword is absent.</summary>
     internal static string[] ReadRequiredArray(JsonElement schema)
     {
         if (!schema.TryGetProperty("required", out var req) || req.ValueKind != JsonValueKind.Array)

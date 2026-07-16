@@ -3,9 +3,7 @@ using Xunit;
 
 namespace StrongTypes.Tests;
 
-// Guards the weighted Gen.Frequency branches in the interval arbitraries: a
-// regression that stopped emitting (say) the unbounded case would silently
-// shrink coverage of every property test that consumes these generators.
+// A generator branch that stops emitting would silently shrink every consuming property test's coverage.
 public class IntervalGeneratorCoverageTests
 {
     [Fact]

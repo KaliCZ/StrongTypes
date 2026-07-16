@@ -2,10 +2,6 @@ using Microsoft.OpenApi;
 
 namespace StrongTypes.OpenApi.Core;
 
-/// <summary>
-/// Shared lookup from a CLR primitive type to the <see cref="JsonSchemaType"/>
-/// + <c>format</c> pair its wire schema uses.
-/// </summary>
 public static class PrimitiveSchemaMap
 {
     public readonly record struct Info(JsonSchemaType Type, string? Format);

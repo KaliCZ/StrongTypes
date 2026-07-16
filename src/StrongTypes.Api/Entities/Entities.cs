@@ -49,7 +49,7 @@ public sealed class IntervalColumnsEntity : EntityBase<IntervalColumnsEntity, In
 public sealed class IntervalFromColumnsEntity : EntityBase<IntervalFromColumnsEntity, IntervalFrom<int>, IntervalFrom<int>?>;
 public sealed class IntervalUntilColumnsEntity : EntityBase<IntervalUntilColumnsEntity, IntervalUntil<int>, IntervalUntil<int>?>;
 
-// Explicit HasIntervalColumns entry point across all four variants; see IntervalEntityConfiguration.
+// Explicit HasIntervalColumns entry point; see IntervalEntityConfiguration.
 public sealed class ExplicitColumnsFiniteIntervalEntity : EntityBase<ExplicitColumnsFiniteIntervalEntity, FiniteInterval<int>, FiniteInterval<int>?>;
 public sealed class ExplicitColumnsIntervalFromEntity : EntityBase<ExplicitColumnsIntervalFromEntity, IntervalFrom<int>, IntervalFrom<int>?>;
 public sealed class ExplicitColumnsIntervalUntilEntity : EntityBase<ExplicitColumnsIntervalUntilEntity, IntervalUntil<int>, IntervalUntil<int>?>;

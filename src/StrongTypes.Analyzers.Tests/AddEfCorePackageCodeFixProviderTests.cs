@@ -4,12 +4,6 @@ using Xunit;
 
 namespace StrongTypes.Analyzers.Tests;
 
-/// <summary>
-/// Behaviour tests for <see cref="AddEfCorePackageCodeFixProvider"/>. The fix operates on a csproj
-/// file, not a Roslyn document, so tests materialize a temp directory, point an
-/// <see cref="Microsoft.CodeAnalysis.AdhocWorkspace"/> at it, run the fix, and inspect the XML
-/// on disk afterwards.
-/// </summary>
 public class AddEfCorePackageCodeFixProviderTests : IDisposable
 {
     private readonly string _tempDir;
@@ -60,7 +54,6 @@ public class AddEfCorePackageCodeFixProviderTests : IDisposable
         Assert.Contains(packageReferences, p =>
             (string?)p.Attribute("Include") == MissingEfCorePackageAnalyzer.EfCorePackageId);
 
-        // New reference should have been placed inside the existing ItemGroup (not a new one).
         var itemGroups = doc.Descendants("ItemGroup").ToArray();
         Assert.Single(itemGroups);
     }
@@ -85,7 +78,6 @@ public class AddEfCorePackageCodeFixProviderTests : IDisposable
 
         Assert.Equal(MissingEfCorePackageAnalyzer.EfCorePackageId, (string?)newRef.Attribute("Include"));
         Assert.Equal(AddEfCorePackageCodeFixProvider.EfCorePackageVersion, (string?)newRef.Attribute("Version"));
-        // The original csproj had no ItemGroup at all, so the fix must have added exactly one.
         Assert.Single(doc.Descendants("ItemGroup"));
     }
 
@@ -107,7 +99,6 @@ public class AddEfCorePackageCodeFixProviderTests : IDisposable
         var fixes = await CodeFixTester.RegisterFixesAsync(new AddEfCorePackageCodeFixProvider(), csproj);
         await CodeFixTester.ApplyAsync(Assert.Single(fixes));
 
-        // No duplicate entry, and the file is byte-for-byte unchanged.
         var doc = XDocument.Load(csproj);
         Assert.Single(doc.Descendants("PackageReference"));
         Assert.Equal(before, File.ReadAllText(csproj));
@@ -137,9 +128,7 @@ public class AddEfCorePackageCodeFixProviderTests : IDisposable
     [Fact]
     public async Task NoOp_when_csproj_file_is_missing()
     {
-        // Point at a path that doesn't exist on disk. The fix must still register (it has no way
-        // to check disk state during registration) but running it should not create the file or
-        // throw.
+        // The fix is offered even for a missing file — registration can't do IO to check.
         var csproj = Path.Combine(_tempDir, "Missing.csproj");
 
         var fixes = await CodeFixTester.RegisterFixesAsync(new AddEfCorePackageCodeFixProvider(), csproj);
@@ -156,7 +145,6 @@ public class AddEfCorePackageCodeFixProviderTests : IDisposable
         Assert.Contains(MissingEfCorePackageAnalyzer.DiagnosticId, provider.FixableDiagnosticIds);
         Assert.NotNull(provider.GetFixAllProvider());
 
-        // Sanity-check the action's title so refactors of the message catch this test.
         var csproj = WriteCsproj("""
             <Project Sdk="Microsoft.NET.Sdk">
               <PropertyGroup>

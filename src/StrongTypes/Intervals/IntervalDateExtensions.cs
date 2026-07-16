@@ -4,7 +4,6 @@ using System.Diagnostics.Contracts;
 
 namespace StrongTypes;
 
-/// <summary>Bridges <see cref="DateTime"/> and <see cref="DateOnly"/> values and the intervals over them.</summary>
 public static class IntervalDateExtensions
 {
     /// <summary>The number of calendar days the interval contains; an excluded endpoint day is not counted.</summary>

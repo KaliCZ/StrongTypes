@@ -8,7 +8,6 @@ namespace StrongTypes;
 public static class NonEmptyStringExtensions
 {
     /// <summary>Returns the underlying <see cref="string"/> value.</summary>
-    /// <param name="s">The wrapper.</param>
     /// <remarks>StrongTypes.EfCore translates this call in LINQ expressions to the underlying string column, letting callers write <c>e.Value.Unwrap().Contains("foo")</c> against SQL.</remarks>
     [Pure]
     public static string Unwrap(this NonEmptyString s) => s.Value;

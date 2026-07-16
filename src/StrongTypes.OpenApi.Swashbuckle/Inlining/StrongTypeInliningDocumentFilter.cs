@@ -5,15 +5,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace StrongTypes.OpenApi.Swashbuckle;
 
-/// <summary>
-/// Runs <see cref="StrongTypeInliner"/> after every other filter so the
-/// wire shape of <see cref="NonEmptyString"/> and the numeric strong-type
-/// wrappers is inlined at every property/parameter/items position and
-/// their components disappear from <c>components.schemas</c>. The
-/// caller's data-annotations (already attached to use sites by
-/// <see cref="PropertyAnnotationSchemaFilter"/>) are preserved through
-/// the merge.
-/// </summary>
+/// <summary>Runs <see cref="StrongTypeInliner"/>; must run after every other filter so use-site annotations are already attached.</summary>
 public sealed class StrongTypeInliningDocumentFilter(ILogger<StrongTypeInliningDocumentFilter>? logger = null) : IDocumentFilter
 {
     public void Apply(OpenApiDocument document, DocumentFilterContext context) => StrongTypeInliner.Inline(document, logger);

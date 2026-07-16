@@ -47,8 +47,7 @@ public class ResultCatchTests
     [Fact]
     public void Catch_TaskCanceledException_PropagatesByDefault()
     {
-        // TaskCanceledException derives from OperationCanceledException, so
-        // the same propagation rule covers it.
+        // TaskCanceledException derives from OperationCanceledException, so the same propagation rule covers it.
         Assert.Throws<TaskCanceledException>(() =>
             Result.Catch<int>(() => throw new TaskCanceledException()));
     }
@@ -75,8 +74,6 @@ public class ResultCatchTests
     [Fact]
     public void CatchTyped_ReturnsNarrowedResultType()
     {
-        // Return type flows the chosen TException through — caller gets
-        // Result<int, InvalidOperationException>, not the base Result<int>.
         Result<int, InvalidOperationException> r =
             Result.Catch<int, InvalidOperationException>(() => 1);
         Assert.True(r.IsSuccess);
@@ -92,8 +89,7 @@ public class ResultCatchTests
     [Fact]
     public void CatchTyped_WithNonOceType_LetsOceEscape()
     {
-        // Double-guarded: OCE doesn't match InvalidOperationException anyway,
-        // and the default propagateCancellation=true would rethrow it first.
+        // Double-guarded: OCE doesn't match InvalidOperationException, and propagateCancellation=true would rethrow it first anyway.
         Assert.Throws<OperationCanceledException>(() =>
             Result.Catch<int, InvalidOperationException>(() => throw new OperationCanceledException()));
     }
@@ -101,8 +97,7 @@ public class ResultCatchTests
     [Fact]
     public void CatchTyped_WithExceptionType_PropagatesOceByDefault()
     {
-        // TException = Exception would normally catch OCE, but
-        // propagateCancellation=true rethrows it first.
+        // TException = Exception would normally catch OCE, but propagateCancellation=true rethrows it first.
         Assert.Throws<OperationCanceledException>(() =>
             Result.Catch<int, Exception>(() => throw new OperationCanceledException()));
     }

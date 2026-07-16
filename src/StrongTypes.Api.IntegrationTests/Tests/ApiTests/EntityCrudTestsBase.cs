@@ -82,9 +82,8 @@ public abstract class EntityCrudTestsBase<TEntity, T, TNullable>(TestWebApplicat
         return await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
     }
 
-    // T → TNullable bridge. For struct T with TNullable = Nullable<T>, boxing then unboxing to
-    // Nullable<T> is a supported CLR conversion; for class T with TNullable = T? it is identity.
-    // default! is null in both shapes.
+    // (TNullable)(object) looks unsound, but unboxing to Nullable<T> is a supported CLR conversion
+    // for struct T and identity for class T.
     protected static TNullable ToNullable(T value) => (TNullable)(object)value!;
     protected static TNullable NullNullable => default!;
 
@@ -104,10 +103,8 @@ public abstract class EntityCrudTestsBase<TEntity, T, TNullable>(TestWebApplicat
         await AssertEntity(created.Id, ValidValue, NullNullable);
     }
 
-    // Value is non-nullable, so a null Value is a 400. The error key is mechanism-dependent: a
-    // struct (or a reference converter that rejects null) fails at parse time -> "$.value"; a
-    // reference converter that maps null through trips the post-binding implicit-required check
-    // -> the C# name "Value". Accept the field key with or without the "$." prefix either way.
+    // The error key is mechanism-dependent — parse-time converter failure keys "$.value", the
+    // implicit-required check keys "Value" (see testing.md).
     [Fact]
     public async Task NullValue_ReturnsBadRequest()
     {
@@ -191,9 +188,7 @@ public abstract class EntityCrudTestsBase<TEntity, T, TNullable>(TestWebApplicat
     }
 
     // ── Patch ────────────────────────────────────────────────────────────
-    // Wire semantics per field:
-    //   Value        — null/absent ⇒ skip;      non-null ⇒ update.
-    //   NullableValue — null/absent ⇒ skip; { Value: x } ⇒ set x; {} or { Value: null } ⇒ clear.
+    // Wire semantics per field: see StructEntityPatchRequest<T>.
 
     [Fact]
     public async Task Patch_EmptyBody_LeavesBothFieldsUnchanged()
@@ -281,11 +276,7 @@ public abstract class EntityCrudTestsBase<TEntity, T, TNullable>(TestWebApplicat
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    /// <summary>
-    /// Asserts a 400 carrying a well-formed <c>ValidationProblemDetails</c> (RFC 9457
-    /// problem+json with a non-empty <c>errors</c> map) and returns the <c>errors</c>
-    /// object so callers can assert specific keys.
-    /// </summary>
+    /// <summary>Asserts a 400 problem+json response and returns its <c>errors</c> object for key-specific assertions.</summary>
     protected static async Task<JsonElement> AssertValidationProblem(HttpResponseMessage response)
     {
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

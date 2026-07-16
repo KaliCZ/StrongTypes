@@ -14,8 +14,6 @@ public static class StrongTypesServiceCollectionExtensions
     /// and, unless turned off via <paramref name="configure"/>, normalizes JSON
     /// request-body validation error keys (see <see cref="StrongTypesAspNetCoreOptions.NormalizeJsonErrorKeys"/>).
     /// </summary>
-    /// <param name="services">The service collection to configure.</param>
-    /// <param name="configure">Optional configuration callback.</param>
     public static IServiceCollection AddStrongTypes(
         this IServiceCollection services,
         Action<StrongTypesAspNetCoreOptions>? configure = null)
@@ -29,11 +27,9 @@ public static class StrongTypesServiceCollectionExtensions
             mvc.ModelBinderProviders.Insert(0, new NonEmptyEnumerableModelBinderProvider());
         });
 
-        // Wrap the default factory and rewrite the keys at request time, reading
-        // the flag from DI so tests (and consumers) can flip it per app instance.
-        // PostConfigure runs after the framework's own Configure that installs the
-        // default factory, so wrapping it doesn't depend on AddStrongTypes being
-        // called after AddControllers.
+        // The options are resolved from DI at request time so the flag can differ per app instance.
+        // PostConfigure runs after the framework's Configure that installs the default factory,
+        // so this doesn't depend on AddStrongTypes being called after AddControllers.
         services.PostConfigure<ApiBehaviorOptions>(api =>
         {
             var inner = api.InvalidModelStateResponseFactory;

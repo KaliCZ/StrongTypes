@@ -145,12 +145,10 @@ public class IntervalJsonConverterTests
     [Fact]
     public void Read_OmittedRequiredEndpoint_Throws()
     {
-        // FiniteInterval requires both endpoints.
         Assert.Throws<JsonException>(() =>
             JsonSerializer.Deserialize<FiniteInterval<int>>("""{"Start":1}"""));
         Assert.Throws<JsonException>(() =>
             JsonSerializer.Deserialize<FiniteInterval<int>>("""{"End":1}"""));
-        // IntervalFrom requires Start; IntervalUntil requires End.
         Assert.Throws<JsonException>(() =>
             JsonSerializer.Deserialize<IntervalFrom<int>>("""{"End":10}"""));
         Assert.Throws<JsonException>(() =>
@@ -160,17 +158,14 @@ public class IntervalJsonConverterTests
     [Fact]
     public void Read_OmittedOptionalEndpoint_DefaultsToNull()
     {
-        // Both endpoints optional: an empty object is the unbounded interval.
         var open = JsonSerializer.Deserialize<Interval<int>>("{}");
         Assert.Null(open.Start);
         Assert.Null(open.End);
 
-        // Omitting the optional upper bound is open-ended.
         var from = JsonSerializer.Deserialize<IntervalFrom<int>>("""{"Start":1}""");
         Assert.Equal(1, from.Start);
         Assert.Null(from.End);
 
-        // Omitting the optional lower bound is open-started.
         var until = JsonSerializer.Deserialize<IntervalUntil<int>>("""{"End":10}""");
         Assert.Null(until.Start);
         Assert.Equal(10, until.End);
@@ -227,9 +222,7 @@ public class IntervalJsonConverterTests
         Assert.DoesNotContain("`", ex.Message);
     }
 
-    // A type mismatch in an endpoint is rethrown path-less (inner exception
-    // preserved) so System.Text.Json can reattach the property path — the fix
-    // that keeps the API error key at "$.value" rather than the document root.
+    // An endpoint type mismatch is rethrown path-less, inner preserved, so System.Text.Json can reattach the property path.
     [Fact]
     public void EndpointTypeMismatch_ThrowsJsonExceptionPreservingInner()
     {

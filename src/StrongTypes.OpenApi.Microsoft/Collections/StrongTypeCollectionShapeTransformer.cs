@@ -4,18 +4,9 @@ using Microsoft.OpenApi;
 
 namespace StrongTypes.OpenApi.Microsoft;
 
-// ASP.NET Core's schema generation cannot infer the element/value schema
-// for a CLR collection whose element type carries a custom JsonConverter
-// (every strong-type wrapper does), so the generated schema is left with
-// no `items` for arrays and no `additionalProperties` for dictionaries.
-// This transformer fills those positions in for any type the serializer
-// recognises as Enumerable or Dictionary, regardless of the concrete CLR
-// shape (`List<T>`, `T[]`, `FrozenSet<T>`, `IDictionary<,>`,
-// `FrozenDictionary<,>`, `SortedList<,>`, …). Dictionaries whose value
-// type is a primitive bypass this hook — the framework inlines a
-// (broken) schema for them directly. That is a Microsoft.AspNetCore
-// .OpenApi defect, not a strong-types concern, and is left to upstream
-// to fix.
+// ASP.NET Core's schema generation leaves `items` / `additionalProperties` empty when the
+// element type carries a custom JsonConverter (every strong-type wrapper does); fill them in.
+// Dictionaries with primitive value types never reach this hook — a Microsoft.AspNetCore.OpenApi defect.
 public sealed class StrongTypeCollectionShapeTransformer : IOpenApiSchemaTransformer
 {
     public async Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)

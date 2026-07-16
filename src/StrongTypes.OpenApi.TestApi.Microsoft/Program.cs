@@ -3,10 +3,8 @@ using StrongTypes.OpenApi.TestApi.Shared;
 
 namespace StrongTypes.OpenApi.TestApi.Microsoft;
 
-// Distinct entry-point class so this assembly does not emit a `Program` type
-// into the global namespace — that would collide with the Swashbuckle test
-// app's `Program` when both projects are referenced by the integration-test
-// assembly.
+// Named entry point (not top-level statements): a global `Program` would collide with the
+// Swashbuckle test app's when the integration-test assembly references both.
 public class MicrosoftTestApiEntryPoint
 {
     public static void Main(string[] args)

@@ -8,18 +8,15 @@ using System.Threading;
 
 namespace StrongTypes;
 
-/// <summary>Extensions over <see cref="Enum"/> types: factories, declared-values metadata, and flag decomposition.</summary>
 public static class EnumExtensions
 {
     extension<TEnum>(TEnum source) where TEnum : struct, Enum
     {
-        /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>.</summary>
         /// <param name="value">The name or numeric value to parse.</param>
         /// <exception cref="ArgumentException"><paramref name="value"/> does not match a defined name or value.</exception>
         [Pure]
         public static TEnum Parse(string value) => Enum.Parse<TEnum>(value);
 
-        /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>.</summary>
         /// <param name="value">The name or numeric value to parse.</param>
         /// <param name="ignoreCase">When <c>true</c>, the name comparison is case-insensitive.</param>
         /// <exception cref="ArgumentException"><paramref name="value"/> does not match a defined name or value.</exception>
@@ -37,7 +34,6 @@ public static class EnumExtensions
         [Pure]
         public static TEnum? TryParse(string? value, bool ignoreCase) => Enum.TryParse<TEnum>(value, ignoreCase, out var v) ? v : null;
 
-        /// <summary>Parses <paramref name="value"/> into a <typeparamref name="TEnum"/>.</summary>
         /// <param name="value">The name or numeric value to parse.</param>
         /// <exception cref="ArgumentException"><paramref name="value"/> does not match a defined name or value.</exception>
         [Pure]
@@ -48,7 +44,6 @@ public static class EnumExtensions
         [Pure]
         public static TEnum? TryCreate(string? value) => Enum.TryParse<TEnum>(value, out var v) ? v : null;
 
-        /// <summary>All declared values of <typeparamref name="TEnum"/>.</summary>
         [Pure]
         public static TEnum[] AllValues => EnumMeta<TEnum>.Values;
 
@@ -67,8 +62,7 @@ public static class EnumExtensions
         [Pure]
         public IReadOnlyList<TEnum> GetFlags()
         {
-            // Access FlagValues first so non-[Flags] enums throw even when
-            // the receiver is zero.
+            // Access FlagValues first so non-[Flags] enums throw even when the receiver is zero.
             var flags = FlagEnumMeta<TEnum>.FlagValues;
 
             var bits = FlagEnumMeta<TEnum>.ToLong(source);
@@ -91,10 +85,7 @@ public static class EnumExtensions
     }
 }
 
-// Split in two so non-flag enums never pay for the flag-related state:
-// reflecting for [Flags], compiling the ToLong/FromLong conversions, and
-// allocating the lazy caches. Touching AllValues on a plain enum only
-// cctors EnumMeta; FlagEnumMeta's cctor fires only when flag APIs are used.
+// Split in two so plain enums never trigger FlagEnumMeta's flag-related static initialization.
 internal static class EnumMeta<TEnum> where TEnum : struct, Enum
 {
     public static readonly TEnum[] Values = Enum.GetValues<TEnum>();
@@ -107,18 +98,12 @@ internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
 
     private static readonly bool HasFlagsAttribute = typeof(TEnum).IsDefined(typeof(FlagsAttribute), inherit: false);
 
-    // FlagValues is a reference: a plain ??= is enough. A race can run
-    // ScanForFlagValues more than once, but the scan is deterministic so
-    // last-write-wins is benign, and .NET guarantees the array's writes
-    // are visible before its reference is published.
+    // Benign race: ScanForFlagValues is deterministic, so last-write-wins on the reference is safe.
     private static TEnum[]? _flagValues;
     [Pure]
     public static TEnum[] FlagValues => _flagValues ??= ScanForFlagValues();
 
-    // FlagsCombined is a TEnum (up to 8 bytes; not atomic on 32-bit) and
-    // default(TEnum) == 0 is a valid computed result, so we can't use
-    // the value itself as a freshness marker. A separate bool gives us
-    // that marker; LazyInitializer handles the DCL and release barrier.
+    // default(TEnum) == 0 is a valid result and TEnum writes are not atomic, so the value cannot mark its own initialization.
     private static TEnum _flagsCombined;
     private static bool _flagsCombinedReady;
     private static object? _flagsCombinedLock;
@@ -127,14 +112,7 @@ internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
         ref _flagsCombined, ref _flagsCombinedReady, ref _flagsCombinedLock, OrAllFlagValues
     );
 
-    // Validation is done inside the factory (not at each getter call) so a
-    // well-formed flag enum pays only the LazyInitializer fast path on
-    // subsequent reads. Factory throws propagate through LazyInitializer
-    // without caching, so non-flag enums still throw on every access.
-    //
-    // BitOperations.IsPow2 treats negatives as non-flags, which is what we
-    // want: a power of two is by definition positive, so a sign-extended
-    // high bit on a signed underlying type is excluded.
+    // BitOperations.IsPow2 rejects sign-extended negatives — a high sign bit is deliberately not a flag.
     private static TEnum[] ScanForFlagValues()
     {
         if (!HasFlagsAttribute)
@@ -154,8 +132,7 @@ internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
 
     private static Func<TEnum, long> CompileToLong()
     {
-        // (long)(TUnderlying)value — unchecked widening, sign-extending
-        // through the underlying integral type.
+        // Unchecked widening — sign-extends through the underlying integral type.
         var param = Expression.Parameter(typeof(TEnum), "v");
         var underlying = Enum.GetUnderlyingType(typeof(TEnum));
         var body = Expression.Convert(Expression.Convert(param, underlying), typeof(long));
@@ -164,8 +141,7 @@ internal static class FlagEnumMeta<TEnum> where TEnum : struct, Enum
 
     private static Func<long, TEnum> CompileFromLong()
     {
-        // (TEnum)(TUnderlying)bits — unchecked narrowing; truncates when
-        // the underlying type is smaller than long.
+        // Unchecked narrowing — truncates when the underlying type is smaller than long.
         var param = Expression.Parameter(typeof(long), "bits");
         var underlying = Enum.GetUnderlyingType(typeof(TEnum));
         var body = Expression.Convert(Expression.Convert(param, underlying), typeof(TEnum));

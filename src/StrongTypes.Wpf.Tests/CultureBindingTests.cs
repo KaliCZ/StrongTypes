@@ -44,10 +44,8 @@ public class CultureBindingTests
     }
 
     /// <summary>
-    /// Write-back parses in the binding culture. A separator from the wrong culture is silently
-    /// swallowed as digit grouping — <c>"9876,5"</c> under en-US binds to <c>98765</c>, a valid value
-    /// and no error — so the culture must match the input. Text that is no number, or that breaks the
-    /// invariant, raises a validation error and leaves the source unchanged (a <c>null</c> expected).
+    /// A separator from the wrong culture is silently swallowed as digit grouping — <c>"9876,5"</c> under
+    /// en-US binds to <c>98765</c>, a valid value and no error — so the culture must match the input.
     /// </summary>
     [Theory]
     [InlineData("en-US", "9876.5", 9876.5)]
@@ -84,7 +82,6 @@ public class CultureBindingTests
         });
     }
 
-    /// <summary>With no ConverterCulture the binding falls back to the element's Language, still never the host.</summary>
     [Theory]
     [InlineData("en-US")]
     [InlineData("de-DE")]

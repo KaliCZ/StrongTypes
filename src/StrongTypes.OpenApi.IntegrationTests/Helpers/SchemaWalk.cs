@@ -3,21 +3,14 @@ using System.Text.Json;
 namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 
 /// <summary>
-/// Walks a property schema across <c>$ref</c>, <c>allOf</c>,
-/// <c>oneOf</c>, and <c>anyOf</c> layers (skipping the version-strict
-/// null branches that encode <c>T?</c>) and pulls keyword values
-/// reachable anywhere in the chain. Annotation-propagation
-/// assertions don't care whether the pipeline inlined the merged
-/// schema or layered the caller's bounds via <c>$ref</c> + <c>allOf</c>;
-/// they care that the bounds are reachable.
+/// Annotation-propagation assertions pin that bounds are reachable, not how the pipeline encoded them (inline merged
+/// schema vs. layered <c>$ref</c> + <c>allOf</c>): the collectors walk every reachable layer and return the tightest
+/// applicable bound, or <c>null</c> when no layer carries the keyword.
 /// </summary>
 internal static class SchemaWalk
 {
     /// <summary>
-    /// Yields every schema layer reachable from <paramref name="schema"/>
-    /// by following <c>$ref</c> and union/composition keywords.
-    /// Skips the null marker for <paramref name="version"/>; a
-    /// cross-version null marker is not skipped, so contamination
+    /// Skips only the null marker for <paramref name="version"/> — a cross-version marker is walked, so contamination
     /// surfaces downstream rather than silently passing through.
     /// </summary>
     internal static IEnumerable<JsonElement> WalkSchemaLayers(JsonElement doc, JsonElement schema, OpenApiVersion version)
@@ -56,12 +49,6 @@ internal static class SchemaWalk
         }
     }
 
-    /// <summary>
-    /// Returns the largest integer value of <paramref name="keyword"/>
-    /// reachable from <paramref name="schema"/>, or <c>null</c> if no
-    /// layer carries the keyword. Useful for floors that can be
-    /// tightened by an outer layer (e.g. <c>minLength</c>).
-    /// </summary>
     internal static int? CollectMaxInt(JsonElement doc, JsonElement schema, string keyword, OpenApiVersion version)
     {
         int? best = null;
@@ -74,12 +61,6 @@ internal static class SchemaWalk
         return best;
     }
 
-    /// <summary>
-    /// Returns the smallest integer value of <paramref name="keyword"/>
-    /// reachable from <paramref name="schema"/>, or <c>null</c> if no
-    /// layer carries the keyword. Useful for ceilings that can be
-    /// tightened by an outer layer (e.g. <c>maxLength</c>).
-    /// </summary>
     internal static int? CollectMinInt(JsonElement doc, JsonElement schema, string keyword, OpenApiVersion version)
     {
         int? best = null;
@@ -92,13 +73,6 @@ internal static class SchemaWalk
         return best;
     }
 
-    /// <summary>
-    /// Returns the first string value of <paramref name="keyword"/>
-    /// reachable from <paramref name="schema"/>, or <c>null</c> if no
-    /// layer carries the keyword. For string keywords like
-    /// <c>format</c>, <c>pattern</c>, and <c>description</c> where
-    /// any reachable value is the value the caller observes.
-    /// </summary>
     internal static string? CollectFirstString(JsonElement doc, JsonElement schema, string keyword, OpenApiVersion version)
     {
         foreach (var layer in WalkSchemaLayers(doc, schema, version))
@@ -109,12 +83,6 @@ internal static class SchemaWalk
         return null;
     }
 
-    /// <summary>
-    /// Returns the largest inclusive-lower-bound (<c>minimum</c>)
-    /// reachable from <paramref name="schema"/>. The tightest applicable
-    /// floor wins, modelling how a layered caller bound stacks on top
-    /// of a wrapper's own floor.
-    /// </summary>
     internal static decimal? CollectMaxLowerBound(JsonElement doc, JsonElement schema, OpenApiVersion version)
     {
         decimal? best = null;
@@ -125,11 +93,6 @@ internal static class SchemaWalk
         return best;
     }
 
-    /// <summary>
-    /// Returns the smallest inclusive-upper-bound (<c>maximum</c>)
-    /// reachable from <paramref name="schema"/>. The tightest applicable
-    /// ceiling wins.
-    /// </summary>
     internal static decimal? CollectMinUpperBound(JsonElement doc, JsonElement schema, OpenApiVersion version)
     {
         decimal? best = null;

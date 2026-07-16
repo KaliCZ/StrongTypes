@@ -23,20 +23,17 @@ public sealed class Email :
     public const int MaxLength = 254;
 
     /// <summary>Wraps an already-parsed <paramref name="value"/> without re-validating. Skips the <see cref="MaxLength"/> check — callers that need the cap enforced should go through <see cref="Create(string?)"/> or <see cref="TryCreate(string?)"/>.</summary>
-    /// <param name="value">The mail address to wrap.</param>
     public Email(MailAddress value)
     {
         Value = value;
     }
 
-    /// <summary>The parsed address. Use <c>email.Value.Address</c> for the raw string, <c>email.Value.User</c> for the local-part, and <c>email.Value.Host</c> for the domain.</summary>
     public MailAddress Value { get; }
 
     /// <summary>The address as it appeared on the wire.</summary>
     public string Address => Value.Address;
 
     /// <summary>Wraps <paramref name="value"/>, or returns <c>null</c> when it is null, blank, longer than <see cref="MaxLength"/>, or rejected by <see cref="MailAddress.TryCreate(string?, out MailAddress?)"/>.</summary>
-    /// <param name="value">The candidate address.</param>
     [Pure]
     public static Email? TryCreate(string? value)
     {
@@ -47,7 +44,6 @@ public sealed class Email :
     }
 
     /// <summary>Wraps <paramref name="value"/>.</summary>
-    /// <param name="value">The candidate address.</param>
     /// <exception cref="ArgumentException"><paramref name="value"/> is null, blank, longer than <see cref="MaxLength"/>, or not a valid email address.</exception>
     [Pure]
     public static Email Create(string? value) =>

@@ -5,9 +5,8 @@ using Xunit;
 namespace StrongTypes.Analyzers.Tests;
 
 /// <summary>
-/// Behaviour tests for <see cref="UnvalidatedStrongTypeOptionsAnalyzer"/> (ST0004). Each source
-/// opts into nullable reference types, because required-ness for a reference wrapper is read from
-/// the annotation and the test compilation does not enable it project-wide.
+/// Each test source opts into nullable reference types, because required-ness for a reference
+/// wrapper is read from the annotation and the test compilation does not enable it project-wide.
 /// </summary>
 public class UnvalidatedStrongTypeOptionsAnalyzerTests
 {
@@ -44,9 +43,6 @@ public class UnvalidatedStrongTypeOptionsAnalyzerTests
     private static Task<System.Collections.Immutable.ImmutableArray<Diagnostic>> RunAsync(string source) =>
         AnalyzerTester.RunAsync(new UnvalidatedStrongTypeOptionsAnalyzer(), source, TestReferences.With(TestReferences.OptionsStack));
 
-    // ── Fires ───────────────────────────────────────────────────────────
-
-    /// <summary>A non-nullable reference wrapper is the one an absent key leaves null — the state its type forbids.</summary>
     [Theory]
     [InlineData(BindRegistration)]
     [InlineData(ConfigureRegistration)]
@@ -72,7 +68,6 @@ public class UnvalidatedStrongTypeOptionsAnalyzerTests
         Assert.Contains("Contact", diagnostic.GetMessage(), StringComparison.Ordinal);
     }
 
-    /// <summary>A wrapper nested in a child options class is left null by the same absent key, so the nudge has to reach it.</summary>
     [Fact]
     public async Task Fires_for_a_wrapper_nested_in_a_child_options_class()
     {
@@ -132,9 +127,7 @@ public class UnvalidatedStrongTypeOptionsAnalyzerTests
         Assert.Contains("Endpoints.Host", diagnostic.GetMessage(), StringComparison.Ordinal);
     }
 
-    // ── Silent ──────────────────────────────────────────────────────────
-
-    /// <summary>A <c>[TypeConverter]</c> type binds from a scalar, so the binder never reaches the wrapper inside it — flagging it would invent a diagnostic for a property configuration never touches.</summary>
+    /// <summary>A <c>[TypeConverter]</c> type binds from a scalar, so the binder never reaches the wrapper inside it.</summary>
     [Fact]
     public async Task Silent_for_a_wrapper_inside_a_type_that_binds_from_a_scalar()
     {
@@ -243,7 +236,7 @@ public class UnvalidatedStrongTypeOptionsAnalyzerTests
         Assert.Empty(diagnostics.WhereId(UnvalidatedStrongTypeOptionsAnalyzer.DiagnosticId));
     }
 
-    /// <summary>A struct wrapper cannot be null, so an absent key leaves it at a default the type is happy to hold — there is no contradiction to report.</summary>
+    /// <summary>A struct wrapper cannot be null, so an absent key leaves it at a default the type is happy to hold.</summary>
     [Theory]
     [InlineData("    public Positive<int> MaxRetries { get; set; }")]
     [InlineData("    public Positive<int>? MaxRetries { get; set; }")]
@@ -277,7 +270,6 @@ public class UnvalidatedStrongTypeOptionsAnalyzerTests
         Assert.Empty(diagnostics.WhereId(UnvalidatedStrongTypeOptionsAnalyzer.DiagnosticId));
     }
 
-    /// <summary>Nothing to say when the project never binds options — the analyzer must no-op rather than fire on the declaration alone.</summary>
     [Fact]
     public async Task Silent_when_the_options_type_is_never_bound()
     {

@@ -8,13 +8,6 @@ using static StrongTypes.Api.IntegrationTests.Tests.BindingTestAsserts;
 
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
-/// <summary>
-/// Verifies that strong types round-trip through MVC's query-string model
-/// binding — both <c>[FromQuery]</c> and the minimal-API-style implicit
-/// query binding — and that invalid input lands in the
-/// <see cref="HttpStatusCode.BadRequest"/> branch with a
-/// <c>ValidationProblemDetails</c> payload.
-/// </summary>
 [Collection(IntegrationTestCollection.Name)]
 public sealed class QueryBindingTests(TestWebApplicationFactory factory) : IDisposable
 {
@@ -89,9 +82,6 @@ public sealed class QueryBindingTests(TestWebApplicationFactory factory) : IDisp
     [InlineData("nullableEmail=not-an-email", "nullableEmail")]
     public async Task FromQuery_NonEmptyInvalidNullable_Returns400ProblemDetails(string nullableQuery, string expectedField)
     {
-        // A nullable param that's *present with a non-empty invalid value*
-        // still has to fail — nullable means the slot may be omitted, not
-        // that any garbage is OK.
         var response = await _client.GetAsync($"/binding-probe/query?{ValidQuery}&{nullableQuery}", Ct);
 
         await AssertValidationProblem(response, expectedField);
@@ -100,10 +90,8 @@ public sealed class QueryBindingTests(TestWebApplicationFactory factory) : IDisp
     [Fact]
     public async Task FromQuery_EmptyNullable_BindsAsNull()
     {
-        // MVC's NullableConverter short-circuits empty strings to null for
-        // nullable types — TryParse never runs. This is framework behaviour,
-        // not a strong-types behaviour: documented here so a regression
-        // (e.g. a custom binder that flips it to 400) is intentional.
+        // MVC's NullableConverter short-circuits an empty value to null before TryParse runs —
+        // framework behaviour, not the strong types'.
         var response = await _client.GetAsync($"/binding-probe/query?{ValidQuery}&nullableName=", Ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -116,10 +104,6 @@ public sealed class QueryBindingTests(TestWebApplicationFactory factory) : IDisp
     [InlineData("name=Alice&count=1&digit=0", "email")]
     public async Task FromQuery_MissingRequiredReferenceType_Returns400ProblemDetails(string query, string expectedField)
     {
-        // Reference-type strong types (NonEmptyString, Email) produce a model
-        // binding error for an omitted query parameter — there's no value to
-        // bind and null isn't assignable to the non-nullable parameter, so MVC
-        // surfaces a ValidationProblemDetails entry keyed by the parameter name.
         var response = await _client.GetAsync($"/binding-probe/query?{query}", Ct);
 
         await AssertValidationProblem(response, expectedField);
@@ -130,13 +114,8 @@ public sealed class QueryBindingTests(TestWebApplicationFactory factory) : IDisp
     [InlineData("name=Alice&count=1&email=alice@example.com")]
     public async Task FromQuery_MissingRequiredValueType_BindsToDefault(string query)
     {
-        // Value-type strong types (Positive<int>, Digit are structs) silently
-        // bind to default(T) when the query parameter is omitted — MVC's
-        // TryParseModelBinder doesn't run for a missing source value, and no
-        // [BindRequired] attribute is present, so the action sees an
-        // invariant-violating default rather than a 400. Documented here so
-        // the contract is explicit; fixing this would need a custom binder
-        // that flags missing required structs.
+        // An omitted struct parameter silently binds to an invariant-violating default(T):
+        // TryParseModelBinder never runs for a missing source value and nothing is [BindRequired].
         var response = await _client.GetAsync($"/binding-probe/query?{query}", Ct);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }

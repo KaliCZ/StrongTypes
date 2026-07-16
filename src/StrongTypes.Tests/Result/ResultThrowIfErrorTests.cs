@@ -37,7 +37,6 @@ public class ResultThrowIfErrorTests
         Result<int> r = captured!;
 
         var thrown = Assert.Throws<InvalidOperationException>(() => r.ThrowIfError());
-        // The original frame must still be reachable in the rethrown stack.
         Assert.Contains(nameof(ThrowIfError_Default_PreservesOriginalStackTrace), thrown.StackTrace);
     }
 
@@ -82,10 +81,7 @@ public class ResultThrowIfErrorTests
     [Property]
     public void ThrowIfError_Aggregate_Success_ReturnsValue(int value)
     {
-        // Implicit conversion from the int success value works because T is a
-        // concrete type; the TError interface branch of the implicit operator
-        // doesn't apply (C# forbids interface source types), so the aggregate
-        // error case constructs via the factory instead.
+        // C# forbids implicit conversion from an interface TError, so the error cases below construct via the factory.
         Result<int, IReadOnlyList<Exception>> r = value;
         Assert.Equal(value, r.ThrowIfError());
     }
@@ -118,9 +114,7 @@ public class ResultThrowIfErrorTests
     [Fact]
     public void ParameterlessOverload_ChosenOnResultOfT_NoConverterNeeded()
     {
-        // Compile-time check: calling ThrowIfError() with no args on a
-        // Result<int> must bind to the default overload, not the generic one
-        // (which would require a Func<TError, Exception>).
+        // The real check is compile-time: the no-arg call must bind to the default overload.
         Result<int> r = 42;
         int value = r.ThrowIfError();
         Assert.Equal(42, value);

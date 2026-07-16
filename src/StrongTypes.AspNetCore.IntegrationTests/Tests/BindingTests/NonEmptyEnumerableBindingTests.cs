@@ -8,10 +8,6 @@ using static StrongTypes.AspNetCore.IntegrationTests.Tests.BindingTests.BindingT
 
 namespace StrongTypes.AspNetCore.IntegrationTests.Tests.BindingTests;
 
-/// <summary>
-/// Verifies the MVC binders shipped in <c>Kalicz.StrongTypes.AspNetCore</c>
-/// for non-empty collections of strong types across non-body binding sources.
-/// </summary>
 public sealed class NonEmptyEnumerableBindingTests(AspNetCoreTestApiFactory factory) : IClassFixture<AspNetCoreTestApiFactory>, IDisposable
 {
     private readonly HttpClient _client = factory.CreateClient(new WebApplicationFactoryClientOptions

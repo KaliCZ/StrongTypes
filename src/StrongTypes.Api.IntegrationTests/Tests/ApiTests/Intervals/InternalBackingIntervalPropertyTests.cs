@@ -8,14 +8,10 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
 /// <summary>
-/// Issue #112 for intervals: a nullable interval in a non-public EF-mapped
-/// backing property must round-trip with the two-endpoint-column shape wired
-/// automatically, and its shadow discriminator must keep a <c>null</c> property
-/// distinct from an unbounded interval on read. Without the convention's
-/// complex-property hook the nullable interval loses its discriminator and a
-/// stored <c>null</c> is indistinguishable from <c>(-∞, ∞)</c>. Runs against both
-/// providers; the entity is outside the <c>IEntity</c> shape, so this drives the
-/// DbContexts directly rather than through <c>IntegrationTestBase</c>.
+/// Issue #112 for intervals: a nullable interval in a non-public EF-mapped backing property
+/// round-trips with the two-endpoint-column shape wired automatically, keeping a stored
+/// <c>null</c> distinct from an unbounded interval. The entity is outside the <c>IEntity</c>
+/// shape, so this drives the DbContexts directly.
 /// </summary>
 [Collection(IntegrationTestCollection.Name)]
 public sealed class InternalBackingIntervalPropertyTests(TestWebApplicationFactory factory) : IDisposable

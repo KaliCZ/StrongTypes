@@ -43,8 +43,6 @@ public sealed class IntervalSchemaTransformer : IOpenApiSchemaTransformer
     // No schema default: which inclusivity an omitted flag implies is the applied converter's call, not the type's.
     private static OpenApiSchema BoundFlagSchema() => new() { Type = JsonSchemaType.Boolean };
 
-    // An endpoint is required exactly when its type is the bare value type; an
-    // optional endpoint is Nullable<T>, and the converter lets its key be omitted.
     private static HashSet<string> RequiredEndpoints(Type startType, Type endType)
     {
         var required = new HashSet<string>(StringComparer.Ordinal);

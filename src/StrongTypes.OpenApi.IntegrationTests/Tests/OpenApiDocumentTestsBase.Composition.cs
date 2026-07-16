@@ -6,22 +6,13 @@ using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaValueReader;
 
 namespace StrongTypes.OpenApi.IntegrationTests.Tests;
 
-// Transitive composition — when one strong type wraps another, the
-// outer transformer must not swallow the inner's bounds. A
-// Maybe<Positive<int>> needs minimum:0/exclusiveMinimum:true on its
-// inner Value, not just type:integer; a Maybe<NonEmptyString> needs
-// minLength:1; a NonEmptyEnumerable<Maybe<…>> needs both the array
-// bound and the Maybe wrapper with its own inner bound.
+// When one strong type wraps another, the outer transformer must not swallow the inner's bounds.
 public abstract partial class OpenApiDocumentTestsBase
 {
     [Fact]
     public async Task Maybe_T_Renders_As_Wrapper_Object_With_Value_Property()
     {
-        // The PATCH request for a numeric entity carries `Maybe<T>? NullableValue`.
-        // The converter writes {"Value": x} or {"Value": null} and reads {} as None,
-        // so the schema must describe an object with a non-required Value property —
-        // a deep-equal against the literal shape catches any spurious `required: ["Value"]`
-        // alongside the rest of the wrapper's wire form.
+        // The Maybe converter reads {} as None, so the schema must not require Value.
         var doc = await GetDocumentAsync();
         var body = FollowRef(doc, RequestSchema(doc, "/positive-int-entities/{id}", method: "patch"));
         var nullableValue = Resolve(doc, UnwrapNullableProperty(Property(body, "nullableValue"), Version));

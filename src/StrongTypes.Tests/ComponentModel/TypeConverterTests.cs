@@ -63,7 +63,6 @@ public class TypeConverterTests
 
     // ── Culture ─────────────────────────────────────────────────────────
 
-    /// <summary>The converter parses in the culture it is handed, so a decimal comma is a decimal point's equal.</summary>
     [Fact]
     public void Converter_ParsesInTheSuppliedCulture()
     {

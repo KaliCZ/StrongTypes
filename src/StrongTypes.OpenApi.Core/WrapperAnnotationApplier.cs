@@ -6,15 +6,10 @@ using Microsoft.OpenApi;
 namespace StrongTypes.OpenApi.Core;
 
 /// <summary>
-/// Layers caller-supplied data-annotations
-/// (<see cref="StringLengthAttribute"/>, <see cref="RangeAttribute"/>,
-/// <see cref="RegularExpressionAttribute"/>, <see cref="DescriptionAttribute"/>, …)
-/// onto a schema painted for a strong-type wrapper. Bounds are tightened
-/// via the <see cref="SchemaPaint"/> helpers so caller-stricter values
-/// stack on top of the wrapper's own floor/ceiling without weakening
-/// either side. Returns <c>true</c> when the wrapper type was recognised
-/// and the attribute pass ran (regardless of whether any individual
-/// attribute matched).
+/// Layers caller-supplied data-annotations onto a schema painted for a strong-type wrapper,
+/// tightening bounds so stricter caller values win without weakening the wrapper's own.
+/// <see cref="TryApply"/> returns <c>true</c> when the wrapper type was recognised,
+/// regardless of whether any individual attribute matched.
 /// </summary>
 public static class WrapperAnnotationApplier
 {

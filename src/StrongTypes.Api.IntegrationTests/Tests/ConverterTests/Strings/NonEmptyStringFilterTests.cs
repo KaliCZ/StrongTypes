@@ -5,15 +5,7 @@ using Xunit;
 
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
-/// <summary>
-/// Verifies <c>NonEmptyString.Unwrap()</c> (plus equality, null checks, and
-/// ordering on the strong type) translates to server-side SQL on both
-/// providers. Tests query the <see cref="DbContext"/> directly — the LINQ
-/// translator is what we're exercising, no HTTP plumbing in the way.
-/// Each test seeds rows with a unique prefix and scopes assertions to those
-/// rows so it tolerates accumulated state from sibling tests on the shared
-/// fixture.
-/// </summary>
+/// <summary>Queries go through the DbContext directly — the LINQ translator is under test, not the HTTP pipeline.</summary>
 [Collection(IntegrationTestCollection.Name)]
 public sealed class NonEmptyStringFilterTests(TestWebApplicationFactory factory)
     : IntegrationTestBase<NonEmptyStringEntity, NonEmptyString, NonEmptyString?>(factory)
@@ -23,8 +15,7 @@ public sealed class NonEmptyStringFilterTests(TestWebApplicationFactory factory)
     private DbSet<NonEmptyStringEntity> Set(string provider) =>
         provider == "sql-server" ? SqlSet : PgSet;
 
-    // Unique per-test prefix so each test's assertions are isolated from
-    // other tests' rows on the collection-scoped database.
+    // Isolates each test's rows on the collection-shared database.
     private string Prefix { get; } = $"flt-{Guid.NewGuid():N}-";
 
     private async Task<Guid> Seed(string value, NonEmptyString? nullableValue)
@@ -174,8 +165,6 @@ public sealed class NonEmptyStringFilterTests(TestWebApplicationFactory factory)
         Assert.DoesNotContain(noMatch, ids);
     }
 
-    // The load-bearing case from the issue: EF.Functions.Like must translate
-    // when applied to Unwrap() of a strong-type column.
     [Theory, MemberData(nameof(Providers))]
     public async Task EfFunctionsLike_TranslatesToSql(string provider)
     {

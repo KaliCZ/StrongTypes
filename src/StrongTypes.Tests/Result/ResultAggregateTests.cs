@@ -427,8 +427,7 @@ public class ResultAggregateTests
     [Property]
     public void AggregateEnumerable_AllErrors_ReturnsErrorsInOrder(string[] errors)
     {
-        // FsCheck can generate null entries inside the array; filter since our
-        // TError : notnull constraint rejects those.
+        // FsCheck can generate null entries; TError : notnull rejects those.
         var clean = errors.Where(e => e is not null).ToArray();
         var results = clean.Select(e => (Result<int, string>)e);
 

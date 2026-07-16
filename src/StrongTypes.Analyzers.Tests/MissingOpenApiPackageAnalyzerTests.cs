@@ -3,11 +3,6 @@ using Xunit;
 
 namespace StrongTypes.Analyzers.Tests;
 
-/// <summary>
-/// Behaviour tests for <see cref="MissingOpenApiPackageAnalyzer"/> (ST0002 / ST0003). Each test
-/// assembles a minimal source that should or should not trip the analyzer, drives it through the
-/// real Roslyn pipeline, and asserts the resulting diagnostics.
-/// </summary>
 public class MissingOpenApiPackageAnalyzerTests
 {
     private const string DtoWithNonEmptyStringProperty = """

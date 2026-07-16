@@ -5,16 +5,8 @@ using static StrongTypes.OpenApi.IntegrationTests.Helpers.SchemaNavigation;
 namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 
 /// <summary>
-/// Centralised wire-shape assertions for the strong-type wrappers, used
-/// by body, parameter, and form-property tests alike — the wrapper's
-/// wire shape doesn't depend on where it's bound. Every helper
-/// deep-compares against a literal JSON snapshot via
-/// <see cref="AssertJsonEquals"/> so an unexpected keyword fails the test
-/// instead of silently passing.
-///
-/// Both Microsoft.AspNetCore.OpenApi and Swashbuckle emit form-body
-/// property keys in PascalCase (matching the C# property name), so
-/// callers pass the name as declared in the source.
+/// Both Microsoft.AspNetCore.OpenApi and Swashbuckle emit form-body property keys in PascalCase (matching the C#
+/// property name), so form-property helpers take the name as declared in the source.
 /// </summary>
 internal static class BindingSchemaAsserts
 {
@@ -27,9 +19,6 @@ internal static class BindingSchemaAsserts
         => AssertNonEmptyStringSchema(GetFormProperty(formSchema, propertyName));
 
     // ── Positive<int> ────────────────────────────────────────────────────
-    // Splits by OpenAPI version: 3.0 encodes the exclusive bound as
-    // {minimum:0, exclusiveMinimum:true} (boolean pair); 3.1 as
-    // {exclusiveMinimum:0} (numeric).
 
     internal static void AssertPositiveIntSchema(JsonElement schema, OpenApiVersion version)
         => AssertJsonEquals(schema, version switch
@@ -51,9 +40,7 @@ internal static class BindingSchemaAsserts
         => AssertDigitSchema(GetFormProperty(formSchema, propertyName));
 
     // ── Other numeric wrappers ──────────────────────────────────────────
-    // Inclusive-bound shapes (NonNegative, NonPositive) don't depend on
-    // OpenAPI version — there's no exclusive boundary to encode. Exclusive
-    // shapes (Negative<double>) split the same way Positive does.
+    // Inclusive bounds encode identically in 3.0 and 3.1; only exclusive bounds need a version.
 
     internal static void AssertNonNegativeLongSchema(JsonElement schema)
         => AssertJsonEquals(schema, """{"type":"integer","format":"int64","minimum":0}""");
@@ -66,11 +53,7 @@ internal static class BindingSchemaAsserts
             _ => throw new ArgumentOutOfRangeException(nameof(version), version, null),
         });
 
-    // Both pipelines emit `format: double` for `decimal`. There's no
-    // standard OpenAPI format for the BCL decimal type, so they fall
-    // through to the closest numeric format. Pinned here to surface a
-    // future change in pipeline behaviour rather than to bless the
-    // mapping as ideal.
+    // There is no standard OpenAPI format for decimal, so both pipelines fall back to format: double.
     internal static void AssertNonPositiveDecimalSchema(JsonElement schema)
         => AssertJsonEquals(schema, """{"type":"number","format":"double","maximum":0}""");
 
@@ -110,23 +93,10 @@ internal static class BindingSchemaAsserts
     private static JsonElement GetFormProperty(JsonElement formSchema, string propertyName)
         => formSchema.GetProperty("properties").GetProperty(propertyName);
 
-    /// <summary>
-    /// Asserts that the named property in a form-body / object schema's
-    /// <c>properties</c> map deep-equals the literal JSON snapshot. Thin
-    /// composition of <see cref="GetFormProperty"/> +
-    /// <see cref="AssertJsonEquals"/> — exists because tests that pin every
-    /// property of a form body had repeated this exact two-step inline.
-    /// </summary>
+    /// <summary>Asserts the named property in the schema's <c>properties</c> map deep-equals the literal JSON snapshot.</summary>
     internal static void AssertSchema(JsonElement formSchema, string propertyName, string expectedJson)
         => AssertJsonEquals(GetFormProperty(formSchema, propertyName), expectedJson);
 
-    /// <summary>
-    /// Asserts that a <c>[FromForm]</c> request-body schema is a clean
-    /// <c>{ type: object, properties: { … } }</c> shape — no top-level
-    /// <c>allOf</c> / <c>anyOf</c> / <c>oneOf</c> / <c>$ref</c>, a
-    /// <c>properties</c> map present, and exactly the expected set of
-    /// property names (order is irrelevant).
-    /// </summary>
     internal static void AssertFormBodyHasObjectShape(JsonElement formSchema, params string[] expectedPropertyNames)
     {
         Assert.False(formSchema.TryGetProperty("allOf", out _), "form body should not be wrapped in a top-level allOf");

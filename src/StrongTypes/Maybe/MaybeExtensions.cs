@@ -4,11 +4,7 @@ using System.Threading.Tasks;
 
 namespace StrongTypes;
 
-// C# 14 extension members: `Maybe<T>.Value` surfaces the underlying value as a
-// nullable (`Nullable<T>` for structs, `T?` for references), enabling the
-// `if (maybe.Value is {} v)` pattern to unwrap in one expression. The two branches
-// live in separate static classes because the generated `get_Value` signatures
-// collide when placed in the same containing type.
+// Two static classes because the generated `get_Value` signatures collide when placed in the same containing type.
 public static class MaybeStructValueExtensions
 {
     extension<T>(Maybe<T> m) where T : struct

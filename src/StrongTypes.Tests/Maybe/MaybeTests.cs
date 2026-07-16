@@ -89,11 +89,6 @@ public class MaybeTests
     }
 
     // ── Value-null-iff-None invariant (one per extension class) ─────────
-    //
-    // These property tests pin down the single most important guarantee of
-    // the extension-property design: Value is null exactly when the Maybe
-    // is None, non-null exactly when it is Some. Covers both extension
-    // classes (struct T and class T).
 
     [Property]
     public void MaybeStruct_Value_NullIffNone(Maybe<int> m)
@@ -241,8 +236,7 @@ public class MaybeTests
     [Property]
     public void Equality_Reflexive(Maybe<int> m)
     {
-        // Not "m == m" — CS1718 warns on self-comparison via operator. The
-        // Equals/Assert.Equal paths go through IEquatable<T>.Equals directly.
+        // Not "m == m" — CS1718 warns on operator self-comparison.
         Assert.True(m.Equals(m));
         Assert.Equal(m, m);
     }
@@ -281,12 +275,7 @@ public class MaybeTests
         Assert.Equal(Maybe<int>.None.GetHashCode(), Maybe<int>.None.GetHashCode());
     }
 
-    // Cross-closed-generic pairs (e.g. Maybe<string> vs Maybe<NonEmptyString>)
-    // always compare unequal through Equals(object). Keeping Equals(object) strict
-    // preserves its symmetry contract — we can't teach bare `string` or bare `int`
-    // to see a Maybe<T> on the other side, so we don't pretend the relationship
-    // exists in one direction. Typed IEquatable<T> and operator == remain available
-    // for ergonomic same-T comparisons.
+    // Equals(object) stays strict to preserve symmetry — bare string/int can never see a Maybe<T> on the other side.
     [Fact]
     public void Equality_DifferentClosedGenerics_AlwaysUnequal()
     {

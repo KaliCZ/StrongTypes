@@ -41,7 +41,6 @@ public class NumericFormattingTests
         Assert.Equal(price.Value.ToString(format, American), price.ToString(format, American));
     }
 
-    /// <summary>The wrapper must never disagree with the value it wraps, for any format the underlying type accepts.</summary>
     [Property]
     public void ToString_NeverDivergesFromTheUnderlyingValue(int value)
     {

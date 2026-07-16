@@ -29,8 +29,6 @@ public class NonEmptyEnumerableTests
     [Fact]
     public void CreateRange_HeadPrependedToTailSequence()
     {
-        // Covers the former Of(T head, IEnumerable<T> tail) shape. Collection expressions
-        // also express this naturally: `NonEmptyEnumerable<int> list = [1, .. tail];`.
         IEnumerable<int> tail = Enumerable.Range(2, 3);
         var list = NonEmptyEnumerable.CreateRange(tail.Prepend(1));
         Assert.Equal(new[] { 1, 2, 3, 4 }, list);
@@ -73,7 +71,6 @@ public class NonEmptyEnumerableTests
     [Fact]
     public void TryCreate_ReturnsSameInstance_ForExistingNonEmpty()
     {
-        // Idempotent wrap: re-wrapping an already non-empty enumerable doesn't allocate.
         var original = NonEmptyEnumerable.Create(1, 2, 3);
         var wrapped = NonEmptyEnumerable.TryCreateRange((IEnumerable<int>)original);
         Assert.Same(original, wrapped);
@@ -82,8 +79,6 @@ public class NonEmptyEnumerableTests
     [Fact]
     public void TryCreate_ReadOnlyListOnly_UsesIndexerCopy()
     {
-        // Exercises the IReadOnlyList<T> branch — a source that implements IReadOnlyList<T>
-        // but not ICollection<T>, so LINQ's ToArray fast path wouldn't catch it.
         var source = new ReadOnlyListOnly<int>([10, 20, 30]);
         var list = NonEmptyEnumerable.TryCreateRange(source);
         Assert.NotNull(list);
@@ -97,11 +92,7 @@ public class NonEmptyEnumerableTests
         Assert.Null(NonEmptyEnumerable.TryCreateRange(empty));
     }
 
-    /// <summary>
-    /// Minimal <see cref="IReadOnlyList{T}"/> that deliberately does not implement
-    /// <see cref="ICollection{T}"/>, so the TryCreateRange indexer-copy branch is
-    /// the only path that can handle it without falling back to LINQ's dynamic-growth loop.
-    /// </summary>
+    /// <summary>Deliberately not <see cref="ICollection{T}"/>, forcing TryCreateRange onto its indexer-copy branch.</summary>
     private sealed class ReadOnlyListOnly<T>(T[] items) : IReadOnlyList<T>
     {
         public T this[int index] => items[index];
@@ -185,8 +176,7 @@ public class NonEmptyEnumerableTests
     [Fact]
     public void CollectionExpression_Empty_Throws()
     {
-        // The compiler has no way to statically reject `[]` for a non-empty type, so the
-        // invariant is enforced at runtime — an empty collection expression throws.
+        // The compiler cannot statically reject `[]`, so the invariant is enforced at runtime.
         Assert.Throws<ArgumentException>(() =>
         {
             NonEmptyEnumerable<int> list = [];
@@ -199,8 +189,6 @@ public class NonEmptyEnumerableTests
     [Fact]
     public void Create_CopiesInputArray_SoMutationDoesNotLeak()
     {
-        // If the factory kept the input buffer, later edits would mutate the list —
-        // the whole point of a read-only list is that callers can't do that.
         var source = new[] { 1, 2, 3 };
         var list = NonEmptyEnumerable.Create(source);
         source[0] = 999;

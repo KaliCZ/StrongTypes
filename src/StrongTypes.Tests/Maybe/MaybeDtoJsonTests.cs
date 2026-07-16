@@ -3,13 +3,7 @@ using Xunit;
 
 namespace StrongTypes.Tests;
 
-/// <summary>
-/// Round-trip coverage for DTOs whose properties are <see cref="Maybe{T}"/>
-/// and <see cref="Maybe{T}"/>? — the realistic request-body shape. Each case
-/// asserts both directions against a single canonical JSON string: reading
-/// the string produces the expected DTO, and serializing the DTO produces
-/// the same string back.
-/// </summary>
+/// <summary>DTOs whose properties are <see cref="Maybe{T}"/> and <see cref="Maybe{T}"/>? — the realistic request-body shape.</summary>
 public class MaybeDtoJsonTests
 {
     private sealed record IntDto(Maybe<int> Value, Maybe<int>? NullableValue);

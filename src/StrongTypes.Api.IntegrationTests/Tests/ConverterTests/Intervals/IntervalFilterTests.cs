@@ -6,11 +6,8 @@ using Xunit;
 namespace StrongTypes.Api.IntegrationTests.Tests;
 
 /// <summary>
-/// Verifies endpoint access on intervals translates to server-side SQL on both
-/// providers, in both persistence shapes: two endpoint columns
-/// (<c>HasIntervalColumns</c>, an EF Core complex type) and the default single
-/// JSON column (translated to a JSON path lookup). Queries are scoped to the
-/// rows each test seeds, since the collection shares one database.
+/// Endpoint access on intervals translates to server-side SQL in both persistence shapes.
+/// Queries are scoped to the rows each test seeds — the collection shares one database.
 /// </summary>
 [Collection(IntegrationTestCollection.Name)]
 public sealed class IntervalFilterTests(TestWebApplicationFactory factory)

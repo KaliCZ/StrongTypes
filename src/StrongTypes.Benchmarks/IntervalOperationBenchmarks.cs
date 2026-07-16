@@ -3,8 +3,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace StrongTypes.Benchmarks;
 
-// The interval types are structs, so these operate on the stack; MemoryDiagnoser confirms zero heap allocation
-// even for the bridging Contains, which builds a temporary day window.
+// The bridging Contains(DateOnly) builds a temporary day window, so it is the one case that could allocate.
 [MemoryDiagnoser]
 public class IntervalOperationBenchmarks
 {

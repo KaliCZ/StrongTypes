@@ -106,7 +106,6 @@ public sealed class UseBindStrongTypesCodeFixProvider : CodeFixProvider
             .UsingDirective(SyntaxFactory.ParseName(ConfigurationNamespace))
             .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
 
-        // Keep the file's usings sorted rather than appending to the end.
         var insertAt = unit.Usings.TakeWhile(u => string.CompareOrdinal(u.Name?.ToString(), ConfigurationNamespace) < 0).Count();
         return unit.WithUsings(unit.Usings.Insert(insertAt, directive));
     }
