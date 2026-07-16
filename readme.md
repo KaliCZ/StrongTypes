@@ -176,7 +176,7 @@ builder.Services.AddOptions<RetryOptions>()
 
 Value types are never required — an unconfigured `Positive<int>` is `1`, a value the type is happy to hold. Analyzer `ST0004` flags a plain `Bind` that would leave a wrapper null and offers the swap.
 
-**`null` and `""` are not interchangeable** (inherited from `ConfigurationBinder`): an explicit `"ApiName": null` nulls even a non-nullable `NonEmptyString`, so omit the key rather than writing `null`; `""` throws for every wrapper *except* a nullable struct one. The full matrix is in the [skill reference](Skill/references/configuration.md).
+`BindStrongTypes` catches an explicit `"ApiName": null` exactly like a missing key — both leave the property null, and both fail. The one input that behaves differently is `""`: the wrapper's converter rejects an empty string during binding itself, so it throws before validation even runs (a nullable struct wrapper is the lone exception, where `""` binds to `null`). The full matrix is in the [skill reference](Skill/references/configuration.md).
 
 [↑ Back to contents](#contents)
 

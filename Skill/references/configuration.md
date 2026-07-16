@@ -180,9 +180,9 @@ Three things in there surprise people:
   Don't reach for `""` to mean "unset" — omit the key.
 - **An explicit `null` nulls even a non-nullable reference property.** Nullability
   is erased by the time the binder runs, so `"Name": null` leaves a
-  `NonEmptyString Name` holding `null`, exactly as it would a `string`. The
-  invariant constrains every value the type can hold; it cannot stop the binder
-  assigning none. Omit the key rather than writing `null`.
+  `NonEmptyString Name` holding `null`, exactly as it would a `string` — which is
+  precisely what `BindStrongTypes` (above) catches, treating it the same as an
+  absent key. Without that package, omit the key rather than writing `null`.
 - **An explicit `null` overwrites, an absent key does not.** `"Name": null` clears
   a property initialised in the options class; leaving the key out keeps it.
 
