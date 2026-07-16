@@ -1,7 +1,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -14,79 +13,80 @@ namespace StrongTypes.Wpf.Tests;
 
 /// <summary>
 /// WPF resolves a binding's culture as <c>ConverterCulture ?? element.Language</c> and never consults
-/// the host thread culture — so every case runs the same value through a matrix of host thread
-/// cultures crossed with binding cultures, proving the host is ignored.
+/// the host thread culture. Each case therefore runs under every host culture in turn, asserting the
+/// host is ignored while the binding culture governs display, write-back, and round-trip.
 /// </summary>
 public class CultureBindingTests
 {
-    private static readonly string[] Cultures = ["en-US", "de-DE", "cs-CZ", "ja-JP"];
-
-    public static IEnumerable<object[]> HostAndBinding()
-    {
-        foreach (var host in Cultures)
-        {
-            foreach (var binding in Cultures)
-            {
-                yield return [host, binding];
-            }
-        }
-    }
+    private static readonly string[] HostCultures = ["en-US", "de-DE", "cs-CZ", "ja-JP"];
 
     [Theory]
-    [MemberData(nameof(HostAndBinding))]
-    public void Display_usesTheConverterCulture(string hostName, string bindingName)
+    [InlineData("en-US", 1234.5, "1234.5")]
+    [InlineData("de-DE", 1234.5, "1234,5")]
+    [InlineData("cs-CZ", 1234.5, "1234,5")]
+    [InlineData("ja-JP", 1234.5, "1234.5")]
+    public void DisplaysAndRoundTripsInTheBindingCulture(string cultureName, double value, string expectedText)
     {
-        var binding = CultureInfo.GetCultureInfo(bindingName);
-        RunOn(hostName, () =>
+        var binding = CultureInfo.GetCultureInfo(cultureName);
+        var salary = Positive<decimal>.Create((decimal)value);
+        RunUnderEveryHost(host =>
         {
-            var vm = new PersonViewModel { Salary = Positive<decimal>.Create(1234.5m) };
+            var vm = new PersonViewModel { Salary = salary };
             var textBox = BoundWithConverterCulture(vm, binding);
 
-            Assert.Equal(1234.5m.ToString(binding), textBox.Text);
-        });
-    }
-
-    [Theory]
-    [MemberData(nameof(HostAndBinding))]
-    public void WriteBack_parsesInTheConverterCulture(string hostName, string bindingName)
-    {
-        var binding = CultureInfo.GetCultureInfo(bindingName);
-        RunOn(hostName, () =>
-        {
-            var vm = new PersonViewModel { Salary = Positive<decimal>.Create(1234.5m) };
-            var textBox = BoundWithConverterCulture(vm, binding);
-
-            textBox.Text = 9876.5m.ToString(binding);
-
-            Assert.Equal(Positive<decimal>.Create(9876.5m), vm.Salary);
-        });
-    }
-
-    /// <summary>Committing the displayed text unedited must not corrupt the value — the bug that shipped when the converter formatted in the host culture but parsed in the binding culture.</summary>
-    [Theory]
-    [MemberData(nameof(HostAndBinding))]
-    public void RoundTrip_committingDisplayedTextIsANoOp(string hostName, string bindingName)
-    {
-        var binding = CultureInfo.GetCultureInfo(bindingName);
-        RunOn(hostName, () =>
-        {
-            var vm = new PersonViewModel { Salary = Positive<decimal>.Create(1234.5m) };
-            var textBox = BoundWithConverterCulture(vm, binding);
+            Assert.Equal(expectedText, textBox.Text);
 
             textBox.Text = textBox.Text;
 
-            Assert.Equal(Positive<decimal>.Create(1234.5m), vm.Salary);
-            Assert.False(Validation.GetHasError(textBox));
+            Assert.False(Validation.GetHasError(textBox), $"host {host}: committing the displayed text raised an error");
+            Assert.Equal(salary, vm.Salary);
+        });
+    }
+
+    /// <summary>Write-back parses in the binding culture; a value that isn't valid there (not a number, or one that breaks the invariant) raises a validation error and leaves the source unchanged. Expected <c>null</c> marks those negative cases.</summary>
+    [Theory]
+    [InlineData("en-US", "9876.5", 9876.5)]
+    [InlineData("de-DE", "9876,5", 9876.5)]
+    [InlineData("cs-CZ", "9876,5", 9876.5)]
+    [InlineData("ja-JP", "9876.5", 9876.5)]
+    [InlineData("en-US", "not-a-number", null)]
+    [InlineData("de-DE", "not-a-number", null)]
+    [InlineData("en-US", "-5", null)]
+    [InlineData("de-DE", "-5", null)]
+    public void WriteBackParsesInTheBindingCultureOrFails(string cultureName, string text, double? expected)
+    {
+        var binding = CultureInfo.GetCultureInfo(cultureName);
+        RunUnderEveryHost(host =>
+        {
+            var original = Positive<decimal>.Create(1m);
+            var vm = new PersonViewModel { Salary = original };
+            var textBox = BoundWithConverterCulture(vm, binding);
+
+            textBox.Text = text;
+
+            if (expected is { } number)
+            {
+                Assert.False(Validation.GetHasError(textBox), $"host {host}: valid input '{text}' raised an error");
+                Assert.Equal(Positive<decimal>.Create((decimal)number), vm.Salary);
+            }
+            else
+            {
+                Assert.True(Validation.GetHasError(textBox), $"host {host}: invalid input '{text}' was accepted");
+                Assert.Equal(original, vm.Salary);
+            }
         });
     }
 
     /// <summary>With no ConverterCulture the binding falls back to the element's Language, still never the host.</summary>
     [Theory]
-    [MemberData(nameof(HostAndBinding))]
-    public void NoConverterCulture_usesTheElementLanguageNotTheHost(string hostName, string languageName)
+    [InlineData("en-US")]
+    [InlineData("de-DE")]
+    [InlineData("cs-CZ")]
+    [InlineData("ja-JP")]
+    public void NoConverterCulture_usesTheElementLanguageNotTheHost(string languageName)
     {
         var language = CultureInfo.GetCultureInfo(languageName);
-        RunOn(hostName, () =>
+        RunUnderEveryHost(host =>
         {
             var vm = new PersonViewModel { Salary = Positive<decimal>.Create(1234.5m) };
             var textBox = new TextBox { Language = XmlLanguage.GetLanguage(languageName) };
@@ -96,11 +96,17 @@ public class CultureBindingTests
         });
     }
 
-    private static void RunOn(string cultureName, Action body) => StaThread.Run(() =>
+    private static void RunUnderEveryHost(Action<string> body)
     {
-        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
-        body();
-    });
+        foreach (var host in HostCultures)
+        {
+            StaThread.Run(() =>
+            {
+                CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(host);
+                body(host);
+            });
+        }
+    }
 
     private static TextBox BoundWithConverterCulture(PersonViewModel vm, CultureInfo converterCulture)
     {
