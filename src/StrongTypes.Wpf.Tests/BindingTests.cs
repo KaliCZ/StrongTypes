@@ -178,6 +178,25 @@ public class PositiveIntBindingTests
             Assert.True(Validation.GetHasError(textBox));
         });
     }
+
+    [Fact]
+    public void TwoWay_InvalidInput_RecoversOnNextValidInput()
+    {
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { Age = Positive<int>.Create(30) };
+            var textBox = new TextBox();
+            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.Age), vm));
+
+            textBox.Text = "0";
+            Assert.True(Validation.GetHasError(textBox));
+
+            textBox.Text = "42";
+
+            Assert.Equal(Positive<int>.Create(42), vm.Age);
+            Assert.False(Validation.GetHasError(textBox));
+        });
+    }
 }
 
 public class DigitBindingTests

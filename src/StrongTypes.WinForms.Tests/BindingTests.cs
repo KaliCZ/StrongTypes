@@ -192,4 +192,69 @@ public class PositiveIntBindingTests
             Assert.Equal(Positive<int>.Create(7), vm.Age);
         });
     }
+
+    [Fact]
+    public void TwoWay_NonNumericInput_DoesNotMutateSource()
+    {
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { Age = Positive<int>.Create(30) };
+            var textBox = new TextBox();
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Age), vm));
+            using var form = new HostedForm(textBox);
+
+            textBox.Text = "abc";
+
+            Assert.Equal(Positive<int>.Create(30), vm.Age);
+        });
+    }
+}
+
+public class DigitBindingTests
+{
+    [Fact]
+    public void Hosted_DisplaysCurrentValue()
+    {
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { Tier = Digit.Create('7') };
+            var textBox = new TextBox();
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Tier), vm));
+            using var form = new HostedForm(textBox);
+
+            Assert.Equal("7", textBox.Text);
+        });
+    }
+
+    [Fact]
+    public void TwoWay_ValidInput_UpdatesSource()
+    {
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { Tier = Digit.Create('7') };
+            var textBox = new TextBox();
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Tier), vm));
+            using var form = new HostedForm(textBox);
+
+            textBox.Text = "3";
+
+            Assert.Equal(Digit.Create('3'), vm.Tier);
+        });
+    }
+
+    [Fact]
+    public void TwoWay_InvalidInput_DoesNotMutateSource()
+    {
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { Tier = Digit.Create('7') };
+            var textBox = new TextBox();
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Tier), vm));
+            using var form = new HostedForm(textBox);
+
+            textBox.Text = "42";
+
+            Assert.Equal(Digit.Create('7'), vm.Tier);
+        });
+    }
 }

@@ -10,6 +10,7 @@ public sealed class PersonViewModel : INotifyPropertyChanged
     private NonEmptyString _name = NonEmptyString.Create("Alice");
     private Email _email = Email.Create("alice@example.com");
     private Positive<int> _age = Positive<int>.Create(30);
+    private Digit _tier = Digit.Create('7');
     private Positive<decimal> _salary = Positive<decimal>.Create(1234.5m);
     private NonEmptyString? _nickname;
     private Positive<int>? _score;
@@ -30,6 +31,12 @@ public sealed class PersonViewModel : INotifyPropertyChanged
     {
         get => _age;
         set { _age = value; Raise(); }
+    }
+
+    public Digit Tier
+    {
+        get => _tier;
+        set { _tier = value; Raise(); }
     }
 
     public Positive<decimal> Salary

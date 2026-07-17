@@ -23,6 +23,20 @@ public class NullableStructBindingTests
     }
 
     [Fact]
+    public void Hosted_Value_DisplaysIt()
+    {
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { Score = Positive<int>.Create(10) };
+            var textBox = new TextBox();
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Score), vm));
+            using var form = new HostedForm(textBox);
+
+            Assert.Equal("10", textBox.Text);
+        });
+    }
+
+    [Fact]
     public void TwoWay_ValidInput_UpdatesSource()
     {
         StaThread.Run(() =>
