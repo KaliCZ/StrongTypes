@@ -13,7 +13,7 @@ component_management:
       paths: ["src/StrongTypes/**"]
     - component_id: analyzers
       name: StrongTypes.Analyzers
-      paths: ["src/StrongTypes.Analyzers/**"]
+      paths: ["src/StrongTypes.Analyzers/**", "src/StrongTypes.Analyzers.CodeFixes/**"]
     - component_id: efcore
       name: StrongTypes.EfCore
       paths: ["src/StrongTypes.EfCore/**"]

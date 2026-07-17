@@ -27,18 +27,25 @@
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
-  <!-- Pack the Roslyn analyzer DLL inside this NuGet package under the standard
-       analyzers/dotnet/cs/ folder so consumers get it automatically without
-       referencing a separate package. Build-dependency on the analyzer project
-       keeps the DLL output in sync without exposing its publicly-unused types. -->
+  <!-- Pack the Roslyn analyzer and code-fix DLLs inside this NuGet package under
+       the standard analyzers/dotnet/cs/ folder so consumers get them automatically
+       without referencing a separate package. Build-dependency on the projects
+       keeps the DLL outputs in sync without exposing their publicly-unused types. -->
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes.Analyzers\StrongTypes.Analyzers.csproj"
+                      PrivateAssets="all"
+                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\StrongTypes.Analyzers.CodeFixes\StrongTypes.Analyzers.CodeFixes.csproj"
                       PrivateAssets="all"
                       ReferenceOutputAssembly="false" />
   </ItemGroup>
   <Target Name="IncludeAnalyzerInPackage" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
       <None Include="..\StrongTypes.Analyzers\bin\$(Configuration)\netstandard2.0\StrongTypes.Analyzers.dll"
+            Pack="true"
+            PackagePath="analyzers/dotnet/cs"
+            Visible="false" />
+      <None Include="..\StrongTypes.Analyzers.CodeFixes\bin\$(Configuration)\netstandard2.0\StrongTypes.Analyzers.CodeFixes.dll"
             Pack="true"
             PackagePath="analyzers/dotnet/cs"
             Visible="false" />
