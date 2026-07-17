@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
@@ -80,5 +81,30 @@ public sealed class DataAnnotationsValidationTests(AspNetCoreTestApiFactory fact
 
         var errors = await ErrorsFor(response, "Quantity");
         Assert.DoesNotContain("The field Quantity must be between 1 and 100.", errors);
+    }
+
+    [Theory]
+    [InlineData("0.5")]
+    [InlineData("1.25")]
+    [InlineData("2.5")]
+    public async Task InRangeNonIntegerWrapper_PassesValidation(string factor)
+    {
+        var response = await Post($$"""{"quantity":50,"factor":{{factor}}}""");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("0.49")]
+    [InlineData("2.51")]
+    public async Task OutOfRangeNonIntegerWrapper_FailsWithTheRangeMessage(string factor)
+    {
+        var response = await Post($$"""{"quantity":50,"factor":{{factor}}}""");
+
+        var errors = await ErrorsFor(response, "Factor");
+        // RangeAttribute renders its bounds with the current culture ("0,5" on a cs-CZ host).
+        var expected = string.Format(
+            CultureInfo.CurrentCulture, "The field Factor must be between {0} and {1}.", 0.5, 2.5);
+        Assert.Contains(expected, errors);
     }
 }

@@ -17,4 +17,6 @@ public sealed class ValidationProbeController : ControllerBase
     public IActionResult Range(RangeBody body) => Ok();
 }
 
-public sealed record RangeBody([Required][Range(1, 100)] Positive<int>? Quantity);
+public sealed record RangeBody(
+    [Required][Range(1, 100)] Positive<int>? Quantity,
+    [Range(0.5, 2.5)] Positive<decimal>? Factor);
