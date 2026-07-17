@@ -178,6 +178,7 @@ public sealed class NumericWrapperGenerator : IIncrementalGenerator
             sb.Append("    global::System.IComparable<").Append(self).AppendLine(">,");
             sb.Append("    global::System.IComparable<").Append(t).AppendLine(">,");
             sb.AppendLine("    global::System.IComparable,");
+            sb.AppendLine("    global::System.IConvertible,");
             sb.AppendLine("    global::System.IFormattable,");
             sb.AppendLine("    global::System.ISpanFormattable,");
             sb.Append("    global::System.IParsable<").Append(self).AppendLine(">,");
@@ -258,6 +259,22 @@ public sealed class NumericWrapperGenerator : IIncrementalGenerator
             sb.AppendLine();
             sb.AppendLine("    public bool TryFormat(global::System.Span<char> destination, out int charsWritten, global::System.ReadOnlySpan<char> format, global::System.IFormatProvider? provider)");
             sb.AppendLine("        => Value.TryFormat(destination, out charsWritten, format, provider);");
+            sb.AppendLine();
+
+            sb.AppendLine("    global::System.TypeCode global::System.IConvertible.GetTypeCode() => global::System.TypeCode.Object;");
+            sb.AppendLine("    string global::System.IConvertible.ToString(global::System.IFormatProvider? provider) => Value.ToString(null, provider);");
+            sb.AppendLine("    object global::System.IConvertible.ToType(global::System.Type conversionType, global::System.IFormatProvider? provider) => ((global::System.IConvertible)Value).ToType(conversionType, provider);");
+            foreach (var (returnType, method) in new[]
+            {
+                ("bool", "ToBoolean"), ("byte", "ToByte"), ("char", "ToChar"), ("global::System.DateTime", "ToDateTime"),
+                ("decimal", "ToDecimal"), ("double", "ToDouble"), ("short", "ToInt16"), ("int", "ToInt32"),
+                ("long", "ToInt64"), ("sbyte", "ToSByte"), ("float", "ToSingle"), ("ushort", "ToUInt16"),
+                ("uint", "ToUInt32"), ("ulong", "ToUInt64")
+            })
+            {
+                sb.Append("    ").Append(returnType).Append(" global::System.IConvertible.").Append(method)
+                  .Append("(global::System.IFormatProvider? provider) => ((global::System.IConvertible)Value).").Append(method).AppendLine("(provider);");
+            }
 
             sb.AppendLine("}");
             return sb.ToString();

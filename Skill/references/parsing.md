@@ -21,6 +21,8 @@ Conversions and invariants:
 - Implicit `Digit → byte` and `Digit → int` — drop a `Digit` into any
   numeric slot without `.Value`.
 - `IEquatable` / `IComparable` against `Digit`, `byte`, and `int`.
+- `IConvertible` (explicit) — `Convert.To…` sees the underlying value, so
+  DataAnnotations `[Range(0, 5)]` works on a `Digit?` property.
 - `default(Digit)` is `0`.
 
 Also a string helper for extracting digits:

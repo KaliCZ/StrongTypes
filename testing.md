@@ -159,6 +159,12 @@ no database, so these run on any host without containers):
 
 - **Model binding** (`BindingTests`) — `NonEmptyEnumerable<T>` from
   `[FromForm]` / `[FromQuery]` / `[FromHeader]` / `[FromRoute]`.
+- **DataAnnotations over strong types** (`DataAnnotationsValidationTests`) —
+  validation attributes (`[Required]`, `[Range]`) on strong-typed body
+  properties through the `[ApiController]` pipeline. Pins that the attribute
+  evaluates the wrapped value (in-range passes, out-of-range fails with the
+  attribute's message) and that a value invalid for the type itself fails at
+  binding, before validation runs.
 - **JSON error-key normalization** (`JsonBodyErrorKeyTests`) — the
   opt-out feature that rewrites a failed body's error key from the
   System.Text.Json path (`$.value`) to the property name (`Value`). Test
