@@ -59,29 +59,35 @@ public class NullableStructBindingTests
         {
             var vm = new PersonViewModel { Score = Positive<int>.Create(10) };
             var textBox = new TextBox();
-            textBox.DataBindings.Add(TwoWay(nameof(vm.Score), vm));
+            var binding = TwoWay(nameof(vm.Score), vm);
+            var failure = new BindingFailureRecorder(binding);
+            textBox.DataBindings.Add(binding);
             using var form = new HostedForm(textBox);
 
             textBox.Text = "";
 
             Assert.Equal(Positive<int>.Create(10), vm.Score);
+            Assert.Equal(BindingCompleteState.Exception, failure.State);
         });
     }
 
     /// <summary>Nullable does not mean unvalidated: a present value still has to satisfy the invariant.</summary>
     [Fact]
-    public void TwoWay_InvalidInput_DoesNotMutateSource()
+    public void TwoWay_InvalidInput_DoesNotMutateSourceAndReportsBindingError()
     {
         StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Score = Positive<int>.Create(10) };
             var textBox = new TextBox();
-            textBox.DataBindings.Add(TwoWay(nameof(vm.Score), vm));
+            var binding = TwoWay(nameof(vm.Score), vm);
+            var failure = new BindingFailureRecorder(binding);
+            textBox.DataBindings.Add(binding);
             using var form = new HostedForm(textBox);
 
             textBox.Text = "-1";
 
             Assert.Equal(Positive<int>.Create(10), vm.Score);
+            Assert.Equal(BindingCompleteState.Exception, failure.State);
         });
     }
 }
@@ -119,18 +125,21 @@ public class NullableReferenceBindingTests
     }
 
     [Fact]
-    public void TwoWay_WhitespaceInput_DoesNotMutateSource()
+    public void TwoWay_WhitespaceInput_DoesNotMutateSourceAndReportsBindingError()
     {
         StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Nickname = NonEmptyString.Create("Ally") };
             var textBox = new TextBox();
-            textBox.DataBindings.Add(TwoWay(nameof(vm.Nickname), vm));
+            var binding = TwoWay(nameof(vm.Nickname), vm);
+            var failure = new BindingFailureRecorder(binding);
+            textBox.DataBindings.Add(binding);
             using var form = new HostedForm(textBox);
 
             textBox.Text = "   ";
 
             Assert.Equal(NonEmptyString.Create("Ally"), vm.Nickname);
+            Assert.Equal(BindingCompleteState.Exception, failure.State);
         });
     }
 }

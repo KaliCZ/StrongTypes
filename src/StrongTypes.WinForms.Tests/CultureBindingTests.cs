@@ -22,17 +22,25 @@ public class CultureBindingTests
     [InlineData("de-DE", "1234,5")]
     [InlineData("cs-CZ", "1234,5")]
     [InlineData("ja-JP", "1234.5")]
-    public void FormatInfo_GovernsDisplayRegardlessOfHost(string cultureName, string expectedText)
+    public void FormatInfo_DisplaysAndRoundTripsRegardlessOfHost(string cultureName, string expectedText)
     {
         var culture = CultureInfo.GetCultureInfo(cultureName);
+        var salary = Positive<decimal>.Create(1234.5m);
         RunUnderEveryHost(host =>
         {
-            var vm = new PersonViewModel { Salary = Positive<decimal>.Create(1234.5m) };
+            var vm = new PersonViewModel { Salary = salary };
             var textBox = new TextBox();
-            textBox.DataBindings.Add(TwoWay(nameof(vm.Salary), vm, culture));
+            var binding = TwoWay(nameof(vm.Salary), vm, culture);
+            var failure = new BindingFailureRecorder(binding);
+            textBox.DataBindings.Add(binding);
             using var form = new HostedForm(textBox);
 
             Assert.Equal(expectedText, textBox.Text);
+
+            binding.WriteValue();
+
+            Assert.True(failure.State is null, $"host {host}: committing the displayed text raised a binding error");
+            Assert.Equal(salary, vm.Salary);
         });
     }
 
@@ -46,20 +54,35 @@ public class CultureBindingTests
     [InlineData("cs-CZ", "9876,5", "9876.5")]
     [InlineData("en-US", "9876,5", "98765")]
     [InlineData("de-DE", "9876.5", "98765")]
-    public void FormatInfo_GovernsWriteBackRegardlessOfHost(string cultureName, string text, string expected)
+    [InlineData("en-US", "not-a-number", null)]
+    [InlineData("de-DE", "not-a-number", null)]
+    [InlineData("en-US", "-5", null)]
+    [InlineData("de-DE", "-5", null)]
+    public void FormatInfo_GovernsWriteBackRegardlessOfHost(string cultureName, string text, string? expected)
     {
         var culture = CultureInfo.GetCultureInfo(cultureName);
-        var expectedSalary = Positive<decimal>.Create(decimal.Parse(expected, CultureInfo.InvariantCulture));
         RunUnderEveryHost(host =>
         {
-            var vm = new PersonViewModel { Salary = Positive<decimal>.Create(1m) };
+            var original = Positive<decimal>.Create(1m);
+            var vm = new PersonViewModel { Salary = original };
             var textBox = new TextBox();
-            textBox.DataBindings.Add(TwoWay(nameof(vm.Salary), vm, culture));
+            var binding = TwoWay(nameof(vm.Salary), vm, culture);
+            var failure = new BindingFailureRecorder(binding);
+            textBox.DataBindings.Add(binding);
             using var form = new HostedForm(textBox);
 
             textBox.Text = text;
 
-            Assert.Equal(expectedSalary, vm.Salary);
+            if (expected is { } number)
+            {
+                Assert.True(failure.State is null, $"host {host}: valid input '{text}' raised a binding error");
+                Assert.Equal(Positive<decimal>.Create(decimal.Parse(number, CultureInfo.InvariantCulture)), vm.Salary);
+            }
+            else
+            {
+                Assert.Equal(BindingCompleteState.Exception, failure.State);
+                Assert.Equal(original, vm.Salary);
+            }
         });
     }
 
