@@ -1,36 +1,49 @@
 #nullable enable
 
-using System.Windows.Controls;
-using System.Windows.Data;
-using StrongTypes.Wpf.TestApp;
+using System.Windows.Forms;
 using Xunit;
-using static StrongTypes.Wpf.Tests.Bindings;
+using static StrongTypes.WinForms.Tests.Bindings;
 
-namespace StrongTypes.Wpf.Tests;
+namespace StrongTypes.WinForms.Tests;
 
 public class NonEmptyStringBindingTests
 {
     [Fact]
-    public void OneWay_DisplaysCurrentValue()
+    public void Hosted_DisplaysCurrentValue()
     {
         StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Name = NonEmptyString.Create("Alice") };
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, OneWay(nameof(vm.Name), vm));
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Name), vm));
+            using var form = new HostedForm(textBox);
 
             Assert.Equal("Alice", textBox.Text);
         });
     }
 
     [Fact]
-    public void OneWay_ReflectsSourceChange()
+    public void Unhosted_BindingStaysDormant()
     {
         StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Name = NonEmptyString.Create("Alice") };
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, OneWay(nameof(vm.Name), vm));
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Name), vm));
+
+            Assert.Equal("", textBox.Text);
+        });
+    }
+
+    [Fact]
+    public void SourceChange_ReflectsInControl()
+    {
+        StaThread.Run(() =>
+        {
+            var vm = new PersonViewModel { Name = NonEmptyString.Create("Alice") };
+            var textBox = new TextBox();
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Name), vm));
+            using var form = new HostedForm(textBox);
 
             vm.Name = NonEmptyString.Create("Bob");
 
@@ -45,7 +58,8 @@ public class NonEmptyStringBindingTests
         {
             var vm = new PersonViewModel { Name = NonEmptyString.Create("Alice") };
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.Name), vm));
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Name), vm));
+            using var form = new HostedForm(textBox);
 
             textBox.Text = "Bob";
 
@@ -54,18 +68,21 @@ public class NonEmptyStringBindingTests
     }
 
     [Fact]
-    public void TwoWay_InvalidInput_DoesNotMutateSourceAndRaisesValidationError()
+    public void TwoWay_InvalidInput_DoesNotMutateSourceAndReportsBindingError()
     {
         StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Name = NonEmptyString.Create("Alice") };
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.Name), vm));
+            var binding = TwoWay(nameof(vm.Name), vm);
+            var failure = new BindingFailureRecorder(binding);
+            textBox.DataBindings.Add(binding);
+            using var form = new HostedForm(textBox);
 
             textBox.Text = "   ";
 
             Assert.Equal(NonEmptyString.Create("Alice"), vm.Name);
-            Assert.True(Validation.GetHasError(textBox));
+            Assert.Equal(BindingCompleteState.Exception, failure.State);
         });
     }
 }
@@ -73,13 +90,14 @@ public class NonEmptyStringBindingTests
 public class EmailBindingTests
 {
     [Fact]
-    public void OneWay_DisplaysAddress()
+    public void Hosted_DisplaysAddress()
     {
         StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Email = Email.Create("alice@example.com") };
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, OneWay(nameof(vm.Email), vm));
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Email), vm));
+            using var form = new HostedForm(textBox);
 
             Assert.Equal("alice@example.com", textBox.Text);
         });
@@ -90,9 +108,10 @@ public class EmailBindingTests
     {
         StaThread.Run(() =>
         {
-            var vm = new PersonViewModel { Email = Email.Create("alice@example.com") };
+            var vm = new PersonViewModel();
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.Email), vm));
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Email), vm));
+            using var form = new HostedForm(textBox);
 
             textBox.Text = "bob@example.com";
 
@@ -101,18 +120,21 @@ public class EmailBindingTests
     }
 
     [Fact]
-    public void TwoWay_InvalidInput_DoesNotMutateSourceAndRaisesValidationError()
+    public void TwoWay_InvalidInput_DoesNotMutateSourceAndReportsBindingError()
     {
         StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Email = Email.Create("alice@example.com") };
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.Email), vm));
+            var binding = TwoWay(nameof(vm.Email), vm);
+            var failure = new BindingFailureRecorder(binding);
+            textBox.DataBindings.Add(binding);
+            using var form = new HostedForm(textBox);
 
-            textBox.Text = "not-an-email";
+            textBox.Text = "not an email";
 
             Assert.Equal(Email.Create("alice@example.com"), vm.Email);
-            Assert.True(Validation.GetHasError(textBox));
+            Assert.Equal(BindingCompleteState.Exception, failure.State);
         });
     }
 }
@@ -120,13 +142,14 @@ public class EmailBindingTests
 public class PositiveIntBindingTests
 {
     [Fact]
-    public void OneWay_DisplaysCurrentValue()
+    public void Hosted_DisplaysCurrentValue()
     {
         StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Age = Positive<int>.Create(30) };
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, OneWay(nameof(vm.Age), vm));
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Age), vm));
+            using var form = new HostedForm(textBox);
 
             Assert.Equal("30", textBox.Text);
         });
@@ -139,7 +162,8 @@ public class PositiveIntBindingTests
         {
             var vm = new PersonViewModel { Age = Positive<int>.Create(30) };
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.Age), vm));
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Age), vm));
+            using var form = new HostedForm(textBox);
 
             textBox.Text = "42";
 
@@ -148,53 +172,42 @@ public class PositiveIntBindingTests
     }
 
     [Fact]
-    public void TwoWay_InvalidInput_DoesNotMutateSourceAndRaisesValidationError()
+    public void TwoWay_InvariantBreach_DoesNotMutateSourceAndRecovers()
     {
         StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Age = Positive<int>.Create(30) };
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.Age), vm));
+            var binding = TwoWay(nameof(vm.Age), vm);
+            var failure = new BindingFailureRecorder(binding);
+            textBox.DataBindings.Add(binding);
+            using var form = new HostedForm(textBox);
 
             textBox.Text = "0";
-
             Assert.Equal(Positive<int>.Create(30), vm.Age);
-            Assert.True(Validation.GetHasError(textBox));
+            Assert.Equal(BindingCompleteState.Exception, failure.State);
+
+            textBox.Text = "7";
+            Assert.Equal(Positive<int>.Create(7), vm.Age);
         });
     }
 
     [Fact]
-    public void TwoWay_NonNumericInput_DoesNotMutateSourceAndRaisesValidationError()
+    public void TwoWay_NonNumericInput_DoesNotMutateSourceAndReportsBindingError()
     {
         StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Age = Positive<int>.Create(30) };
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.Age), vm));
+            var binding = TwoWay(nameof(vm.Age), vm);
+            var failure = new BindingFailureRecorder(binding);
+            textBox.DataBindings.Add(binding);
+            using var form = new HostedForm(textBox);
 
             textBox.Text = "abc";
 
             Assert.Equal(Positive<int>.Create(30), vm.Age);
-            Assert.True(Validation.GetHasError(textBox));
-        });
-    }
-
-    [Fact]
-    public void TwoWay_InvalidInput_RecoversOnNextValidInput()
-    {
-        StaThread.Run(() =>
-        {
-            var vm = new PersonViewModel { Age = Positive<int>.Create(30) };
-            var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.Age), vm));
-
-            textBox.Text = "0";
-            Assert.True(Validation.GetHasError(textBox));
-
-            textBox.Text = "42";
-
-            Assert.Equal(Positive<int>.Create(42), vm.Age);
-            Assert.False(Validation.GetHasError(textBox));
+            Assert.Equal(BindingCompleteState.Exception, failure.State);
         });
     }
 }
@@ -202,13 +215,14 @@ public class PositiveIntBindingTests
 public class DigitBindingTests
 {
     [Fact]
-    public void OneWay_DisplaysCurrentValue()
+    public void Hosted_DisplaysCurrentValue()
     {
         StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Tier = Digit.Create('7') };
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, OneWay(nameof(vm.Tier), vm));
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Tier), vm));
+            using var form = new HostedForm(textBox);
 
             Assert.Equal("7", textBox.Text);
         });
@@ -221,7 +235,8 @@ public class DigitBindingTests
         {
             var vm = new PersonViewModel { Tier = Digit.Create('7') };
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.Tier), vm));
+            textBox.DataBindings.Add(TwoWay(nameof(vm.Tier), vm));
+            using var form = new HostedForm(textBox);
 
             textBox.Text = "3";
 
@@ -230,18 +245,21 @@ public class DigitBindingTests
     }
 
     [Fact]
-    public void TwoWay_InvalidInput_DoesNotMutateSourceAndRaisesValidationError()
+    public void TwoWay_InvalidInput_DoesNotMutateSourceAndReportsBindingError()
     {
         StaThread.Run(() =>
         {
             var vm = new PersonViewModel { Tier = Digit.Create('7') };
             var textBox = new TextBox();
-            BindingOperations.SetBinding(textBox, TextBox.TextProperty, TwoWay(nameof(vm.Tier), vm));
+            var binding = TwoWay(nameof(vm.Tier), vm);
+            var failure = new BindingFailureRecorder(binding);
+            textBox.DataBindings.Add(binding);
+            using var form = new HostedForm(textBox);
 
             textBox.Text = "42";
 
             Assert.Equal(Digit.Create('7'), vm.Tier);
-            Assert.True(Validation.GetHasError(textBox));
+            Assert.Equal(BindingCompleteState.Exception, failure.State);
         });
     }
 }

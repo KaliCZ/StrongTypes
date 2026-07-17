@@ -283,6 +283,31 @@ there is no WPF package to install.
   representative types are enough — don't mirror the per-type API matrix
   here.
 
+## WinForms binding tests — `StrongTypes.WinForms.Tests`
+
+Proves two-way WinForms `Binding` works off the core package's
+`[TypeConverter]`s alone — the project references `StrongTypes` and
+nothing else, mirroring the WPF suite.
+
+- The project targets `net10.0-windows`. The Ubuntu `build` job compiles
+  it but skips it at `dotnet test`; the suite runs in the dedicated
+  `test-winforms` workflow on `windows-latest`.
+- Run every test body through `StaThread.Run(...)` — WinForms requires an
+  STA thread and xUnit workers are MTA.
+- Bindings stay dormant until their control lives on a created, **visible**
+  host — an unparented control, or a hidden `Form` with a force-created
+  handle, never activates them. Host controls via the `HostedForm` helper
+  (a `Form` shown off-screen); `Unhosted_BindingStaysDormant` pins the
+  requirement.
+- A binding's culture is `FormatInfo ?? CultureInfo.CurrentCulture` — the
+  **opposite default from WPF**, which ignores the host culture. Anything
+  culture-sensitive follows `CultureBindingTests`: explicit-`FormatInfo`
+  cases run under several host cultures asserting the host is ignored, and
+  the no-`FormatInfo` cases pin the host-culture default.
+- Binding resolves through `TypeDescriptor` and is type-agnostic, so
+  representative types are enough — don't mirror the per-type API matrix
+  here.
+
 ## Analyzer tests — `StrongTypes.Analyzers.Tests`
 
 For every diagnostic and code fix, write both a "reports the diagnostic"
