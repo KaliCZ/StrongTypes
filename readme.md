@@ -205,7 +205,7 @@ Nothing to install, nothing to call. WPF resolves `string → T` through `TypeDe
 
 …where `Name` is a view-model property of type `NonEmptyString`. `ValidatesOnExceptions=True` is the load-bearing piece: it turns the `ArgumentException` a strong type throws on invalid input into a `ValidationError`, driving WPF's standard red-border template. Without it the binding swallows the failure silently.
 
-The same `TypeDescriptor` mechanism backs WinForms and designers. MAUI and Avalonia aren't covered yet — see [issue #94](https://github.com/KaliCZ/StrongTypes/issues/94).
+The same `TypeDescriptor` mechanism backs WinForms — verified end-to-end by the `StrongTypes.WinForms.Tests` binding suite (there the culture default is `Binding.FormatInfo ?? CultureInfo.CurrentCulture`, and invalid input surfaces via `Binding.BindingComplete` instead of a validation error) — and designers. MAUI and Avalonia aren't covered yet — see [issue #94](https://github.com/KaliCZ/StrongTypes/issues/94).
 
 [↑ Back to contents](#contents)
 

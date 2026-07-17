@@ -65,14 +65,30 @@ and `""` reaches `Positive<int>.Parse`. This is long-standing behaviour, not a
 v2 change. If "cleared means null" matters, bind through a `string?` view-model
 property and convert in the view-model.
 
+## WinForms
+
+The same `TypeDescriptor` mechanism backs WinForms `Binding`, verified
+end-to-end: two-way binding, invalid-input rejection, and nullable
+properties all behave as in WPF with zero setup. Two WinForms-specific
+notes:
+
+- A binding only activates once its control lives on a **shown** form —
+  always true in a real app, but a unit test (or a control bound before
+  the form is shown) sees a silently dormant binding.
+- The binding culture is `FormatInfo ?? CultureInfo.CurrentCulture` — the
+  opposite default from WPF, which ignores the host culture. Set
+  `Binding.FormatInfo` explicitly when the input culture must not follow
+  the machine.
+- Invalid input surfaces through `Binding.BindingComplete` (state
+  `Exception`), not a WPF-style validation error — the source keeps its
+  last valid value either way.
+
 ## Other XAML/MVVM frameworks
 
-The same `TypeDescriptor` mechanism is used by WinForms and some other
-frameworks, and since the converters now live on the types themselves, nothing
-WPF-specific is required for them either. In practice this is documented and
-tested for WPF. If a user is on Avalonia, MAUI, or WinForms and hits a
-"binding silently fails" symptom, point them at issue
-[#94](https://github.com/KaliCZ/StrongTypes/issues/94).
+Since the converters live on the types themselves, nothing WPF-specific is
+required for other `TypeDescriptor`-based frameworks either. If a user is
+on Avalonia or MAUI and hits a "binding silently fails" symptom, point
+them at issue [#94](https://github.com/KaliCZ/StrongTypes/issues/94).
 
 ## Decision rule
 
