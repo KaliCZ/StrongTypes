@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using FsCheck.Xunit;
 using Xunit;
 
@@ -238,4 +239,24 @@ public class DigitTests
     [InlineData("42")]
     public void Parse_Invalid_Throws(string input) =>
         Assert.Throws<ArgumentException>(() => Digit.Parse(input, provider: null));
+
+    [Fact]
+    public void ConvertToInt32_MatchesTheUnderlyingValue() =>
+        Assert.Equal(7, Convert.ToInt32(Digit.Create('7')));
+
+    private sealed class RangeModel
+    {
+        [Range(0, 5)] public Digit? Value { get; set; }
+    }
+
+    [Theory]
+    [InlineData('0', true)]
+    [InlineData('5', true)]
+    [InlineData('6', false)]
+    [InlineData('9', false)]
+    public void RangeAttribute_ValidatesTheUnderlyingValue(char digit, bool expected)
+    {
+        var model = new RangeModel { Value = Digit.Create(digit) };
+        Assert.Equal(expected, Validator.TryValidateObject(model, new ValidationContext(model), null, validateAllProperties: true));
+    }
 }

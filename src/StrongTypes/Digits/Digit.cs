@@ -16,6 +16,7 @@ public readonly struct Digit :
     IComparable<byte>,
     IComparable<int>,
     IComparable,
+    IConvertible,
     IParsable<Digit>
 {
     private Digit(byte value)
@@ -154,6 +155,28 @@ public readonly struct Digit :
     public static bool operator >=(int left, Digit right) => right.CompareTo(left) <= 0;
 
     #endregion Comparison
+
+    #region IConvertible
+
+    TypeCode IConvertible.GetTypeCode() => TypeCode.Object;
+    string IConvertible.ToString(IFormatProvider? provider) => Value.ToString(provider);
+    object IConvertible.ToType(Type conversionType, IFormatProvider? provider) => ((IConvertible)Value).ToType(conversionType, provider);
+    bool IConvertible.ToBoolean(IFormatProvider? provider) => ((IConvertible)Value).ToBoolean(provider);
+    byte IConvertible.ToByte(IFormatProvider? provider) => Value;
+    char IConvertible.ToChar(IFormatProvider? provider) => ((IConvertible)Value).ToChar(provider);
+    DateTime IConvertible.ToDateTime(IFormatProvider? provider) => ((IConvertible)Value).ToDateTime(provider);
+    decimal IConvertible.ToDecimal(IFormatProvider? provider) => Value;
+    double IConvertible.ToDouble(IFormatProvider? provider) => Value;
+    short IConvertible.ToInt16(IFormatProvider? provider) => Value;
+    int IConvertible.ToInt32(IFormatProvider? provider) => Value;
+    long IConvertible.ToInt64(IFormatProvider? provider) => Value;
+    sbyte IConvertible.ToSByte(IFormatProvider? provider) => (sbyte)Value;
+    float IConvertible.ToSingle(IFormatProvider? provider) => Value;
+    ushort IConvertible.ToUInt16(IFormatProvider? provider) => Value;
+    uint IConvertible.ToUInt32(IFormatProvider? provider) => Value;
+    ulong IConvertible.ToUInt64(IFormatProvider? provider) => Value;
+
+    #endregion IConvertible
 
     [Pure]
     public override string ToString() => Value.ToString();

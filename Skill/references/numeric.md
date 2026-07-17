@@ -55,6 +55,9 @@ All four types have `AsX` / `ToX` extension methods available on any
   `string` or a `ReadOnlySpan<char>`, enforcing the invariant on the way in.
   This is also what lets ASP.NET Core bind a wrapper from `[FromQuery]` /
   `[FromRoute]` without any package.
+- `IConvertible` (explicit) — `Convert.ToInt32(...)` / `Convert.ChangeType(...)`
+  reach the underlying value, which is what makes plain DataAnnotations
+  `[Range(1, 100)]` work (see "Validation attributes" below).
 - `System.Text.Json` converter via `[JsonConverter]` — serialises as the
   underlying primitive.
 - `TypeConverter` via `[TypeConverter]` — binds from `appsettings.json` /
@@ -96,6 +99,31 @@ static string Render<T>(T v, string f) where T : IFormattable => v.ToString(f, n
 Read<Positive<int>>("42");
 Render(price, "C");
 ```
+
+## Validation attributes (DataAnnotations)
+
+The wrapper enforces its sign invariant itself — at JSON deserialization,
+parsing, and binding — so validation attributes are only for rules *beyond*
+the invariant. Those compose on a nullable property:
+
+```csharp
+public class CreateOrder
+{
+    [Required]                       // presence: null / missing fails validation
+    [Range(1, 100)]                  // narrowing: 150 is a valid Positive<int>, but not here
+    public Positive<int>? Quantity { get; set; }
+}
+```
+
+- `[Required]` works on any nullable wrapper property (it checks for null;
+  an invalid value like `0` never gets that far — the converter rejects it
+  during binding).
+- `[Range(min, max)]` reads the value through `IConvertible`, so the plain
+  numeric form works. The `[Range(typeof(Positive<int>), "1", "100")]`
+  overload works too and compares without unwrapping.
+- `[Required]` on a **non-nullable** wrapper never fires (a struct is never
+  null) — same as `int`. Make the property nullable when absence must be
+  an error.
 
 ## Arithmetic
 
