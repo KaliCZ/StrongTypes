@@ -10,9 +10,8 @@ namespace StrongTypes.WinForms.Tests;
 
 /// <summary>
 /// WinForms resolves a binding's culture as <c>FormatInfo ?? CultureInfo.CurrentCulture</c> —
-/// unlike WPF, the host culture governs by default. The <c>FormatInfo</c> cases run under every
-/// host culture in turn to prove an explicit culture makes the host irrelevant; the
-/// no-<c>FormatInfo</c> cases pin the host-culture default.
+/// unlike WPF, the host culture governs by default. The <c>FormatInfo</c> cases therefore run
+/// under every host culture in turn, asserting an explicit culture makes the host irrelevant.
 /// </summary>
 public class CultureBindingTests
 {

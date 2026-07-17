@@ -7,9 +7,8 @@ using System.Windows.Forms;
 namespace StrongTypes.WinForms.Tests;
 
 /// <summary>
-/// WinForms bindings stay dormant until their control lives on a created, visible host —
-/// an unparented control, or a hidden Form with a force-created handle, never activates
-/// them. Hosts controls on a Form shown off-screen so bindings run without a visible window.
+/// WinForms bindings stay dormant until their control sits on a shown form — parenting alone
+/// or a force-created handle is not enough — so this shows the host form off-screen.
 /// </summary>
 internal sealed class HostedForm : IDisposable
 {

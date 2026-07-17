@@ -22,7 +22,6 @@ public class NonEmptyStringBindingTests
         });
     }
 
-    /// <summary>Pins the activation requirement the whole suite relies on: no shown host, no binding.</summary>
     [Fact]
     public void Unhosted_BindingStaysDormant()
     {
