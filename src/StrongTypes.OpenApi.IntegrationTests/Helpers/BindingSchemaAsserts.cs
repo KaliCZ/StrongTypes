@@ -75,7 +75,8 @@ internal static class BindingSchemaAsserts
 
         if (schema.TryGetProperty("pattern", out _))
         {
-            AssertJsonEquals(schema, """{"pattern":"^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$","format":"double"}""");
+            AssertJsonEquals(schema,
+                """{"pattern":"^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$","anyOf":[{"type":"number"},{"type":"string"}],"format":"double"}""");
             return;
         }
 

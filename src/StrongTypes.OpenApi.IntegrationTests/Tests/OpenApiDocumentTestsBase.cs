@@ -22,7 +22,7 @@ public abstract partial class OpenApiDocumentTestsBase(HttpClient client) : IDis
     /// </summary>
     protected virtual bool IsEmailAddressFormatIgnored => false;
 
-    protected virtual bool IsPlainIntFormSchemaMissingType => true;
+    protected virtual bool AllowsStringInPlainIntFormSchema => true;
 
     private async Task<JsonElement> GetDocumentAsync()
     {

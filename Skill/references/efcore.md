@@ -1,5 +1,7 @@
 # EF Core — `Kalicz.StrongTypes.EfCore`
 
+Requires `Microsoft.EntityFrameworkCore.Relational` 10.0.15 or later within 10.x so the integration stays on .NET 10.
+
 One call in `AddDbContext`:
 
 ```csharp

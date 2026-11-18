@@ -32,8 +32,9 @@ CLR shape — `NonEmptyString` becomes an object with a `Value` field,
 `Positive<int>` a wrapper object, `Maybe<T>` the full union surface —
 and generated clients are unusable.
 
-The Swashbuckle package targets `Swashbuckle.AspNetCore` 10.x and the
-`Microsoft.OpenApi` 2.x types it pulls in.
+The adapters require `Microsoft.OpenApi` 2.13.0 or later within 2.x;
+the Microsoft adapter requires `Microsoft.AspNetCore.OpenApi` 10.0.15 or later within 10.x,
+and the Swashbuckle adapter requires `Swashbuckle.AspNetCore` 10.3.1 or later within 10.x.
 
 ## Wiring it up
 
@@ -69,7 +70,7 @@ app.UseSwaggerUI();
 | `Maybe<T>`                                                        | `{ "type": "object", "properties": { "Value": <T schema> } }`                   |
 | `FiniteInterval<T>` / `Interval<T>` / `IntervalFrom<T>` / `IntervalUntil<T>` | `{ "type": "object", "properties": { "Start": <T schema>, "End": <T schema>, "StartInclusive": bool, "EndInclusive": bool }, "required": ["Start", "End"] }` — a bounded endpoint is non-nullable, an unbounded one nullable; only the variant's bounded endpoints are required; the bound flags carry no schema default (which inclusivity an omitted flag implies is the applied converter's call) |
 | `IEnumerable<T>` where `T` is a strong-type wrapper               | `{ "type": "array", "items": <T schema> }` (no `minItems` — element schema only) |
-| `T?` (any nullable wrapper, e.g. `NonEmptyString?`)               | the wrapper's shape above plus its nullability — `nullable: true` (3.0) or `"null"` joined into `type` (3.1), so `NonEmptyString?` → `{ "type": "string", "minLength": 1, "nullable": true }` |
+| `T?` (any nullable wrapper, e.g. `NonEmptyString?`)               | the wrapper's shape plus nullability: OpenAPI 3.0 uses `nullable: true` on the schema or a union branch with `enum: [null]`; 3.1 uses a `"null"` type in the schema or a union branch |
 
 The `Maybe<T>` filter unwraps `Nullable<Maybe<T>>` internally — that
 matters because `Maybe<T>` implements `IEnumerable<T>`, so a
