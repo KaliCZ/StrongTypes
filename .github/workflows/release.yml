@@ -13,6 +13,7 @@ jobs:
     # branch in target_commitish. Only releases targeted at main publish.
     if: github.event.release.target_commitish == 'main'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     environment: Nuget.org
     permissions:
       contents: write
