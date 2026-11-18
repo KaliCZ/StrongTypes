@@ -25,11 +25,11 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
 
     private static readonly TimeSpan ContainerStartTimeout = TimeSpan.FromSeconds(45);
 
-    private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder()
+    private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04")
         .WithLabel(DockerGroupLabel, DockerGroupName)
         .Build();
 
-    private readonly PostgreSqlContainer _pgContainer = new PostgreSqlBuilder()
+    private readonly PostgreSqlContainer _pgContainer = new PostgreSqlBuilder("postgres:15.1")
         .WithLabel(DockerGroupLabel, DockerGroupName)
         .Build();
 
