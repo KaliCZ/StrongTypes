@@ -11,7 +11,7 @@
     <AssemblyName>StrongTypes.OpenApi.TestApi.Swashbuckle</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="11.0.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" />
