@@ -1,5 +1,7 @@
 # Configuration and options binding
 
+`Kalicz.StrongTypes.Configuration` requires `Microsoft.Extensions.Options.ConfigurationExtensions` 10.0.15 or later.
+
 Strong types bind from `IConfiguration` / `IOptions<T>` with **no setup** —
 every scalar wrapper carries a `TypeConverter`, which is what `ConfigurationBinder`
 uses to turn a config string into a typed value. Put the wrapper straight on

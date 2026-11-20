@@ -12,13 +12,16 @@ namespace StrongTypes.OpenApi.IntegrationTests.Helpers;
 internal static class NullableUnwrap
 {
     /// <summary>
-    /// True iff <paramref name="branch"/> is exactly the singleton <c>{ "nullable": true }</c> — a nullable schema
-    /// carrying its own constraints is not a null marker.
+    /// Matches only the OpenAPI 3.0 branch whose enum permits null and no other value.
     /// </summary>
     internal static bool IsNullBranch3_0(JsonElement branch) =>
-        branch.TryGetProperty("nullable", out var n)
-        && n.ValueKind == JsonValueKind.True
-        && branch.EnumerateObject().Count() == 1;
+        branch.TryGetProperty("nullable", out var nullable)
+        && nullable.ValueKind == JsonValueKind.True
+        && branch.TryGetProperty("enum", out var values)
+        && values.ValueKind == JsonValueKind.Array
+        && values.GetArrayLength() == 1
+        && values[0].ValueKind == JsonValueKind.Null
+        && branch.EnumerateObject().Count() == 2;
 
     /// <summary>True iff <paramref name="branch"/> is exactly the singleton <c>{ "type": "null" }</c>.</summary>
     internal static bool IsNullBranch3_1(JsonElement branch) =>
@@ -63,12 +66,9 @@ internal static class NullableUnwrap
             if (!schema.TryGetProperty(keyword, out var union) || union.ValueKind != JsonValueKind.Array) continue;
 
             var wire = UnwrapNullableUnion(schema, keyword, version);
-            if (version == OpenApiVersion.V3_0)
-                Assert.True(IsFlatNullable3_0(schema), $"3.0 union nullable must carry nullable:true: {schema.GetRawText()}");
-            else
-                Assert.True(
-                    union.EnumerateArray().Any(IsNullBranch3_1),
-                    $"3.1 union must carry a {{\"type\":\"null\"}} branch: {schema.GetRawText()}");
+            Assert.True(
+                union.EnumerateArray().Any(branch => IsNullBranch(branch, version)),
+                $"{version} union must carry a null-only branch: {schema.GetRawText()}");
             return wire;
         }
 

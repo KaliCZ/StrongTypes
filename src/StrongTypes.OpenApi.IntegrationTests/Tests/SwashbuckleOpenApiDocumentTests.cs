@@ -9,5 +9,5 @@ public sealed class SwashbuckleOpenApiDocumentTests(SwashbuckleTestApiFactory fa
 {
     protected override string DocumentUrl => "/swagger/v1/swagger.json";
     protected override OpenApiVersion Version => OpenApiVersion.V3_0;
-    protected override bool IsPlainIntFormSchemaMissingType => false;
+    protected override bool AllowsStringInPlainIntFormSchema => false;
 }

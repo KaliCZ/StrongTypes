@@ -16,7 +16,30 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "Microsoft.AspNetCore.*"
+        versions: ["[11.0.0,)"]
+      - dependency-name: "Microsoft.EntityFrameworkCore*"
+        versions: ["[11.0.0,)"]
+      - dependency-name: "Microsoft.Extensions.*"
+        versions: ["[11.0.0,)"]
+      - dependency-name: "Npgsql.EntityFrameworkCore.PostgreSQL"
+        versions: ["[11.0.0,)"]
     groups:
+      test-platform:
+        patterns:
+          - "FsCheck*"
+          - "xunit.*"
+          - "Microsoft.Testing.*"
+          - "Microsoft.CodeCoverage"
+      roslyn:
+        patterns:
+          - "Microsoft.CodeAnalysis.*"
       nuget:
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch

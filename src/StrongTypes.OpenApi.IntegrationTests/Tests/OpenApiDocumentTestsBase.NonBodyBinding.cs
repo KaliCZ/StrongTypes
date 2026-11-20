@@ -193,10 +193,12 @@ public abstract partial class OpenApiDocumentTestsBase
     public async Task FromForm_PlainInt_With_Range_Carries_Both_Bounds()
     {
         var formSchema = FormRequestSchema(await GetDocumentAsync(), "/binding-probe/form-annotated-plain");
-        AssertSchema(formSchema, "PlainCount", IsPlainIntFormSchemaMissingType
+        AssertSchema(formSchema, "PlainCount", AllowsStringInPlainIntFormSchema
             ? Version == OpenApiVersion.V3_1
                 ? """{"pattern":"^-?(?:0|[1-9]\\d*)$","type":["integer","string"],"format":"int32","minimum":5,"maximum":100}"""
-                : """{"pattern":"^-?(?:0|[1-9]\\d*)$","format":"int32","minimum":5,"maximum":100}"""
+                : """
+                  {"pattern":"^-?(?:0|[1-9]\\d*)$","anyOf":[{"type":"integer"},{"type":"string"}],"format":"int32","minimum":5,"maximum":100}
+                  """
             : """{"type":"integer","format":"int32","minimum":5,"maximum":100}""");
     }
 
@@ -218,10 +220,12 @@ public abstract partial class OpenApiDocumentTestsBase
         AssertSchema(formSchema, "Title", """{"type":"string","minLength":0,"maxLength":50}""");
         AssertSchema(formSchema, "Description", """{"type":"string","minLength":0,"maxLength":200}""");
         AssertSchema(formSchema, "IsActive", """{"type":"boolean"}""");
-        AssertSchema(formSchema, "Age", IsPlainIntFormSchemaMissingType
+        AssertSchema(formSchema, "Age", AllowsStringInPlainIntFormSchema
             ? Version == OpenApiVersion.V3_1
                 ? """{"pattern":"^-?(?:0|[1-9]\\d*)$","type":["integer","string"],"format":"int32","minimum":0,"maximum":150}"""
-                : """{"pattern":"^-?(?:0|[1-9]\\d*)$","format":"int32","minimum":0,"maximum":150}"""
+                : """
+                  {"pattern":"^-?(?:0|[1-9]\\d*)$","anyOf":[{"type":"integer"},{"type":"string"}],"format":"int32","minimum":0,"maximum":150}
+                  """
             : """{"type":"integer","format":"int32","minimum":0,"maximum":150}""");
     }
 
@@ -249,10 +253,12 @@ public abstract partial class OpenApiDocumentTestsBase
 
         AssertSchema(formSchema, "Title", """{"type":"string","minLength":0,"maxLength":100}""");
         AssertSchema(formSchema, "Code", """{"type":"string","minLength":1,"pattern":"^[A-Z]{3}$"}""");
-        AssertSchema(formSchema, "Quantity", IsPlainIntFormSchemaMissingType
+        AssertSchema(formSchema, "Quantity", AllowsStringInPlainIntFormSchema
             ? Version == OpenApiVersion.V3_1
                 ? """{"pattern":"^-?(?:0|[1-9]\\d*)$","type":["integer","string"],"format":"int32","minimum":1,"maximum":1000}"""
-                : """{"pattern":"^-?(?:0|[1-9]\\d*)$","format":"int32","minimum":1,"maximum":1000}"""
+                : """
+                  {"pattern":"^-?(?:0|[1-9]\\d*)$","anyOf":[{"type":"integer"},{"type":"string"}],"format":"int32","minimum":1,"maximum":1000}
+                  """
             : """{"type":"integer","format":"int32","minimum":1,"maximum":1000}""");
         AssertSchema(formSchema, "Stock", """{"type":"integer","format":"int32","minimum":1,"maximum":100}""");
         AssertFormPropertyEmailSchema(formSchema, "ContactEmail");
