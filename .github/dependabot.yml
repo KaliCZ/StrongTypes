@@ -27,6 +27,11 @@ updates:
         versions: ["[11.0.0,)"]
       - dependency-name: "Npgsql.EntityFrameworkCore.PostgreSQL"
         versions: ["[11.0.0,)"]
+      # ASP.NET Core 10 requires OpenAPI.NET 2.x; Swashbuckle 11 requires 3.x.
+      - dependency-name: "Microsoft.OpenApi"
+        versions: ["[3.0.0,)"]
+      - dependency-name: "Swashbuckle.AspNetCore*"
+        versions: ["[11.0.0,)"]
     groups:
       test-platform:
         patterns:
