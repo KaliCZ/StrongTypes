@@ -37,7 +37,7 @@ jobs:
       run: dotnet build src/StrongTypes.Wpf.Tests/StrongTypes.Wpf.Tests.csproj --configuration ${{ env.config }} --no-restore
 
     - name: Test
-      run: dotnet test src/StrongTypes.Wpf.Tests/StrongTypes.Wpf.Tests.csproj --no-restore --no-build --configuration ${{ env.config }}
+      run: dotnet test --project src/StrongTypes.Wpf.Tests/StrongTypes.Wpf.Tests.csproj --no-restore --no-build --configuration ${{ env.config }}
 
     - name: Upload test logs
       if: always()
@@ -45,6 +45,6 @@ jobs:
       with:
         name: wpf-test-logs
         path: |
-          src/StrongTypes.Wpf.Tests/**/TestResults/**/*.log
-          src/StrongTypes.Wpf.Tests/**/TestResults/**/*.trx
+          TestResults/**/*.log
+          TestResults/**/*.trx
         retention-days: 5

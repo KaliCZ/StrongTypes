@@ -5,6 +5,10 @@ repo. [`CLAUDE.md`](CLAUDE.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md)
 both point here — anything testing-related lives in this file so it
 can't drift out of sync.
 
+Run `dotnet test` from the repository root, or select one project with
+`dotnet test --project src/StrongTypes.Tests/StrongTypes.Tests.csproj`;
+[`global.json`](global.json) selects the Microsoft Testing Platform runner required by the test packages.
+
 **Every new type must ship with tests.** Which test projects a change
 needs to touch depends on what the type does:
 

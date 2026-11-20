@@ -37,7 +37,7 @@ jobs:
       run: dotnet build src/StrongTypes.WinForms.Tests/StrongTypes.WinForms.Tests.csproj --configuration ${{ env.config }} --no-restore
 
     - name: Test
-      run: dotnet test src/StrongTypes.WinForms.Tests/StrongTypes.WinForms.Tests.csproj --no-restore --no-build --configuration ${{ env.config }}
+      run: dotnet test --project src/StrongTypes.WinForms.Tests/StrongTypes.WinForms.Tests.csproj --no-restore --no-build --configuration ${{ env.config }}
 
     - name: Upload test logs
       if: always()
@@ -45,6 +45,6 @@ jobs:
       with:
         name: winforms-test-logs
         path: |
-          src/StrongTypes.WinForms.Tests/**/TestResults/**/*.log
-          src/StrongTypes.WinForms.Tests/**/TestResults/**/*.trx
+          TestResults/**/*.log
+          TestResults/**/*.trx
         retention-days: 5
