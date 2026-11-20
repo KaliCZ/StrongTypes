@@ -11,3 +11,4 @@ src/.idea
 .idea/
 .claude/
 BenchmarkDotNet.Artifacts/
+TestResults/

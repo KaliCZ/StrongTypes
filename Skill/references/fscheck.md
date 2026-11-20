@@ -1,6 +1,6 @@
 # FsCheck — `Kalicz.StrongTypes.FsCheck`
 
-Requires FsCheck 3.3.4 or later within 3.x; use `FsCheck.Xunit.v3` 3.3.4 with xUnit 3 because later releases require xUnit 4.
+Requires FsCheck 3.6.0 or later within 3.x; use `FsCheck.Xunit.v3` 3.6.0 with `xunit.v3` 4.x.
 
 ## When to reach for property tests
 
